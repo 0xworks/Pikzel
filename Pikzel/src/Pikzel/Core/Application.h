@@ -50,6 +50,8 @@ protected:
    double m_AppTime = 0.0;
    double m_MouseX = 0.0;
    double m_MouseY = 0.0;
+
+   bool m_Running = false;
    bool m_LeftMouseDown = false;
 
 };

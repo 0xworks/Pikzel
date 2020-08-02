@@ -47,15 +47,19 @@ Application::~Application() {
 
 void Application::Run() {
    glfwSetTime(m_AppTime);
-   while (!glfwWindowShouldClose(m_Window)) {
-      glfwPollEvents();
-      //
-      // TODO: do nothing if window is minimized
+   m_Running = true;
+   while (!glfwWindowShouldClose(m_Window) && m_Running) {
       PKZL_PROFILE_FRAMEMARKER();
+
+      glfwPollEvents();
+
+      // TODO: do nothing if window is minimized
       double currentTime = glfwGetTime();
       Update(currentTime - m_AppTime);
-      Render();
       m_AppTime = currentTime;
+
+      Render();
+      glfwSwapBuffers(m_Window);
    }
 }
 
@@ -94,7 +98,7 @@ void Application::Init() {
 
 
 void Application::CreateWindow() {
-   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+   //glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
    glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
 
    const auto monitor = m_Settings.IsFullScreen ? glfwGetPrimaryMonitor() : nullptr;
