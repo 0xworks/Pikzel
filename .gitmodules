@@ -1,0 +1,21 @@
+[submodule "Pikzel/vendor/entt"]
+	path = Pikzel/vendor/entt
+	url = https://github.com/skypjack/entt.git
+[submodule "Pikzel/vendor/imgui"]
+	path = Pikzel/vendor/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "Pikzel/vendor/glfw"]
+	path = Pikzel/vendor/glfw
+	url = https://github.com/glfw/glfw
+[submodule "Pikzel/vendor/glm"]
+	path = Pikzel/vendor/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "Pikzel/vendor/spdlog"]
+	path = Pikzel/vendor/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "Pikzel/vendor/tracy"]
+	path = Pikzel/vendor/tracy
+	url = https://github.com/wolfpld/tracy.git
+[submodule "vendor/cmake-precompiled-header"]
+	path = vendor/cmake-precompiled-header
+	url = https://github.com/larsch/cmake-precompiled-header.git

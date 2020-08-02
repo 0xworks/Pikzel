@@ -1,0 +1,4 @@
+﻿# Ignore Visual Studio user settings folder
+/.vs
+/out
+CMakeSettings.json
