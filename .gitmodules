@@ -1,9 +1,6 @@
 [submodule "Pikzel/vendor/entt"]
 	path = Pikzel/vendor/entt
 	url = https://github.com/skypjack/entt.git
-[submodule "Pikzel/vendor/imgui"]
-	path = Pikzel/vendor/imgui
-	url = https://github.com/ocornut/imgui.git
 [submodule "Pikzel/vendor/glfw"]
 	path = Pikzel/vendor/glfw
 	url = https://github.com/glfw/glfw
@@ -19,3 +16,6 @@
 [submodule "vendor/cmake-precompiled-header"]
 	path = vendor/cmake-precompiled-header
 	url = https://github.com/larsch/cmake-precompiled-header.git
+[submodule "Pikzelated/vendor/imgui"]
+	path = Pikzelated/vendor/imgui
+	url = https://github.com/ocornut/imgui.git
