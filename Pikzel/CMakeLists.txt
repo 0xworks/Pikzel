@@ -21,7 +21,6 @@ set(
    "vendor/glad/include"
    "vendor/glfw/include"
    "vendor/entt/src"
-   "vendor/imgui"
    "vendor/spdlog/include"
    "vendor/tracy"
 )
@@ -31,7 +30,6 @@ set(
    "glad"
    "glfw"
 #   "glm"
-   "imgui"
 )
 
 add_library(${PROJECT_NAME} STATIC ${ProjectSources})
@@ -91,25 +89,5 @@ target_include_directories(
    "vendor/glad/include"
 )
 
-
-# IMGui Library
-# Source files per vendor/imgui/examples/example_glfw_opengl3
-# Depends on an OpenGl Loader.
-# We are using glad, this is autodetected via putting glad in the include path below
-add_library(
-   "imgui" STATIC
-   "vendor/imgui/imgui.cpp"
-   "vendor/imgui/imgui_draw.cpp"
-   "vendor/imgui/imgui_widgets.cpp"
-   "vendor/imgui/examples/imgui_impl_glfw.cpp"
-   "vendor/imgui/examples/imgui_impl_opengl3.cpp"
-)
-
-target_include_directories(
-   "imgui" PRIVATE
-   "vendor/glad/include"
-   "vendor/glfw/include"
-   "vendor/imgui"
-)
 
 add_subdirectory("vendor/glfw")

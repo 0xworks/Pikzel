@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Core.h"
-
 #include "spdlog/spdlog.h"
 
 // On Windows, spdlog.h brings in Windows.h, which in turn defines some things which clash with our code.
