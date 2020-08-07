@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 
-include("../CmakeMacros.txt")
+include("../CMakeMacros.txt")
 
 project ("Pikzelated" VERSION 0.1 DESCRIPTION "Pikzelated Demo App")
 
@@ -12,14 +12,11 @@ set(
 
 set(
    ProjectIncludes
-   "src"
-   "vendor/imgui"
 )
 
 set(
    ProjectLibs
    "Pikzel"
-   "imgui"
 )
 
 set(
@@ -66,29 +63,4 @@ target_link_libraries(
 target_sources(
    ${PROJECT_NAME} PRIVATE
    ${CopiedFiles}
-)
-
-
-# IMGui Library
-# Source files per vendor/imgui/examples/example_glfw_opengl3
-# Depends on an OpenGl Loader.
-# We are using glad, this is autodetected via putting glad in the include path below
-add_library(
-   "imgui" STATIC
-   "vendor/imgui/imgui.cpp"
-   "vendor/imgui/imgui_draw.cpp"
-   "vendor/imgui/imgui_widgets.cpp"
-   "vendor/imgui/examples/imgui_impl_glfw.cpp"
-   "vendor/imgui/examples/imgui_impl_opengl3.cpp"
-)
-
-target_include_directories(
-   "imgui" PRIVATE
-   "vendor/imgui"
-)
-
-# This is needed because Pikzel provides the OpenGL loader (glad) for ImGUI
-target_link_libraries(
-   "imgui" PRIVATE
-   "Pikzel"
 )
