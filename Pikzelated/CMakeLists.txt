@@ -1,10 +1,11 @@
 cmake_minimum_required (VERSION 3.10)
 
-include("../CMakeMacros.txt")
+project (
+   "Pikzelated"
+   VERSION 0.1
+   DESCRIPTION "Pikzelated Demo App"
+)
 
-project ("Pikzelated" VERSION 0.1 DESCRIPTION "Pikzelated Demo App")
-
-# Pikzelated Application
 set(
    ProjectSources
    "src/Pikzelated.cpp"
@@ -43,6 +44,12 @@ set_target_properties(
    ${PROJECT_NAME} PROPERTIES
    VERSION ${PROJECT_VERSION}
    CXX_STANDARD 20
+)
+
+target_compile_definitions(
+   ${PROJECT_NAME} PRIVATE
+   APP_VERSION="${PROJECT_VERSION}"
+   APP_DESCRIPTION="${PROJECT_DESCRIPTION}"
 )
 
 target_include_directories(
