@@ -12,15 +12,24 @@ set(
    "src/Pikzel/Core/main.cpp"
    "src/Pikzel/Core/Log.h"
    "src/Pikzel/Core/Log.cpp"
-    "vendor/tracy/TracyClient.cpp"
+   "src/Pikzel/Core/Window.h"
+   "src/Pikzel/Events/Events.h"
+   "src/Pikzel/Events/KeyEvents.h"
+   "src/Pikzel/Events/MouseEvents.h"
+   "src/Pikzel/Events/WindowEvents.h"
+   "src/Platform/Windows/WindowsWindow.h"
+   "src/Platform/Windows/WindowsWindow.cpp"
+   "vendor/tracy/TracyClient.cpp"
 )
 
 set(
    ProjectIncludes
    "src"
+   "vendor/entt/src"
    "vendor/glad/include"
    "vendor/glfw/include"
-   "vendor/entt/src"
+   "vendor/glm"
+   "vendor/imgui"
    "vendor/spdlog/include"
    "vendor/tracy"
 )
@@ -29,7 +38,8 @@ set(
    ProjectLibs
    "glad"
    "glfw"
-#   "glm"
+   "glm"
+   "imgui"
 )
 
 add_library(${PROJECT_NAME} STATIC ${ProjectSources})
@@ -71,6 +81,9 @@ set_source_files_properties(
 )
 
 
+# TODO: We only need GLAD if using OpenGL...
+#       So deal with this with some sort of "platform" option somehow.
+
 # GLAD library
 # Source files generated from https://glad.dav1d.de/
 #   Language: C/C++
@@ -90,4 +103,37 @@ target_include_directories(
 )
 
 
+#
+# TODO: The "examples" source files here are providing the "backend"
+#       for imgui.  These are dependent on the rendering API used
+#       and should not be in the ImGui library.
+#       Instead, put them into some sort of "platform" dependent
+#       library
+
+# IMGui Library
+# Source files per vendor/imgui/examples/example_glfw_opengl3
+# Depends on an OpenGl Loader.
+# We are using glad, this is autodetected via putting glad in the include path below
+add_library(
+   "imgui" STATIC
+   "vendor/imgui/imgui.cpp"
+   "vendor/imgui/imgui_draw.cpp"
+   "vendor/imgui/imgui_widgets.cpp"
+   "vendor/imgui/examples/imgui_impl_glfw.cpp"
+   "vendor/imgui/examples/imgui_impl_opengl3.cpp"
+)
+
+target_include_directories(
+   "imgui" PRIVATE
+   "vendor/imgui"
+)
+
+# This is needed because Pikzel provides the OpenGL loader (glad) for ImGUI
+target_link_libraries(
+   "imgui" PRIVATE
+   "Pikzel"
+)
+
+
 add_subdirectory("vendor/glfw")
+add_subdirectory("vendor/glm")

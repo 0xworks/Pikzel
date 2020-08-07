@@ -16,6 +16,6 @@
 [submodule "vendor/cmake-precompiled-header"]
 	path = vendor/cmake-precompiled-header
 	url = https://github.com/larsch/cmake-precompiled-header.git
-[submodule "Pikzelated/vendor/imgui"]
-	path = Pikzelated/vendor/imgui
+[submodule "Pikzel/vendor/imgui"]
+	path = Pikzel/vendor/imgui
 	url = https://github.com/ocornut/imgui.git

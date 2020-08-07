@@ -1,7 +1,9 @@
 #include "Pikzel/Core/Application.h"
+#include "Pikzel/Core/Window.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <examples/imgui_impl_glfw.h>
@@ -10,20 +12,9 @@
 class Pikzelated : public Pikzel::Application {
 public:
    Pikzelated() {
-   }
-
-
-   ~Pikzelated() {
       PKZL_PROFILE_FUNCTION();
-      ImGui_ImplOpenGL3_Shutdown();
-      ImGui_ImplGlfw_Shutdown();
-      ImGui::DestroyContext();
-   }
 
-
-   virtual void Init() override {
-      PKZL_PROFILE_FUNCTION();
-      Application::Init();
+      m_Window = Pikzel::Window::Create();
 
       IMGUI_CHECKVERSION();
       ImGui::CreateContext();
@@ -41,11 +32,11 @@ public:
          style.Colors[ImGuiCol_WindowBg].w = 1.0f;
       }
 
-      glfwMakeContextCurrent(m_Window);
+      glfwMakeContextCurrent((GLFWwindow*)m_Window->GetNativeWindow());
       int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-      CORE_ASSERT(status, "Failed to initialize Glad!");
+      PKZL_CORE_ASSERT(status, "Failed to initialize Glad!");
 
-      ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
+      ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)m_Window->GetNativeWindow(), true);
       ImGui_ImplOpenGL3_Init();
 
       ImGui::LoadIniSettingsFromDisk(io.IniFilename);
@@ -55,7 +46,17 @@ public:
    }
 
 
-   virtual void Update(double deltaTime) override {
+   ~Pikzelated() {
+      PKZL_PROFILE_FUNCTION();
+
+      // TODO: move somewhere else
+      ImGui_ImplOpenGL3_Shutdown();
+      ImGui_ImplGlfw_Shutdown();
+      ImGui::DestroyContext();
+   }
+
+
+   virtual void Update(Pikzel::DeltaTime deltaTime) override {
       // TODO
    }
 
@@ -131,7 +132,10 @@ public:
             // Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused || !m_ViewportHovered);
 
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-            // m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
+            m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
+
+            // what the heck is this?
+            // Need to figure out what "framebuffer" is here - Its an OpenGL framebuffer
 
             // uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
             // ImGui::Image((void*)textureID, ImVec2 {m_ViewportSize.x, m_ViewportSize.y}, ImVec2 {0, 1}, ImVec2 {1, 0});
@@ -140,8 +144,8 @@ public:
 
          ImGui::End();
       }
- 
       ImGui::PopStyleVar(3);
+      io.DisplaySize = ImVec2((float)m_ViewportSize.x, (float)m_ViewportSize.y);
 
       ImGui::Render();
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -152,12 +156,20 @@ public:
          ImGui::RenderPlatformWindowsDefault();
          glfwMakeContextCurrent(currentContext);
       }
+
+      glfwPollEvents();
+      glfwSwapBuffers((GLFWwindow*)m_Window->GetNativeWindow());
    }
+
+
+private:
+   glm::vec2 m_ViewportSize = {};
+   std::unique_ptr<Pikzel::Window> m_Window;
 
 };
 
 
-std::unique_ptr<Pikzelated::Application> CreateApplication(int argc, const char* argv[]) {
+std::unique_ptr<Pikzelated::Application> Pikzel::CreateApplication(int argc, const char* argv[]) {
    PKZL_PROFILE_FUNCTION();
    return std::make_unique<Pikzelated>();
 }

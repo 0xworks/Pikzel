@@ -29,9 +29,9 @@
 #include "Instrumentor.h"
 
 #ifdef PKZL_ENABLE_ASSERTS
-#define CORE_ASSERT(x, ...) { if(!(x)) { CORE_LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }
-#define ASSERT(x, ...) { if(!(x)) { LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }
+#define PKZL_CORE_ASSERT(x, ...) { if(!(x)) { PKZL_CORE_LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }
+#define PKZL_ASSERT(x, ...) { if(!(x)) { PKZL_LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }
 #else
-#define CORE_ASSERT(x, ...)
-#define ASSERT(x, ...)
+#define PKZL_CORE_ASSERT(x, ...)
+#define PKZL_ASSERT(x, ...)
 #endif
