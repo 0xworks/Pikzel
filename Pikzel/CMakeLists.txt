@@ -1,6 +1,10 @@
 ﻿cmake_minimum_required(VERSION 3.10)
 
-project ("Pikzel" VERSION 0.1 DESCRIPTION "Pikzel Interactive App Engine Library")
+project (
+   "Pikzel"
+   VERSION 0.1
+   DESCRIPTION "Pikzel Engine"
+)
 
 set(
    ProjectSources
@@ -51,6 +55,8 @@ set_target_properties(
 
 target_compile_definitions(
    ${PROJECT_NAME} PUBLIC
+   PKZL_VERSION="${PROJECT_VERSION}"
+   PKZL_DESCRIPTION="${PROJECT_DESCRIPTION}"
    "$<$<CONFIG:DEBUG>:PKZL_DEBUG>"
 )
 

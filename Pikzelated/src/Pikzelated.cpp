@@ -171,5 +171,7 @@ private:
 
 std::unique_ptr<Pikzelated::Application> Pikzel::CreateApplication(int argc, const char* argv[]) {
    PKZL_PROFILE_FUNCTION();
+   PKZL_CORE_LOG_INFO(APP_DESCRIPTION);
+   PKZL_CORE_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
    return std::make_unique<Pikzelated>();
 }
