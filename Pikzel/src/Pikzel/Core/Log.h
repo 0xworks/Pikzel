@@ -10,18 +10,18 @@
 
 namespace Pikzel {
 
-class Log {
-public:
+   class Log {
+   public:
 
-   static void Init();
+      static void Init();
 
-   static spdlog::logger& GetCoreLogger();
-   static spdlog::logger& GetAppLogger();
+      static spdlog::logger& GetCoreLogger();
+      static spdlog::logger& GetAppLogger();
 
-private:
-   static std::shared_ptr<spdlog::logger> s_loggerCore;
-   static std::shared_ptr<spdlog::logger> s_loggerApp;
-};
+   private:
+      static std::shared_ptr<spdlog::logger> s_loggerCore;
+      static std::shared_ptr<spdlog::logger> s_loggerApp;
+   };
 
 }
 

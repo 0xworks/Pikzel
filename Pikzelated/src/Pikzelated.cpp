@@ -49,7 +49,7 @@ public:
 
    virtual void Render() override {
       static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-      static ImGuiWindowFlags dockspace_window_flags = 
+      static ImGuiWindowFlags dockspace_window_flags =
          ImGuiWindowFlags_MenuBar |
          ImGuiWindowFlags_NoDocking |
          ImGuiWindowFlags_NoTitleBar |
@@ -58,13 +58,13 @@ public:
          ImGuiWindowFlags_NoMove |
          ImGuiWindowFlags_NoBringToFrontOnFocus |
          ImGuiWindowFlags_NoNavFocus
-      ;
+         ;
 
       static ImGuiWindowFlags viewport_window_flags = ImGuiWindowFlags_None;
-//         ImGuiWindowFlags_NoDocking |
-//         ImGuiWindowFlags_NoMove |
-//         ImGuiWindowFlags_NoResize
-//      ;
+      //         ImGuiWindowFlags_NoDocking |
+      //         ImGuiWindowFlags_NoMove |
+      //         ImGuiWindowFlags_NoResize
+      //      ;
 
       PKZL_PROFILE_FUNCTION();
 
