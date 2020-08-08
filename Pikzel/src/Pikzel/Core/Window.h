@@ -20,16 +20,15 @@ namespace Pikzel {
    public:
       virtual ~Window() = default;
 
-      virtual void OnUpdate() = 0;
+      virtual void* GetNativeWindow() const = 0;
 
       virtual uint32_t GetWidth() const = 0;
       virtual uint32_t GetHeight() const = 0;
 
-      // Window attributes
       virtual void SetVSync(bool enabled) = 0;
       virtual bool IsVSync() const = 0;
 
-      virtual void* GetNativeWindow() const = 0;
+      virtual void Update() = 0;
 
    public:
       static std::unique_ptr<Window> Create(const WindowSettings& settings = WindowSettings());

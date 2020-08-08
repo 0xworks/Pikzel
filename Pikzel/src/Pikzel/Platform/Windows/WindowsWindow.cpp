@@ -5,44 +5,36 @@
 #include "Pikzel/Events/KeyEvents.h"
 #include "Pikzel/Events/MouseEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
-
-//#include "Platform/OpenGL/OpenGLContext.h"
+#include "Pikzel/Renderer/GraphicsContext.h"
+#include "Pikzel/Renderer/Renderer.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 namespace Pikzel {
 
-static bool s_GLFWInitialized = false;
-
-
-static void GLFWErrorCallback(int error, const char* description) {
-   PKZL_CORE_LOG_ERROR("GLFW Error ({0}): {1}", error, description);
-}
-
-
 void GLFWWindowSizeCallback(GLFWwindow* window, int width, int height) {
-   EventDispatcher::Send<WindowResizeEvent>(width, height);
+   EventDispatcher::Send<WindowResizeEvent>(window, width, height);
 };
 
 
 void GLFWWindowCloseCallback(GLFWwindow* window) {
-   EventDispatcher::Send<WindowCloseEvent>();
+   EventDispatcher::Send<WindowCloseEvent>(window);
 };
 
 
 void GLFWKeyCallback(GLFWwindow* window, const int key, const int scancode, const int action, const int mods) {
    switch (action) {
       case GLFW_PRESS: {
-         EventDispatcher::Send<KeyPressedEvent>(key, 0);
+         EventDispatcher::Send<KeyPressedEvent>(window, key, 0);
          break;
       }
       case GLFW_RELEASE: {
-         EventDispatcher::Send<KeyReleasedEvent>(key);
+         EventDispatcher::Send<KeyReleasedEvent>(window, key);
          break;
       }
       case GLFW_REPEAT: {
-         EventDispatcher::Send<KeyPressedEvent>(key, 1);
+         EventDispatcher::Send<KeyPressedEvent>(window, key, 1);
          break;
       }
    }
@@ -50,23 +42,23 @@ void GLFWKeyCallback(GLFWwindow* window, const int key, const int scancode, cons
 
 
 void GLFWCharCallback(GLFWwindow* window, unsigned int keycode) {
-   EventDispatcher::Send<KeyTypedEvent>((int)keycode);
+   EventDispatcher::Send<KeyTypedEvent>(window, (int)keycode);
 }
 
 
 void GLFWCursorPosCallback(GLFWwindow* window, const double xpos, const double ypos) {
-   EventDispatcher::Send<MouseMovedEvent>((float)xpos, (float)ypos);
+   EventDispatcher::Send<MouseMovedEvent>(window, (float)xpos, (float)ypos);
 }
 
 
 void GLFWMouseButtonCallback(GLFWwindow* window, const int button, const int action, const int mods) {
    switch (action) {
       case GLFW_PRESS: {
-         EventDispatcher::Send<MouseButtonPressedEvent>(button);
+         EventDispatcher::Send<MouseButtonPressedEvent>(window, button);
          break;
       }
       case GLFW_RELEASE: {
-         EventDispatcher::Send<MouseButtonReleasedEvent>(button);
+         EventDispatcher::Send<MouseButtonReleasedEvent>(window, button);
          break;
       }
    }
@@ -74,7 +66,7 @@ void GLFWMouseButtonCallback(GLFWwindow* window, const int button, const int act
 
 
 void GLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-   EventDispatcher::Send<MouseScrolledEvent>((float)xoffset, (float)yoffset);
+   EventDispatcher::Send<MouseScrolledEvent>(window, (float)xoffset, (float)yoffset);
 };
 
 
@@ -86,17 +78,10 @@ std::unique_ptr<Window> Window::Create(const WindowSettings& settings) {
 WindowsWindow::WindowsWindow(const WindowSettings& settings) {
    m_Settings = settings;
 
-   PKZL_CORE_LOG_INFO("Creating window {0} ({1}, {2})", m_Settings.Title, m_Settings.Width, m_Settings.Height);
+   PKZL_CORE_LOG_INFO("Platform Windows:");
+   PKZL_CORE_LOG_INFO("  Title: {0}", m_Settings.Title);
+   PKZL_CORE_LOG_INFO("  Size: ({0}, {1})", m_Settings.Width, m_Settings.Height);
 
-   if (!s_GLFWInitialized) {
-      // TODO: glfwTerminate on system shutdown
-      int success = glfwInit();
-      PKZL_CORE_ASSERT(success, "Could not intialize GLFW!");
-      glfwSetErrorCallback(GLFWErrorCallback);
-      s_GLFWInitialized = true;
-   }
-
-   //glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
    glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
 
    const auto monitor = m_Settings.IsFullScreen ? glfwGetPrimaryMonitor() : nullptr;
@@ -106,11 +91,9 @@ WindowsWindow::WindowsWindow(const WindowSettings& settings) {
       throw std::runtime_error("failed to create window");
    }
 
-   //m_Context = std::make_unique<OpenGLContext>(m_Window);
+   m_Context = Renderer::CreateGraphicsContext(*this);
 
    SetVSync(true);
-
-   glfwSetWindowUserPointer(m_Window, this);
 
    glfwSetWindowSizeCallback(m_Window, GLFWWindowSizeCallback);
    glfwSetWindowCloseCallback(m_Window, GLFWWindowCloseCallback);
@@ -127,9 +110,8 @@ WindowsWindow::~WindowsWindow() {
 }
 
 
-void WindowsWindow::OnUpdate() {
-   glfwPollEvents();
-   //m_Context->SwapBuffers();
+void* WindowsWindow::GetNativeWindow() const {
+   return m_Window;
 }
 
 
@@ -157,9 +139,9 @@ bool WindowsWindow::IsVSync() const {
    return m_VSync;
 }
 
-
-void* WindowsWindow::GetNativeWindow() const {
-   return m_Window;
+void WindowsWindow::Update() {
+   glfwPollEvents();
+   m_Context->SwapBuffers();
 }
 
 }
