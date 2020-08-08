@@ -1,6 +1,12 @@
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/Window.h"
+#include "Pikzel/Events/EventDispatcher.h"
+#include "Pikzel/Events/KeyEvents.h"
+#include "Pikzel/Events/MouseEvents.h"
+#include "Pikzel/Events/WindowEvents.h"
 
+
+// TODO: get rid of these...
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -14,7 +20,8 @@ public:
    Pikzelated() {
       PKZL_PROFILE_FUNCTION();
 
-      m_Window = Pikzel::Window::Create();
+      m_Window = Pikzel::Window::Create({APP_DESCRIPTION});
+      Pikzel::EventDispatcher::Connect<Pikzel::WindowCloseEvent, &Pikzelated::OnWindowClose>(*this);
 
       IMGUI_CHECKVERSION();
       ImGui::CreateContext();
@@ -159,6 +166,12 @@ public:
 
       glfwPollEvents();
       glfwSwapBuffers((GLFWwindow*)m_Window->GetNativeWindow());
+   }
+
+
+private:
+   void OnWindowClose(const Pikzel::WindowCloseEvent& event) {
+      m_Running = false;
    }
 
 

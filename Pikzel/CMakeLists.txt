@@ -17,13 +17,32 @@ set(
    "src/Pikzel/Core/Log.h"
    "src/Pikzel/Core/Log.cpp"
    "src/Pikzel/Core/Window.h"
-   "src/Pikzel/Events/Events.h"
+   "src/Pikzel/Events/EventDispatcher.h"
+   "src/Pikzel/Events/EventDispatcher.cpp"
    "src/Pikzel/Events/KeyEvents.h"
    "src/Pikzel/Events/MouseEvents.h"
    "src/Pikzel/Events/WindowEvents.h"
-   "src/Platform/Windows/WindowsWindow.h"
-   "src/Platform/Windows/WindowsWindow.cpp"
    "vendor/tracy/TracyClient.cpp"
+)
+
+if(WIN32)
+   list(
+      APPEND ProjectSources
+      "src/Platform/Windows/WindowsWindow.cpp"
+   )
+endif()
+
+# TODO: how shall we control which render backend is used?
+# OpenGL
+list(
+   APPEND ProjectSources
+   # stuff here
+)
+
+# Vulkan
+list(
+   APPEND ProjectSources
+   # vulkan renderer backend stuff here
 )
 
 set(
