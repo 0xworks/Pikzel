@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "WindowsWindow.h"
 
-#include "Pikzel/Events/Events.h"
+#include "Pikzel/Events/EventDispatcher.h"
 #include "Pikzel/Events/KeyEvents.h"
 #include "Pikzel/Events/MouseEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
@@ -22,27 +22,27 @@ static void GLFWErrorCallback(int error, const char* description) {
 
 
 void GLFWWindowSizeCallback(GLFWwindow* window, int width, int height) {
-   Events::SendEvent<WindowResizeEvent>(width, height);
+   EventDispatcher::Send<WindowResizeEvent>(width, height);
 };
 
 
 void GLFWWindowCloseCallback(GLFWwindow* window) {
-   Events::SendEvent<WindowCloseEvent>();
+   EventDispatcher::Send<WindowCloseEvent>();
 };
 
 
 void GLFWKeyCallback(GLFWwindow* window, const int key, const int scancode, const int action, const int mods) {
    switch (action) {
       case GLFW_PRESS: {
-         Events::SendEvent<KeyPressedEvent>(key, 0);
+         EventDispatcher::Send<KeyPressedEvent>(key, 0);
          break;
       }
       case GLFW_RELEASE: {
-         Events::SendEvent<KeyReleasedEvent>(key);
+         EventDispatcher::Send<KeyReleasedEvent>(key);
          break;
       }
       case GLFW_REPEAT: {
-         Events::SendEvent<KeyPressedEvent>(key, 1);
+         EventDispatcher::Send<KeyPressedEvent>(key, 1);
          break;
       }
    }
@@ -50,23 +50,23 @@ void GLFWKeyCallback(GLFWwindow* window, const int key, const int scancode, cons
 
 
 void GLFWCharCallback(GLFWwindow* window, unsigned int keycode) {
-   Events::SendEvent<KeyTypedEvent>((int)keycode);
+   EventDispatcher::Send<KeyTypedEvent>((int)keycode);
 }
 
 
 void GLFWCursorPosCallback(GLFWwindow* window, const double xpos, const double ypos) {
-   Events::SendEvent<MouseMovedEvent>((float)xpos, (float)ypos);
+   EventDispatcher::Send<MouseMovedEvent>((float)xpos, (float)ypos);
 }
 
 
 void GLFWMouseButtonCallback(GLFWwindow* window, const int button, const int action, const int mods) {
    switch (action) {
       case GLFW_PRESS: {
-         Events::SendEvent<MouseButtonPressedEvent>(button);
+         EventDispatcher::Send<MouseButtonPressedEvent>(button);
          break;
       }
       case GLFW_RELEASE: {
-         Events::SendEvent<MouseButtonReleasedEvent>(button);
+         EventDispatcher::Send<MouseButtonReleasedEvent>(button);
          break;
       }
    }
@@ -74,7 +74,7 @@ void GLFWMouseButtonCallback(GLFWwindow* window, const int button, const int act
 
 
 void GLFWScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-   Events::SendEvent<MouseScrolledEvent>((float)xoffset, (float)yoffset);
+   EventDispatcher::Send<MouseScrolledEvent>((float)xoffset, (float)yoffset);
 };
 
 
