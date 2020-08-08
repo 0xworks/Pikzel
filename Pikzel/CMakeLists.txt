@@ -22,34 +22,27 @@ set(
    "src/Pikzel/Events/KeyEvents.h"
    "src/Pikzel/Events/MouseEvents.h"
    "src/Pikzel/Events/WindowEvents.h"
+   "src/Pikzel/Renderer/GraphicsContext.h"
+   "src/Pikzel/Renderer/RenderCore.h"
+   "src/Pikzel/Renderer/Renderer.h"
+   "src/Pikzel/Renderer/Renderer.cpp"
+   "vendor/imgui/imgui.cpp"
+   "vendor/imgui/imgui_draw.cpp"
+   "vendor/imgui/imgui_widgets.cpp"
    "vendor/tracy/TracyClient.cpp"
 )
 
 if(WIN32)
    list(
       APPEND ProjectSources
-      "src/Platform/Windows/WindowsWindow.cpp"
+      "src/Pikzel/Platform/Windows/WindowsWindow.cpp"
    )
 endif()
-
-# TODO: how shall we control which render backend is used?
-# OpenGL
-list(
-   APPEND ProjectSources
-   # stuff here
-)
-
-# Vulkan
-list(
-   APPEND ProjectSources
-   # vulkan renderer backend stuff here
-)
 
 set(
    ProjectIncludes
    "src"
    "vendor/entt/src"
-   "vendor/glad/include"
    "vendor/glfw/include"
    "vendor/glm"
    "vendor/imgui"
@@ -59,10 +52,9 @@ set(
 
 set(
    ProjectLibs
-   "glad"
    "glfw"
    "glm"
-   "imgui"
+   "PlatformOpenGL"
 )
 
 add_library(${PROJECT_NAME} STATIC ${ProjectSources})
@@ -99,66 +91,39 @@ target_link_libraries(
 
 add_precompiled_header(${PROJECT_NAME} "pch.h" SOURCE_CXX "src/pch.cpp")
 
-# no precompiled header for TracyClient.cpp
+# no precompiled header for ImGui or TracyClient
 set_source_files_properties(
-   "vendor/tracy/TracyClient.cpp" PROPERTIES
+   "vendor/imgui/imgui.cpp"
+   "vendor/imgui/imgui_draw.cpp"
+   "vendor/imgui/imgui_widgets.cpp"
+   "vendor/tracy/TracyClient.cpp"
+   PROPERTIES
    COMPILE_FLAGS /Y-
 )
 
-
-# TODO: We only need GLAD if using OpenGL...
-#       So deal with this with some sort of "platform" option somehow.
-
-# GLAD library
-# Source files generated from https://glad.dav1d.de/
+# GLAD Source files generated from https://glad.dav1d.de/
 #   Language: C/C++
 #   Specification: OpenGL
 #   API: Version 4.6
 #   Profile: Core
 add_library(
-   "glad" STATIC
-   "vendor/glad/include/glad/glad.h"
-   "vendor/glad/include/KHR/khrplatform.h"
-   "vendor/glad/src/glad.c"
-)
-
-target_include_directories(
-   "glad" PRIVATE
-   "vendor/glad/include"
-)
-
-
-#
-# TODO: The "examples" source files here are providing the "backend"
-#       for imgui.  These are dependent on the rendering API used
-#       and should not be in the ImGui library.
-#       Instead, put them into some sort of "platform" dependent
-#       library
-
-# IMGui Library
-# Source files per vendor/imgui/examples/example_glfw_opengl3
-# Depends on an OpenGl Loader.
-# We are using glad, this is autodetected via putting glad in the include path below
-add_library(
-   "imgui" STATIC
-   "vendor/imgui/imgui.cpp"
-   "vendor/imgui/imgui_draw.cpp"
-   "vendor/imgui/imgui_widgets.cpp"
+   "PlatformOpenGL" STATIC
+   "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.h"
+   "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.cpp"
+   "src/Pikzel/Platform/OpenGL/OpenGLRenderCore.h"
+   "src/Pikzel/Platform/OpenGL/OpenGLRenderCore.cpp"
+   "src/Pikzel/Platform/OpenGL/vendor/glad/include/glad/glad.h"
+   "src/Pikzel/Platform/OpenGL/vendor/glad/include/KHR/khrplatform.h"
+   "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
    "vendor/imgui/examples/imgui_impl_glfw.cpp"
    "vendor/imgui/examples/imgui_impl_opengl3.cpp"
 )
 
 target_include_directories(
-   "imgui" PRIVATE
-   "vendor/imgui"
+   "PlatformOpenGL" PRIVATE
+   ${ProjectIncludes}
+   "src/Pikzel/Platform/OpenGL/vendor/glad/include"
 )
-
-# This is needed because Pikzel provides the OpenGL loader (glad) for ImGUI
-target_link_libraries(
-   "imgui" PRIVATE
-   "Pikzel"
-)
-
 
 add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/glm")

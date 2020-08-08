@@ -4,47 +4,30 @@
 #include "Pikzel/Events/KeyEvents.h"
 #include "Pikzel/Events/MouseEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
+#include "Pikzel/Renderer/Renderer.h"
 
-
-// TODO: get rid of these...
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <examples/imgui_impl_glfw.h>
-#include <examples/imgui_impl_opengl3.h>
 
-class Pikzelated : public Pikzel::Application {
+class Pikzelated final : public Pikzel::Application {
 public:
    Pikzelated() {
       PKZL_PROFILE_FUNCTION();
 
+      Pikzel::Renderer::Init();
+
       m_Window = Pikzel::Window::Create({APP_DESCRIPTION});
       Pikzel::EventDispatcher::Connect<Pikzel::WindowCloseEvent, &Pikzelated::OnWindowClose>(*this);
 
-      IMGUI_CHECKVERSION();
-      ImGui::CreateContext();
-      ImGuiIO& io = ImGui::GetIO();
-      io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
       ImGui::StyleColorsDark();
 
-      // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-      ImGuiStyle& style = ImGui::GetStyle();
+      ImGuiIO& io = ImGui::GetIO();
       if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+         ImGuiStyle& style = ImGui::GetStyle();
          style.WindowRounding = 0.0f;
          style.Colors[ImGuiCol_WindowBg].w = 1.0f;
       }
-
-      glfwMakeContextCurrent((GLFWwindow*)m_Window->GetNativeWindow());
-      int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-      PKZL_CORE_ASSERT(status, "Failed to initialize Glad!");
-
-      ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)m_Window->GetNativeWindow(), true);
-      ImGui_ImplOpenGL3_Init();
 
       ImGui::LoadIniSettingsFromDisk(io.IniFilename);
       if (!ImGui::GetCurrentContext()->SettingsLoaded) {
@@ -54,12 +37,8 @@ public:
 
 
    ~Pikzelated() {
-      PKZL_PROFILE_FUNCTION();
-
-      // TODO: move somewhere else
-      ImGui_ImplOpenGL3_Shutdown();
-      ImGui_ImplGlfw_Shutdown();
-      ImGui::DestroyContext();
+      m_Window.reset();
+      Pikzel::Renderer::Shutdown();
    }
 
 
@@ -89,9 +68,7 @@ public:
 
       PKZL_PROFILE_FUNCTION();
 
-      ImGui_ImplOpenGL3_NewFrame();
-      ImGui_ImplGlfw_NewFrame();
-      ImGui::NewFrame();
+      Pikzel::Renderer::BeginFrame();
 
       ImGuiIO& io = ImGui::GetIO();
       ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -141,9 +118,6 @@ public:
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 
-            // what the heck is this?
-            // Need to figure out what "framebuffer" is here - Its an OpenGL framebuffer
-
             // uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
             // ImGui::Image((void*)textureID, ImVec2 {m_ViewportSize.x, m_ViewportSize.y}, ImVec2 {0, 1}, ImVec2 {1, 0});
             ImGui::End();
@@ -155,23 +129,18 @@ public:
       io.DisplaySize = ImVec2((float)m_ViewportSize.x, (float)m_ViewportSize.y);
 
       ImGui::Render();
-      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-      if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-         GLFWwindow* currentContext = glfwGetCurrentContext();
-         ImGui::UpdatePlatformWindows();
-         ImGui::RenderPlatformWindowsDefault();
-         glfwMakeContextCurrent(currentContext);
-      }
+      Pikzel::Renderer::EndFrame();
 
-      glfwPollEvents();
-      glfwSwapBuffers((GLFWwindow*)m_Window->GetNativeWindow());
+      m_Window->Update();
    }
 
 
 private:
    void OnWindowClose(const Pikzel::WindowCloseEvent& event) {
-      m_Running = false;
+      if (event.sender == m_Window->GetNativeWindow()) {
+         m_Running = false;
+      }
    }
 
 
