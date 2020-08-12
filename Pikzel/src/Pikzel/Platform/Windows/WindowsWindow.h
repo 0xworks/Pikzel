@@ -9,8 +9,6 @@ struct GLFWwindow;
 
 namespace Pikzel {
 
-   class GraphicsContext;
-
    class WindowsWindow : public Window {
    public:
       WindowsWindow(const WindowSettings& settings);
@@ -24,8 +22,11 @@ namespace Pikzel {
       virtual void SetVSync(bool enabled) override;
       virtual bool IsVSync() const override;
 
+      virtual GraphicsContext& GetGraphicsContext() override;
+
       virtual void Update() override;
 
+      virtual float ContentScale() const override;
    private:
       WindowSettings m_Settings;
 

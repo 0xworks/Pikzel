@@ -11,8 +11,7 @@ namespace Pikzel {
 
       std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) override;
 
-      virtual void BeginFrame() override;
-      virtual void EndFrame() override;
+      virtual RendererAPI GetAPI() const override;
 
    };
 

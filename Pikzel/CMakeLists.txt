@@ -1,5 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.10)
 
+find_package(Vulkan)
+
 project (
    "Pikzel"
    VERSION 0.1
@@ -54,21 +56,26 @@ set(
    ProjectLibs
    "glfw"
    "glm"
-   "PlatformOpenGL"
+   #"PlatformOpenGL"
+   "PlatformVulkan"
 )
 
 add_library(${PROJECT_NAME} STATIC ${ProjectSources})
 
-set_target_properties(
-   ${PROJECT_NAME} PROPERTIES
-   CXX_STANDARD 20
+target_compile_features(
+   ${PROJECT_NAME} PUBLIC
+   cxx_std_20
 )
 
 target_compile_definitions(
    ${PROJECT_NAME} PUBLIC
    PKZL_VERSION="${PROJECT_VERSION}"
+   PKZL_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
+   PKZL_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
    PKZL_DESCRIPTION="${PROJECT_DESCRIPTION}"
    "$<$<CONFIG:DEBUG>:PKZL_DEBUG>"
+   GLM_FORCE_DEPTH_ZERO_TO_ONE
+   GLM_FORCE_RADIANS
 )
 
 if(PKZL_PROFILE)
@@ -101,6 +108,9 @@ set_source_files_properties(
    COMPILE_FLAGS /Y-
 )
 
+
+# Platform - OpenGL
+#
 # GLAD Source files generated from https://glad.dav1d.de/
 #   Language: C/C++
 #   Specification: OpenGL
@@ -108,15 +118,28 @@ set_source_files_properties(
 #   Profile: Core
 add_library(
    "PlatformOpenGL" STATIC
+   "src/Pikzel/Platform/OpenGL/glpch.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.h"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLRenderCore.h"
    "src/Pikzel/Platform/OpenGL/OpenGLRenderCore.cpp"
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/glad/glad.h"
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/KHR/khrplatform.h"
-   "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
+   "vendor/imgui/examples/imgui_impl_glfw.h"
    "vendor/imgui/examples/imgui_impl_glfw.cpp"
+   "vendor/imgui/examples/imgui_impl_opengl3.h"
    "vendor/imgui/examples/imgui_impl_opengl3.cpp"
+)
+
+target_compile_features(
+   "PlatformOpenGL" PRIVATE
+   cxx_std_20
+)
+
+target_compile_definitions(
+   "PlatformOpenGL" PRIVATE
+    GLM_FORCE_DEPTH_ZERO_TO_ONE
+    GLM_FORCE_RADIANS
 )
 
 target_include_directories(
@@ -124,6 +147,92 @@ target_include_directories(
    ${ProjectIncludes}
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
 )
+
+add_precompiled_header("PlatformOpenGL" "glpch.h" SOURCE_CXX "src/Pikzel/Platform/OpenGL/glpch.cpp")
+
+# add glad.c source file after setting the precompiled header
+# as otherwise the add_precompiled_header macro gets confused...
+target_sources(
+   "PlatformOpenGL" PRIVATE
+   "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
+)
+
+# no precompiled header for ImGui or GLAD
+set_source_files_properties(
+   "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
+   "vendor/imgui/examples/imgui_impl_glfw.h"
+   "vendor/imgui/examples/imgui_impl_glfw.cpp"
+   "vendor/imgui/examples/imgui_impl_opengl3.h"
+   "vendor/imgui/examples/imgui_impl_opengl3.cpp"
+   PROPERTIES
+   COMPILE_FLAGS /Y-
+)
+
+if(${Vulkan_FOUND})
+
+   message("Found ${Vulkan_LIBRARY}")
+
+   # Platform - Vulkan
+   # This requires that the Vulkan SDK is installed
+   add_library(
+      "PlatformVulkan" STATIC
+      "src/Pikzel/Platform/Vulkan/vkpch.cpp"
+      "src/Pikzel/Platform/Vulkan/Buffer.h"
+      "src/Pikzel/Platform/Vulkan/Buffer.cpp"
+      "src/Pikzel/Platform/Vulkan/Image.h"
+      "src/Pikzel/Platform/Vulkan/Image.cpp"
+      "src/Pikzel/Platform/Vulkan/QueueFamilyIndices.h"
+      "src/Pikzel/Platform/Vulkan/SwapChainSupportDetails.h"
+      "src/Pikzel/Platform/Vulkan/VulkanGraphicsContext.h"
+      "src/Pikzel/Platform/Vulkan/VulkanGraphicsContext.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanRenderCore.h"
+      "src/Pikzel/Platform/Vulkan/VulkanRenderCore.cpp"
+      "vendor/imgui/examples/imgui_impl_glfw.h"
+      "vendor/imgui/examples/imgui_impl_glfw.cpp"
+      "vendor/imgui/examples/imgui_impl_vulkan.h"
+      "vendor/imgui/examples/imgui_impl_vulkan.cpp"
+   )
+
+   target_compile_features(
+      "PlatformVulkan" PRIVATE
+      cxx_std_20
+   )
+
+   target_compile_definitions(
+      "PlatformVulkan" PRIVATE
+       VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
+       GLFW_INCLUDE_NONE
+       GLM_FORCE_DEPTH_ZERO_TO_ONE
+       GLM_FORCE_RADIANS
+   )
+
+   target_include_directories(
+      "PlatformVulkan" PRIVATE
+      ${ProjectIncludes}
+      ${Vulkan_INCLUDE_DIR}
+   )
+
+   target_link_libraries(
+      "PlatformVulkan" PUBLIC
+      ${Vulkan_LIBRARY}
+   )
+
+   add_precompiled_header("PlatformVulkan" "vkpch.h" SOURCE_CXX "src/Pikzel/Platform/Vulkan/vkpch.cpp")
+
+   # no precompiled header for ImGui
+   set_source_files_properties(
+      "vendor/imgui/examples/imgui_impl_glfw.h"
+      "vendor/imgui/examples/imgui_impl_glfw.cpp"
+      "vendor/imgui/examples/imgui_impl_vulkan.h"
+      "vendor/imgui/examples/imgui_impl_vulkan.cpp"
+      PROPERTIES
+      COMPILE_FLAGS /Y-
+   )
+
+else()
+   message("WARNING: Vulkan SDK not detected.  Skipping Platform Vulkan libary!")
+endif()
+
 
 add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/glm")

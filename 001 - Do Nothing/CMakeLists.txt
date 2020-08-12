@@ -26,15 +26,16 @@ add_executable(
    ${ProjectSources}
 )
 
-set_target_properties(
-   ${PROJECT_NAME} PROPERTIES
-   VERSION ${PROJECT_VERSION}
-   CXX_STANDARD 20
+target_compile_features(
+   ${PROJECT_NAME} PRIVATE
+   cxx_std_20
 )
 
 target_compile_definitions(
    ${PROJECT_NAME} PRIVATE
    APP_VERSION="${PROJECT_VERSION}"
+   APP_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
+   APP_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
    APP_DESCRIPTION="${PROJECT_DESCRIPTION}"
 )
 

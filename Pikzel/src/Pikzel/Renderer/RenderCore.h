@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RendererAPI.h"
 #include <memory>
 
 namespace Pikzel {
@@ -13,8 +14,7 @@ namespace Pikzel {
 
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) = 0;
 
-      virtual void BeginFrame() = 0;
-      virtual void EndFrame() = 0;
+      virtual RendererAPI GetAPI() const = 0;
 
    public:
       static std::unique_ptr<RenderCore> Create();

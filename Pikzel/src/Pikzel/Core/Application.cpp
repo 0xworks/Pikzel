@@ -1,13 +1,17 @@
 #include "pch.h"
 #include "Application.h"
 #include "Log.h"
+#include "Pikzel/Renderer/Renderer.h"
 
 namespace Pikzel {
 
-   Application::Application() {}
+   Application::Application() {
+      Renderer::Init();
+   }
 
 
    Application::~Application() {
+      Renderer::Shutdown();
    }
 
 

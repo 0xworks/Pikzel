@@ -1,7 +1,8 @@
-#include "pch.h"
+#include "glpch.h"
 #include "OpenGLGraphicsContext.h"
 
 #include <glad/glad.h>
+
 #include <GLFW/glfw3.h>
 
 #include <imgui.h>
@@ -13,7 +14,8 @@ namespace Pikzel {
 
    bool OpenGLGraphicsContext::s_OpenGLInitialized = false;
 
-   OpenGLGraphicsContext::OpenGLGraphicsContext(GLFWwindow* window) : m_Window(window) {
+   OpenGLGraphicsContext::OpenGLGraphicsContext(GLFWwindow* window)
+   : m_Window(window) {
       glfwMakeContextCurrent(m_Window);
       if (!s_OpenGLInitialized) {
          if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -41,11 +43,45 @@ namespace Pikzel {
          io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
          io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-         ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
          ImGui_ImplOpenGL3_Init();
 
          s_OpenGLInitialized = true;
       }
+      ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
+   }
+
+
+   void OpenGLGraphicsContext::UploadImGuiFonts() {
+   }
+
+
+   void OpenGLGraphicsContext::BeginFrame() {
+   }
+
+
+   void OpenGLGraphicsContext::EndFrame() {
+      if (m_ImGuiFrameStarted) {
+         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            GLFWwindow* currentContext = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(currentContext);
+         }
+         m_ImGuiFrameStarted = false;
+      }
+   }
+
+
+   void OpenGLGraphicsContext::BeginImGuiFrame() {
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+      m_ImGuiFrameStarted = true;
+   }
+
+
+   void OpenGLGraphicsContext::EndImGuiFrame() {
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
    }
 
 
