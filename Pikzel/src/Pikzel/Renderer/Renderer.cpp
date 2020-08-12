@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Renderer.h"
-#include "Pikzel/Renderer/RenderCore.h"
-#include "Pikzel/Renderer/GraphicsContext.h"
+#include "GraphicsContext.h"
+#include "RenderCore.h"
 
 #include <memory>
 
@@ -19,17 +19,13 @@ namespace Pikzel {
          g_RenderCore.reset();
       }
 
+      RendererAPI GetAPI() {
+         return g_RenderCore->GetAPI();
+      }
+
       std::unique_ptr<Pikzel::GraphicsContext> CreateGraphicsContext(const Window& window) {
          PKZL_CORE_ASSERT(g_RenderCore, "g_RenderCore used before Init()!");
          return g_RenderCore->CreateGraphicsContext(window);
-      }
-
-      void BeginFrame() {
-         g_RenderCore->BeginFrame();
-      }
-
-      void EndFrame() {
-         g_RenderCore->EndFrame();
       }
 
    }

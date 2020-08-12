@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RendererAPI.h"
+
 namespace Pikzel {
 
    class GraphicsContext;
@@ -10,10 +12,8 @@ namespace Pikzel {
       void Init();
       void Shutdown();
 
+      RendererAPI GetAPI();
+
       std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window);
-
-      void BeginFrame();
-      void EndFrame();
    }
-
 }

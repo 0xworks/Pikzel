@@ -9,5 +9,8 @@ std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const c
    PKZL_PROFILE_FUNCTION();
    PKZL_CORE_LOG_INFO(APP_DESCRIPTION);
    PKZL_CORE_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
+#ifdef PKZL_DEBUG
+   PKZL_CORE_LOG_INFO("DEBUG build");
+#endif
    return std::make_unique<Pikzel::Application>();
 }

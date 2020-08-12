@@ -16,6 +16,8 @@ namespace Pikzel {
    };
 
 
+   class GraphicsContext;
+
    class Window {
    public:
       virtual ~Window() = default;
@@ -28,7 +30,11 @@ namespace Pikzel {
       virtual void SetVSync(bool enabled) = 0;
       virtual bool IsVSync() const = 0;
 
+      virtual GraphicsContext& GetGraphicsContext() = 0;
+
       virtual void Update() = 0;
+
+      virtual float ContentScale() const = 0;
 
    public:
       static std::unique_ptr<Window> Create(const WindowSettings& settings = WindowSettings());

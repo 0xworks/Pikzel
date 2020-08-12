@@ -1,7 +1,7 @@
-#include "pch.h"
+#include "glpch.h"
 #include "OpenGLRenderCore.h"
 #include "OpenGLGraphicsContext.h"
-#include "Pikzel/Core/Core.h"
+
 #include "Pikzel/Core/Window.h"
 
 #include <glad/glad.h>
@@ -22,7 +22,13 @@ namespace Pikzel {
    }
 
 
+   RendererAPI OpenGLRenderCore::GetAPI() const {
+      return RendererAPI::OpenGL;
+   }
+
+
    OpenGLRenderCore::OpenGLRenderCore() {
+      PKZL_CORE_LOG_INFO("OpenGL RenderCore");
       if (!glfwInit()) {
          throw std::runtime_error("Could not initialize GLFW!");
       }
@@ -31,35 +37,17 @@ namespace Pikzel {
 
 
    OpenGLRenderCore::~OpenGLRenderCore() {
-      ImGui_ImplOpenGL3_Shutdown();
-      ImGui_ImplGlfw_Shutdown();
-      ImGui::DestroyContext();
+      if (ImGui::GetCurrentContext()) {
+         ImGui_ImplOpenGL3_Shutdown();
+         ImGui_ImplGlfw_Shutdown();
+         ImGui::DestroyContext();
+      }
       glfwTerminate();
    }
 
 
    std::unique_ptr<GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(const Window& window) {
       return std::make_unique<OpenGLGraphicsContext>((GLFWwindow*)window.GetNativeWindow());
-
-   }
-
-
-   void OpenGLRenderCore::BeginFrame() {
-      ImGui_ImplOpenGL3_NewFrame();
-      ImGui_ImplGlfw_NewFrame();
-      ImGui::NewFrame();
-   }
-
-
-   void OpenGLRenderCore::EndFrame() {
-      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-      if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-         GLFWwindow* currentContext = glfwGetCurrentContext();
-         ImGui::UpdatePlatformWindows();
-         ImGui::RenderPlatformWindowsDefault();
-         glfwMakeContextCurrent(currentContext);
-      }
    }
 
 }

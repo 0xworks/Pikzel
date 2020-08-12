@@ -4,7 +4,8 @@
 #include "Pikzel/Events/KeyEvents.h"
 #include "Pikzel/Events/MouseEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
-#include "Pikzel/Renderer/Renderer.h"
+#include "Pikzel/Renderer/GraphicsContext.h"
+
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -15,19 +16,24 @@ public:
    Pikzelated() {
       PKZL_PROFILE_FUNCTION();
 
-      Pikzel::Renderer::Init();
-
       m_Window = Pikzel::Window::Create({APP_DESCRIPTION});
       Pikzel::EventDispatcher::Connect<Pikzel::WindowCloseEvent, &Pikzelated::OnWindowClose>(*this);
 
-      ImGui::StyleColorsDark();
-
       ImGuiIO& io = ImGui::GetIO();
+      ImGui::StyleColorsDark();
+      ImGuiStyle& style = ImGui::GetStyle();
       if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-         ImGuiStyle& style = ImGui::GetStyle();
          style.WindowRounding = 0.0f;
          style.Colors[ImGuiCol_WindowBg].w = 1.0f;
       }
+      float scaleFactor = m_Window->ContentScale();
+      style.ScaleAllSizes(scaleFactor);
+
+      if (!io.Fonts->AddFontFromFileTTF("assets/fonts/Cousine-Regular.ttf", 13 * scaleFactor)) {
+         throw std::runtime_error("Failed to load ImGui font!");
+      }
+
+      m_Window->GetGraphicsContext().UploadImGuiFonts();
 
       ImGui::LoadIniSettingsFromDisk(io.IniFilename);
       if (!ImGui::GetCurrentContext()->SettingsLoaded) {
@@ -38,7 +44,6 @@ public:
 
    ~Pikzelated() {
       m_Window.reset();
-      Pikzel::Renderer::Shutdown();
    }
 
 
@@ -58,7 +63,7 @@ public:
          ImGuiWindowFlags_NoMove |
          ImGuiWindowFlags_NoBringToFrontOnFocus |
          ImGuiWindowFlags_NoNavFocus
-         ;
+      ;
 
       static ImGuiWindowFlags viewport_window_flags = ImGuiWindowFlags_None;
       //         ImGuiWindowFlags_NoDocking |
@@ -68,7 +73,13 @@ public:
 
       PKZL_PROFILE_FUNCTION();
 
-      Pikzel::Renderer::BeginFrame();
+      Pikzel::GraphicsContext& gc = m_Window->GetGraphicsContext();
+
+      gc.BeginFrame();
+
+      // Render app content here...
+
+      gc.BeginImGuiFrame();
 
       ImGuiIO& io = ImGui::GetIO();
       ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -130,9 +141,11 @@ public:
 
       ImGui::Render();
 
-      Pikzel::Renderer::EndFrame();
+      gc.EndImGuiFrame();
+      gc.EndFrame();
 
       m_Window->Update();
+
    }
 
 
@@ -155,5 +168,8 @@ std::unique_ptr<Pikzelated::Application> Pikzel::CreateApplication(int argc, con
    PKZL_PROFILE_FUNCTION();
    PKZL_CORE_LOG_INFO(APP_DESCRIPTION);
    PKZL_CORE_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
+#ifdef PKZL_DEBUG
+   PKZL_CORE_LOG_INFO("DEBUG build");
+#endif
    return std::make_unique<Pikzelated>();
 }

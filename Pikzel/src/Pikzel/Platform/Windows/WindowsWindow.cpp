@@ -86,6 +86,12 @@ namespace Pikzel {
 
       const auto monitor = m_Settings.IsFullScreen ? glfwGetPrimaryMonitor() : nullptr;
 
+      int clientAPI = GLFW_NO_API;
+      if (Renderer::GetAPI() == RendererAPI::OpenGL) {
+         clientAPI = GLFW_OPENGL_API;
+      }
+      glfwWindowHint(GLFW_CLIENT_API, clientAPI);
+      glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
       m_Window = glfwCreateWindow((int)m_Settings.Width, (int)m_Settings.Height, m_Settings.Title, monitor, nullptr);
       if (!m_Window) {
          throw std::runtime_error("failed to create window");
@@ -107,6 +113,7 @@ namespace Pikzel {
 
    WindowsWindow::~WindowsWindow() {
       glfwDestroyWindow(m_Window);
+      m_Window = nullptr;
    }
 
 
@@ -139,9 +146,24 @@ namespace Pikzel {
       return m_VSync;
    }
 
+
+   Pikzel::GraphicsContext& WindowsWindow::GetGraphicsContext() {
+      PKZL_CORE_ASSERT(m_Context, "GraphicsContext is null!")
+      return *m_Context.get();
+   }
+
+
    void WindowsWindow::Update() {
       glfwPollEvents();
       m_Context->SwapBuffers();
+   }
+
+
+   float WindowsWindow::ContentScale() const {
+      float xscale;
+      float yscale;
+      glfwGetWindowContentScale(m_Window, &xscale, &yscale);
+      return xscale;
    }
 
 }
