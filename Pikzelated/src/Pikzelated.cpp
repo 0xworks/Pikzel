@@ -151,7 +151,7 @@ public:
 
 private:
    void OnWindowClose(const Pikzel::WindowCloseEvent& event) {
-      if (event.sender == m_Window->GetNativeWindow()) {
+      if (event.Sender == m_Window->GetNativeWindow()) {
          m_Running = false;
       }
    }

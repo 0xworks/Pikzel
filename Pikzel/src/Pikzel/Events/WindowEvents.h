@@ -3,14 +3,14 @@
 namespace Pikzel {
 
    struct WindowResizeEvent {
-      void* sender;
+      void* Sender;
       int Width;
       int Height;
    };
 
 
    struct WindowCloseEvent {
-      void* sender;
+      void* Sender;
    };
 
 }

@@ -5,20 +5,20 @@ namespace Pikzel {
    // TODO: key codes...
 
    struct KeyPressedEvent {
-      void* sender;
+      void* Sender;
       int KeyCode;
       int RepeatCount;
    };
 
 
    struct KeyReleasedEvent {
-      void* sender;
+      void* Sender;
       int KeyCode;
    };
 
 
    struct KeyTypedEvent {
-      void* sender;
+      void* Sender;
       int KeyCode;
    };
 

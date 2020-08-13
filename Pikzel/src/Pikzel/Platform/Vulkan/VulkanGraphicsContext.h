@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Pikzel/Events/WindowEvents.h"
 #include "Pikzel/Renderer/GraphicsContext.h"
 #include "DescriptorBinding.h"
 #include "Image.h"
@@ -79,6 +80,9 @@ namespace Pikzel {
       void DestroyPipelineCache();
 
       void SubmitSingleTimeCommands(const std::function<void(vk::CommandBuffer)>& action);
+
+      void RecreateSwapChain();
+      void OnWindowResize(const WindowResizeEvent& event);
 
    private:
       vk::Instance m_Instance;  // VulkanGraphicsContext does not own the instance!
