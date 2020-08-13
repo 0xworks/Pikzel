@@ -135,7 +135,7 @@ namespace Pikzel {
       PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
       VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
-      std::vector<const char*> layers = {"VK_LAYER_LUNARG_monitor"};
+      std::vector<const char*> layers = {/*"VK_LAYER_LUNARG_monitor"*/};   // Note: ImGui viewports seem to knobble VK_LAYER_LUNARG_monitor
 #ifdef PKZL_DEBUG
       layers.push_back("VK_LAYER_KHRONOS_validation");
 #endif

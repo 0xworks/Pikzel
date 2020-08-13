@@ -1,6 +1,8 @@
 #include "glpch.h"
 #include "OpenGLGraphicsContext.h"
 
+#include "Pikzel/Events/EventDispatcher.h"
+
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
@@ -35,19 +37,28 @@ namespace Pikzel {
             throw std::runtime_error("Pikzel requires at least OpenGL version 4.5!");
          }
 
-         IMGUI_CHECKVERSION();
-         ImGui::CreateContext();
-
-         ImGuiIO& io = ImGui::GetIO();
-         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-         ImGui_ImplOpenGL3_Init();
-
          s_OpenGLInitialized = true;
       }
+
+      EventDispatcher::Connect<Pikzel::WindowResizeEvent, &OpenGLGraphicsContext::OnWindowResize>(*this);
+
+      IMGUI_CHECKVERSION();
+      ImGui::CreateContext();
+      ImGuiIO& io = ImGui::GetIO();
+      io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+      ImGui_ImplOpenGL3_Init();
       ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
+   }
+
+
+   OpenGLGraphicsContext::~OpenGLGraphicsContext() {
+      if (ImGui::GetCurrentContext()) {
+         ImGui_ImplOpenGL3_Shutdown();
+         ImGui_ImplGlfw_Shutdown();
+         ImGui::DestroyContext();
+      }
    }
 
 
@@ -87,6 +98,12 @@ namespace Pikzel {
 
    void OpenGLGraphicsContext::SwapBuffers() {
       glfwSwapBuffers(m_Window);
+   }
+
+   void OpenGLGraphicsContext::OnWindowResize(const WindowResizeEvent& event) {
+      if (event.Sender == m_Window) {
+         glViewport(0, 0, event.Width, event.Height);
+      }
    }
 
 }

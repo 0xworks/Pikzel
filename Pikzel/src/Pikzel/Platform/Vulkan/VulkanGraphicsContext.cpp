@@ -2,6 +2,8 @@
 #include "VulkanGraphicsContext.h"
 #include "SwapChainSupportDetails.h"
 
+#include "Pikzel/Events/EventDispatcher.h"
+
 #include <GLFW/glfw3.h>
 
 #include <imgui.h>
@@ -39,6 +41,8 @@ namespace Pikzel {
       CreateCommandBuffers();
       CreateSyncObjects();
       CreatePipelineCache();
+
+      EventDispatcher::Connect<WindowResizeEvent, &VulkanGraphicsContext::OnWindowResize>(*this);
 
       IMGUI_CHECKVERSION();
       ImGui::CreateContext();
@@ -102,7 +106,7 @@ namespace Pikzel {
       auto rv = m_Device.acquireNextImageKHR(m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], nullptr);
 
       if (rv.result == vk::Result::eErrorOutOfDateKHR) {
-         // TODO: OnWindowResized();
+         RecreateSwapChain();
          return;
       } else if ((rv.result != vk::Result::eSuccess) && (rv.result != vk::Result::eSuboptimalKHR)) {
          throw std::runtime_error("failed to acquire swap chain image!");
@@ -129,6 +133,9 @@ namespace Pikzel {
          vk::CommandBufferUsageFlagBits::eSimultaneousUse
       };
       m_CommandBuffers[m_CurrentImage].begin(commandBufferBI);
+
+      // TODO: you probably need to begin render pass here...
+      //       theres a bit of a question around how will client app do multiple render passes?
 
    }
 
@@ -205,7 +212,7 @@ namespace Pikzel {
       //auto result = m_PresentQueue.presentKHR(pi);
       auto result = vkQueuePresentKHR(m_PresentQueue, &(VkPresentInfoKHR)pi);
       if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_WantResize) {
-         // TODO: OnWindowResized();
+         RecreateSwapChain();
       } else if (result != VK_SUCCESS) {
          throw std::runtime_error("Failed to present swap chain image!");
       }
@@ -837,4 +844,32 @@ namespace Pikzel {
    }
 
 
+   void VulkanGraphicsContext::RecreateSwapChain() {
+      m_Device.waitIdle();
+      DestroyImageViews();
+      CreateSwapChain();
+      CreateImageViews();
+
+      DestroyDepthStencil();
+      CreateDepthStencil();
+
+      DestroyFrameBuffers();
+      CreateFrameBuffers();
+
+      // TODO: Do we need to do anything for ImGui overlay?
+
+      // I don't _think_ we need to recreate command buffers here, as we are re-recording them each frame anyway (so they should get re-bound to newly create frame buffers)
+      //DestroyCommandBuffers();
+      //CreateCommandBuffers();
+
+      // TODO: You may need to add other stuff here too, like DescriptorSets (?)
+
+      m_WantResize = false;
+   }
+
+   void VulkanGraphicsContext::OnWindowResize(const WindowResizeEvent& event) {
+      if (event.Sender == m_Window) {
+         m_WantResize = true;
+      }
+   }
 }
