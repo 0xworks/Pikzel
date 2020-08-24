@@ -18,6 +18,7 @@ namespace Pikzel {
 
    OpenGLGraphicsContext::OpenGLGraphicsContext(GLFWwindow* window)
    : m_Window {window}
+   , m_ImGuiFrameStarted {false}
    {
       glfwMakeContextCurrent(m_Window);
       if (!s_OpenGLInitialized) {

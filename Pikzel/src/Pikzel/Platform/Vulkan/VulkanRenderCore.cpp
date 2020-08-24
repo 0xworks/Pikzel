@@ -63,6 +63,9 @@ namespace Pikzel {
 
 
    std::unique_ptr<GraphicsContext> VulkanRenderCore::CreateGraphicsContext(Window& window) {
+      //
+      // TODO: here you somehow need to throw everything away and start again
+      //       e.g. the device you currently have doesnt necessarily support windows surface...
       return std::make_unique<VulkanWindowGC>(m_Device, (GLFWwindow*)window.GetNativeWindow());
    }
 

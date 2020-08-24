@@ -3,6 +3,12 @@
 #include "Pikzel/Renderer/Image.h"
 #include "Pikzel/Renderer/Renderer.h"
 
+
+
+// NOT FINISHED 
+
+
+
 // This is a small test to render a triangle.
 // The render is offline - there is no window to visualize, or interact with, the image.
 //
@@ -15,18 +21,19 @@ public:
       m_ImageGC = Pikzel::Renderer::CreateGraphicsContext(*m_Image);
    }
 
+
    virtual void Render() override {
        PKZL_PROFILE_FUNCTION();
 
       m_ImageGC->BeginFrame();
       //
-      // render to image GC here...
+      // TODO:  render triangle here...
       //
       m_ImageGC->EndFrame();    // this submits the frame... but it the GPU hasn't necessarily rendered it yet
       m_ImageGC->SwapBuffers(); // this blocks until render is done
 
-      // copy image from device to host here
-      // and save it out somewhere...
+      // TODO copy image from device to host here
+      // TODO and save it out somewhere...
    }
 
 private:
@@ -45,7 +52,5 @@ std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const c
    PKZL_LOG_INFO("DEBUG build");
 #endif
 
-   auto app = std::make_unique<OfflineTriangle>();
-   PKZL_LOG_INFO("Using {0} render API", to_string(Renderer::GetAPI()));
-   return app;
+   return std::make_unique<OfflineTriangle>();
 }

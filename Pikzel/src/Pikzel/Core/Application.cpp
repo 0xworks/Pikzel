@@ -30,8 +30,18 @@ namespace Pikzel {
    }
 
 
-   void Application::Update(DeltaTime deltaTime) {
+   void Application::Exit() {
       m_Running = false;
+   }
+
+
+   std::chrono::steady_clock::time_point Application::GetTime() {
+      return m_AppTime;
+   }
+
+
+   void Application::Update(DeltaTime deltaTime) {
+      Exit();
    }
 
 
