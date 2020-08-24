@@ -29,6 +29,9 @@ namespace Pikzel {
       virtual void BeginFrame() override;
       virtual void EndFrame() override;
 
+      virtual void BeginImGuiFrame() override;
+      virtual void EndImGuiFrame() override;
+
    private:
       WindowSettings m_Settings;
 

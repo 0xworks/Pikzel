@@ -37,6 +37,9 @@ namespace Pikzel {
       virtual void BeginFrame() = 0;
       virtual void EndFrame() = 0;
 
+      virtual void BeginImGuiFrame() = 0;
+      virtual void EndImGuiFrame() = 0;
+
    public:
       static std::unique_ptr<Window> Create(const WindowSettings& settings = WindowSettings());
    };

@@ -7,20 +7,9 @@
 #include "Pikzel/Renderer/GraphicsContext.h"
 #include "Pikzel/Renderer/Renderer.h"
 
-
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
-
-
-// HACK: remove...
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
-
-#include "Pikzel/Platform/Vulkan/VulkanBuffer.h"
 
 class Pikzelated final : public Pikzel::Application {
 public:
@@ -116,7 +105,7 @@ public:
          if (ImGui::BeginMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                if (ImGui::MenuItem("Exit")) {
-                  m_Running = false;
+                  Exit();
                }
                ImGui::EndMenu();
             }
@@ -164,35 +153,8 @@ public:
 private:
    void OnWindowClose(const Pikzel::WindowCloseEvent& event) {
       if (event.Sender == m_Window->GetNativeWindow()) {
-         m_Running = false;
+         Exit();
       }
-   }
-
-
-   // HACK: remove...
-   void CreateTextureResources() {
-      int texWidth;
-      int texHeight;
-      int texChannels;
-
-      stbi_uc* pixels = stbi_load("Assets/Textures/Statue.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-      vk::DeviceSize size = static_cast<vk::DeviceSize>(texWidth) * static_cast<vk::DeviceSize>(texHeight) * 4;
-
-      if (!pixels) {
-         throw std::runtime_error("failed to load texture image!");
-      }
-
-      std::unique_ptr<Pikzel::Buffer> stagingBuffer = Pikzel::Renderer::CreateBuffer(size);
-      stagingBuffer->CopyFromHost(0, size, pixels);
-
-      stbi_image_free(pixels);
-
-      m_Texture = Pikzel::Renderer::CreateImage({static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)});
-
-      //TransitionImageLayout(m_Texture->m_Image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1); // <-- I dont understand WTF this is
-
-      //m_Texture->CopyFromBuffer(stagingBuffer);
-
    }
 
 
@@ -216,5 +178,3 @@ std::unique_ptr<Pikzelated::Application> Pikzel::CreateApplication(int argc, con
 #endif
    return std::make_unique<Pikzelated>();
 }
-
-

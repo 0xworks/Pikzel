@@ -17,11 +17,15 @@ namespace Pikzel {
 
       virtual void Run();
 
+      void Exit();
+
+      std::chrono::steady_clock::time_point GetTime();
+
    protected:
       virtual void Update(DeltaTime deltaTime);
       virtual void Render();
 
-   protected:
+   private:
       std::chrono::steady_clock::time_point m_AppTime = {};
       bool m_Running = false;
 

@@ -70,8 +70,8 @@ set(
    ProjectLibs
    "glfw"
    "glm"
-   #"PlatformOpenGL"
-   "PlatformVulkan"
+   "PlatformOpenGL"
+   #"PlatformVulkan"
 )
 
 add_library(${PROJECT_NAME} STATIC ${ProjectSources})

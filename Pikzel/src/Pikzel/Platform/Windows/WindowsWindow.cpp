@@ -148,14 +148,21 @@ namespace Pikzel {
    void WindowsWindow::BeginFrame() {
       glfwPollEvents();
       m_Context->BeginFrame();
-      m_Context->BeginImGuiFrame();
    }
 
 
    void WindowsWindow::EndFrame() {
-      m_Context->EndImGuiFrame();
       m_Context->EndFrame();
       m_Context->SwapBuffers();
+   }
+
+   void WindowsWindow::BeginImGuiFrame() {
+      m_Context->BeginImGuiFrame();
+   }
+
+
+   void WindowsWindow::EndImGuiFrame() {
+      m_Context->EndImGuiFrame();
    }
 
 }

@@ -14,7 +14,5 @@ std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const c
    PKZL_LOG_INFO("DEBUG build");
 #endif
 
-   auto app = std::make_unique<Pikzel::Application>();
-   PKZL_LOG_INFO("Using {0} render API", to_string(Renderer::GetAPI()));
-   return app;
+   return std::make_unique<Pikzel::Application>();
 }
