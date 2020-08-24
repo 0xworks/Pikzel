@@ -25,6 +25,7 @@ set(
    "src/Pikzel/Events/MouseEvents.h"
    "src/Pikzel/Events/WindowEvents.h"
    "src/Pikzel/Renderer/GraphicsContext.h"
+   "src/Pikzel/Renderer/Image.h"
    "src/Pikzel/Renderer/RenderCore.h"
    "src/Pikzel/Renderer/Renderer.h"
    "src/Pikzel/Renderer/Renderer.cpp"
@@ -49,7 +50,20 @@ set(
    "vendor/glm"
    "vendor/imgui"
    "vendor/spdlog/include"
+   "vendor/stb"
+   "vendor/tinyobjloader"
    "vendor/tracy"
+)
+
+set(
+   ProjectDefines
+   PKZL_VERSION="${PROJECT_VERSION}"
+   PKZL_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
+   PKZL_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
+   PKZL_DESCRIPTION="${PROJECT_DESCRIPTION}"
+   "$<$<CONFIG:DEBUG>:PKZL_DEBUG>"
+   GLM_FORCE_DEPTH_ZERO_TO_ONE
+   GLM_FORCE_RADIANS
 )
 
 set(
@@ -69,13 +83,7 @@ target_compile_features(
 
 target_compile_definitions(
    ${PROJECT_NAME} PUBLIC
-   PKZL_VERSION="${PROJECT_VERSION}"
-   PKZL_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
-   PKZL_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
-   PKZL_DESCRIPTION="${PROJECT_DESCRIPTION}"
-   "$<$<CONFIG:DEBUG>:PKZL_DEBUG>"
-   GLM_FORCE_DEPTH_ZERO_TO_ONE
-   GLM_FORCE_RADIANS
+   ${ProjectDefines}
 )
 
 if(PKZL_PROFILE)
@@ -91,10 +99,24 @@ target_include_directories(
    ${ProjectIncludes}
 )
 
+if(MSVC)
+   target_compile_options(
+      ${PROJECT_NAME} PUBLIC
+      "$<$<CONFIG:Release>:/GL>"
+   )
+endif()
+
 target_link_libraries(
    ${PROJECT_NAME} PUBLIC
    ${ProjectLibs}
 )
+
+if(MSVC)
+   target_link_options(
+      ${PROJECT_NAME} PUBLIC
+      "$<$<CONFIG:Release>:/LTCG>"
+   )
+endif()
 
 add_precompiled_header(${PROJECT_NAME} "pch.h" SOURCE_CXX "src/pch.cpp")
 
@@ -121,6 +143,7 @@ add_library(
    "src/Pikzel/Platform/OpenGL/glpch.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.h"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.cpp"
+   "src/Pikzel/Platform/OpenGL/OpenGLImage.h"
    "src/Pikzel/Platform/OpenGL/OpenGLRenderCore.h"
    "src/Pikzel/Platform/OpenGL/OpenGLRenderCore.cpp"
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/glad/glad.h"
@@ -138,8 +161,7 @@ target_compile_features(
 
 target_compile_definitions(
    "PlatformOpenGL" PRIVATE
-    GLM_FORCE_DEPTH_ZERO_TO_ONE
-    GLM_FORCE_RADIANS
+   ${ProjectDefines}
 )
 
 target_include_directories(
@@ -173,24 +195,33 @@ if(${Vulkan_FOUND})
    message("Found ${Vulkan_LIBRARY}")
 
    # Platform - Vulkan
-   # This requires that the Vulkan SDK is installed
+   # This requires that the Vulkan SDK is installed.
+   # ImGui vuklan backend is using the example code from the ImGui docking branch, with https://github.com/ocornut/imgui/pull/914 merged in
    add_library(
       "PlatformVulkan" STATIC
       "src/Pikzel/Platform/Vulkan/vkpch.cpp"
-      "src/Pikzel/Platform/Vulkan/Buffer.h"
-      "src/Pikzel/Platform/Vulkan/Buffer.cpp"
-      "src/Pikzel/Platform/Vulkan/Image.h"
-      "src/Pikzel/Platform/Vulkan/Image.cpp"
       "src/Pikzel/Platform/Vulkan/QueueFamilyIndices.h"
       "src/Pikzel/Platform/Vulkan/SwapChainSupportDetails.h"
+      "src/Pikzel/Platform/Vulkan/VulkanBuffer.h"
+      "src/Pikzel/Platform/Vulkan/VulkanBuffer.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanDevice.h"
+      "src/Pikzel/Platform/Vulkan/VulkanDevice.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanGraphicsContext.h"
       "src/Pikzel/Platform/Vulkan/VulkanGraphicsContext.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanImage.h"
+      "src/Pikzel/Platform/Vulkan/VulkanImage.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanImageGC.h"
+      "src/Pikzel/Platform/Vulkan/VulkanImageGC.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanRenderCore.h"
       "src/Pikzel/Platform/Vulkan/VulkanRenderCore.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanUtility.h"
+      "src/Pikzel/Platform/Vulkan/VulkanUtility.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanWindowGC.h"
+      "src/Pikzel/Platform/Vulkan/VulkanWindowGC.cpp"
+      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
+      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.cpp"
       "vendor/imgui/examples/imgui_impl_glfw.h"
       "vendor/imgui/examples/imgui_impl_glfw.cpp"
-      "vendor/imgui/examples/imgui_impl_vulkan.h"
-      "vendor/imgui/examples/imgui_impl_vulkan.cpp"
    )
 
    target_compile_features(
@@ -202,12 +233,12 @@ if(${Vulkan_FOUND})
       "PlatformVulkan" PRIVATE
        VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
        GLFW_INCLUDE_NONE
-       GLM_FORCE_DEPTH_ZERO_TO_ONE
-       GLM_FORCE_RADIANS
+       ${ProjectDefines}
    )
 
+   # HACK: these includes should be private
    target_include_directories(
-      "PlatformVulkan" PRIVATE
+      "PlatformVulkan" PUBLIC
       ${ProjectIncludes}
       ${Vulkan_INCLUDE_DIR}
    )
@@ -221,10 +252,10 @@ if(${Vulkan_FOUND})
 
    # no precompiled header for ImGui
    set_source_files_properties(
+      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
+      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.cpp"
       "vendor/imgui/examples/imgui_impl_glfw.h"
       "vendor/imgui/examples/imgui_impl_glfw.cpp"
-      "vendor/imgui/examples/imgui_impl_vulkan.h"
-      "vendor/imgui/examples/imgui_impl_vulkan.cpp"
       PROPERTIES
       COMPILE_FLAGS /Y-
    )

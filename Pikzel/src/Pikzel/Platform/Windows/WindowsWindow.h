@@ -22,11 +22,13 @@ namespace Pikzel {
       virtual void SetVSync(bool enabled) override;
       virtual bool IsVSync() const override;
 
-      virtual GraphicsContext& GetGraphicsContext() override;
-
-      virtual void Update() override;
-
       virtual float ContentScale() const override;
+
+      virtual void UploadImGuiFonts() override;
+
+      virtual void BeginFrame() override;
+      virtual void EndFrame() override;
+
    private:
       WindowSettings m_Settings;
 
