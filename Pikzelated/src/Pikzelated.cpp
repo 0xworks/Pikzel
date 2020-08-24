@@ -5,16 +5,30 @@
 #include "Pikzel/Events/MouseEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
 #include "Pikzel/Renderer/GraphicsContext.h"
+#include "Pikzel/Renderer/Renderer.h"
 
 
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <imgui_internal.h>
 
+
+// HACK: remove...
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+
+#include "Pikzel/Platform/Vulkan/VulkanBuffer.h"
+
 class Pikzelated final : public Pikzel::Application {
 public:
    Pikzelated() {
       PKZL_PROFILE_FUNCTION();
+
+      m_Image = Pikzel::Renderer::CreateImage();
+      m_ImageGC = Pikzel::Renderer::CreateGraphicsContext(*m_Image);
 
       m_Window = Pikzel::Window::Create({APP_DESCRIPTION});
       Pikzel::EventDispatcher::Connect<Pikzel::WindowCloseEvent, &Pikzelated::OnWindowClose>(*this);
@@ -33,12 +47,13 @@ public:
          throw std::runtime_error("Failed to load ImGui font!");
       }
 
-      m_Window->GetGraphicsContext().UploadImGuiFonts();
+      m_Window->UploadImGuiFonts();
 
       ImGui::LoadIniSettingsFromDisk(io.IniFilename);
       if (!ImGui::GetCurrentContext()->SettingsLoaded) {
          ImGui::LoadIniSettingsFromDisk("EditorImGui.ini");
       }
+
    }
 
 
@@ -73,13 +88,13 @@ public:
 
       PKZL_PROFILE_FUNCTION();
 
-      Pikzel::GraphicsContext& gc = m_Window->GetGraphicsContext();
+      m_ImageGC->BeginFrame();
+      //
+      // render to image GC here...
+      //
+      m_ImageGC->EndFrame();  // so, this submits the frame... but when is that completed? need a fence?  or does this block?  maybe the GC has a "waitidle" function?
 
-      gc.BeginFrame();
-
-      // Render app content here...
-
-      gc.BeginImGuiFrame();
+      m_Window->BeginFrame();
 
       ImGuiIO& io = ImGui::GetIO();
       ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -129,8 +144,8 @@ public:
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 
-            // uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-            // ImGui::Image((void*)textureID, ImVec2 {m_ViewportSize.x, m_ViewportSize.y}, ImVec2 {0, 1}, ImVec2 {1, 0});
+            m_ImageGC->SwapBuffers(); // blocks until image has been rendered
+            ImGui::Image(m_Image->GetImGuiTextureId(), ImVec2 {m_ViewportSize.x, m_ViewportSize.y});
             ImGui::End();
          }
 
@@ -141,10 +156,7 @@ public:
 
       ImGui::Render();
 
-      gc.EndImGuiFrame();
-      gc.EndFrame();
-
-      m_Window->Update();
+      m_Window->EndFrame();
 
    }
 
@@ -157,9 +169,40 @@ private:
    }
 
 
+   // HACK: remove...
+   void CreateTextureResources() {
+      int texWidth;
+      int texHeight;
+      int texChannels;
+
+      stbi_uc* pixels = stbi_load("Assets/Textures/Statue.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+      vk::DeviceSize size = static_cast<vk::DeviceSize>(texWidth) * static_cast<vk::DeviceSize>(texHeight) * 4;
+
+      if (!pixels) {
+         throw std::runtime_error("failed to load texture image!");
+      }
+
+      std::unique_ptr<Pikzel::Buffer> stagingBuffer = Pikzel::Renderer::CreateBuffer(size);
+      stagingBuffer->CopyFromHost(0, size, pixels);
+
+      stbi_image_free(pixels);
+
+      m_Texture = Pikzel::Renderer::CreateImage({static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)});
+
+      //TransitionImageLayout(m_Texture->m_Image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1); // <-- I dont understand WTF this is
+
+      //m_Texture->CopyFromBuffer(stagingBuffer);
+
+   }
+
+
 private:
    glm::vec2 m_ViewportSize = {};
+   std::unique_ptr<Pikzel::Image> m_Image;
+   std::unique_ptr<Pikzel::GraphicsContext> m_ImageGC;
    std::unique_ptr<Pikzel::Window> m_Window;
+
+   std::unique_ptr<Pikzel::Image> m_Texture;
 
 };
 
@@ -173,3 +216,5 @@ std::unique_ptr<Pikzelated::Application> Pikzel::CreateApplication(int argc, con
 #endif
    return std::make_unique<Pikzelated>();
 }
+
+

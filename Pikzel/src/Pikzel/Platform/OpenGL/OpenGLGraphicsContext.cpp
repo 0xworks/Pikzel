@@ -17,7 +17,8 @@ namespace Pikzel {
    bool OpenGLGraphicsContext::s_OpenGLInitialized = false;
 
    OpenGLGraphicsContext::OpenGLGraphicsContext(GLFWwindow* window)
-   : m_Window(window) {
+   : m_Window {window}
+   {
       glfwMakeContextCurrent(m_Window);
       if (!s_OpenGLInitialized) {
          if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {

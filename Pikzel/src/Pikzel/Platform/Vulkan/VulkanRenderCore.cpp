@@ -1,6 +1,10 @@
 #include "vkpch.h"
 #include "VulkanRenderCore.h"
-#include "VulkanGraphicsContext.h"
+
+#include "VulkanBuffer.h"
+#include "VulkanImageGC.h"
+#include "VulkanUtility.h"
+#include "VulkanWindowGC.h"
 
 #include "Pikzel/Core/Window.h"
 
@@ -18,104 +22,25 @@ namespace Pikzel {
    }
 
 
-   static void GLFWErrorCallback(int error, const char* description) {
-      PKZL_CORE_LOG_ERROR("GLFW Error ({0}): {1}", error, description);
-   }
-
-
-   VKAPI_ATTR VkBool32 VKAPI_CALL VulkanErrorCallback(
-      VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-      VkDebugUtilsMessageTypeFlagsEXT messageType,
-      const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-      void* pUserData
-   ) {
-      switch (messageSeverity) {
-         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-            PKZL_CORE_LOG_TRACE("VULKAN VALIDATION: {0}", pCallbackData->pMessage);
-            break;
-         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-            PKZL_CORE_LOG_INFO("VULKAN VALIDATION: {0}", pCallbackData->pMessage);
-            break;
-         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-            PKZL_CORE_LOG_WARN("VULKAN VALIDATION: {0}", pCallbackData->pMessage);
-            break;
-         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-            PKZL_CORE_LOG_ERROR("VULKAN VALIDATION: {0}", pCallbackData->pMessage);
-            break;
-      }
-      return VK_FALSE;
-   }
-
-
-   void CheckLayerSupport(std::vector<const char*> layers) {
-      std::vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
-      for (const auto& layer : layers) {
-         bool layerFound = false;
-         for (const auto& availableLayer : availableLayers) {
-            if (strcmp(layer, availableLayer.layerName) == 0) {
-               layerFound = true;
-               break;
-            }
-         }
-         if (!layerFound) {
-            PKZL_CORE_LOG_INFO("available layers:");
-            for (const auto& layer : availableLayers) {
-               PKZL_CORE_LOG_INFO("\t{0}", layer.layerName);
-            }
-            std::string msg {"layer '"};
-            msg += layer;
-            msg += "' requested but is not available!";
-            throw std::runtime_error(msg);
-         }
-      }
-   }
-
-
-   void CheckInstanceExtensionSupport(std::vector<const char*> extensions) {
-      std::vector<vk::ExtensionProperties> availableExtensions = vk::enumerateInstanceExtensionProperties();
-      for (const auto& extension : extensions) {
-         bool extensionFound = false;
-         for (const auto& availableExtension : availableExtensions) {
-            if (strcmp(extension, availableExtension.extensionName) == 0) {
-               extensionFound = true;
-               break;
-            }
-         }
-         if (!extensionFound) {
-            PKZL_CORE_LOG_INFO("available extensions:");
-            for (const auto& extension : availableExtensions) {
-               PKZL_CORE_LOG_INFO("\t{0}", extension.extensionName);
-            }
-            std::string msg {"extension '"};
-            msg += extension;
-            msg += "' requested but is not available!";
-            throw std::runtime_error(msg);
-         }
-      }
-   }
-
-
    VulkanRenderCore::VulkanRenderCore() {
-      PKZL_CORE_LOG_INFO("Vulkan RenderCore");
       if (!glfwInit()) {
          throw std::runtime_error("Could not initialize GLFW!");
       }
-      glfwSetErrorCallback(GLFWErrorCallback);
+      glfwSetErrorCallback([] (int error, const char* description) {
+         PKZL_CORE_LOG_ERROR("GLFW Error ({0}): {1}", error, description);
+      });
       if (!glfwVulkanSupported()) {
          throw std::runtime_error("GLFW detects no support for Vulkan!");
       }
       CreateInstance();
+      m_Device = std::make_shared<VulkanDevice>(m_Instance, nullptr);
    }
 
 
    VulkanRenderCore::~VulkanRenderCore() {
+      m_Device = nullptr;
       DestroyInstance();
       glfwTerminate();
-   }
-
-
-   std::unique_ptr<GraphicsContext> VulkanRenderCore::CreateGraphicsContext(const Window& window) {
-      return std::make_unique<VulkanGraphicsContext>(m_Instance, (GLFWwindow*)window.GetNativeWindow());
    }
 
 
@@ -124,9 +49,43 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<Pikzel::Buffer> VulkanRenderCore::CreateBuffer(const uint64_t size) {
+      return std::make_unique<VulkanBuffer>(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+   }
+
+
+   std::unique_ptr<Image> VulkanRenderCore::CreateImage(const ImageSettings& settings /*= ImageSettings()*/) {
+      std::unique_ptr<VulkanImage> image = std::make_unique<VulkanImage>(m_Device, settings.Width, settings.Height, 1, vk::SampleCountFlagBits::e1, vk::Format::eB8G8R8A8Unorm, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+      image->CreateImageView(image->GetFormat(), vk::ImageAspectFlagBits::eColor, image->GetMIPLevels());
+      image->CreateSampler();
+      return image;
+   }
+
+
+   std::unique_ptr<GraphicsContext> VulkanRenderCore::CreateGraphicsContext(Window& window) {
+      return std::make_unique<VulkanWindowGC>(m_Device, (GLFWwindow*)window.GetNativeWindow());
+   }
+
+
+   std::unique_ptr<Pikzel::GraphicsContext> VulkanRenderCore::CreateGraphicsContext(Image& image) {
+      return std::make_unique<VulkanImageGC>(m_Device, dynamic_cast<VulkanImage*>(&image));
+   }
+
+
    std::vector<const char*> VulkanRenderCore::GetRequiredInstanceExtensions() {
-      // No instance extensions required (yet...)
-      return {};
+      std::vector<const char*> extensions;
+      uint32_t glfwExtensionCount = 0;
+      const char** glfwExtensions;
+      glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+      extensions.reserve(extensions.size() + glfwExtensionCount + 1);
+      extensions.insert(extensions.end(), glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+#ifdef PKZL_DEBUG
+      extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
+
+      return extensions;
    }
 
 
@@ -142,16 +101,6 @@ namespace Pikzel {
       CheckLayerSupport(layers);
 
       std::vector<const char*> extensions = GetRequiredInstanceExtensions();
-
-      uint32_t glfwExtensionCount = 0;
-      const char** glfwExtensions;
-      glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-      extensions.insert(extensions.end(), glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-#ifdef PKZL_DEBUG
-      extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
 
       CheckInstanceExtensionSupport(extensions);
 

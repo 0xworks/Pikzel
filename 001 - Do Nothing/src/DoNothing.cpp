@@ -1,16 +1,20 @@
 #include "Pikzel/Core/Application.h"
+#include "Pikzel/Renderer/Renderer.h"
 
-// This is a small test to make sure that the base class Pikzel::Application can be instantiated, and indeed does nothing.
-// (i.e. it makes no assumptions about what the derived client application might be wanting to do - not even opening a window)
+// This is a small test to make sure that the base class Pikzel::Application can be instantiated,
+// and the resulting application does indeed do nothing.
 //
-// A basic message _is_ printed to stdout
+// During CreateApplication() we print out a basic introductory message.
 //
 std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const char* argv[]) {
    PKZL_PROFILE_FUNCTION();
-   PKZL_CORE_LOG_INFO(APP_DESCRIPTION);
-   PKZL_CORE_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
+   PKZL_LOG_INFO(APP_DESCRIPTION);
+   PKZL_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
 #ifdef PKZL_DEBUG
-   PKZL_CORE_LOG_INFO("DEBUG build");
+   PKZL_LOG_INFO("DEBUG build");
 #endif
-   return std::make_unique<Pikzel::Application>();
+
+   auto app = std::make_unique<Pikzel::Application>();
+   PKZL_LOG_INFO("Using {0} render API", to_string(Renderer::GetAPI()));
+   return app;
 }
