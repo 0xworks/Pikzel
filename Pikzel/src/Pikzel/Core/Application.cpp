@@ -1,17 +1,14 @@
 #include "pch.h"
 #include "Application.h"
 #include "Log.h"
-#include "Pikzel/Renderer/Renderer.h"
+#include "Pikzel/Renderer/RenderCore.h"
 
 namespace Pikzel {
 
    Application::Application() {
-      Renderer::Init();
-   }
-
-
-   Application::~Application() {
-      Renderer::Shutdown();
+      //
+      // TODO: set this from cmd line or similar
+      RenderCore::SetAPI(RenderCore::API::OpenGL);
    }
 
 

@@ -13,10 +13,12 @@ namespace Pikzel {
       bool IsResizable = true;
       bool IsFullScreen = false;
       bool IsCursorEnabled = true;
+      uint32_t MinWidth = 0;
+      uint32_t MinHeight = 0;
+      uint32_t MaxWidth = 0;
+      uint32_t MaxHeight = 0;
    };
 
-
-   class GraphicsContext;
 
    class Window {
    public:
@@ -32,13 +34,8 @@ namespace Pikzel {
 
       virtual float ContentScale() const = 0;
 
-      virtual void UploadImGuiFonts() = 0;
-
       virtual void BeginFrame() = 0;
       virtual void EndFrame() = 0;
-
-      virtual void BeginImGuiFrame() = 0;
-      virtual void EndImGuiFrame() = 0;
 
    public:
       static std::unique_ptr<Window> Create(const WindowSettings& settings = WindowSettings());

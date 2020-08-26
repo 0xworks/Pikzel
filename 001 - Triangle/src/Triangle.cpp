@@ -2,6 +2,7 @@
 #include "Pikzel/Core/Window.h"
 #include "Pikzel/Events/EventDispatcher.h"
 #include "Pikzel/Events/WindowEvents.h"
+#include "Pikzel/Renderer/RenderCore.h"
 
 // Render a triangle in a window
 
@@ -11,6 +12,7 @@ public:
       PKZL_PROFILE_FUNCTION();
       m_Window = Pikzel::Window::Create({APP_DESCRIPTION});
       Pikzel::EventDispatcher::Connect<Pikzel::WindowCloseEvent, &Triangle::OnWindowClose>(*this);
+      Pikzel::RenderCore::SetClearColor({1.0f, 0.0f, 0.0f, 1.0f});
    }
 
 
@@ -23,6 +25,8 @@ public:
       PKZL_PROFILE_FUNCTION();
 
       m_Window->BeginFrame();
+
+      Pikzel::RenderCore::Clear();
 
       //
       // TODO:  render triangle here...

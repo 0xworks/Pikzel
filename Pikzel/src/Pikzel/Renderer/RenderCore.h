@@ -1,31 +1,48 @@
 #pragma once
 
-#include "Buffer.h"
-#include "Image.h"
-#include "RendererAPI.h"
+#include "GraphicsContext.h"
+#include "Pikzel/Core/Window.h"
+
+#include <glm/glm.hpp>
 #include <memory>
 
 namespace Pikzel {
 
-   class GraphicsContext;
-   class Window;
-   class Image;
+   struct IRenderCore {
+      virtual ~IRenderCore() = default;
+
+      virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
+
+      virtual void SetClearColor(const glm::vec4& color) = 0;
+      virtual void Clear() = 0;
+
+      virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window) = 0;
+   };
+
 
    class RenderCore {
    public:
-      virtual ~RenderCore() = default;
 
-      virtual RendererAPI GetAPI() const = 0;
+      enum class API {
+         None,
+         OpenGL
+      };
 
-      virtual std::unique_ptr<Buffer> CreateBuffer(const uint64_t size) = 0;
+      static void SetAPI(API api);
+      static API GetAPI();
 
-      virtual std::unique_ptr<Image> CreateImage(const ImageSettings& settings = ImageSettings()) = 0;
+      static void Init();
 
-      virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window) = 0;
-      virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(Image& window) = 0;
+      static void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
-   public:
-      static std::unique_ptr<RenderCore> Create();
+      static void SetClearColor(const glm::vec4& color);
+      static void Clear();
+
+      static std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window);
+
+   private:
+      static API s_API;
+      static std::unique_ptr<IRenderCore> s_RenderCore;
    };
 
 }

@@ -5,8 +5,7 @@
 #include "Pikzel/Events/KeyEvents.h"
 #include "Pikzel/Events/MouseEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
-#include "Pikzel/Renderer/GraphicsContext.h"
-#include "Pikzel/Renderer/Renderer.h"
+#include "Pikzel/Renderer/RenderCore.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -18,6 +17,9 @@ namespace Pikzel {
    }
 
 
+   static uint8_t s_GLFWWindowCount = 0;
+
+
    WindowsWindow::WindowsWindow(const WindowSettings& settings) {
       m_Settings = settings;
 
@@ -25,22 +27,47 @@ namespace Pikzel {
       PKZL_CORE_LOG_INFO("  Title: {0}", m_Settings.Title);
       PKZL_CORE_LOG_INFO("  Size: ({0}, {1})", m_Settings.Width, m_Settings.Height);
 
-      glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
-
-      const auto monitor = m_Settings.IsFullScreen ? glfwGetPrimaryMonitor() : nullptr;
-
-      int clientAPI = GLFW_NO_API;
-      if (Renderer::GetAPI() == RendererAPI::OpenGL) {
-         clientAPI = GLFW_OPENGL_API;
-      }
-      glfwWindowHint(GLFW_CLIENT_API, clientAPI);
-      glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
-      m_Window = glfwCreateWindow((int)m_Settings.Width, (int)m_Settings.Height, m_Settings.Title, monitor, nullptr);
-      if (!m_Window) {
-         throw std::runtime_error("failed to create window");
+      if (s_GLFWWindowCount == 0) {
+         PKZL_PROFILE_SCOPE("glfwInit");
+         if (!glfwInit()) {
+            throw std::runtime_error("Could not initialize GLFW!");
+         }
+         glfwSetErrorCallback([] (int error, const char* description) {
+            PKZL_CORE_LOG_ERROR("GLFW Error ({0}): {1}", error, description);
+         });
       }
 
-      m_Context = Renderer::CreateGraphicsContext(*this);
+      {
+         PKZL_PROFILE_SCOPE("glfwCreateWindow")
+            const auto monitor = m_Settings.IsFullScreen ? glfwGetPrimaryMonitor() : nullptr;
+
+         int clientAPI = GLFW_NO_API;
+         if (RenderCore::GetAPI() == RenderCore::API::OpenGL) {
+            clientAPI = GLFW_OPENGL_API;
+#if defined(PKZL_DEBUG)
+            glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
+         }
+         glfwWindowHint(GLFW_CLIENT_API, clientAPI);
+         glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
+         m_Window = glfwCreateWindow((int)m_Settings.Width, (int)m_Settings.Height, m_Settings.Title, monitor, nullptr);
+         if (!m_Window) {
+            throw std::runtime_error("failed to create window");
+         }
+         glfwSetWindowSizeLimits(
+            m_Window,
+            m_Settings.MinWidth ? (int)m_Settings.MinWidth : GLFW_DONT_CARE,
+            m_Settings.MinHeight ? (int)m_Settings.MinHeight : GLFW_DONT_CARE,
+            m_Settings.MaxWidth ? (int)m_Settings.MaxWidth : GLFW_DONT_CARE,
+            m_Settings.MaxHeight ? (int)m_Settings.MaxHeight : GLFW_DONT_CARE
+         );
+         ++s_GLFWWindowCount;
+      }
+
+      glfwMakeContextCurrent(m_Window);
+      RenderCore::Init();
+
+      m_Context = RenderCore::CreateGraphicsContext(*this);
 
       SetVSync(true);
 
@@ -118,11 +145,11 @@ namespace Pikzel {
 
 
    void WindowsWindow::SetVSync(bool enabled) {
-      //if (enabled) {
-      //   glfwSwapInterval(1);
-      //} else {
-      //   glfwSwapInterval(0);
-      //}
+      if (enabled) {
+         glfwSwapInterval(1);
+      } else {
+         glfwSwapInterval(0);
+      }
       m_VSync = enabled;
    }
 
@@ -140,11 +167,6 @@ namespace Pikzel {
    }
 
 
-   void WindowsWindow::UploadImGuiFonts() {
-      m_Context->UploadImGuiFonts();
-   }
-
-
    void WindowsWindow::BeginFrame() {
       glfwPollEvents();
       m_Context->BeginFrame();
@@ -152,17 +174,8 @@ namespace Pikzel {
 
 
    void WindowsWindow::EndFrame() {
-      m_Context->EndFrame();
-      m_Context->SwapBuffers();
-   }
-
-   void WindowsWindow::BeginImGuiFrame() {
-      m_Context->BeginImGuiFrame();
-   }
-
-
-   void WindowsWindow::EndImGuiFrame() {
-      m_Context->EndImGuiFrame();
+      m_Context->EndFrame();     // i.e. "submit"
+      m_Context->SwapBuffers();  // i.e. "present"
    }
 
 }

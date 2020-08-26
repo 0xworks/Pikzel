@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 3.10)
 
 project (
-   "003Triangle"
+   "001Triangle"
    VERSION 0.1
-   DESCRIPTION "Pikzel Demo 003 - Triangle"
+   DESCRIPTION "Pikzel Demo 001 - Triangle"
 )
 
 set(
