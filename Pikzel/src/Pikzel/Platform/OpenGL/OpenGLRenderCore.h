@@ -4,21 +4,19 @@
 
 namespace Pikzel {
 
-   class OpenGLRenderCore : public RenderCore {
+   class OpenGLRenderCore : public IRenderCore {
    public:
       OpenGLRenderCore();
       virtual ~OpenGLRenderCore();
 
-      virtual RendererAPI GetAPI() const override;
+      virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 
-      virtual std::unique_ptr<Buffer> CreateBuffer(const uint64_t size) override;
-      virtual std::unique_ptr<Image> CreateImage(const ImageSettings& settings = ImageSettings()) override;
+      virtual void SetClearColor(const glm::vec4& color) override;
+      virtual void Clear() override;
 
-      virtual  std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window) override;
-      virtual  std::unique_ptr<GraphicsContext> CreateGraphicsContext(Image& window) override;
-
-
+      virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window) override;
 
    };
+
 
 }

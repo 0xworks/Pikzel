@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Pikzel/Core/Window.h"
+#include "Pikzel/Renderer/GraphicsContext.h"
 
 #include <memory>
-#include <string>
 
 struct GLFWwindow;
 
@@ -24,13 +24,8 @@ namespace Pikzel {
 
       virtual float ContentScale() const override;
 
-      virtual void UploadImGuiFonts() override;
-
       virtual void BeginFrame() override;
       virtual void EndFrame() override;
-
-      virtual void BeginImGuiFrame() override;
-      virtual void EndImGuiFrame() override;
 
    private:
       WindowSettings m_Settings;

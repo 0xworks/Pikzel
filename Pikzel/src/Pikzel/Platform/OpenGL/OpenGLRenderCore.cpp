@@ -2,58 +2,87 @@
 #include "OpenGLRenderCore.h"
 #include "OpenGLGraphicsContext.h"
 
-#include "Pikzel/Core/Window.h"
-
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <examples/imgui_impl_glfw.h>
-#include <examples/imgui_impl_opengl3.h>
 
 namespace Pikzel {
 
-   std::unique_ptr<RenderCore> RenderCore::Create() {
+   std::unique_ptr<IRenderCore> Create() {
       return std::make_unique<OpenGLRenderCore>();
    }
 
 
-   OpenGLRenderCore::OpenGLRenderCore() {
-      if (!glfwInit()) {
-         throw std::runtime_error("Could not initialize GLFW!");
+   void OpenGLMessageCallback(
+      unsigned source,
+      unsigned type,
+      unsigned id,
+      unsigned severity,
+      int length,
+      const char* message,
+      const void* userParam) {
+      switch (severity) {
+         case GL_DEBUG_SEVERITY_HIGH:         PKZL_CORE_LOG_FATAL(message); return;
+         case GL_DEBUG_SEVERITY_MEDIUM:       PKZL_CORE_LOG_ERROR(message); return;
+         case GL_DEBUG_SEVERITY_LOW:          PKZL_CORE_LOG_WARN(message); return;
+         case GL_DEBUG_SEVERITY_NOTIFICATION: PKZL_CORE_LOG_TRACE(message); return;
       }
-      glfwSetErrorCallback([] (int error, const char* description) {
-         PKZL_CORE_LOG_ERROR("GLFW Error ({0}): {1}", error, description);
-      });
+      PKZL_CORE_ASSERT(false, "Unknown OpenGL message callback severity level!");
    }
 
 
-   OpenGLRenderCore::~OpenGLRenderCore() {
-      glfwTerminate();
+   OpenGLRenderCore::OpenGLRenderCore() {
+      PKZL_PROFILE_FUNCTION();
+
+      if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+         throw std::runtime_error("Failed to initialize Glad!");
+      }
+
+      PKZL_CORE_LOG_INFO("OpenGL Info:");
+      PKZL_CORE_LOG_INFO("  Vendor: {0}", glGetString(GL_VENDOR));
+      PKZL_CORE_LOG_INFO("  Renderer: {0}", glGetString(GL_RENDERER));
+      PKZL_CORE_LOG_INFO("  Version: {0}", glGetString(GL_VERSION));
+
+#ifdef PKZL_ENABLE_ASSERTS
+      int versionMajor;
+      int versionMinor;
+      glGetIntegerv(GL_MAJOR_VERSION, &versionMajor);
+      glGetIntegerv(GL_MINOR_VERSION, &versionMinor);
+      PKZL_CORE_ASSERT(versionMajor > 4 || (versionMajor == 4 && versionMinor >= 5), "Pikzel requires at least OpenGL version 4.5!");
+#endif
+
+#ifdef PKZL_DEBUG
+      glEnable(GL_DEBUG_OUTPUT);
+      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+      glDebugMessageCallback(OpenGLMessageCallback, nullptr);
+      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+#endif
+
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+      glEnable(GL_DEPTH_TEST);
    }
 
 
-   RendererAPI OpenGLRenderCore::GetAPI() const {
-      return RendererAPI::OpenGL;
+   OpenGLRenderCore::~OpenGLRenderCore() {}
+
+
+   void OpenGLRenderCore::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+      glViewport(x, y, width, height);
    }
 
 
-   std::unique_ptr<Pikzel::Buffer> OpenGLRenderCore::CreateBuffer(const uint64_t size) {
-      throw std::logic_error("The method or operation is not implemented.");
+   void OpenGLRenderCore::SetClearColor(const glm::vec4& color) {
+      glClearColor(color.r, color.g, color.b, color.a);
    }
 
 
-   std::unique_ptr<Pikzel::Image> OpenGLRenderCore::CreateImage(const ImageSettings& settings /*= ImageSettings()*/) {
-      throw std::logic_error("The method or operation is not implemented.");
+   void OpenGLRenderCore::Clear() {
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    }
 
 
-   std::unique_ptr<GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(Window& window) {
-      return std::make_unique<OpenGLGraphicsContext>((GLFWwindow*)window.GetNativeWindow());
-   }
-
-
-   std::unique_ptr<Pikzel::GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(Image& window) {
-      throw std::logic_error("The method or operation is not implemented.");
+   std::unique_ptr<Pikzel::GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(Window& window) {
+      return std::make_unique<OpenGLGraphicsContext>(window);
    }
 
 }

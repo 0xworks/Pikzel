@@ -13,7 +13,8 @@ namespace Pikzel {
 
    public:
       Application();
-      virtual ~Application();
+
+      virtual ~Application() = default;
 
       virtual void Run();
 

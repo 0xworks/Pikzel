@@ -6,7 +6,4 @@ include("CMakeMacros.txt")
 project ("Pikzel" VERSION 0.1 DESCRIPTION "Pikzel Interactive App Engine")
 
 add_subdirectory("Pikzel")
-add_subdirectory("001 - Do Nothing")
-add_subdirectory("002 - Offline Triangle")
-add_subdirectory("003 - Triangle")
-add_subdirectory("Pikzelated")
+add_subdirectory("001 - Triangle")
