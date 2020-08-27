@@ -20,10 +20,21 @@ set(
    "Pikzel"
 )
 
+set(
+   ShaderSources
+   "Assets/Shaders/Triangle.vert"
+   "Assets/Shaders/Triangle.frag"
+)
+
+copy_assets(ShaderSources Assets/Shaders copiedShaders)
+
+source_group("src" FILES ${ProjectSources})
+source_group("Assets/Shaders" FILES ${ShaderSources})
 
 add_executable(
    ${PROJECT_NAME}
    ${ProjectSources}
+   ${ShaderSources}
 )
 
 target_compile_features(
@@ -48,3 +59,10 @@ target_link_libraries(
    ${PROJECT_NAME} PRIVATE
    ${ProjectLibs}
 )
+
+# These arent really "source" files.
+# This line is here to make target depend on the listed files (so that cmake will then "build" them)
+# The correct way to do this is to add_custom_target() and then add_dependencies() on the custom target.
+# I do not want to clutter up the project with a whole load of custom targets, however.
+set_source_files_properties(${copiedShaders} PROPERTIES GENERATED TRUE)
+target_sources(${PROJECT_NAME} PRIVATE ${copiedShaders})

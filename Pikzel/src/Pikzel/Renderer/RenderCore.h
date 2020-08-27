@@ -1,10 +1,13 @@
 #pragma once
 
+#include "Buffer.h"
 #include "GraphicsContext.h"
+#include "Shader.h"
 #include "Pikzel/Core/Window.h"
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <vector>
 
 namespace Pikzel {
 
@@ -17,6 +20,14 @@ namespace Pikzel {
       virtual void Clear() = 0;
 
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window) = 0;
+
+      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size) = 0;
+      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(float* vertices, uint32_t size) = 0;
+
+      virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count) = 0;
+
+      // TODO: obvs there are other sorts of shader.. so this function signature will need changing...
+      virtual std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) = 0;
    };
 
 
@@ -39,6 +50,13 @@ namespace Pikzel {
       static void Clear();
 
       static std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window);
+
+      static std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size);
+      static std::unique_ptr<VertexBuffer> CreateVertexBuffer(float* vertices, uint32_t size);
+
+      static std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count);
+
+      static std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc);
 
    private:
       static API s_API;
