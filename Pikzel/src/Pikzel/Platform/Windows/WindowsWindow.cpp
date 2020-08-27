@@ -126,6 +126,9 @@ namespace Pikzel {
    WindowsWindow::~WindowsWindow() {
       glfwDestroyWindow(m_Window);
       m_Window = nullptr;
+      if (--s_GLFWWindowCount == 0) {
+         glfwTerminate();
+      }
    }
 
 

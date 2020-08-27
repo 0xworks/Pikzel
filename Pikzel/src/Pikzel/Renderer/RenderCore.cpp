@@ -54,4 +54,24 @@ namespace Pikzel {
       return s_RenderCore->CreateGraphicsContext(window);
    }
 
+
+   std::unique_ptr<Pikzel::VertexBuffer> RenderCore::CreateVertexBuffer(uint32_t size) {
+      return s_RenderCore->CreateVertexBuffer(size);
+   }
+
+
+   std::unique_ptr<Pikzel::VertexBuffer> RenderCore::CreateVertexBuffer(float* vertices, uint32_t size) {
+      return s_RenderCore->CreateVertexBuffer(vertices, size);
+   }
+
+
+   std::unique_ptr<Pikzel::IndexBuffer> RenderCore::CreateIndexBuffer(uint32_t* indices, uint32_t count) {
+      return s_RenderCore->CreateIndexBuffer(indices, count);
+   }
+
+
+   std::unique_ptr<Pikzel::Shader> RenderCore::CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) {
+      return s_RenderCore->CreateShader(vertexSrc, fragmentSrc);
+   }
+
 }

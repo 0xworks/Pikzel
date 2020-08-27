@@ -1,8 +1,9 @@
 #include "glpch.h"
 #include "OpenGLRenderCore.h"
+#include "OpenGLBuffer.h"
 #include "OpenGLGraphicsContext.h"
+#include "OpenGLShader.h"
 
-#include <glad/glad.h>
 
 namespace Pikzel {
 
@@ -81,8 +82,27 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Pikzel::GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(Window& window) {
+   std::unique_ptr<GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(Window& window) {
       return std::make_unique<OpenGLGraphicsContext>(window);
+   }
+
+
+   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(uint32_t size) {
+      return std::make_unique<OpenGLVertexBuffer>(size);
+   }
+
+
+   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(float* vertices, uint32_t size) {
+      return std::make_unique<OpenGLVertexBuffer>(vertices, size);
+   }
+
+
+   std::unique_ptr<IndexBuffer> OpenGLRenderCore::CreateIndexBuffer(uint32_t* indices, uint32_t count) {
+      return std::make_unique<OpenGLIndexBuffer>(indices, count);
+   }
+
+   std::unique_ptr<Pikzel::Shader> OpenGLRenderCore::CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) {
+      return std::make_unique<OpenGLShader>(vertexSrc, fragmentSrc);
    }
 
 }
