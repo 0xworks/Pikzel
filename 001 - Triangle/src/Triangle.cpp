@@ -46,6 +46,7 @@ public:
 
       m_Shader->Bind();
       Pikzel::RenderCore::DrawIndexed(*m_VertexArray);
+      m_Shader->Unbind();
 
       m_Window->EndFrame();
 
@@ -69,14 +70,15 @@ private:
 
    void CreateVertexBuffer() {
       float vertices[] = {
-          -0.5f, -0.5f, 0.0f,
-           0.5f, -0.5f, 0.0f,
-           0.0f,  0.5f, 0.0f
+          -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+           0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+           0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f
       };
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
       m_VertexBuffer->SetLayout({
-         { Pikzel::ShaderDataType::Float3, "inPos" }
+         { Pikzel::ShaderDataType::Float3, "aPos" },
+         { Pikzel::ShaderDataType::Float3, "aColor" }
       });
 
       m_VertexArray = Pikzel::RenderCore::CreateVertexArray();
@@ -104,6 +106,8 @@ private:
 
 private:
    std::filesystem::path m_bindir;
+   glm::vec4 m_TriangleColor = {};
+   Pikzel::DeltaTime m_TotalSeconds = {};
    std::unique_ptr<Pikzel::Window> m_Window;
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;

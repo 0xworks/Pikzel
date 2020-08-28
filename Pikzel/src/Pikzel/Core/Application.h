@@ -7,7 +7,7 @@
 
 namespace Pikzel {
 
-   using DeltaTime = std::chrono::steady_clock::duration;
+   using DeltaTime = std::chrono::duration<float, std::chrono::seconds::period>;
 
    class Application {
 
