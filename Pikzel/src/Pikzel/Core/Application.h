@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Core.h"
+#include "Window.h"
+#include "Pikzel/Events/WindowEvents.h"
 
 #include <chrono>
 #include <memory>
@@ -12,7 +14,7 @@ namespace Pikzel {
    class Application {
 
    public:
-      Application();
+      Application(const WindowSettings& settings = {});
 
       virtual ~Application() = default;
 
@@ -24,10 +26,17 @@ namespace Pikzel {
 
    protected:
       virtual void Update(DeltaTime deltaTime);
+
+      virtual void RenderBegin();
       virtual void Render();
+      virtual void RenderEnd();
+
+      virtual void OnWindowClose(const WindowCloseEvent& event);
+      virtual void OnWindowResize(const WindowResizeEvent& event);
 
    private:
       std::chrono::steady_clock::time_point m_AppTime = {};
+      std::unique_ptr<Window> m_Window;
       bool m_Running = false;
 
    };

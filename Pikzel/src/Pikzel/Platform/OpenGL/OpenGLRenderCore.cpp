@@ -3,6 +3,7 @@
 #include "OpenGLBuffer.h"
 #include "OpenGLGraphicsContext.h"
 #include "OpenGLShader.h"
+#include "OpenGLTexture.h"
 #include "OpenGLVertexArray.h"
 
 namespace Pikzel {
@@ -97,17 +98,27 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<IndexBuffer> OpenGLRenderCore::CreateIndexBuffer(uint32_t* indices, uint32_t count) {
-      return std::make_unique<OpenGLIndexBuffer>(indices, count);
-   }
-
-
    std::unique_ptr<VertexArray> OpenGLRenderCore::CreateVertexArray() {
       return std::make_unique<OpenGLVertexArray>();
    }
 
 
-   std::unique_ptr<Pikzel::Shader> OpenGLRenderCore::CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) {
+   std::unique_ptr<IndexBuffer> OpenGLRenderCore::CreateIndexBuffer(uint32_t* indices, uint32_t count) {
+      return std::make_unique<OpenGLIndexBuffer>(indices, count);
+   }
+
+
+   std::unique_ptr<Texture2D> OpenGLRenderCore::CreateTexture2D(uint32_t width, uint32_t height) {
+      return std::make_unique<OpenGLTexture2D>(width, height);
+   }
+
+
+   std::unique_ptr<Texture2D> OpenGLRenderCore::CreateTexture2D(const std::filesystem::path& path) {
+      return std::make_unique<OpenGLTexture2D>(path);
+   }
+
+
+   std::unique_ptr<Shader> OpenGLRenderCore::CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) {
       return std::make_unique<OpenGLShader>(vertexSrc, fragmentSrc);
    }
 
@@ -118,5 +129,6 @@ namespace Pikzel {
       glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
       vertexArray.Unbind();
    }
+
 
 }

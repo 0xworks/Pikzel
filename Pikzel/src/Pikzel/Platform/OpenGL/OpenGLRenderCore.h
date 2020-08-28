@@ -18,10 +18,12 @@ namespace Pikzel {
 
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size) override;
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(float* vertices, uint32_t size) override;
+      virtual std::unique_ptr<VertexArray> CreateVertexArray() override;
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count) override;
 
-      virtual std::unique_ptr<VertexArray> CreateVertexArray() override;
+      std::unique_ptr<Texture2D> CreateTexture2D(uint32_t width, uint32_t height) override;
+      std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) override;
 
       virtual std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) override;
 

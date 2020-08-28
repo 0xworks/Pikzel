@@ -5,11 +5,11 @@
 #include <filesystem>
 
 
-// Render a triangle in a window
+// Render a textured triangle in a window
 
-class Triangle final : public Pikzel::Application {
+class Textured final : public Pikzel::Application {
 public:
-   Triangle(int argc, const char* argv[])
+   Textured(int argc, const char* argv[])
    : m_bindir(argv[0])
    {
       PKZL_PROFILE_FUNCTION();
@@ -18,6 +18,7 @@ public:
 
       CreateVertexBuffer();
       CreateIndexBuffer();
+      CreateTextures();
       CreateShaderProgram();
 
       Pikzel::RenderCore::SetClearColor({0.2f, 0.3f, 0.3f, 1.0f});
@@ -31,7 +32,10 @@ public:
 
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
+
       Pikzel::RenderCore::Clear();
+
+      m_Texture->Bind(0);
       m_Shader->Bind();
       Pikzel::RenderCore::DrawIndexed(*m_VertexArray);
       m_Shader->Unbind();
@@ -42,15 +46,16 @@ private:
 
    void CreateVertexBuffer() {
       float vertices[] = {
-          -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-           0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-           0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+          -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+           0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+           0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f
       };
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
       m_VertexBuffer->SetLayout({
          { Pikzel::ShaderDataType::Float3, "aPos" },
-         { Pikzel::ShaderDataType::Float3, "aColor" }
+         { Pikzel::ShaderDataType::Float3, "aColor" },
+         { Pikzel::ShaderDataType::Float2, "aTexCoord" }
       });
 
       m_VertexArray = Pikzel::RenderCore::CreateVertexArray();
@@ -69,9 +74,14 @@ private:
    }
 
 
+   void CreateTextures() {
+      m_Texture = Pikzel::RenderCore::CreateTexture2D(m_bindir / "Assets/Textures/Container.jpg");
+   }
+
+
    void CreateShaderProgram() {
-      auto vertShaderCode = Pikzel::ReadFile(m_bindir / "Assets/Shaders/Triangle.vert", /*readAsBinary=*/false);
-      auto fragShaderCode = Pikzel::ReadFile(m_bindir / "Assets/Shaders/Triangle.frag", /*readAsBinary=*/false);
+      auto vertShaderCode = Pikzel::ReadFile(m_bindir / "Assets/Shaders/Textured.vert", /*readAsBinary=*/false);
+      auto fragShaderCode = Pikzel::ReadFile(m_bindir / "Assets/Shaders/Textured.frag", /*readAsBinary=*/false);
       m_Shader = Pikzel::RenderCore::CreateShader(vertShaderCode, fragShaderCode);
    }
 
@@ -81,6 +91,7 @@ private:
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::VertexArray> m_VertexArray;
+   std::unique_ptr<Pikzel::Texture2D> m_Texture;
    std::unique_ptr<Pikzel::Shader> m_Shader;
 
 };
@@ -94,5 +105,5 @@ std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const c
    PKZL_LOG_INFO("DEBUG build");
 #endif
 
-   return std::make_unique<Triangle>(argc, argv);
+   return std::make_unique<Textured>(argc, argv);
 }
