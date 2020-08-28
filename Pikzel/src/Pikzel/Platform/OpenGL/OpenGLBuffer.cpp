@@ -43,6 +43,16 @@ namespace Pikzel {
    }
 
 
+   const Pikzel::BufferLayout& OpenGLVertexBuffer::GetLayout() const {
+      return m_Layout;
+   }
+
+
+   void OpenGLVertexBuffer::SetLayout(const BufferLayout& layout) {
+      m_Layout = layout;
+   }
+
+
    OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t* indices, uint32_t count)
    : m_Count(count)
    {

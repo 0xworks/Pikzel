@@ -3,6 +3,7 @@
 #include "Buffer.h"
 #include "GraphicsContext.h"
 #include "Shader.h"
+#include "VertexArray.h"
 #include "Pikzel/Core/Window.h"
 
 #include <glm/glm.hpp>
@@ -26,8 +27,14 @@ namespace Pikzel {
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count) = 0;
 
+      // TODO: this needs to be hidden away somehow, as rendering APIs other than OpenGL do not have "vertex array objects"
+      virtual std::unique_ptr<VertexArray> CreateVertexArray() = 0;
+
       // TODO: obvs there are other sorts of shader.. so this function signature will need changing...
       virtual std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) = 0;
+
+      virtual void DrawIndexed(VertexArray& vertexArray, uint32_t indexCount = 0) = 0;
+
    };
 
 
@@ -56,7 +63,11 @@ namespace Pikzel {
 
       static std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count);
 
+      static std::unique_ptr<VertexArray> CreateVertexArray();
+
       static std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc);
+
+      static void DrawIndexed(VertexArray& vertexArray, uint32_t indexCount = 0);
 
    private:
       static API s_API;

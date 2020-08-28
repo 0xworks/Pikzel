@@ -3,7 +3,7 @@
 #include "OpenGLBuffer.h"
 #include "OpenGLGraphicsContext.h"
 #include "OpenGLShader.h"
-
+#include "OpenGLVertexArray.h"
 
 namespace Pikzel {
 
@@ -101,8 +101,21 @@ namespace Pikzel {
       return std::make_unique<OpenGLIndexBuffer>(indices, count);
    }
 
+
+   std::unique_ptr<VertexArray> OpenGLRenderCore::CreateVertexArray() {
+      return std::make_unique<OpenGLVertexArray>();
+   }
+
+
    std::unique_ptr<Pikzel::Shader> OpenGLRenderCore::CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) {
       return std::make_unique<OpenGLShader>(vertexSrc, fragmentSrc);
+   }
+
+
+   void OpenGLRenderCore::DrawIndexed(VertexArray& vertexArray, uint32_t indexCount) {
+      uint32_t count = indexCount ? indexCount : vertexArray.GetIndexBuffer()->GetCount();
+      vertexArray.Bind();
+      glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
    }
 
 }
