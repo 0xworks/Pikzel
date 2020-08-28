@@ -1,14 +1,24 @@
 #include "pch.h"
 #include "Application.h"
 #include "Log.h"
+#include "Pikzel/Events/EventDispatcher.h"
 #include "Pikzel/Renderer/RenderCore.h"
+
 
 namespace Pikzel {
 
-   Application::Application() {
+   Application::Application(const WindowSettings& settings) {
       //
-      // TODO: set this from cmd line or similar
+      // TODO: set this from cmd line or other means (e.g auto-detect)
       RenderCore::SetAPI(RenderCore::API::OpenGL);
+
+      // Every application has to have a window whether you like it or not.
+      // You cannot, for example, initialize OpenGL rendering backend without a window.
+      // A workaround for applications that just want to do "offline" rendering is
+      // to create the window and then immediately hide it.
+      m_Window = Pikzel::Window::Create(settings);
+      EventDispatcher::Connect<WindowCloseEvent, &Application::OnWindowClose>(*this);
+      EventDispatcher::Connect<WindowResizeEvent, &Application::OnWindowResize>(*this);
    }
 
 
@@ -22,7 +32,9 @@ namespace Pikzel {
          Update(currentTime - m_AppTime);
          m_AppTime = currentTime;
 
+         RenderBegin();
          Render();
+         RenderEnd();
       }
    }
 
@@ -42,8 +54,30 @@ namespace Pikzel {
    }
 
 
+   void Application::RenderBegin() {
+      m_Window->BeginFrame();
+   }
+
+
    void Application::Render() {
    }
 
 
+   void Application::RenderEnd() {
+      m_Window->EndFrame();
+   }
+
+
+   void Application::OnWindowClose(const Pikzel::WindowCloseEvent& event) {
+      if (event.Sender == m_Window->GetNativeWindow()) {
+         Exit();
+      }
+   }
+
+
+   void Application::OnWindowResize(const Pikzel::WindowResizeEvent& event) {
+      if (event.Sender == m_Window->GetNativeWindow()) {
+         Pikzel::RenderCore::SetViewport(0, 0, event.Width, event.Height);
+      }
+   }
 }

@@ -3,10 +3,13 @@
 #include "Buffer.h"
 #include "GraphicsContext.h"
 #include "Shader.h"
+#include "Texture.h"
 #include "VertexArray.h"
 #include "Pikzel/Core/Window.h"
 
 #include <glm/glm.hpp>
+
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -24,11 +27,14 @@ namespace Pikzel {
 
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size) = 0;
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(float* vertices, uint32_t size) = 0;
+      // TODO: this needs to be hidden away somehow, as rendering APIs other than OpenGL do not have "vertex array objects"
+      virtual std::unique_ptr<VertexArray> CreateVertexArray() = 0;
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count) = 0;
 
-      // TODO: this needs to be hidden away somehow, as rendering APIs other than OpenGL do not have "vertex array objects"
-      virtual std::unique_ptr<VertexArray> CreateVertexArray() = 0;
+      // TODO: you probably also want to be able to specify things like format, and sampling parameters
+      virtual std::unique_ptr<Texture2D> CreateTexture2D(uint32_t width, uint32_t height) = 0;
+      virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) = 0;
 
       // TODO: obvs there are other sorts of shader.. so this function signature will need changing...
       virtual std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) = 0;
@@ -60,10 +66,12 @@ namespace Pikzel {
 
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size);
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(float* vertices, uint32_t size);
+      static std::unique_ptr<VertexArray> CreateVertexArray();
 
       static std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count);
 
-      static std::unique_ptr<VertexArray> CreateVertexArray();
+      static std::unique_ptr<Texture2D> CreateTexture2D(uint32_t width, uint32_t height);
+      static std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path);
 
       static std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc);
 

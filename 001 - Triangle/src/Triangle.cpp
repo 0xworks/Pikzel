@@ -1,8 +1,5 @@
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/Utility.h"
-#include "Pikzel/Core/Window.h"
-#include "Pikzel/Events/EventDispatcher.h"
-#include "Pikzel/Events/WindowEvents.h"
 #include "Pikzel/Renderer/RenderCore.h"
 
 #include <filesystem>
@@ -19,15 +16,11 @@ public:
 
       m_bindir.remove_filename();
 
-      m_Window = Pikzel::Window::Create({APP_DESCRIPTION});
-      Pikzel::EventDispatcher::Connect<Pikzel::WindowCloseEvent, &Triangle::OnWindowClose>(*this);
-      Pikzel::EventDispatcher::Connect<Pikzel::WindowResizeEvent, &Triangle::OnWindowResize>(*this);
-
-      Pikzel::RenderCore::SetViewport(0, 0, m_Window->GetWidth(), m_Window->GetHeight());
-
       CreateVertexBuffer();
       CreateIndexBuffer();
       CreateShaderProgram();
+
+      Pikzel::RenderCore::SetClearColor({0.2f, 0.3f, 0.3f, 1.0f});
    }
 
 
@@ -38,35 +31,14 @@ public:
 
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
-
-      m_Window->BeginFrame();
-
-      Pikzel::RenderCore::SetClearColor({0.2f, 0.3f, 0.3f, 1.0f});
       Pikzel::RenderCore::Clear();
-
       m_Shader->Bind();
       Pikzel::RenderCore::DrawIndexed(*m_VertexArray);
       m_Shader->Unbind();
-
-      m_Window->EndFrame();
-
    }
 
 
 private:
-   void OnWindowClose(const Pikzel::WindowCloseEvent& event) {
-      if (event.Sender == m_Window->GetNativeWindow()) {
-         Exit();
-      }
-   }
-
-
-   void OnWindowResize(const Pikzel::WindowResizeEvent& event) {
-      if (event.Sender == m_Window->GetNativeWindow()) {
-         Pikzel::RenderCore::SetViewport(0, 0, event.Width, event.Height);
-      }
-   }
-
 
    void CreateVertexBuffer() {
       float vertices[] = {
@@ -106,9 +78,6 @@ private:
 
 private:
    std::filesystem::path m_bindir;
-   glm::vec4 m_TriangleColor = {};
-   Pikzel::DeltaTime m_TotalSeconds = {};
-   std::unique_ptr<Pikzel::Window> m_Window;
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::VertexArray> m_VertexArray;

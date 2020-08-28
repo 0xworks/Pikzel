@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "RenderCore.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 namespace Pikzel {
 
@@ -16,6 +18,9 @@ namespace Pikzel {
       PKZL_CORE_ASSERT(s_API == API::None, "Rendercore API is already set!");
       if (s_API == API::None) {
          s_API = api;
+         //
+         // TODO: dynamically load appropriate rendering backend here...
+         //
       }
    }
 
@@ -26,11 +31,10 @@ namespace Pikzel {
 
 
    void RenderCore::Init() {
-      //
       // this is not a switch on s_API with call to corresponding XXXRenderCore constructor
       // because this file should not have to know about XXXRenderCore
-      // All it needs to know is that _somewhere_ there is a function to call to get back
-      // some object that implements IRenderCore
+      // All it needs to know is that _somewhere_ there is a function (Create()) that can
+      // be called to to get back an object that implements IRenderCore
       s_RenderCore = Create();
    }
 
@@ -65,13 +69,23 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<VertexArray> RenderCore::CreateVertexArray() {
+      return s_RenderCore->CreateVertexArray();
+   }
+
+
    std::unique_ptr<IndexBuffer> RenderCore::CreateIndexBuffer(uint32_t* indices, uint32_t count) {
       return s_RenderCore->CreateIndexBuffer(indices, count);
    }
 
 
-   std::unique_ptr<VertexArray> RenderCore::CreateVertexArray() {
-      return s_RenderCore->CreateVertexArray();
+   std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(uint32_t width, uint32_t height) {
+      return s_RenderCore->CreateTexture2D(width, height);
+   }
+
+
+   std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const std::filesystem::path& path) {
+      return s_RenderCore->CreateTexture2D(path);
    }
 
 
