@@ -26,6 +26,7 @@ public:
       Pikzel::RenderCore::SetViewport(0, 0, m_Window->GetWidth(), m_Window->GetHeight());
 
       CreateVertexBuffer();
+      CreateIndexBuffer();
       CreateShaderProgram();
    }
 
@@ -43,9 +44,8 @@ public:
       Pikzel::RenderCore::SetClearColor({0.2f, 0.3f, 0.3f, 1.0f});
       Pikzel::RenderCore::Clear();
 
-      //
-      // TODO:  render triangle here...
-      //
+      m_Shader->Bind();
+      Pikzel::RenderCore::DrawIndexed(*m_VertexArray);
 
       m_Window->EndFrame();
 
@@ -75,6 +75,23 @@ private:
       };
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
+      m_VertexBuffer->SetLayout({
+         { Pikzel::ShaderDataType::Float3, "inPos" }
+      });
+
+      m_VertexArray = Pikzel::RenderCore::CreateVertexArray();
+      m_VertexArray->AddVertexBuffer(m_VertexBuffer);
+
+   }
+
+
+   void CreateIndexBuffer() {
+      uint32_t indices[] = {
+          0, 1, 2
+      };
+
+      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(indices, sizeof(indices) / sizeof(uint32_t));
+      m_VertexArray->SetIndexBuffer(m_IndexBuffer);
    }
 
 
@@ -88,7 +105,9 @@ private:
 private:
    std::filesystem::path m_bindir;
    std::unique_ptr<Pikzel::Window> m_Window;
-   std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
+   std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
+   std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
+   std::unique_ptr<Pikzel::VertexArray> m_VertexArray;
    std::unique_ptr<Pikzel::Shader> m_Shader;
 
 };

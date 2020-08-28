@@ -21,9 +21,12 @@ namespace Pikzel {
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count) override;
 
+      virtual std::unique_ptr<VertexArray> CreateVertexArray() override;
+
       virtual std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) override;
 
-   };
+      virtual void DrawIndexed(VertexArray& vertexArray, uint32_t indexCount) override;
 
+   };
 
 }
