@@ -2,7 +2,7 @@
 
 namespace Pikzel {
 
-   enum class ShaderDataType {
+   enum class DataType {
       None,
       Float,
       Float2,
@@ -18,17 +18,17 @@ namespace Pikzel {
    };
 
 
-   static uint32_t ShaderDataTypeSize(ShaderDataType type);
+   static uint32_t DataTypeSize(DataType type);
 
 
    struct BufferElement {
       std::string Name;
-      ShaderDataType Type;
+      DataType Type;
       uint32_t Size;
       size_t Offset;
       bool Normalized;
 
-      BufferElement(ShaderDataType type, const std::string& name, bool normalized = false);
+      BufferElement(DataType type, const std::string& name, bool normalized = false);
 
       uint32_t GetComponentCount() const;
    };
@@ -56,27 +56,29 @@ namespace Pikzel {
    };
 
 
-   class VertexBuffer {
+   class Buffer {
    public:
-      virtual ~VertexBuffer() = default;
+      virtual ~Buffer() = default;
 
       virtual void Bind() const = 0;
       virtual void Unbind() const = 0;
 
-      virtual void SetData(const void* data, uint32_t size) = 0;
-
-      virtual const BufferLayout& GetLayout() const = 0;
-      virtual void SetLayout(const BufferLayout& layout) = 0;
-
+      virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) = 0;
    };
 
 
-   class IndexBuffer {
+   class VertexBuffer : public Buffer {
+   public:
+      virtual ~VertexBuffer() = default;
+
+      virtual const BufferLayout& GetLayout() const = 0;
+      virtual void SetLayout(const BufferLayout& layout) = 0;
+   };
+
+
+   class IndexBuffer : public Buffer {
    public:
       virtual ~IndexBuffer() = default;
-
-      virtual void Bind() const = 0;
-      virtual void Unbind() const = 0;
 
       virtual uint32_t GetCount() const = 0;
    };

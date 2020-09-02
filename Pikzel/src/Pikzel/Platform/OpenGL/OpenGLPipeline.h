@@ -1,15 +1,16 @@
 #pragma once
 
-#include "Pikzel/Renderer/Shader.h"
+#include "Pikzel/Renderer/Pipeline.h"
 #include <glm/glm.hpp>
 #include <vector>
 
 namespace Pikzel {
 
-   class OpenGLShader : public Shader {
+
+   class OpenGLPipeline : public Pipeline {
    public:
-      OpenGLShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc);
-      virtual ~OpenGLShader();
+      OpenGLPipeline(const PipelineSettings& settings);
+      virtual ~OpenGLPipeline();
 
       virtual void Bind() const override;
       virtual void Unbind() const override;
@@ -34,6 +35,8 @@ namespace Pikzel {
 
    private:
       uint32_t m_RendererID;
+      uint32_t m_VAORendererID;
+
    };
 
 }

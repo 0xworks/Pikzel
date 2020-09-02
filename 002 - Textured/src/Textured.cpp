@@ -19,7 +19,7 @@ public:
       CreateVertexBuffer();
       CreateIndexBuffer();
       CreateTextures();
-      CreateShaderProgram();
+      CreatePipeline();
 
       Pikzel::RenderCore::SetClearColor({0.2f, 0.3f, 0.3f, 1.0f});
    }
@@ -36,9 +36,9 @@ public:
       Pikzel::RenderCore::Clear();
 
       m_Texture->Bind(0);
-      m_Shader->Bind();
-      Pikzel::RenderCore::DrawIndexed(*m_VertexArray);
-      m_Shader->Unbind();
+      m_Pipeline->Bind();
+      Pikzel::RenderCore::DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+      m_Pipeline->Unbind();
    }
 
 
@@ -53,14 +53,10 @@ private:
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
       m_VertexBuffer->SetLayout({
-         { Pikzel::ShaderDataType::Float3, "aPos" },
-         { Pikzel::ShaderDataType::Float3, "aColor" },
-         { Pikzel::ShaderDataType::Float2, "aTexCoord" }
+         { Pikzel::DataType::Float3, "aPos" },
+         { Pikzel::DataType::Float3, "aColor" },
+         { Pikzel::DataType::Float2, "aTexCoord" }
       });
-
-      m_VertexArray = Pikzel::RenderCore::CreateVertexArray();
-      m_VertexArray->AddVertexBuffer(m_VertexBuffer);
-
    }
 
 
@@ -70,7 +66,6 @@ private:
       };
 
       m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(indices, sizeof(indices) / sizeof(uint32_t));
-      m_VertexArray->SetIndexBuffer(m_IndexBuffer);
    }
 
 
@@ -79,10 +74,15 @@ private:
    }
 
 
-   void CreateShaderProgram() {
-      auto vertShaderCode = Pikzel::ReadFile(m_bindir / "Assets/Shaders/Textured.vert", /*readAsBinary=*/false);
-      auto fragShaderCode = Pikzel::ReadFile(m_bindir / "Assets/Shaders/Textured.frag", /*readAsBinary=*/false);
-      m_Shader = Pikzel::RenderCore::CreateShader(vertShaderCode, fragShaderCode);
+   void CreatePipeline() {
+      Pikzel::PipelineSettings settings {
+         *m_VertexBuffer,
+         {
+            { Pikzel::ShaderType::Vertex, Pikzel::ReadFile(m_bindir / "Assets/Shaders/Textured.vert", /*readAsBinary=*/false) },
+            { Pikzel::ShaderType::Fragment, Pikzel::ReadFile(m_bindir / "Assets/Shaders/Textured.frag", /*readAsBinary=*/false) }
+         }
+      };
+      m_Pipeline = Pikzel::RenderCore::CreatePipeline(GetWindow(), settings);
    }
 
 
@@ -90,9 +90,8 @@ private:
    std::filesystem::path m_bindir;
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
-   std::unique_ptr<Pikzel::VertexArray> m_VertexArray;
    std::unique_ptr<Pikzel::Texture2D> m_Texture;
-   std::unique_ptr<Pikzel::Shader> m_Shader;
+   std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
 
 };
 

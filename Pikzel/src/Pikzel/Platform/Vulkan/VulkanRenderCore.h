@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Pikzel/Renderer/RenderCore.h"
+#include "VulkanDevice.h"
 
 namespace Pikzel {
 
-   class OpenGLRenderCore : public IRenderCore {
+   class VulkanRenderCore : public IRenderCore {
    public:
-      OpenGLRenderCore(const Window& window);
-      virtual ~OpenGLRenderCore();
+      VulkanRenderCore(const Window& window);
+      virtual ~VulkanRenderCore();
 
       virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 
@@ -27,6 +28,21 @@ namespace Pikzel {
       virtual std::unique_ptr<Pipeline> CreatePipeline(const Window& window, const PipelineSettings& settings) override;
 
       virtual void DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount) override;
+
+
+
+   private:
+      std::vector<const char*> GetRequiredInstanceExtensions();
+
+      void CreateInstance();
+      void DestroyInstance();
+
+
+   private:
+      vk::Instance m_Instance;
+      vk::DebugUtilsMessengerEXT m_DebugUtilsMessengerEXT;
+
+      std::shared_ptr<VulkanDevice> m_Device;
 
    };
 

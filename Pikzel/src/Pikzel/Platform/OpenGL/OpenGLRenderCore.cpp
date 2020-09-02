@@ -2,14 +2,15 @@
 #include "OpenGLRenderCore.h"
 #include "OpenGLBuffer.h"
 #include "OpenGLGraphicsContext.h"
-#include "OpenGLShader.h"
+#include "OpenGLPipeline.h"
 #include "OpenGLTexture.h"
-#include "OpenGLVertexArray.h"
 
 namespace Pikzel {
 
-   std::unique_ptr<IRenderCore> Create() {
-      return std::make_unique<OpenGLRenderCore>();
+   RenderCore::API RenderCore::s_API = RenderCore::API::OpenGL;
+
+   std::unique_ptr<IRenderCore> CreateRenderCore(const Window& window) {
+      return std::make_unique<OpenGLRenderCore>(window);
    }
 
 
@@ -20,19 +21,29 @@ namespace Pikzel {
       unsigned severity,
       int length,
       const char* message,
-      const void* userParam) {
+      const void* userParam
+   ) {
       switch (severity) {
-         case GL_DEBUG_SEVERITY_HIGH:         PKZL_CORE_LOG_FATAL(message); return;
-         case GL_DEBUG_SEVERITY_MEDIUM:       PKZL_CORE_LOG_ERROR(message); return;
-         case GL_DEBUG_SEVERITY_LOW:          PKZL_CORE_LOG_WARN(message); return;
-         case GL_DEBUG_SEVERITY_NOTIFICATION: PKZL_CORE_LOG_TRACE(message); return;
+         case GL_DEBUG_SEVERITY_NOTIFICATION:
+            PKZL_CORE_LOG_INFO("OpenGL Debug: {0}", message);
+            break;
+         case GL_DEBUG_SEVERITY_LOW:
+            PKZL_CORE_LOG_WARN("OpenGL Debug: {0}", message);
+            break;
+         case GL_DEBUG_SEVERITY_MEDIUM:
+            PKZL_CORE_LOG_ERROR("OpenGL Debug: {0}", message);
+            break;
+         case GL_DEBUG_SEVERITY_HIGH:
+            PKZL_CORE_LOG_FATAL("OpenGL Debug: {0}", message);
+            break;
       }
       PKZL_CORE_ASSERT(false, "Unknown OpenGL message callback severity level!");
    }
 
 
-   OpenGLRenderCore::OpenGLRenderCore() {
+   OpenGLRenderCore::OpenGLRenderCore(const Window& window) {
       PKZL_PROFILE_FUNCTION();
+      glfwMakeContextCurrent(static_cast<GLFWwindow*>(window.GetNativeWindow()));
 
       if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
          throw std::runtime_error("Failed to initialize Glad!");
@@ -83,7 +94,7 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(Window& window) {
+   std::unique_ptr<GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(const Window& window) {
       return std::make_unique<OpenGLGraphicsContext>(window);
    }
 
@@ -95,11 +106,6 @@ namespace Pikzel {
 
    std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(float* vertices, uint32_t size) {
       return std::make_unique<OpenGLVertexBuffer>(vertices, size);
-   }
-
-
-   std::unique_ptr<VertexArray> OpenGLRenderCore::CreateVertexArray() {
-      return std::make_unique<OpenGLVertexArray>();
    }
 
 
@@ -118,16 +124,18 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Shader> OpenGLRenderCore::CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) {
-      return std::make_unique<OpenGLShader>(vertexSrc, fragmentSrc);
+   std::unique_ptr<Pipeline> OpenGLRenderCore::CreatePipeline(const Window&, const PipelineSettings& settings) {
+      return std::make_unique<OpenGLPipeline>(settings);
    }
 
 
-   void OpenGLRenderCore::DrawIndexed(VertexArray& vertexArray, uint32_t indexCount) {
-      uint32_t count = indexCount ? indexCount : vertexArray.GetIndexBuffer()->GetCount();
-      vertexArray.Bind();
+   void OpenGLRenderCore::DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount) {
+      uint32_t count = indexCount ? indexCount : indexBuffer.GetCount();
+      vertexBuffer.Bind();
+      indexBuffer.Bind();
       glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
-      vertexArray.Unbind();
+      indexBuffer.Unbind();
+      vertexBuffer.Unbind();
    }
 
 

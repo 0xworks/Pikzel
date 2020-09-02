@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Pikzel/Core/Window.h"
-#include "Pikzel/Renderer/GraphicsContext.h"
 
 #include <memory>
 
@@ -26,6 +25,8 @@ namespace Pikzel {
 
       virtual void BeginFrame() override;
       virtual void EndFrame() override;
+
+      virtual const GraphicsContext& GetGraphicsContext() const;
 
    private:
       WindowSettings m_Settings;
