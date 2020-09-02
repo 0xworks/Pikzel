@@ -18,7 +18,7 @@ public:
 
       CreateVertexBuffer();
       CreateIndexBuffer();
-      CreateShaderProgram();
+      CreatePipeline();
 
       Pikzel::RenderCore::SetClearColor({0.2f, 0.3f, 0.3f, 1.0f});
    }
@@ -31,10 +31,10 @@ public:
 
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
-      Pikzel::RenderCore::Clear();
-      m_Shader->Bind();
-      Pikzel::RenderCore::DrawIndexed(*m_VertexArray);
-      m_Shader->Unbind();
+      Pikzel::RenderCore::Clear();                                        // <-- may not need this for vulkan, since beginning the render pass can do the clear
+      m_Pipeline->Bind();                                                 // <-- bind descriptor sets, bind pipeline...
+      Pikzel::RenderCore::DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);   // <-- bind vertex buffer, bind index buffer, draw indexed...
+      m_Pipeline->Unbind();
    }
 
 
@@ -49,12 +49,9 @@ private:
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
       m_VertexBuffer->SetLayout({
-         { Pikzel::ShaderDataType::Float3, "aPos" },
-         { Pikzel::ShaderDataType::Float3, "aColor" }
+         { Pikzel::DataType::Float3, "aPos" },
+         { Pikzel::DataType::Float3, "aColor" }
       });
-
-      m_VertexArray = Pikzel::RenderCore::CreateVertexArray();
-      m_VertexArray->AddVertexBuffer(m_VertexBuffer);
 
    }
 
@@ -65,14 +62,19 @@ private:
       };
 
       m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(indices, sizeof(indices) / sizeof(uint32_t));
-      m_VertexArray->SetIndexBuffer(m_IndexBuffer);
    }
 
 
-   void CreateShaderProgram() {
-      auto vertShaderCode = Pikzel::ReadFile(m_bindir / "Assets/Shaders/Triangle.vert", /*readAsBinary=*/false);
-      auto fragShaderCode = Pikzel::ReadFile(m_bindir / "Assets/Shaders/Triangle.frag", /*readAsBinary=*/false);
-      m_Shader = Pikzel::RenderCore::CreateShader(vertShaderCode, fragShaderCode);
+   void CreatePipeline() {
+
+      Pikzel::PipelineSettings settings {
+         *m_VertexBuffer,
+         {
+            { Pikzel::ShaderType::Vertex, Pikzel::ReadFile(m_bindir / "Assets/Shaders/Triangle.vert", /*readAsBinary=*/false) },
+            { Pikzel::ShaderType::Fragment, Pikzel::ReadFile(m_bindir / "Assets/Shaders/Triangle.frag", /*readAsBinary=*/false) }
+         }
+      };
+      m_Pipeline = Pikzel::RenderCore::CreatePipeline(GetWindow(), settings);
    }
 
 
@@ -80,8 +82,7 @@ private:
    std::filesystem::path m_bindir;
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
-   std::unique_ptr<Pikzel::VertexArray> m_VertexArray;
-   std::unique_ptr<Pikzel::Shader> m_Shader;
+   std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
 
 };
 

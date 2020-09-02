@@ -9,7 +9,7 @@ namespace Pikzel {
 
    class OpenGLGraphicsContext : public GraphicsContext {
    public:
-      OpenGLGraphicsContext(Window& window);
+      OpenGLGraphicsContext(const Window& window);
 
       virtual void BeginFrame() override;
       virtual void EndFrame() override;

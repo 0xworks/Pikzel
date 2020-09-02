@@ -7,22 +7,9 @@
 namespace Pikzel {
 
    // TODO: remove:
-   extern std::unique_ptr<IRenderCore> Create();
-
-   RenderCore::API RenderCore::s_API = RenderCore::API::None;
+   extern std::unique_ptr<IRenderCore> CreateRenderCore(const Window& window);
 
    std::unique_ptr<IRenderCore> RenderCore::s_RenderCore;
-
-
-   void RenderCore::SetAPI(API api) {
-      PKZL_CORE_ASSERT(s_API == API::None, "Rendercore API is already set!");
-      if (s_API == API::None) {
-         s_API = api;
-         //
-         // TODO: dynamically load appropriate rendering backend here...
-         //
-      }
-   }
 
 
    RenderCore::API RenderCore::GetAPI() {
@@ -30,12 +17,12 @@ namespace Pikzel {
    }
 
 
-   void RenderCore::Init() {
+   void RenderCore::Init(const Window& window) {
       // this is not a switch on s_API with call to corresponding XXXRenderCore constructor
       // because this file should not have to know about XXXRenderCore
       // All it needs to know is that _somewhere_ there is a function (Create()) that can
       // be called to to get back an object that implements IRenderCore
-      s_RenderCore = Create();
+      s_RenderCore = CreateRenderCore(window);
    }
 
 
@@ -54,7 +41,7 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<GraphicsContext> RenderCore::CreateGraphicsContext(Window& window) {
+   std::unique_ptr<GraphicsContext> RenderCore::CreateGraphicsContext(const Window& window) {
       return s_RenderCore->CreateGraphicsContext(window);
    }
 
@@ -66,11 +53,6 @@ namespace Pikzel {
 
    std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(float* vertices, uint32_t size) {
       return s_RenderCore->CreateVertexBuffer(vertices, size);
-   }
-
-
-   std::unique_ptr<VertexArray> RenderCore::CreateVertexArray() {
-      return s_RenderCore->CreateVertexArray();
    }
 
 
@@ -89,13 +71,13 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Shader> RenderCore::CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) {
-      return s_RenderCore->CreateShader(vertexSrc, fragmentSrc);
+   std::unique_ptr<Pipeline> RenderCore::CreatePipeline(const Window& window, const PipelineSettings& settings) {
+      return s_RenderCore->CreatePipeline(window, settings);
    }
 
 
-   void RenderCore::DrawIndexed(VertexArray& vertexArray, uint32_t indexCount /*= 0*/) {
-      return s_RenderCore->DrawIndexed(vertexArray, indexCount);
+   void RenderCore::DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount /*= 0*/) {
+      return s_RenderCore->DrawIndexed(vertexBuffer, indexBuffer, indexCount);
    }
 
 }

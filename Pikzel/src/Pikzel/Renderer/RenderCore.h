@@ -2,9 +2,8 @@
 
 #include "Buffer.h"
 #include "GraphicsContext.h"
-#include "Shader.h"
+#include "Pipeline.h"
 #include "Texture.h"
-#include "VertexArray.h"
 #include "Pikzel/Core/Window.h"
 
 #include <glm/glm.hpp>
@@ -23,12 +22,10 @@ namespace Pikzel {
       virtual void SetClearColor(const glm::vec4& color) = 0;
       virtual void Clear() = 0;
 
-      virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window) = 0;
+      virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) = 0;
 
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size) = 0;
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(float* vertices, uint32_t size) = 0;
-      // TODO: this needs to be hidden away somehow, as rendering APIs other than OpenGL do not have "vertex array objects"
-      virtual std::unique_ptr<VertexArray> CreateVertexArray() = 0;
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count) = 0;
 
@@ -36,10 +33,9 @@ namespace Pikzel {
       virtual std::unique_ptr<Texture2D> CreateTexture2D(uint32_t width, uint32_t height) = 0;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) = 0;
 
-      // TODO: obvs there are other sorts of shader.. so this function signature will need changing...
-      virtual std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc) = 0;
+      virtual std::unique_ptr<Pipeline> CreatePipeline(const Window& window, const PipelineSettings& settings) = 0;
 
-      virtual void DrawIndexed(VertexArray& vertexArray, uint32_t indexCount = 0) = 0;
+      virtual void DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount = 0) = 0;
 
    };
 
@@ -49,33 +45,32 @@ namespace Pikzel {
 
       enum class API {
          None,
-         OpenGL
+         OpenGL,
+         Vulkan
       };
 
-      static void SetAPI(API api);
       static API GetAPI();
 
-      static void Init();
+      static void Init(const Window& window);
 
       static void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
       static void SetClearColor(const glm::vec4& color);
       static void Clear();
 
-      static std::unique_ptr<GraphicsContext> CreateGraphicsContext(Window& window);
+      static std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window);
 
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size);
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(float* vertices, uint32_t size);
-      static std::unique_ptr<VertexArray> CreateVertexArray();
 
       static std::unique_ptr<IndexBuffer> CreateIndexBuffer(uint32_t* indices, uint32_t count);
 
       static std::unique_ptr<Texture2D> CreateTexture2D(uint32_t width, uint32_t height);
       static std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path);
 
-      static std::unique_ptr<Shader> CreateShader(const std::vector<char>& vertexSrc, const std::vector<char>& fragmentSrc);
+      static std::unique_ptr<Pipeline> CreatePipeline(const Window& window, const PipelineSettings& settings);
 
-      static void DrawIndexed(VertexArray& vertexArray, uint32_t indexCount = 0);
+      static void DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount = 0);
 
    private:
       static API s_API;

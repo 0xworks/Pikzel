@@ -48,6 +48,11 @@ namespace Pikzel {
             glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
          }
+         if (RenderCore::GetAPI() == RenderCore::API::Vulkan) {
+            if (!glfwVulkanSupported()) {
+               throw std::runtime_error("GLFW detects no support for Vulkan!");
+            }
+         }
          glfwWindowHint(GLFW_CLIENT_API, clientAPI);
          glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
          m_Window = glfwCreateWindow((int)m_Settings.Width, (int)m_Settings.Height, m_Settings.Title, monitor, nullptr);
@@ -64,8 +69,7 @@ namespace Pikzel {
          ++s_GLFWWindowCount;
       }
 
-      glfwMakeContextCurrent(m_Window);
-      RenderCore::Init();
+      RenderCore::Init(*this);
 
       m_Context = RenderCore::CreateGraphicsContext(*this);
 
@@ -179,6 +183,12 @@ namespace Pikzel {
    void WindowsWindow::EndFrame() {
       m_Context->EndFrame();     // i.e. "submit"
       m_Context->SwapBuffers();  // i.e. "present"
+   }
+
+
+   const Pikzel::GraphicsContext& WindowsWindow::GetGraphicsContext() const {
+      PKZL_CORE_ASSERT(m_Context, "Accessing null graphics context!");
+      return *m_Context;
    }
 
 }

@@ -3,7 +3,7 @@
 
 namespace Pikzel {
 
-   OpenGLGraphicsContext::OpenGLGraphicsContext(Window& window)
+   OpenGLGraphicsContext::OpenGLGraphicsContext(const Window& window)
    : m_WindowHandle((GLFWwindow*)window.GetNativeWindow())
    {
       PKZL_CORE_ASSERT(m_WindowHandle, "Window handle is null!")

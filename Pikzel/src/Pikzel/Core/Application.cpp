@@ -8,9 +8,6 @@
 namespace Pikzel {
 
    Application::Application(const WindowSettings& settings) {
-      //
-      // TODO: set this from cmd line or other means (e.g auto-detect)
-      RenderCore::SetAPI(RenderCore::API::OpenGL);
 
       // Every application has to have a window whether you like it or not.
       // You cannot, for example, initialize OpenGL rendering backend without a window.
@@ -80,4 +77,11 @@ namespace Pikzel {
          Pikzel::RenderCore::SetViewport(0, 0, event.Width, event.Height);
       }
    }
+
+
+   const Pikzel::Window& Application::GetWindow() const {
+      PKZL_CORE_ASSERT(m_Window, "Accessing null Window!");
+      return *m_Window;
+   }
+
 }

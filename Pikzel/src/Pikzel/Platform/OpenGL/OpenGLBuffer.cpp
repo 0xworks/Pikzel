@@ -30,16 +30,15 @@ namespace Pikzel {
       glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
    }
 
-
    void OpenGLVertexBuffer::Unbind() const {
       PKZL_PROFILE_FUNCTION();
       glBindBuffer(GL_ARRAY_BUFFER, 0);
    }
 
 
-   void OpenGLVertexBuffer::SetData(const void* data, uint32_t size) {
+   void OpenGLVertexBuffer::CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) {
       glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-      glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+      glBufferSubData(GL_ARRAY_BUFFER, offset, size, pData);
    }
 
 
@@ -49,6 +48,7 @@ namespace Pikzel {
 
 
    void OpenGLVertexBuffer::SetLayout(const BufferLayout& layout) {
+      PKZL_CORE_ASSERT(layout.GetElements().size(), "layout is empty!");
       m_Layout = layout;
    }
 
@@ -81,6 +81,16 @@ namespace Pikzel {
    void OpenGLIndexBuffer::Unbind() const {
       PKZL_PROFILE_FUNCTION();
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+   }
+
+
+   void OpenGLIndexBuffer::CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) {
+      PKZL_CORE_ASSERT(false, "Cannot SetData() on an OpenGLIndexBuffer - it is static data, set at construction!")
+   }
+
+
+   uint32_t OpenGLIndexBuffer::GetCount() const {
+      return m_Count;
    }
 
 }

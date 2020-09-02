@@ -13,10 +13,11 @@ namespace Pikzel {
       virtual void Bind() const override;
       virtual void Unbind() const override;
 
-      virtual void SetData(const void* data, uint32_t size) override;
+      virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
 
       virtual const BufferLayout& GetLayout() const override;
       virtual void SetLayout(const BufferLayout& layout) override;
+
    private:
       uint32_t m_RendererID;
       BufferLayout m_Layout;
@@ -31,7 +32,10 @@ namespace Pikzel {
       virtual void Bind() const;
       virtual void Unbind() const;
 
-      virtual uint32_t GetCount() const { return m_Count; }
+      virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
+
+      virtual uint32_t GetCount() const override;
+
    private:
       uint32_t m_RendererID;
       uint32_t m_Count;

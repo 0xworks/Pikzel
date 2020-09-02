@@ -34,6 +34,8 @@ namespace Pikzel {
       virtual void OnWindowClose(const WindowCloseEvent& event);
       virtual void OnWindowResize(const WindowResizeEvent& event);
 
+      const Window& GetWindow() const;
+
    private:
       std::chrono::steady_clock::time_point m_AppTime = {};
       std::unique_ptr<Window> m_Window;

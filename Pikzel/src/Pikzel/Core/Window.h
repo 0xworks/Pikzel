@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core.h"
+#include "Pikzel/Renderer/GraphicsContext.h"
 
 #include <memory>
 
@@ -36,6 +37,8 @@ namespace Pikzel {
 
       virtual void BeginFrame() = 0;
       virtual void EndFrame() = 0;
+
+      virtual const GraphicsContext& GetGraphicsContext() const = 0;
 
    public:
       static std::unique_ptr<Window> Create(const WindowSettings& settings = WindowSettings());
