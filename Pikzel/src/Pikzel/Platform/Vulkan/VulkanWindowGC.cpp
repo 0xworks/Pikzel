@@ -40,6 +40,7 @@ namespace Pikzel {
 
 
    VulkanWindowGC::~VulkanWindowGC() {
+      m_Device->GetVkDevice().waitIdle();
       DestroyPipelineCache();
       DestroySyncObjects();
       DestroyCommandBuffers();
