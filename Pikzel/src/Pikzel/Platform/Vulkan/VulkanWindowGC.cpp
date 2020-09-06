@@ -2,15 +2,17 @@
 #include "VulkanWindowGC.h"
 
 #include "SwapChainSupportDetails.h"
+#include "VulkanBuffer.h"
+#include "VulkanPipeline.h"
 #include "VulkanUtility.h"
 
 #include "Pikzel/Events/EventDispatcher.h"
 
 namespace Pikzel {
 
-   VulkanWindowGC::VulkanWindowGC(std::shared_ptr<VulkanDevice> device, GLFWwindow* window)
+   VulkanWindowGC::VulkanWindowGC(std::shared_ptr<VulkanDevice> device, const Window& window)
    : VulkanGraphicsContext {device}
-   , m_Window(window)
+   , m_Window {static_cast<GLFWwindow*>(window.GetNativeWindow())}
    {
       CreateSurface();
       CreateSwapChain();
@@ -25,6 +27,15 @@ namespace Pikzel {
       CreatePipelineCache();
 
       EventDispatcher::Connect<WindowResizeEvent, &VulkanWindowGC::OnWindowResize>(*this);
+
+      // Set clear values for all framebuffer attachments with loadOp set to clear
+      // We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
+      glm::vec4 clearColor = window.GetClearColor();
+      m_ClearValues = {
+         vk::ClearColorValue {std::array<float, 4>{clearColor.r, clearColor.g, clearColor.b, clearColor.a}},
+         vk::ClearDepthStencilValue {1.0f, 0}
+      };
+
    }
 
 
@@ -75,12 +86,39 @@ namespace Pikzel {
       };
       m_CommandBuffers[m_CurrentImage].begin(commandBufferBI);
 
-      // TODO: somewhere you need to begin and end a render pass...
+      // TODO: Not sure that this is the best place to begin render pass.
+      //       What if you need/want multiple render passes?  How will the client control this?
 
+      vk::RenderPassBeginInfo renderPassBI = {
+         m_RenderPass                                 /*renderPass*/,
+         m_SwapChainFrameBuffers[m_CurrentImage]      /*framebuffer*/,
+         { {0,0}, m_Extent }                          /*renderArea*/,
+         static_cast<uint32_t>(m_ClearValues.size())  /*clearValueCount*/,
+         m_ClearValues.data()                         /*pClearValues*/
+      };
+      m_CommandBuffers[m_CurrentImage].beginRenderPass(renderPassBI, vk::SubpassContents::eInline);
+
+      // Update dynamic viewport state
+      vk::Viewport viewport = {
+         0.0f, static_cast<float>(m_Extent.height),
+         static_cast<float>(m_Extent.width), -1.0f * static_cast<float>(m_Extent.height),
+         0.0f, 1.0f
+      };
+      m_CommandBuffers[m_CurrentImage].setViewport(0, viewport);
+
+      // Update dynamic scissor state
+      vk::Rect2D scissor = {
+         {0, 0},
+         m_Extent
+      };
+      m_CommandBuffers[m_CurrentImage].setScissor(0, scissor);
    }
 
 
    void VulkanWindowGC::EndFrame() {
+
+      m_CommandBuffers[m_CurrentImage].endRenderPass();  // TODO: think about where render passes should begin/end
+
       m_CommandBuffers[m_CurrentImage].end();
       vk::PipelineStageFlags waitStages[] = {{vk::PipelineStageFlagBits::eColorAttachmentOutput}};
       vk::SubmitInfo si = {
@@ -124,10 +162,66 @@ namespace Pikzel {
    }
 
 
+   void VulkanWindowGC::Bind(const VertexBuffer& buffer) {
+      const VulkanVertexBuffer& vulkanVertexBuffer = reinterpret_cast<const VulkanVertexBuffer&>(buffer);
+      m_CommandBuffers[m_CurrentImage].bindVertexBuffers(0, vulkanVertexBuffer.GetVkBuffer(), {0});
+   }
+
+
+   void VulkanWindowGC::Unbind(const VertexBuffer& buffer) {}
+
+
+   void VulkanWindowGC::Bind(const IndexBuffer& buffer) {
+      const VulkanIndexBuffer& vulkanIndexBuffer = reinterpret_cast<const VulkanIndexBuffer&>(buffer);
+      m_CommandBuffers[m_CurrentImage].bindIndexBuffer(vulkanIndexBuffer.GetVkBuffer(), 0, vk::IndexType::eUint32);
+   }
+
+
+   void VulkanWindowGC::Unbind(const IndexBuffer& buffer) {}
+
+
+   void VulkanWindowGC::Bind(const Texture2D& texture, uint32_t slot) {
+      PKZL_NOT_IMPLEMENTED;
+   }
+
+
+   void VulkanWindowGC::Unbind(const Texture2D&) {
+      PKZL_NOT_IMPLEMENTED;
+   }
+
+   void VulkanWindowGC::Bind(const Pipeline& pipeline) {
+
+      // TODO: bind descriptor sets...
+
+      const VulkanPipeline& vulkanPipeline = reinterpret_cast<const VulkanPipeline&>(pipeline);
+      m_CommandBuffers[m_CurrentImage].bindPipeline(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipeline());
+   }
+
+
+   void VulkanWindowGC::Unbind(const Pipeline&) {}
+
+
+   std::unique_ptr<Pikzel::Pipeline> VulkanWindowGC::CreatePipeline(const PipelineSettings& settings) {
+      return std::make_unique<VulkanPipeline>(m_Device, *this, settings);
+   }
+
+
+   void VulkanWindowGC::DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount /*= 0*/) {
+
+      GCBinder bindVB {*this, vertexBuffer};
+      GCBinder bindIB {*this, indexBuffer};
+
+      m_CommandBuffers[m_CurrentImage].drawIndexed(indexBuffer.GetCount(), 1, 0, 0, 0);
+   }
+
+
    void VulkanWindowGC::CreateSurface() {
       VkSurfaceKHR surface;
       if (glfwCreateWindowSurface(m_Device->GetVkInstance(), m_Window, nullptr, &surface) != VK_SUCCESS) {
          throw std::runtime_error("failed to create window surface!");
+      }
+      if (!m_Device->GetVkPhysicalDevice().getSurfaceSupportKHR(m_Device->GetPresentQueueFamilyIndex(), surface)) {
+         throw std::runtime_error("Vulkan physical device does not support window surface!");
       }
       m_Surface = surface;
    }

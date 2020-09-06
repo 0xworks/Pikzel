@@ -18,6 +18,8 @@ namespace Pikzel {
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
 
+      virtual glm::vec4 GetClearColor() const override;
+
       virtual void SetVSync(bool enabled) override;
       virtual bool IsVSync() const override;
 
@@ -26,7 +28,7 @@ namespace Pikzel {
       virtual void BeginFrame() override;
       virtual void EndFrame() override;
 
-      virtual const GraphicsContext& GetGraphicsContext() const;
+      virtual GraphicsContext& GetGraphicsContext() override;
 
    private:
       WindowSettings m_Settings;

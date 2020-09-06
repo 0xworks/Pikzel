@@ -19,9 +19,6 @@ namespace Pikzel {
 
       virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
 
-      virtual void SetClearColor(const glm::vec4& color) = 0;
-      virtual void Clear() = 0;
-
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) = 0;
 
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size) = 0;
@@ -32,10 +29,6 @@ namespace Pikzel {
       // TODO: you probably also want to be able to specify things like format, and sampling parameters
       virtual std::unique_ptr<Texture2D> CreateTexture2D(uint32_t width, uint32_t height) = 0;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) = 0;
-
-      virtual std::unique_ptr<Pipeline> CreatePipeline(const Window& window, const PipelineSettings& settings) = 0;
-
-      virtual void DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount = 0) = 0;
 
    };
 
@@ -55,9 +48,6 @@ namespace Pikzel {
 
       static void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
-      static void SetClearColor(const glm::vec4& color);
-      static void Clear();
-
       static std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window);
 
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size);
@@ -67,10 +57,6 @@ namespace Pikzel {
 
       static std::unique_ptr<Texture2D> CreateTexture2D(uint32_t width, uint32_t height);
       static std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path);
-
-      static std::unique_ptr<Pipeline> CreatePipeline(const Window& window, const PipelineSettings& settings);
-
-      static void DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount = 0);
 
    private:
       static API s_API;

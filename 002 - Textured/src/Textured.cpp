@@ -10,18 +10,14 @@
 class Textured final : public Pikzel::Application {
 public:
    Textured(int argc, const char* argv[])
-   : m_bindir(argv[0])
+   : Pikzel::Application {Pikzel::WindowSettings{"Texture Demo", 1280, 720, {0.2f, 0.3f, 0.3f, 1.0f}}}
+   , m_bindir {argv[0]}
    {
-      PKZL_PROFILE_FUNCTION();
-
       m_bindir.remove_filename();
-
       CreateVertexBuffer();
       CreateIndexBuffer();
       CreateTextures();
       CreatePipeline();
-
-      Pikzel::RenderCore::SetClearColor({0.2f, 0.3f, 0.3f, 1.0f});
    }
 
 
@@ -31,14 +27,11 @@ public:
 
 
    virtual void Render() override {
-      PKZL_PROFILE_FUNCTION();
+      Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
+      Pikzel::GCBinder bindPipeline {gc, *m_Pipeline};
+      Pikzel::GCBinder bindTexture {gc, *m_Texture, 0};
+      gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
 
-      Pikzel::RenderCore::Clear();
-
-      m_Texture->Bind(0);
-      m_Pipeline->Bind();
-      Pikzel::RenderCore::DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
-      m_Pipeline->Unbind();
    }
 
 
@@ -78,11 +71,11 @@ private:
       Pikzel::PipelineSettings settings {
          *m_VertexBuffer,
          {
-            { Pikzel::ShaderType::Vertex, Pikzel::ReadFile(m_bindir / "Assets/Shaders/Textured.vert", /*readAsBinary=*/false) },
-            { Pikzel::ShaderType::Fragment, Pikzel::ReadFile(m_bindir / "Assets/Shaders/Textured.frag", /*readAsBinary=*/false) }
+            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Textured.vert" },
+            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Textured.frag" }
          }
       };
-      m_Pipeline = Pikzel::RenderCore::CreatePipeline(GetWindow(), settings);
+      m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
    }
 
 
@@ -97,7 +90,6 @@ private:
 
 
 std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const char* argv[]) {
-   PKZL_PROFILE_FUNCTION();
    PKZL_LOG_INFO(APP_DESCRIPTION);
    PKZL_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
 #ifdef PKZL_DEBUG

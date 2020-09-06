@@ -35,3 +35,11 @@
 #define PKZL_CORE_ASSERT(x, ...)
 #define PKZL_ASSERT(x, ...)
 #endif
+
+#ifdef _MSC_VER
+#define PKZL_FUNCSIG __FUNCSIG__
+#else
+#define PKZL_FUNCSIG __func__
+#endif
+
+#define PKZL_NOT_IMPLEMENTED throw std::logic_error(PKZL_FUNCSIG + std::string(" is not implemented"))

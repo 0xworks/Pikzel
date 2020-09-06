@@ -1,7 +1,11 @@
 #pragma once
 
-#include "Pikzel/Renderer/Pipeline.h"
 #include "VulkanDevice.h"
+#include "VulkanGraphicsContext.h"
+
+#include "Pikzel/Renderer/Pipeline.h"
+
+#include <filesystem>
 
 namespace Pikzel {
 
@@ -9,11 +13,8 @@ namespace Pikzel {
 
    class VulkanPipeline : public Pipeline {
    public:
-      VulkanPipeline(std::shared_ptr<VulkanDevice> device, const Window& window, const PipelineSettings& settings);
+      VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings);
       virtual ~VulkanPipeline();
-
-      void Bind() const override;
-      void Unbind() const override;
 
       void SetInt(const std::string& name, int value) override;
       void SetIntArray(const std::string& name, int* values, uint32_t count) override;
@@ -22,14 +23,20 @@ namespace Pikzel {
       void SetFloat4(const std::string& name, const glm::vec4& value) override;
       void SetMat4(const std::string& name, const glm::mat4& value) override;
 
+   public:
+      vk::Pipeline GetVkPipeline() const;
+
    private:
+      vk::ShaderModule CreateShaderModule(ShaderType type, const std::filesystem::path path);
+      void DestroyShaderModule(vk::ShaderModule& shaderModule);
+
       void CreateDescriptorSetLayout();
       void DestroyDescriptorSetLayout();
 
       void CreatePipelineLayout();
       void DestroyPipelineLayout();
 
-      void CreatePipeline(const Window& window, const PipelineSettings& settings);
+      void CreatePipeline(const VulkanGraphicsContext& gc, const PipelineSettings& settings);
       void DestroyPipeline();
 
    private:

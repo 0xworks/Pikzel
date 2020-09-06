@@ -21,9 +21,6 @@ namespace Pikzel {
 
       void SubmitSingleTimeCommands(const std::function<void(vk::CommandBuffer)>& action);
 
-      vk::ShaderModule CreateShaderModule(std::vector<char> code);
-      void DestroyShaderModule(vk::ShaderModule& module);
-
    private:
       bool IsPhysicalDeviceSuitable(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
       std::vector<const char*> GetRequiredDeviceExtensions() const;

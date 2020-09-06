@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 
+#include <filesystem>
 #include <utility>
 #include <vector>
 
@@ -17,16 +18,13 @@ namespace Pikzel {
 
    struct PipelineSettings {
       const VertexBuffer& VertexBuffer;         // OpenGL needs to bind vertex buffer in order that the pipeline can set the vertex attribute descriptions
-      std::vector<std::pair<ShaderType, std::vector<char>>> Shaders;
+      std::vector<std::pair<ShaderType, std::filesystem::path>> Shaders;
    };
 
 
    class Pipeline {
    public:
       virtual ~Pipeline() = default;
-
-      virtual void Bind() const = 0;
-      virtual void Unbind() const = 0;
 
       virtual void SetInt(const std::string& name, int value) = 0;
       virtual void SetIntArray(const std::string& name, int* values, uint32_t count) = 0;

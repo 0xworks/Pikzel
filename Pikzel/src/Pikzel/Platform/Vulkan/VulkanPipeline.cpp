@@ -2,7 +2,10 @@
 #include "VulkanPipeline.h"
 
 #include "VulkanWindowGC.h"
+#include "Pikzel/Core/Utility.h"
 #include "Pikzel/Core/Window.h"
+
+#include <shaderc/shaderc.hpp>
 
 namespace Pikzel {
 
@@ -24,6 +27,17 @@ namespace Pikzel {
    }
 
 
+   static shaderc_shader_kind ShaderTypeToShaderCType(ShaderType type) {
+      switch (type) {
+         case ShaderType::Vertex:   return shaderc_glsl_default_vertex_shader;
+         case ShaderType::Fragment: return shaderc_glsl_default_fragment_shader;
+      }
+
+      PKZL_CORE_ASSERT(false, "Unknown ShaderType!");
+      return shaderc_glsl_default_vertex_shader;
+   }
+
+
    static vk::ShaderStageFlagBits ShaderTypeToVulkanShaderStage(ShaderType type) {
       switch (type) {
          case ShaderType::Vertex: return vk::ShaderStageFlagBits::eVertex;
@@ -40,7 +54,7 @@ namespace Pikzel {
       uint32_t location = 0;
       for (const auto& element : layout) {
          attributeDescriptions.emplace_back(
-            location                              /*location*/,
+            location++                            /*location*/,
             0                                     /*binding*/,
             DataTypeToVkFormat(element.Type)      /*format*/,
             static_cast<uint32_t>(element.Offset) /*offset*/
@@ -50,12 +64,12 @@ namespace Pikzel {
    }
 
 
-   VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, const Window& window, const PipelineSettings& settings)
+   VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings)
    : m_Device(device)
    {
       CreateDescriptorSetLayout();
       CreatePipelineLayout();
-      CreatePipeline(window, settings);
+      CreatePipeline(gc, settings);
    }
 
 
@@ -66,47 +80,78 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::Bind() const {
-      throw std::logic_error("The method or operation is not implemented.");
-   }
-
-
-   void VulkanPipeline::Unbind() const {
-      throw std::logic_error("The method or operation is not implemented.");
-   }
-
-
    void VulkanPipeline::SetInt(const std::string& name, int value) {
-      throw std::logic_error("The method or operation is not implemented.");
+      PKZL_NOT_IMPLEMENTED;
    }
 
 
    void VulkanPipeline::SetIntArray(const std::string& name, int* values, uint32_t count) {
-      throw std::logic_error("The method or operation is not implemented.");
+      PKZL_NOT_IMPLEMENTED;
    }
 
 
    void VulkanPipeline::SetFloat(const std::string& name, float value) {
-      throw std::logic_error("The method or operation is not implemented.");
+      PKZL_NOT_IMPLEMENTED;
    }
 
 
    void VulkanPipeline::SetFloat3(const std::string& name, const glm::vec3& value) {
-      throw std::logic_error("The method or operation is not implemented.");
+      PKZL_NOT_IMPLEMENTED;
    }
 
 
    void VulkanPipeline::SetFloat4(const std::string& name, const glm::vec4& value) {
-      throw std::logic_error("The method or operation is not implemented.");
+      PKZL_NOT_IMPLEMENTED;
    }
 
 
    void VulkanPipeline::SetMat4(const std::string& name, const glm::mat4& value) {
-      throw std::logic_error("The method or operation is not implemented.");
+      PKZL_NOT_IMPLEMENTED;
+   }
+
+
+   vk::Pipeline VulkanPipeline::GetVkPipeline() const {
+      return m_Pipeline;
+   }
+
+
+   vk::ShaderModule VulkanPipeline::CreateShaderModule(ShaderType type, const std::filesystem::path path) {
+      PKZL_CORE_ASSERT(m_Device, "Attempted to use null device!");
+
+      PKZL_CORE_LOG_TRACE("Compiling shader '" + path.string() + "'...");
+      std::vector<char> src = ReadFile(path, /*readAsBinary=*/true);
+
+      shaderc::Compiler compiler;
+      shaderc::CompileOptions options;
+      options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+      options.SetOptimizationLevel(shaderc_optimization_level_performance);
+      shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(src.data(), src.size(), ShaderTypeToShaderCType(type), path.string().c_str(), options);
+      if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
+         PKZL_CORE_LOG_ERROR("{0}", module.GetErrorMessage());
+         throw std::runtime_error("Shader compilation failure!");
+      }
+
+      vk::ShaderModuleCreateInfo ci = {
+         {},
+         (module.cend() - module.cbegin()) * sizeof(uint32_t),
+         module.cbegin()
+      };
+
+      PKZL_CORE_LOG_TRACE("Done.");
+      return m_Device->GetVkDevice().createShaderModule(ci);
+   }
+
+
+   void VulkanPipeline::DestroyShaderModule(vk::ShaderModule& module) {
+      if (m_Device && module) {
+         m_Device->GetVkDevice().destroy(module);
+         module = nullptr;
+      }
    }
 
 
    void VulkanPipeline::CreateDescriptorSetLayout(/* TODO layout */) {
+      ;
       // Setup layout of descriptors used in this example
       // Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
       // So every shader binding should map to one descriptor set layout binding
@@ -132,6 +177,7 @@ namespace Pikzel {
 
 
    void VulkanPipeline::DestroyDescriptorSetLayout() {
+      ;
       if (m_Device && m_DescriptorSetLayout) {
          m_Device->GetVkDevice().destroy(m_DescriptorSetLayout);
          m_DescriptorSetLayout = nullptr;
@@ -140,6 +186,7 @@ namespace Pikzel {
 
 
    void VulkanPipeline::CreatePipelineLayout() {
+      ;
       // Create the pipeline layout that is used to generate the rendering pipelines that are based on this descriptor set layout
       // In a more complex scenario you would have different pipeline layouts for different descriptor set layouts that could be reused
       m_PipelineLayout = m_Device->GetVkDevice().createPipelineLayout({
@@ -153,6 +200,7 @@ namespace Pikzel {
 
 
    void VulkanPipeline::DestroyPipelineLayout() {
+      ;
       if (m_Device && m_PipelineLayout) {
          m_Device->GetVkDevice().destroy(m_PipelineLayout);
          m_PipelineLayout = nullptr;
@@ -160,13 +208,12 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::CreatePipeline(const Window& window, const PipelineSettings& settings) {
+   void VulkanPipeline::CreatePipeline(const VulkanGraphicsContext& gc, const PipelineSettings& settings) {
+      ;
       // Create the graphics pipeline used in this example
       // Vulkan uses the concept of rendering pipelines to encapsulate fixed states, replacing OpenGL's complex state machine
       // A pipeline is then stored and hashed on the GPU making pipeline changes very fast
       // Note: There are still a few dynamic states that are not directly part of the pipeline (but the info that they are used is)
-
-      const VulkanWindowGC& gc = dynamic_cast<const VulkanWindowGC&>(window.GetGraphicsContext());
 
       vk::GraphicsPipelineCreateInfo pipelineCI;
       pipelineCI.layout = m_PipelineLayout;
@@ -221,16 +268,16 @@ namespace Pikzel {
       pipelineCI.pColorBlendState = &colorBlendState;
 
       // Viewport state sets the number of viewports and scissor used in this pipeline
-      // Note: This is actually overridden by the dynamic states (see below)
+      // Note: Doesn't actually matter what you set here, it gets overridden by the dynamic states (see below)
       vk::Viewport viewport = {
-         0.0f, 0.0f,
-         static_cast<float>(window.GetWidth()), static_cast<float>(window.GetHeight()),
+         0.0f, 720.f,
+         1280.0f, -720.0f,
          0.0f, 1.0f
       };
 
       vk::Rect2D scissor = {
          {0, 0},
-         {window.GetWidth(), window.GetHeight()}
+         {1280, 720}
       };
 
       vk::PipelineViewportStateCreateInfo viewportState = {
@@ -246,7 +293,7 @@ namespace Pikzel {
       // Most states are baked into the pipeline, but there are still a few dynamic states that can be changed within a command buffer
       // To be able to change these we need do specify which dynamic states will be changed using this pipeline.
       // Their actual states are set later on in the command buffer.
-      // For this example we will set the viewport and scissor using dynamic states
+      // We will set the viewport and scissor using dynamic states
       std::array<vk::DynamicState, 2> dynamicStates = {
          vk::DynamicState::eViewport,
          vk::DynamicState::eScissor
@@ -326,13 +373,13 @@ namespace Pikzel {
 
       std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
       shaderStages.reserve(settings.Shaders.size());
-      for (const auto& [shaderType, src] : settings.Shaders) {
+      for (const auto& [shaderType, path] : settings.Shaders) {
          shaderStages.emplace_back(
-            vk::PipelineShaderStageCreateFlags {}      /*flags*/,
-            ShaderTypeToVulkanShaderStage(shaderType)  /*stage*/,
-            m_Device->CreateShaderModule(src)          /*module*/,
-            "main"                                     /*name*/,
-            nullptr                                    /*pSpecializationInfo*/
+            vk::PipelineShaderStageCreateFlags {}           /*flags*/,
+            ShaderTypeToVulkanShaderStage(shaderType)       /*stage*/,
+            CreateShaderModule(shaderType, path)            /*module*/,
+            "main"                                          /*name*/,
+            nullptr                                         /*pSpecializationInfo*/
          );
       }
       pipelineCI.stageCount = static_cast<uint32_t>(shaderStages.size());
@@ -343,12 +390,13 @@ namespace Pikzel {
 
       // Shader modules are no longer needed once the graphics pipeline has been created
       for (auto& shaderStage : shaderStages) {
-         m_Device->DestroyShaderModule(shaderStage.module);
+         DestroyShaderModule(shaderStage.module);
       }
    }
 
 
    void VulkanPipeline::DestroyPipeline() {
+      ;
       if (m_Device && m_Pipeline) {
          m_Device->GetVkDevice().destroy(m_Pipeline);
       }

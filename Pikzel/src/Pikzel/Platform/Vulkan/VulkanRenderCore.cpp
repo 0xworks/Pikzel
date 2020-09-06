@@ -61,23 +61,13 @@ namespace Pikzel {
    }
 
 
-   void VulkanRenderCore::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
-      // TODO: This needs to just set something for later use (e.g. in cmdBuffer.setViewport(...)? )
-   }
-
-
-   void VulkanRenderCore::SetClearColor(const glm::vec4& color) {
-      // TODO: handle this.  Isn't clear color set when you create the render pass?
-   }
-
-
-   void VulkanRenderCore::Clear() {
-      // TODO: something like get a command buffer from somewhere, and then cmdBuffer.clear(something)?
+   void VulkanRenderCore::SetViewport(uint32_t, uint32_t, uint32_t, uint32_t) {
+      // Don't need to do anything. Vulkan swapchain resizing will deal with it
    }
 
 
    std::unique_ptr<GraphicsContext> VulkanRenderCore::CreateGraphicsContext(const Window& window) {
-      return std::make_unique<VulkanWindowGC>(m_Device, static_cast<GLFWwindow*>(window.GetNativeWindow()));
+      return std::make_unique<VulkanWindowGC>(m_Device, window);
    }
 
 
@@ -96,8 +86,13 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Pipeline> VulkanRenderCore::CreatePipeline(const Window& window, const PipelineSettings& settings) {
-      return std::make_unique<VulkanPipeline>(m_Device, window, settings);
+   std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(uint32_t width, uint32_t height) {
+      PKZL_NOT_IMPLEMENTED;
+   }
+
+
+   std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const std::filesystem::path& path) {
+      PKZL_NOT_IMPLEMENTED;
    }
 
 

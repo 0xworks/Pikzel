@@ -3,6 +3,7 @@
 #include "Core.h"
 #include "Pikzel/Renderer/GraphicsContext.h"
 
+#include <glm/glm.hpp>
 #include <memory>
 
 namespace Pikzel {
@@ -11,6 +12,7 @@ namespace Pikzel {
       const char* Title = "Pikzel Engine";
       uint32_t Width = 1280;
       uint32_t Height = 720;
+      glm::vec4 ClearColor = {0.0f, 0.0f, 0.0f, 1.0f};
       bool IsResizable = true;
       bool IsFullScreen = false;
       bool IsCursorEnabled = true;
@@ -30,6 +32,8 @@ namespace Pikzel {
       virtual uint32_t GetWidth() const = 0;
       virtual uint32_t GetHeight() const = 0;
 
+      virtual glm::vec4 GetClearColor() const = 0;
+
       virtual void SetVSync(bool enabled) = 0;
       virtual bool IsVSync() const = 0;
 
@@ -38,7 +42,7 @@ namespace Pikzel {
       virtual void BeginFrame() = 0;
       virtual void EndFrame() = 0;
 
-      virtual const GraphicsContext& GetGraphicsContext() const = 0;
+      virtual GraphicsContext& GetGraphicsContext() = 0;
 
    public:
       static std::unique_ptr<Window> Create(const WindowSettings& settings = WindowSettings());

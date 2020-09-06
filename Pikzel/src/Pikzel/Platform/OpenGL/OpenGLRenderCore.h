@@ -11,9 +11,6 @@ namespace Pikzel {
 
       virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
 
-      virtual void SetClearColor(const glm::vec4& color) override;
-      virtual void Clear() override;
-
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) override;
 
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(uint32_t size) override;
@@ -23,10 +20,6 @@ namespace Pikzel {
 
       std::unique_ptr<Texture2D> CreateTexture2D(uint32_t width, uint32_t height) override;
       std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) override;
-
-      virtual std::unique_ptr<Pipeline> CreatePipeline(const Window& window, const PipelineSettings& settings) override;
-
-      virtual void DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount) override;
 
    };
 
