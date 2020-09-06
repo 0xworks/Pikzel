@@ -74,6 +74,7 @@ namespace Pikzel {
 
 
    VulkanPipeline::~VulkanPipeline() {
+      m_Device->GetVkDevice().waitIdle();
       DestroyPipeline();
       DestroyPipelineLayout();
       DestroyDescriptorSetLayout();
