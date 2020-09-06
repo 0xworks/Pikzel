@@ -79,7 +79,7 @@ namespace Pikzel {
 
 
    void VulkanBuffer::CopyFromBuffer(vk::Buffer src, const vk::DeviceSize srcOffset, const vk::DeviceSize dstOffset, const vk::DeviceSize size) {
-      PKZL_ASSERT(dstOffset + size < m_Size, "VulkanBuffer::CopyFromBuffer() buffer overrun!");
+      PKZL_ASSERT(dstOffset + size <= m_Size, "VulkanBuffer::CopyFromBuffer() buffer overrun!");
       m_Device->SubmitSingleTimeCommands([this, src, srcOffset, dstOffset, size] (vk::CommandBuffer cmd) {
          vk::BufferCopy copyRegion = {
             srcOffset,
@@ -113,20 +113,18 @@ namespace Pikzel {
 
 
    const BufferLayout& VulkanVertexBuffer::GetLayout() const {
-      throw std::logic_error("The method or operation is not implemented.");
+      return m_Layout;
    }
 
 
    void VulkanVertexBuffer::SetLayout(const BufferLayout& layout) {
-      throw std::logic_error("The method or operation is not implemented.");
+      PKZL_CORE_ASSERT(layout.GetElements().size(), "layout is empty!");
+      m_Layout = layout;
    }
 
-   void VulkanVertexBuffer::Bind() const {
-      throw std::logic_error("The method or operation is not implemented.");
-   }
 
-   void VulkanVertexBuffer::Unbind() const {
-      throw std::logic_error("The method or operation is not implemented.");
+   vk::Buffer VulkanVertexBuffer::GetVkBuffer() const {
+      return m_Buffer.m_Buffer;
    }
 
 
@@ -147,18 +145,13 @@ namespace Pikzel {
    }
 
 
-   void VulkanIndexBuffer::Bind() const {
-      throw std::logic_error("The method or operation is not implemented.");
-   }
-
-
-   void VulkanIndexBuffer::Unbind() const {
-      throw std::logic_error("The method or operation is not implemented.");
-   }
-
-
    uint32_t VulkanIndexBuffer::GetCount() const {
       return m_Count;
+   }
+
+
+   vk::Buffer VulkanIndexBuffer::GetVkBuffer() const {
+      return m_Buffer.m_Buffer;
    }
 
 }

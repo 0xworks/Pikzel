@@ -2,7 +2,10 @@
 #include "OpenGLPipeline.h"
 #include "OpenGLBuffer.h"
 
+#include "Pikzel/Core/Utility.h"
+
 #include <glm/gtc/type_ptr.hpp>
+#include <shaderc/shaderc.hpp>
 
 namespace Pikzel {
 
@@ -37,12 +40,38 @@ namespace Pikzel {
    }
 
 
-   static GLuint CreateShaderModule(ShaderType type, const std::vector<char>& src) {
+   static shaderc_shader_kind ShaderTypeToShaderCType(ShaderType type) {
+      switch (type) {
+         case ShaderType::Vertex:   return shaderc_glsl_default_vertex_shader;
+         case ShaderType::Fragment: return shaderc_glsl_default_fragment_shader;
+      }
+
+      PKZL_CORE_ASSERT(false, "Unknown ShaderType!");
+      return shaderc_glsl_default_vertex_shader;
+   }
+
+
+   static GLuint CreateShaderModule(ShaderType type, const std::filesystem::path path) {
+      PKZL_CORE_LOG_TRACE("Compiling shader '" + path.string() + "'...");
+      std::vector<char> src = ReadFile(path, /*readAsBinary=*/true);
+
+      shaderc::Compiler compiler;
+      shaderc::CompileOptions options;
+      options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+      options.SetOptimizationLevel(shaderc_optimization_level_performance);
+      shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(src.data(), src.size(), ShaderTypeToShaderCType(type), path.string().c_str(), options);
+      if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
+         PKZL_CORE_LOG_ERROR("{0}", module.GetErrorMessage());
+         throw std::runtime_error("Shader compilation failure!");
+      }
 
       GLuint shader = glCreateShader(ShaderTypeToOpenGLType(type));
-      const GLchar* srcC = src.data();
-      glShaderSource(shader, 1, &srcC, nullptr);
-      glCompileShader(shader);
+      glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, module.cbegin(), static_cast<GLsizei>((module.cend() - module.cbegin()) * sizeof(uint32_t)));
+      glSpecializeShader(shader, "main", 0, nullptr, nullptr);
+
+      //const GLchar* srcC = src.data();
+      //glShaderSource(shader, 1, &srcC, nullptr);
+      //glCompileShader(shader);
 
       GLint isCompiled = 0;
       glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
@@ -58,6 +87,8 @@ namespace Pikzel {
          PKZL_CORE_LOG_ERROR("{0}", infoLog.data());
          throw std::runtime_error("Shader compilation failure!");
       }
+
+      PKZL_CORE_LOG_TRACE("Done.");
       return shader;
    }
 
@@ -97,9 +128,7 @@ namespace Pikzel {
    }
 
 
-   OpenGLPipeline::OpenGLPipeline(const PipelineSettings& settings) {
-      PKZL_PROFILE_FUNCTION();
-
+   OpenGLPipeline::OpenGLPipeline(GraphicsContext& gc, const PipelineSettings& settings) {
       std::vector<GLuint> shaders;
       for (const auto& [shaderType, src] : settings.Shaders) {
          shaders.emplace_back(CreateShaderModule(shaderType, src));
@@ -112,7 +141,7 @@ namespace Pikzel {
       }
       glCreateVertexArrays(1, &m_VAORendererID);
       glBindVertexArray(m_VAORendererID);
-      settings.VertexBuffer.Bind();
+      GCBinder bind {gc, settings.VertexBuffer};
 
       GLuint vertexAttributeIndex = 0;
       for (const auto& element : settings.VertexBuffer.GetLayout()) {
@@ -153,59 +182,48 @@ namespace Pikzel {
 
 
    OpenGLPipeline::~OpenGLPipeline() {
-      PKZL_PROFILE_FUNCTION();
       glDeleteVertexArrays(1, &m_VAORendererID);
       glDeleteProgram(m_RendererID);
    }
 
 
-   void OpenGLPipeline::Bind() const {
-      PKZL_PROFILE_FUNCTION();
-      glUseProgram(m_RendererID);
-      glBindVertexArray(m_VAORendererID);
-   }
-
-
-   void OpenGLPipeline::Unbind() const {
-      PKZL_PROFILE_FUNCTION();
-      glBindVertexArray(0);
-      glUseProgram(0);
-   }
-
-
    void OpenGLPipeline::SetInt(const std::string& name, int value) {
-      PKZL_PROFILE_FUNCTION();
       UploadUniformInt(name, value);
    }
 
 
    void OpenGLPipeline::SetIntArray(const std::string& name, int* values, uint32_t count) {
-      PKZL_PROFILE_FUNCTION();
       UploadUniformIntArray(name, values, count);
    }
 
 
    void OpenGLPipeline::SetFloat(const std::string& name, float value) {
-      PKZL_PROFILE_FUNCTION();
       UploadUniformFloat(name, value);
    }
 
 
    void OpenGLPipeline::SetFloat3(const std::string& name, const glm::vec3& value) {
-      PKZL_PROFILE_FUNCTION();
       UploadUniformFloat3(name, value);
    }
 
 
    void OpenGLPipeline::SetFloat4(const std::string& name, const glm::vec4& value) {
-      PKZL_PROFILE_FUNCTION();
       UploadUniformFloat4(name, value);
    }
 
 
    void OpenGLPipeline::SetMat4(const std::string& name, const glm::mat4& value) {
-      PKZL_PROFILE_FUNCTION();
       UploadUniformMat4(name, value);
+   }
+
+
+   GLuint OpenGLPipeline::GetRendererId() const {
+      return m_RendererID;
+   }
+
+
+   GLuint OpenGLPipeline::GetVAORendererId() const {
+      return m_VAORendererID;
    }
 
 

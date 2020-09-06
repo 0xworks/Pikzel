@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Pikzel/Renderer/GraphicsContext.h"
 #include "Pikzel/Renderer/Pipeline.h"
+
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -9,11 +11,8 @@ namespace Pikzel {
 
    class OpenGLPipeline : public Pipeline {
    public:
-      OpenGLPipeline(const PipelineSettings& settings);
+      OpenGLPipeline(GraphicsContext& gc, const PipelineSettings& settings);
       virtual ~OpenGLPipeline();
-
-      virtual void Bind() const override;
-      virtual void Unbind() const override;
 
       virtual void SetInt(const std::string& name, int value) override;
       virtual void SetIntArray(const std::string& name, int* values, uint32_t count) override;
@@ -22,6 +21,10 @@ namespace Pikzel {
       virtual void SetFloat4(const std::string& name, const glm::vec4& value) override;
       virtual void SetMat4(const std::string& name, const glm::mat4& value) override;
 
+      GLuint GetRendererId() const;
+      GLuint GetVAORendererId() const;
+
+   private:
       void UploadUniformInt(const std::string& name, int value);
       void UploadUniformIntArray(const std::string& name, int* values, uint32_t count);
 

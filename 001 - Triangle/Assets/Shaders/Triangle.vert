@@ -1,10 +1,16 @@
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
+#version 450
 
-out vec4 vColor;
+layout (location = 0) in vec3 inPos;
+layout (location = 1) in vec3 inColor;
+
+//layout (binding = 0) uniform UBO {
+//   mat4 mvp;
+//} ubo;
+
+layout (location = 0) out vec3 outColor;
 
 void main() {
-    vColor = vec4(aColor.rgb, 1.0f);
-    gl_Position = vec4(aPos.xyz, 1.0);
+   outColor = inColor;
+   //gl_Position = ubo.mvp * vec4(inPos.xyz, 1.0);
+   gl_Position = vec4(inPos.xyz, 1.0);
 }

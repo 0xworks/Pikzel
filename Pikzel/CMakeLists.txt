@@ -1,6 +1,11 @@
 ﻿cmake_minimum_required(VERSION 3.10)
 
-find_package(Vulkan)
+# Currently the Vulkan package is required, even if you are only going to use the OpenGL rendering backend
+# Because we are using the shaderc library shipped with the Vulkan SDK (rather than trying to build
+# shaderc and all its dependencies ourselves)
+# TODO: use an independent copy of shaderc so that if you are building for OpenGL then you do not
+#       need the Vulkan SDK to be installed
+find_package(Vulkan REQUIRED)
 
 project (
    "Pikzel"
@@ -75,8 +80,8 @@ set(
    ProjectLibs
    "glfw"
    "glm"
-   "PlatformOpenGL"
-   #"PlatformVulkan"
+   #"PlatformOpenGL"
+   "PlatformVulkan"
 )
 
 add_library(${PROJECT_NAME} STATIC ${ProjectSources})
@@ -120,6 +125,7 @@ if(MSVC)
    target_link_options(
       ${PROJECT_NAME} PUBLIC
       "$<$<CONFIG:Release>:/LTCG>"
+      "$<$<CONFIG:Debug>:/ignore:4099>"
    )
 endif()
 
@@ -175,10 +181,23 @@ target_compile_definitions(
    ${ProjectDefines}
 )
 
+# Vulkan include path needed because that is where shaderc is.  TODO: improve this situation
 target_include_directories(
    "PlatformOpenGL" PRIVATE
    ${ProjectIncludes}
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
+   ${Vulkan_INCLUDE_DIRS}
+)
+
+# Vulkan lib path needed because that is where shaderc is.  TODO: improve this situation
+target_link_directories(
+   "PlatformOpenGL" PUBLIC
+   "$ENV{VULKAN_SDK}/lib"
+)
+
+target_link_libraries(
+   "PlatformOpenGL" PUBLIC
+   "shaderc_combined$<$<CONFIG:Debug>:d>"
 )
 
 add_precompiled_header("PlatformOpenGL" "glpch.h" SOURCE_CXX "src/Pikzel/Platform/OpenGL/glpch.cpp")
@@ -252,14 +271,20 @@ if(${Vulkan_FOUND})
 
    # HACK: these includes should be private
    target_include_directories(
-      "PlatformVulkan" PUBLIC
+      "PlatformVulkan" PRIVATE
       ${ProjectIncludes}
-      ${Vulkan_INCLUDE_DIR}
+      ${Vulkan_INCLUDE_DIRS}
+   )
+
+   target_link_directories(
+      "PlatformVulkan" PUBLIC
+      "$ENV{VULKAN_SDK}/lib"
    )
 
    target_link_libraries(
-      "PlatformVulkan" PUBLIC
-      ${Vulkan_LIBRARY}
+      "PlatformVulkan" PRIVATE
+      ${Vulkan_LIBRARIES}
+      "shaderc_combined$<$<CONFIG:Debug>:d>"
    )
 
    add_precompiled_header("PlatformVulkan" "vkpch.h" SOURCE_CXX "src/Pikzel/Platform/Vulkan/vkpch.cpp")

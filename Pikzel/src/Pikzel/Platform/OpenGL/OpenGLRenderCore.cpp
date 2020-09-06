@@ -42,7 +42,6 @@ namespace Pikzel {
 
 
    OpenGLRenderCore::OpenGLRenderCore(const Window& window) {
-      PKZL_PROFILE_FUNCTION();
       glfwMakeContextCurrent(static_cast<GLFWwindow*>(window.GetNativeWindow()));
 
       if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -84,16 +83,6 @@ namespace Pikzel {
    }
 
 
-   void OpenGLRenderCore::SetClearColor(const glm::vec4& color) {
-      glClearColor(color.r, color.g, color.b, color.a);
-   }
-
-
-   void OpenGLRenderCore::Clear() {
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   }
-
-
    std::unique_ptr<GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(const Window& window) {
       return std::make_unique<OpenGLGraphicsContext>(window);
    }
@@ -122,21 +111,5 @@ namespace Pikzel {
    std::unique_ptr<Texture2D> OpenGLRenderCore::CreateTexture2D(const std::filesystem::path& path) {
       return std::make_unique<OpenGLTexture2D>(path);
    }
-
-
-   std::unique_ptr<Pipeline> OpenGLRenderCore::CreatePipeline(const Window&, const PipelineSettings& settings) {
-      return std::make_unique<OpenGLPipeline>(settings);
-   }
-
-
-   void OpenGLRenderCore::DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount) {
-      uint32_t count = indexCount ? indexCount : indexBuffer.GetCount();
-      vertexBuffer.Bind();
-      indexBuffer.Bind();
-      glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
-      indexBuffer.Unbind();
-      vertexBuffer.Unbind();
-   }
-
 
 }

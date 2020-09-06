@@ -28,7 +28,6 @@ namespace Pikzel {
       PKZL_CORE_LOG_INFO("  Size: ({0}, {1})", m_Settings.Width, m_Settings.Height);
 
       if (s_GLFWWindowCount == 0) {
-         PKZL_PROFILE_SCOPE("glfwInit");
          if (!glfwInit()) {
             throw std::runtime_error("Could not initialize GLFW!");
          }
@@ -38,8 +37,7 @@ namespace Pikzel {
       }
 
       {
-         PKZL_PROFILE_SCOPE("glfwCreateWindow")
-            const auto monitor = m_Settings.IsFullScreen ? glfwGetPrimaryMonitor() : nullptr;
+         const auto monitor = m_Settings.IsFullScreen ? glfwGetPrimaryMonitor() : nullptr;
 
          int clientAPI = GLFW_NO_API;
          if (RenderCore::GetAPI() == RenderCore::API::OpenGL) {
@@ -151,11 +149,24 @@ namespace Pikzel {
    }
 
 
+   glm::vec4 WindowsWindow::GetClearColor() const {
+      return m_Settings.ClearColor;
+   }
+
+
    void WindowsWindow::SetVSync(bool enabled) {
-      if (enabled) {
-         glfwSwapInterval(1);
-      } else {
-         glfwSwapInterval(0);
+      switch (RenderCore::GetAPI()) {
+         case RenderCore::API::OpenGL:
+            if (enabled) {
+               glfwSwapInterval(1);
+            } else {
+               glfwSwapInterval(0);
+            }
+            break;
+         case RenderCore::API::Vulkan:
+            // TODO: support SetVSync on Vulkan... you need to re-create the swapchain with a different present mode (currently hard-coded to "mailbox")
+            PKZL_CORE_LOG_WARN("SetVSync() not currently supported on Vulkan - setting ignored");
+            break;
       }
       m_VSync = enabled;
    }
@@ -186,7 +197,7 @@ namespace Pikzel {
    }
 
 
-   const Pikzel::GraphicsContext& WindowsWindow::GetGraphicsContext() const {
+   Pikzel::GraphicsContext& WindowsWindow::GetGraphicsContext() {
       PKZL_CORE_ASSERT(m_Context, "Accessing null graphics context!");
       return *m_Context;
    }

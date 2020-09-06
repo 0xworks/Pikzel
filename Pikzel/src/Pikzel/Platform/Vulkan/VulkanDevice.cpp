@@ -219,24 +219,4 @@ namespace Pikzel {
       m_Device.freeCommandBuffers(m_CommandPool, commandBuffers);
    }
 
-
-   vk::ShaderModule VulkanDevice::CreateShaderModule(std::vector<char> code) {
-      PKZL_CORE_ASSERT(m_Device, "Attempted to use null device!");
-      vk::ShaderModuleCreateInfo ci = {
-         {},
-         code.size(),
-         reinterpret_cast<const uint32_t*>(code.data())
-      };
-
-      return m_Device.createShaderModule(ci);
-   }
-
-
-   void VulkanDevice::DestroyShaderModule(vk::ShaderModule& module) {
-      if (m_Device && module) {
-         m_Device.destroy(module);
-         module = nullptr;
-      }
-   }
-
 }

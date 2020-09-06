@@ -1,19 +1,39 @@
 #pragma once
 
 #include "VulkanGraphicsContext.h"
+
+#include "Pikzel/Core/Window.h"
 #include "Pikzel/Events/WindowEvents.h"
+
+#include <array>
 
 namespace Pikzel {
 
    class VulkanWindowGC : public VulkanGraphicsContext {
    public:
-      VulkanWindowGC(std::shared_ptr<VulkanDevice> device, GLFWwindow* window);
+      VulkanWindowGC(std::shared_ptr<VulkanDevice> device, const Window& window);
       virtual ~VulkanWindowGC();
 
       virtual void BeginFrame() override;
       virtual void EndFrame() override;
 
       virtual void SwapBuffers() override;
+
+      void Bind(const VertexBuffer& buffer) override;
+      void Unbind(const VertexBuffer& buffer) override;
+
+      void Bind(const IndexBuffer& buffer) override;
+      void Unbind(const IndexBuffer& buffer) override;
+
+      void Bind(const Texture2D& texture, uint32_t slot) override;
+      void Unbind(const Texture2D& texture) override;
+
+      void Bind(const Pipeline& pipeline) override;
+      void Unbind(const Pipeline& pipeline) override;
+
+      std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) override;
+
+      void DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount = 0) override;
 
    private:
       void CreateSurface();
@@ -40,6 +60,8 @@ namespace Pikzel {
       void OnWindowResize(const WindowResizeEvent& event);
 
    private:
+      std::array<vk::ClearValue, 2> m_ClearValues;
+
       GLFWwindow* m_Window;     // VulkanWindowGC does not own the window!
 
       vk::SurfaceKHR m_Surface;

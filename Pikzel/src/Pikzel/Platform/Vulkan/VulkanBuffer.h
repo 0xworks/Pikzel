@@ -21,6 +21,8 @@ namespace Pikzel {
       // You can do this only if buffer was created with host visible property
       void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData);
 
+   public:
+
       // Copy memory from GPU buffer
       void CopyFromBuffer(vk::Buffer src, const vk::DeviceSize srcOffset, const vk::DeviceSize dstOffset, const vk::DeviceSize size);
 
@@ -32,8 +34,6 @@ namespace Pikzel {
       vk::MemoryPropertyFlags m_Properties;
       vk::Buffer m_Buffer;
       vk::DeviceMemory m_Memory;
-   
-
    };
 
 
@@ -48,29 +48,29 @@ namespace Pikzel {
       const BufferLayout& GetLayout() const override;
       void SetLayout(const BufferLayout& layout) override;
 
-      virtual void Bind() const override;
-      virtual void Unbind() const override;
+      vk::Buffer GetVkBuffer() const;
 
    private:
       VulkanBuffer m_Buffer;
+      BufferLayout m_Layout;
    };
 
 
    class VulkanIndexBuffer : public IndexBuffer {
    public:
 
+      // TODO: support 64 bit indices (?)
       VulkanIndexBuffer(std::shared_ptr<VulkanDevice> device, uint32_t* indices, uint32_t count);
 
       virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
 
-      virtual void Bind() const override;
-      virtual void Unbind() const override;
-
       virtual uint32_t GetCount() const override;
 
+      vk::Buffer GetVkBuffer() const;
+
    private:
-      uint32_t m_Count;
       VulkanBuffer m_Buffer;
+      uint32_t m_Count;
    };
 
 }

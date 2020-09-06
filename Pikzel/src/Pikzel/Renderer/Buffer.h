@@ -60,10 +60,8 @@ namespace Pikzel {
    public:
       virtual ~Buffer() = default;
 
-      virtual void Bind() const = 0;
-      virtual void Unbind() const = 0;
-
       virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) = 0;
+
    };
 
 

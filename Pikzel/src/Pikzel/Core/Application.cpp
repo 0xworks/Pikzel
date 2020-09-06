@@ -79,7 +79,7 @@ namespace Pikzel {
    }
 
 
-   const Pikzel::Window& Application::GetWindow() const {
+   Pikzel::Window& Application::GetWindow() {
       PKZL_CORE_ASSERT(m_Window, "Accessing null Window!");
       return *m_Window;
    }

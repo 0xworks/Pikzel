@@ -31,16 +31,6 @@ namespace Pikzel {
    }
 
 
-   void RenderCore::SetClearColor(const glm::vec4& color) {
-      s_RenderCore->SetClearColor(color);
-   }
-
-
-   void RenderCore::Clear() {
-      s_RenderCore->Clear();
-   }
-
-
    std::unique_ptr<GraphicsContext> RenderCore::CreateGraphicsContext(const Window& window) {
       return s_RenderCore->CreateGraphicsContext(window);
    }
@@ -68,16 +58,6 @@ namespace Pikzel {
 
    std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const std::filesystem::path& path) {
       return s_RenderCore->CreateTexture2D(path);
-   }
-
-
-   std::unique_ptr<Pipeline> RenderCore::CreatePipeline(const Window& window, const PipelineSettings& settings) {
-      return s_RenderCore->CreatePipeline(window, settings);
-   }
-
-
-   void RenderCore::DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount /*= 0*/) {
-      return s_RenderCore->DrawIndexed(vertexBuffer, indexBuffer, indexCount);
    }
 
 }
