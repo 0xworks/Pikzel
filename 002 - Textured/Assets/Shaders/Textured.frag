@@ -1,11 +1,12 @@
-#version 330 core
-in vec4 vColor;
-in vec2 vTexCoord;
+#version 450 core
+layout (location = 0) in vec4 inColor;
+layout (location = 1) in vec2 inTexCoord;
 
-out vec4 outFragColor;
+layout (location = 0) out vec4 outFragColor;
 
-uniform sampler2D uTexture;
+layout(binding = 0) uniform sampler2D uTexture;
+
 
 void main() {
-   outFragColor = texture(uTexture, vTexCoord) * vColor;
+   outFragColor = texture(uTexture, inTexCoord) * inColor;
 }

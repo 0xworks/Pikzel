@@ -4,21 +4,49 @@ namespace Pikzel {
 
    enum class DataType {
       None,
-      Float,
-      Float2,
-      Float3,
-      Float4,
-      Mat3,
-      Mat4,
+      Bool,
       Int,
-      Int2,
-      Int3,
-      Int4,
-      Bool
+      UInt,
+      Float,
+      Double,
+      BVec2,
+      BVec3,
+      BVec4,
+      IVec2,
+      IVec3,
+      IVec4,
+      UVec2,
+      UVec3,
+      UVec4,
+      Vec2,
+      Vec3,
+      Vec4,
+      DVec2,
+      DVec3,
+      DVec4,
+      Mat2,
+      Mat2x3,
+      Mat2x4,
+      Mat3x2,
+      Mat3,
+      Mat3x4,
+      Mat4x2,
+      Mat4x3,
+      Mat4,
+      DMat2,
+      DMat2x3,
+      DMat2x4,
+      DMat3x2,
+      DMat3,
+      DMat3x4,
+      DMat4x2,
+      DMat4x3,
+      DMat4
    };
 
 
-   static uint32_t DataTypeSize(DataType type);
+   std::string DataTypeToString(DataType type);
+   uint32_t DataTypeSize(DataType type);
 
 
    struct BufferElement {

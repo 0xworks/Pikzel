@@ -27,12 +27,16 @@ set(
 )
 
 set(
+   ShaderHeaders
+)
+
+set(
    Textures
    "Assets/Textures/Container.jpg"
 )
 
-copy_assets(ShaderSources Assets/Shaders copiedShaders)
-copy_assets(Textures Assets/Textures copiedTextures)
+compile_shaders(ShaderSources ShaderHeaders Assets/Shaders CompiledShaders)
+copy_assets(Textures Assets/Textures CopiedTextures)
 
 source_group("src" FILES ${ProjectSources})
 source_group("Assets/Shaders" FILES ${ShaderSources})
@@ -72,10 +76,10 @@ target_link_libraries(
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)
 # The correct way to do this is to add_custom_target() and then add_dependencies() on the custom target.
 # I do not want to clutter up the project with a whole load of custom targets, however.
-set_source_files_properties(${copiedShaders} PROPERTIES GENERATED TRUE)
-set_source_files_properties(${copiedTextures} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${CompiledShaders} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${CopiedTextures} PROPERTIES GENERATED TRUE)
 target_sources(
    ${PROJECT_NAME} PRIVATE
-   ${copiedShaders}
-   ${copiedTextures}
+   ${CompiledShaders}
+   ${CopiedTextures}
 )

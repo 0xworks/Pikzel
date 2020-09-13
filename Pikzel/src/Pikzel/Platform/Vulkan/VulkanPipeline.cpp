@@ -4,37 +4,39 @@
 #include "VulkanWindowGC.h"
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Core/Window.h"
+#include "Pikzel/Renderer/ShaderUtil.h"
 
-#include <shaderc/shaderc.hpp>
+#include <spirv_cross/spirv_cross.hpp>
+
+#include <map>
 
 namespace Pikzel {
 
    static vk::Format DataTypeToVkFormat(DataType type) {
       switch (type) {
-         case DataType::Float:    return vk::Format::eR32Sfloat;
-         case DataType::Float2:   return vk::Format::eR32G32Sfloat;
-         case DataType::Float3:   return vk::Format::eR32G32B32Sfloat;
-         case DataType::Float4:   return vk::Format::eR32G32B32A32Sfloat;
-         case DataType::Int:      return vk::Format::eR32Sint;
-         case DataType::Int2:     return vk::Format::eR32G32Sint;
-         case DataType::Int3:     return vk::Format::eR32G32B32Sint;
-         case DataType::Int4:     return vk::Format::eR32G32B32A32Sint;
          case DataType::Bool:     return vk::Format::eR8Sint;
+         case DataType::Int:      return vk::Format::eR32Sint;
+         case DataType::UInt:     return vk::Format::eR32Uint;
+         case DataType::Float:    return vk::Format::eR32Sfloat;
+         case DataType::Double:   return vk::Format::eR64Sfloat;
+         case DataType::BVec2:    return vk::Format::eR8G8Sint;
+         case DataType::BVec3:    return vk::Format::eR8G8B8Sint;
+         case DataType::BVec4:    return vk::Format::eR8G8B8A8Sint;
+         case DataType::IVec2:    return vk::Format::eR32G32Sint;
+         case DataType::IVec3:    return vk::Format::eR32G32B32Sint;
+         case DataType::IVec4:    return vk::Format::eR32G32B32A32Sint;
+         case DataType::UVec2:    return vk::Format::eR32G32Uint;
+         case DataType::UVec3:    return vk::Format::eR32G32B32Uint;
+         case DataType::UVec4:    return vk::Format::eR32G32B32A32Uint;
+         case DataType::Vec2:     return vk::Format::eR32G32Sfloat;
+         case DataType::Vec3:     return vk::Format::eR32G32B32Sfloat;
+         case DataType::Vec4:     return vk::Format::eR32G32B32A32Sfloat;
+         case DataType::DVec2:    return vk::Format::eR64G64Sfloat;
+         case DataType::DVec3:    return vk::Format::eR64G64B64Sfloat;
+         case DataType::DVec4:    return vk::Format::eR64G64B64A64Sfloat;
       }
-
-      PKZL_CORE_ASSERT(false, "Unknown DataType!");
+      PKZL_CORE_ASSERT(false, "Unknown DataType for VkFormat!");
       return {};
-   }
-
-
-   static shaderc_shader_kind ShaderTypeToShaderCType(ShaderType type) {
-      switch (type) {
-         case ShaderType::Vertex:   return shaderc_glsl_default_vertex_shader;
-         case ShaderType::Fragment: return shaderc_glsl_default_fragment_shader;
-      }
-
-      PKZL_CORE_ASSERT(false, "Unknown ShaderType!");
-      return shaderc_glsl_default_vertex_shader;
    }
 
 
@@ -67,8 +69,8 @@ namespace Pikzel {
    VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings)
    : m_Device(device)
    {
-      CreateDescriptorSetLayout();
-      CreatePipelineLayout();
+      CreateDescriptorSetLayout(settings);
+      CreatePipelineLayout(settings);
       CreatePipeline(gc, settings);
    }
 
@@ -81,64 +83,28 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::SetInt(const std::string& name, int value) {
-      PKZL_NOT_IMPLEMENTED;
-   }
-
-
-   void VulkanPipeline::SetIntArray(const std::string& name, int* values, uint32_t count) {
-      PKZL_NOT_IMPLEMENTED;
-   }
-
-
-   void VulkanPipeline::SetFloat(const std::string& name, float value) {
-      PKZL_NOT_IMPLEMENTED;
-   }
-
-
-   void VulkanPipeline::SetFloat3(const std::string& name, const glm::vec3& value) {
-      PKZL_NOT_IMPLEMENTED;
-   }
-
-
-   void VulkanPipeline::SetFloat4(const std::string& name, const glm::vec4& value) {
-      PKZL_NOT_IMPLEMENTED;
-   }
-
-
-   void VulkanPipeline::SetMat4(const std::string& name, const glm::mat4& value) {
-      PKZL_NOT_IMPLEMENTED;
-   }
-
-
    vk::Pipeline VulkanPipeline::GetVkPipeline() const {
       return m_Pipeline;
    }
 
 
-   vk::ShaderModule VulkanPipeline::CreateShaderModule(ShaderType type, const std::filesystem::path path) {
+   vk::PipelineLayout VulkanPipeline::GetVkPipelineLayout() const {
+      return m_PipelineLayout;
+   }
+
+
+   const ShaderPushConstant& VulkanPipeline::GetPushConstant(const std::string& name) const {
+      return m_PushConstants.at(name);
+   }
+
+
+   vk::ShaderModule VulkanPipeline::CreateShaderModule(ShaderType type, const std::vector<uint32_t>& src) {
       PKZL_CORE_ASSERT(m_Device, "Attempted to use null device!");
-
-      PKZL_CORE_LOG_TRACE("Compiling shader '" + path.string() + "'...");
-      std::vector<char> src = ReadFile(path, /*readAsBinary=*/true);
-
-      shaderc::Compiler compiler;
-      shaderc::CompileOptions options;
-      options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
-      options.SetOptimizationLevel(shaderc_optimization_level_performance);
-      shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(src.data(), src.size(), ShaderTypeToShaderCType(type), path.string().c_str(), options);
-      if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
-         PKZL_CORE_LOG_ERROR("{0}", module.GetErrorMessage());
-         throw std::runtime_error("Shader compilation failure!");
-      }
-
       vk::ShaderModuleCreateInfo ci = {
          {},
-         (module.cend() - module.cbegin()) * sizeof(uint32_t),
-         module.cbegin()
+         src.size() * sizeof(uint32_t),
+         src.data()
       };
-
-      PKZL_CORE_LOG_TRACE("Done.");
       return m_Device->GetVkDevice().createShaderModule(ci);
    }
 
@@ -151,11 +117,15 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::CreateDescriptorSetLayout(/* TODO layout */) {
-      ;
-      // Setup layout of descriptors used in this example
+   void VulkanPipeline::CreateDescriptorSetLayout(const PipelineSettings& settings) {
       // Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
       // So every shader binding should map to one descriptor set layout binding
+
+      for (const auto& [shaderType, path] : settings.Shaders) {
+         m_ShaderSrcs.emplace_back(shaderType, ReadFile<uint32_t>(path));
+      }
+
+      // Reflect shaders here...
 
       // TODO
       //vk::DescriptorSetLayoutBinding uboLayoutBinding = {
@@ -178,7 +148,6 @@ namespace Pikzel {
 
 
    void VulkanPipeline::DestroyDescriptorSetLayout() {
-      ;
       if (m_Device && m_DescriptorSetLayout) {
          m_Device->GetVkDevice().destroy(m_DescriptorSetLayout);
          m_DescriptorSetLayout = nullptr;
@@ -186,16 +155,57 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::CreatePipelineLayout() {
-      ;
+   void VulkanPipeline::CreatePipelineLayout(const PipelineSettings& settings) {
       // Create the pipeline layout that is used to generate the rendering pipelines that are based on this descriptor set layout
       // In a more complex scenario you would have different pipeline layouts for different descriptor set layouts that could be reused
+
+      // parse push constants
+      for (const auto& [shaderType, src] : m_ShaderSrcs) {
+         spirv_cross::Compiler compiler(src);
+         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+         for (const auto& pushConstantBuffer : resources.push_constant_buffers) {
+            const auto& bufferType = compiler.get_type(pushConstantBuffer.base_type_id);
+            uint32_t memberCount = static_cast<uint32_t>(bufferType.member_types.size());
+            for (uint32_t i = 0; i < memberCount; ++i) {
+               std::string pushConstantName = (pushConstantBuffer.name != "" ? (pushConstantBuffer.name + ".") : "") + compiler.get_member_name(bufferType.self, i);
+               PKZL_CORE_LOG_TRACE("Found push constant range with name '{0}'", pushConstantName);
+               auto pc = m_PushConstants.find(pushConstantName);
+               if (pc == m_PushConstants.end()) {
+                  const auto& type = compiler.get_type(bufferType.member_types[i]);
+                  uint32_t offset = compiler.type_struct_member_offset(bufferType, i);
+                  uint32_t size = static_cast<uint32_t>(compiler.get_declared_struct_member_size(bufferType, i));
+                  m_PushConstants.emplace(pushConstantName, ShaderPushConstant {pushConstantName, SPIRTypeToDataType(type), ShaderTypeToVulkanShaderStage(shaderType), offset, size});
+               } else {
+                  pc->second.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
+               }
+            }
+         }
+      }
+
+      // Vulkan spec requires that we do not declare more than one push constant range per shader stage,
+      // so figure out "unique" ranges here...
+      struct PushConstantRange {
+         uint32_t MinOffset = ~0;
+         uint32_t MaxOffset = 0;
+      };
+      std::map<vk::ShaderStageFlags, PushConstantRange> pushConstantRanges;
+      for (const auto& [name, pushConstant] : m_PushConstants) {
+         PushConstantRange& range = pushConstantRanges[pushConstant.ShaderStages];
+         range.MinOffset = std::min(range.MinOffset, pushConstant.Offset);
+         range.MaxOffset = std::max(range.MaxOffset, pushConstant.Offset + pushConstant.Size);
+      }
+
+      std::vector<vk::PushConstantRange> vkPushConstantRanges;
+      for (const auto& [shaderStages, range] : pushConstantRanges) {
+         vkPushConstantRanges.emplace_back(shaderStages, range.MinOffset, range.MaxOffset - range.MinOffset);
+      }
+
       m_PipelineLayout = m_Device->GetVkDevice().createPipelineLayout({
-         {}                       /*flags*/,
-         1                        /*setLayoutCount*/,
-         &m_DescriptorSetLayout   /*pSetLayouts*/,
-         0                        /*pushConstantRangeCount*/,
-         nullptr                  /*pPushConstantRanges*/
+         {}                                                  /*flags*/,
+         1                                                   /*setLayoutCount*/,
+         &m_DescriptorSetLayout                              /*pSetLayouts*/,
+         static_cast<uint32_t>(vkPushConstantRanges.size())  /*pushConstantRangeCount*/,
+         vkPushConstantRanges.data()                         /*pPushConstantRanges*/
       });
    }
 
@@ -210,18 +220,12 @@ namespace Pikzel {
 
 
    void VulkanPipeline::CreatePipeline(const VulkanGraphicsContext& gc, const PipelineSettings& settings) {
-      ;
-      // Create the graphics pipeline used in this example
-      // Vulkan uses the concept of rendering pipelines to encapsulate fixed states, replacing OpenGL's complex state machine
-      // A pipeline is then stored and hashed on the GPU making pipeline changes very fast
-      // Note: There are still a few dynamic states that are not directly part of the pipeline (but the info that they are used is)
-
       vk::GraphicsPipelineCreateInfo pipelineCI;
       pipelineCI.layout = m_PipelineLayout;
       pipelineCI.renderPass = gc.GetVkRenderPass();
 
       // Input assembly state describes how primitives are assembled
-      // This pipeline will assemble vertex data as a triangle lists (though we're only use one triangle)
+      // This pipeline will assemble vertex data as a triangle lists
       vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState = {
          {}                                   /*flags*/,
          vk::PrimitiveTopology::eTriangleList /*topology*/,
@@ -374,11 +378,11 @@ namespace Pikzel {
 
       std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
       shaderStages.reserve(settings.Shaders.size());
-      for (const auto& [shaderType, path] : settings.Shaders) {
+      for (const auto& [shaderType, src] : m_ShaderSrcs) {
          shaderStages.emplace_back(
             vk::PipelineShaderStageCreateFlags {}           /*flags*/,
             ShaderTypeToVulkanShaderStage(shaderType)       /*stage*/,
-            CreateShaderModule(shaderType, path)            /*module*/,
+            CreateShaderModule(shaderType, src)             /*module*/,
             "main"                                          /*name*/,
             nullptr                                         /*pSpecializationInfo*/
          );
@@ -393,6 +397,7 @@ namespace Pikzel {
       for (auto& shaderStage : shaderStages) {
          DestroyShaderModule(shaderStage.module);
       }
+      m_ShaderSrcs.clear();
    }
 
 

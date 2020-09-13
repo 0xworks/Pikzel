@@ -31,7 +31,6 @@ public:
       Pikzel::GCBinder bindPipeline {gc, *m_Pipeline};
       Pikzel::GCBinder bindTexture {gc, *m_Texture, 0};
       gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
-
    }
 
 
@@ -46,9 +45,9 @@ private:
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
       m_VertexBuffer->SetLayout({
-         { Pikzel::DataType::Float3, "aPos" },
-         { Pikzel::DataType::Float3, "aColor" },
-         { Pikzel::DataType::Float2, "aTexCoord" }
+         { Pikzel::DataType::Vec3, "aPos" },
+         { Pikzel::DataType::Vec3, "aColor" },
+         { Pikzel::DataType::Vec2, "aTexCoord" }
       });
    }
 
@@ -71,8 +70,8 @@ private:
       Pikzel::PipelineSettings settings {
          *m_VertexBuffer,
          {
-            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Textured.vert" },
-            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Textured.frag" }
+            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Textured.vert.spv" },
+            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Textured.frag.spv" }
          }
       };
       m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);

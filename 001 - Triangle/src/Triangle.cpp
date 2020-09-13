@@ -2,6 +2,8 @@
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Renderer/RenderCore.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <filesystem>
 
 
@@ -28,6 +30,8 @@ public:
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       Pikzel::GCBinder bind {gc, *m_Pipeline};
+      //m_Pipeline.UploadUniformBufferObject(something);
+      gc.PushConstant("constants.mvp", glm::identity<glm::mat4>());
       gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
    }
 
@@ -43,8 +47,8 @@ private:
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
       m_VertexBuffer->SetLayout({
-         { Pikzel::DataType::Float3, "aPos" },
-         { Pikzel::DataType::Float3, "aColor" }
+         { Pikzel::DataType::Vec3, "aPos" },
+         { Pikzel::DataType::Vec3, "aColor" }
       });
 
    }
@@ -63,8 +67,8 @@ private:
       Pikzel::PipelineSettings settings {
          *m_VertexBuffer,
          {
-            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Triangle.vert" },
-            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Triangle.frag" }
+            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Triangle.vert.spv" },
+            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Triangle.frag.spv" }
          }
       };
       m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);

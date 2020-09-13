@@ -38,6 +38,8 @@ set(
    "src/Pikzel/Renderer/Pipeline.h"
    "src/Pikzel/Renderer/RenderCore.h"
    "src/Pikzel/Renderer/RenderCore.cpp"
+   "src/Pikzel/Renderer/ShaderUtil.h"
+   "src/Pikzel/Renderer/ShaderUtil.cpp"
    "src/Pikzel/Renderer/Texture.h"
    "vendor/imgui/imgui.cpp"
    "vendor/imgui/imgui_draw.cpp"
@@ -52,6 +54,7 @@ if(WIN32)
    )
 endif()
 
+# Vulkan include path needed because that is where shaderc is.  TODO: improve this situation
 set(
    ProjectIncludes
    "src"
@@ -63,6 +66,7 @@ set(
    "vendor/stb"
    "vendor/tinyobjloader"
    "vendor/tracy"
+   ${Vulkan_INCLUDE_DIRS}
 )
 
 set(
@@ -80,8 +84,11 @@ set(
    ProjectLibs
    "glfw"
    "glm"
-   #"PlatformOpenGL"
-   "PlatformVulkan"
+   "PlatformOpenGL"
+   #"PlatformVulkan"
+   "shaderc_combined$<$<CONFIG:Debug>:d>"
+   "spirv-cross-core$<$<CONFIG:Debug>:d>"
+   "spirv-cross-glsl$<$<CONFIG:Debug>:d>"
 )
 
 add_library(${PROJECT_NAME} STATIC ${ProjectSources})
@@ -115,6 +122,12 @@ if(MSVC)
       "$<$<CONFIG:Release>:/GL>"
    )
 endif()
+
+# Vulkan lib path needed because that is where shaderc is.  TODO: improve this situation
+target_link_directories(
+   ${PROJECT_NAME} PUBLIC
+   "$ENV{VULKAN_SDK}/lib"
+)
 
 target_link_libraries(
    ${PROJECT_NAME} PUBLIC
@@ -181,23 +194,10 @@ target_compile_definitions(
    ${ProjectDefines}
 )
 
-# Vulkan include path needed because that is where shaderc is.  TODO: improve this situation
 target_include_directories(
    "PlatformOpenGL" PRIVATE
    ${ProjectIncludes}
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
-   ${Vulkan_INCLUDE_DIRS}
-)
-
-# Vulkan lib path needed because that is where shaderc is.  TODO: improve this situation
-target_link_directories(
-   "PlatformOpenGL" PUBLIC
-   "$ENV{VULKAN_SDK}/lib"
-)
-
-target_link_libraries(
-   "PlatformOpenGL" PUBLIC
-   "shaderc_combined$<$<CONFIG:Debug>:d>"
 )
 
 add_precompiled_header("PlatformOpenGL" "glpch.h" SOURCE_CXX "src/Pikzel/Platform/OpenGL/glpch.cpp")
@@ -284,7 +284,6 @@ if(${Vulkan_FOUND})
    target_link_libraries(
       "PlatformVulkan" PRIVATE
       ${Vulkan_LIBRARIES}
-      "shaderc_combined$<$<CONFIG:Debug>:d>"
    )
 
    add_precompiled_header("PlatformVulkan" "vkpch.h" SOURCE_CXX "src/Pikzel/Platform/Vulkan/vkpch.cpp")
