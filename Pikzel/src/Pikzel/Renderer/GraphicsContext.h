@@ -31,7 +31,46 @@ namespace Pikzel {
 
       virtual std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) = 0;
 
-      virtual void DrawIndexed(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, uint32_t indexCount = 0) = 0;
+      virtual void PushConstant(const std::string& name, bool value) = 0;
+      virtual void PushConstant(const std::string& name, int value) = 0;
+      virtual void PushConstant(const std::string& name, uint32_t value) = 0;
+      virtual void PushConstant(const std::string & name, float value) = 0;
+      virtual void PushConstant(const std::string& name, double value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::bvec2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::bvec3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::bvec4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::ivec2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::ivec3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::ivec4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::uvec2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::uvec3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::uvec4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::vec2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::vec3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::vec4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dvec2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dvec3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dvec4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat2x3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat2x4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat3x2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat3x4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat4x2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat4x3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::mat4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat2x3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat2x4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat3x2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat3x4& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat4x2& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat4x3& value) = 0;
+      virtual void PushConstant(const std::string& name, const glm::dmat4& value) = 0;
+
+      virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount = 0) = 0;
 
    };
 
@@ -39,7 +78,7 @@ namespace Pikzel {
    template<class T, typename... Args>
    class GCBinder {
    public:
-      GCBinder(GraphicsContext& gc, const T& bindee, Args... args)
+      GCBinder(GraphicsContext& gc, T& bindee, Args... args)
       : m_GC {gc}
       , m_Bindee {bindee}
       {
@@ -52,7 +91,7 @@ namespace Pikzel {
 
    private:
       GraphicsContext& m_GC;
-      const T& m_Bindee;
+      T& m_Bindee;
    };
 
 }
