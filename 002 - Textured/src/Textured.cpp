@@ -2,11 +2,11 @@
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Renderer/RenderCore.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <filesystem>
 
-
 // Render a textured triangle in a window
-
 class Textured final : public Pikzel::Application {
 public:
    Textured(int argc, const char* argv[])
@@ -29,7 +29,10 @@ public:
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       Pikzel::GCBinder bindPipeline {gc, *m_Pipeline};
-      Pikzel::GCBinder bindTexture {gc, *m_Texture, 0};
+      Pikzel::GCBinder bindTexture {gc, *m_Texture, "uTexture"_hs};
+
+      //Pikzel::GCBinder bindUniformBuffer {gc, *m_UBO, "ubo"_hs};   // where m_UBO is a Pikzel::Buffer
+      gc.PushConstant("constants.mvp"_hs, glm::identity<glm::mat4>());
       gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
    }
 

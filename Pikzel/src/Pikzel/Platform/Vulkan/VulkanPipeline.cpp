@@ -70,7 +70,7 @@ namespace Pikzel {
    : m_Device(device)
    {
       CreateDescriptorSetLayout(settings);
-      CreatePipelineLayout(settings);
+      CreatePipelineLayout();
       CreatePipeline(gc, settings);
    }
 
@@ -93,8 +93,8 @@ namespace Pikzel {
    }
 
 
-   const ShaderPushConstant& VulkanPipeline::GetPushConstant(const std::string& name) const {
-      return m_PushConstants.at(name);
+   const VulkanPushConstant& VulkanPipeline::GetPushConstant(const entt::id_type id) const {
+      return m_PushConstants.at(id);
    }
 
 
@@ -117,6 +117,34 @@ namespace Pikzel {
    }
 
 
+   void VulkanPipeline::ReflectShaders() {
+      PKZL_CORE_LOG_TRACE("Reflecting shaders");
+
+      for (const auto& [shaderType, src] : m_ShaderSrcs) {
+         spirv_cross::Compiler compiler(src);
+         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+
+         for (const auto& pushConstantBuffer : resources.push_constant_buffers) {
+            const auto& bufferType = compiler.get_type(pushConstantBuffer.base_type_id);
+            uint32_t memberCount = static_cast<uint32_t>(bufferType.member_types.size());
+            for (uint32_t i = 0; i < memberCount; ++i) {
+               std::string pushConstantName = (pushConstantBuffer.name != "" ? (pushConstantBuffer.name + ".") : "") + compiler.get_member_name(bufferType.self, i);
+               PKZL_CORE_LOG_TRACE("Found push constant range with name '{0}'", pushConstantName);
+               auto pc = m_PushConstants.find(entt::hashed_string(pushConstantName.data()));
+               if (pc == m_PushConstants.end()) {
+                  const auto& type = compiler.get_type(bufferType.member_types[i]);
+                  uint32_t offset = compiler.type_struct_member_offset(bufferType, i);
+                  uint32_t size = static_cast<uint32_t>(compiler.get_declared_struct_member_size(bufferType, i));
+                  m_PushConstants.emplace(entt::hashed_string(pushConstantName.data()), VulkanPushConstant {pushConstantName, SPIRTypeToDataType(type), ShaderTypeToVulkanShaderStage(shaderType), offset, size});
+               } else {
+                  pc->second.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
+               }
+            }
+         }
+      }
+   }
+
+
    void VulkanPipeline::CreateDescriptorSetLayout(const PipelineSettings& settings) {
       // Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
       // So every shader binding should map to one descriptor set layout binding
@@ -125,7 +153,7 @@ namespace Pikzel {
          m_ShaderSrcs.emplace_back(shaderType, ReadFile<uint32_t>(path));
       }
 
-      // Reflect shaders here...
+      ReflectShaders();
 
       // TODO
       //vk::DescriptorSetLayoutBinding uboLayoutBinding = {
@@ -155,32 +183,9 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::CreatePipelineLayout(const PipelineSettings& settings) {
+   void VulkanPipeline::CreatePipelineLayout() {
       // Create the pipeline layout that is used to generate the rendering pipelines that are based on this descriptor set layout
       // In a more complex scenario you would have different pipeline layouts for different descriptor set layouts that could be reused
-
-      // parse push constants
-      for (const auto& [shaderType, src] : m_ShaderSrcs) {
-         spirv_cross::Compiler compiler(src);
-         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
-         for (const auto& pushConstantBuffer : resources.push_constant_buffers) {
-            const auto& bufferType = compiler.get_type(pushConstantBuffer.base_type_id);
-            uint32_t memberCount = static_cast<uint32_t>(bufferType.member_types.size());
-            for (uint32_t i = 0; i < memberCount; ++i) {
-               std::string pushConstantName = (pushConstantBuffer.name != "" ? (pushConstantBuffer.name + ".") : "") + compiler.get_member_name(bufferType.self, i);
-               PKZL_CORE_LOG_TRACE("Found push constant range with name '{0}'", pushConstantName);
-               auto pc = m_PushConstants.find(pushConstantName);
-               if (pc == m_PushConstants.end()) {
-                  const auto& type = compiler.get_type(bufferType.member_types[i]);
-                  uint32_t offset = compiler.type_struct_member_offset(bufferType, i);
-                  uint32_t size = static_cast<uint32_t>(compiler.get_declared_struct_member_size(bufferType, i));
-                  m_PushConstants.emplace(pushConstantName, ShaderPushConstant {pushConstantName, SPIRTypeToDataType(type), ShaderTypeToVulkanShaderStage(shaderType), offset, size});
-               } else {
-                  pc->second.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
-               }
-            }
-         }
-      }
 
       // Vulkan spec requires that we do not declare more than one push constant range per shader stage,
       // so figure out "unique" ranges here...

@@ -181,7 +181,7 @@ namespace Pikzel {
    void VulkanWindowGC::Unbind(const IndexBuffer& buffer) {}
 
 
-   void VulkanWindowGC::Bind(const Texture2D& texture, uint32_t slot) {
+   void VulkanWindowGC::Bind(const Texture2D& texture, entt::id_type id) {
       PKZL_NOT_IMPLEMENTED;
    }
 
@@ -210,307 +210,307 @@ namespace Pikzel {
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, bool value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, bool value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Bool, "Push constant '{0}' type mismatch.  Bool given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Bool, "Push constant '{0}' type mismatch.  Bool given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<bool>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
 
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, int value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, int value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Int, "Push constant '{0}' type mismatch.  Int given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Int, "Push constant '{0}' type mismatch.  Int given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<int>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, uint32_t value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, uint32_t value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::UInt, "Push constant '{0}' type mismatch.  UInt given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::UInt, "Push constant '{0}' type mismatch.  UInt given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<uint32_t>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, float value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, float value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Float, "Push constant '{0}' type mismatch.  Float given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Float, "Push constant '{0}' type mismatch.  Float given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<float>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, double value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, double value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Double, "Push constant '{0}' type mismatch.  Double given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Double, "Push constant '{0}' type mismatch.  Double given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<double>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::bvec2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::bvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::BVec2, "Push constant '{0}' type mismatch.  BVec2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::BVec2, "Push constant '{0}' type mismatch.  BVec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::bvec2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::bvec3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::bvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::BVec3, "Push constant '{0}' type mismatch.  BVec3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::BVec3, "Push constant '{0}' type mismatch.  BVec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::bvec3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::bvec4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::bvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::BVec4, "Push constant '{0}' type mismatch.  BVec4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::BVec4, "Push constant '{0}' type mismatch.  BVec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::bvec4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::ivec2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::ivec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::IVec2, "Push constant '{0}' type mismatch.  IVec2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::IVec2, "Push constant '{0}' type mismatch.  IVec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::ivec2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::ivec3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::ivec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::IVec3, "Push constant '{0}' type mismatch.  IVec3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::IVec3, "Push constant '{0}' type mismatch.  IVec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::ivec3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::ivec4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::ivec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::IVec4, "Push constant '{0}' type mismatch.  IVec4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::IVec4, "Push constant '{0}' type mismatch.  IVec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::ivec4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::uvec2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::uvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::UVec2, "Push constant '{0}' type mismatch.  UVec2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::UVec2, "Push constant '{0}' type mismatch.  UVec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::uvec2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::uvec3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::uvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::UVec3, "Push constant '{0}' type mismatch.  UVec3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::UVec3, "Push constant '{0}' type mismatch.  UVec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::uvec3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::uvec4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::uvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::UVec4, "Push constant '{0}' type mismatch.  UVec4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::UVec4, "Push constant '{0}' type mismatch.  UVec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::uvec4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::vec2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::vec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Vec2, "Push constant '{0}' type mismatch.  Vec2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Vec2, "Push constant '{0}' type mismatch.  Vec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::vec2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::vec3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::vec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Vec3, "Push constant '{0}' type mismatch.  Vec3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Vec3, "Push constant '{0}' type mismatch.  Vec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::vec3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::vec4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::vec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name); // name will be like constants.mvp,  or anotherConstants.something4
-      PKZL_CORE_ASSERT(constant.Type == DataType::Vec4, "Push constant '{0}' type mismatch.  Vec4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id); // name will be like constants.mvp,  or anotherConstants.something4
+      PKZL_CORE_ASSERT(constant.Type == DataType::Vec4, "Push constant '{0}' type mismatch.  Vec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::vec4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dvec2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DVec2, "Push constant '{0}' type mismatch.  DVec2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DVec2, "Push constant '{0}' type mismatch.  DVec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dvec2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dvec3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DVec3, "Push constant '{0}' type mismatch.  DVec3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DVec3, "Push constant '{0}' type mismatch.  DVec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dvec3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dvec4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DVec4, "Push constant '{0}' type mismatch.  DVec4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DVec4, "Push constant '{0}' type mismatch.  DVec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dvec4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat2, "Push constant '{0}' type mismatch.  Mat2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat2, "Push constant '{0}' type mismatch.  Mat2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat2x3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat2x3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat2x3, "Push constant '{0}' type mismatch.  Mat2x3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat2x3, "Push constant '{0}' type mismatch.  Mat2x3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat2x3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat2x4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat2x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat2x4, "Push constant '{0}' type mismatch.  Mat2x4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat2x4, "Push constant '{0}' type mismatch.  Mat2x4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat2x4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat3x2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat3x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat3x2, "Push constant '{0}' type mismatch.  Mat3x2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat3x2, "Push constant '{0}' type mismatch.  Mat3x2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat3x2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat3, "Push constant '{0}' type mismatch.  Mat3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat3, "Push constant '{0}' type mismatch.  Mat3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat3x4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat3x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat3x4, "Push constant '{0}' type mismatch.  Mat3x4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat3x4, "Push constant '{0}' type mismatch.  Mat3x4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat3x4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat4x2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat4x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat4x2, "Push constant '{0}' type mismatch.  Mat4x2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat4x2, "Push constant '{0}' type mismatch.  Mat4x2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat4x2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat4x3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat4x3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat4x3, "Push constant '{0}' type mismatch.  Mat4x3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat4x3, "Push constant '{0}' type mismatch.  Mat4x3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat4x3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::mat4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::mat4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name); // name will be like constants.mvp,  or anotherConstants.something4
-      PKZL_CORE_ASSERT(constant.Type == DataType::Mat4, "Push constant '{0}' type mismatch.  Mat4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id); // name will be like constants.mvp,  or anotherConstants.something4
+      PKZL_CORE_ASSERT(constant.Type == DataType::Mat4, "Push constant '{0}' type mismatch.  Mat4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::mat4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat2, "Push constant '{0}' type mismatch.  DMat2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat2, "Push constant '{0}' type mismatch.  DMat2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat2x3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat2x3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat2x3, "Push constant '{0}' type mismatch.  DMat2x3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat2x3, "Push constant '{0}' type mismatch.  DMat2x3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat2x3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat2x4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat2x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat2x4, "Push constant '{0}' type mismatch.  DMat2x4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat2x4, "Push constant '{0}' type mismatch.  DMat2x4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat2x4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat3x2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat3x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat3x2, "Push constant '{0}' type mismatch.  DMat3x2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat3x2, "Push constant '{0}' type mismatch.  DMat3x2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat3x2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat3, "Push constant '{0}' type mismatch.  DMat3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat3, "Push constant '{0}' type mismatch.  DMat3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat3x4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat3x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat3x4, "Push constant '{0}' type mismatch.  DMat3x4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat3x4, "Push constant '{0}' type mismatch.  DMat3x4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat3x4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat4x2& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat4x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat4x2, "Push constant '{0}' type mismatch.  DMat4x2 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat4x2, "Push constant '{0}' type mismatch.  DMat4x2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat4x2>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat4x3& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat4x3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat4x3, "Push constant '{0}' type mismatch.  DMat4x3 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat4x3, "Push constant '{0}' type mismatch.  DMat4x3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat4x3>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
 
-   void VulkanWindowGC::PushConstant(const std::string& name, const glm::dmat4& value) {
+   void VulkanWindowGC::PushConstant(const entt::id_type id, const glm::dmat4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
-      const ShaderPushConstant& constant = m_Pipeline->GetPushConstant(name);
-      PKZL_CORE_ASSERT(constant.Type == DataType::DMat4, "Push constant '{0}' type mismatch.  DMat4 given, expected {1}!", name, DataTypeToString(constant.Type));
+      const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
+      PKZL_CORE_ASSERT(constant.Type == DataType::DMat4, "Push constant '{0}' type mismatch.  DMat4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       m_CommandBuffers[m_CurrentImage].pushConstants<glm::dmat4>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
    }
 
