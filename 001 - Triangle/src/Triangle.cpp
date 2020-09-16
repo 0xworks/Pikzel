@@ -6,9 +6,7 @@
 
 #include <filesystem>
 
-
 // Render a triangle in a window
-
 class Triangle final : public Pikzel::Application {
 public:
    Triangle(int argc, const char* argv[])
@@ -30,8 +28,7 @@ public:
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       Pikzel::GCBinder bind {gc, *m_Pipeline};
-      //m_Pipeline.UploadUniformBufferObject(something);
-      gc.PushConstant("constants.mvp", glm::identity<glm::mat4>());
+      gc.PushConstant("constants.mvp"_hs, glm::identity<glm::mat4>());
       gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
    }
 
