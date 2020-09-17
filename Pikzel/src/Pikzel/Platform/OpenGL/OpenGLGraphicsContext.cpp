@@ -55,7 +55,7 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::Bind(const Texture2D& texture, const entt::id_type id) {
-      glBindTextureUnit(m_Pipeline->GetResourceBinding(id), texture.GetRendererID());
+      glBindTextureUnit(m_Pipeline->GetSamplerBinding(id), texture.GetRendererID());
    }
 
 
