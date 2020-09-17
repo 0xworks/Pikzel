@@ -83,19 +83,25 @@ namespace Pikzel {
       void PushConstant(const entt::id_type name, const glm::dmat4x3& value);
       void PushConstant(const entt::id_type name, const glm::dmat4& value);
 
-      GLuint GetResourceBinding(const entt::id_type resourceId) const;
+      GLuint GetSamplerBinding(const entt::id_type resourceId) const;
+      GLuint GetUniformBufferBinding(const entt::id_type resourceId) const;
 
    private:
       void AppendShader(ShaderType type, const std::filesystem::path path);
+      void ParsePushConstants(spirv_cross::Compiler& compiler);
+      void ParseResourceBindings(spirv_cross::Compiler& compiler);
       void LinkShaderProgram();
-      void ReflectShaders();
       void DeleteShaders();
+      void FindUniformLocations();
 
    private:
       std::vector<std::vector<uint32_t>> m_ShaderSrcs;
       std::vector<uint32_t> m_ShaderIds;
       std::unordered_map<entt::id_type, OpenGLUniform> m_PushConstants; // push constants in the Vulkan glsl get turned into uniforms for OpenGL
-      std::unordered_map<entt::id_type, OpenGLResourceDeclaration> m_Resources; // e.g. image samplers
+      std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t> m_UniformBufferBindingMap; // maps (set, binding) -> open GL binding for uniform buffers
+      std::unordered_map<entt::id_type, OpenGLResourceDeclaration> m_UniformBufferResources; // maps resource id (essentially the name of the resource) -> its opengl binding
+      std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t> m_SamplerBindingMap;       // maps (set, binding) -> open GL binding for texture samplers
+      std::unordered_map<entt::id_type, OpenGLResourceDeclaration> m_SamplerResources;       // maps resource id (essentially the name of the resource) -> its opengl binding
 
       uint32_t m_RendererId = 0;
       uint32_t m_VAORendererId = 0;

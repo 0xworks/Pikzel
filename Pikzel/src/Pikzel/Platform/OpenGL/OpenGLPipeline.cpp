@@ -49,8 +49,7 @@ namespace Pikzel {
    }
 
 
-   static std::unordered_map<entt::id_type, OpenGLUniform> ParsePushConstants(spirv_cross::Compiler& compiler) {
-      std::unordered_map<entt::id_type, OpenGLUniform> pushConstants;
+   void OpenGLPipeline::ParsePushConstants(spirv_cross::Compiler& compiler) {
       spirv_cross::ShaderResources resources = compiler.get_shader_resources();
       for (const auto& pushConstantBuffer : resources.push_constant_buffers) {
          const auto& bufferType = compiler.get_type(pushConstantBuffer.base_type_id);
@@ -60,10 +59,63 @@ namespace Pikzel {
             const auto& type = compiler.get_type(bufferType.member_types[i]);
             uint32_t offset = compiler.type_struct_member_offset(bufferType, i);
             uint32_t size = static_cast<uint32_t>(compiler.get_declared_struct_member_size(bufferType, i));
-            pushConstants.emplace(entt::hashed_string(uniformName.data()), OpenGLUniform {uniformName, SPIRTypeToDataType(type), -1, size, offset});
+            m_PushConstants.try_emplace(entt::hashed_string(uniformName.data()), OpenGLUniform {uniformName, SPIRTypeToDataType(type), -1, size, offset});
          }
       }
-      return pushConstants;
+   }
+
+
+   void OpenGLPipeline::ParseResourceBindings(spirv_cross::Compiler& compiler) {
+      spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+      for (const auto& resource : resources.uniform_buffers) {
+         const auto& name = resource.name;
+
+         uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+         uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+
+         PKZL_CORE_LOG_TRACE("Found uniform buffer at set {0}, binding {1} with name '{2}'", set, binding, name);
+         m_UniformBufferBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_UniformBufferBindingMap.size()));
+
+         uint32_t openGLBinding = m_UniformBufferBindingMap.at({set, binding});
+         //compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
+         //compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
+         m_UniformBufferResources.try_emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, 1});
+      }
+
+      for (const auto& resource : resources.sampled_images) {
+         auto& type = compiler.get_type(resource.base_type_id);
+         const auto& name = resource.name;
+         uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+         uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+         uint32_t dimension = type.image.dim;
+
+         PKZL_CORE_LOG_TRACE("Found image sampler at set {0}, binding {1} with name '{2}', dimension is {3}", set, binding, name, dimension);
+         m_SamplerBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_UniformBufferBindingMap.size()));
+
+         uint32_t openGLBinding = m_SamplerBindingMap.at({set, binding});
+         //compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
+         //compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
+
+         m_SamplerResources.try_emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, dimension});
+      }
+   }
+
+
+   void OpenGLPipeline::FindUniformLocations() {
+      glUseProgram(m_RendererId);
+
+      for (auto& [id, uniform] : m_PushConstants) {
+         uniform.Location = glGetUniformLocation(m_RendererId, uniform.Name.data());
+         PKZL_CORE_ASSERT(uniform.Location != -1, "Could not find uniform location for {0}", uniform.Name);
+         PKZL_CORE_LOG_TRACE("Uniform '{0}' is at location {1}", uniform.Name, uniform.Location);
+      }
+
+      for (const auto& [id, sampler] : m_SamplerResources) {
+         GLint location = glGetUniformLocation(m_RendererId, sampler.Name.data());
+         PKZL_CORE_ASSERT(location != -1, "Could not find uniform location for {0}", sampler.Name);
+         PKZL_CORE_LOG_TRACE("Uniform '{0}' is at location {1}", sampler.Name, location);
+         glUniform1i(location, sampler.Binding);
+      }
    }
 
 
@@ -74,8 +126,8 @@ namespace Pikzel {
       }
 
       LinkShaderProgram();
-      ReflectShaders();
       DeleteShaders();
+      FindUniformLocations();
 
       glCreateVertexArrays(1, &m_VAORendererId);
       glBindVertexArray(m_VAORendererId);
@@ -391,8 +443,13 @@ namespace Pikzel {
    }
 
 
-   GLuint OpenGLPipeline::GetResourceBinding(const entt::id_type resourceId) const {
-      return m_Resources.at(resourceId).Binding;
+   GLuint OpenGLPipeline::GetSamplerBinding(const entt::id_type resourceId) const {
+      return m_SamplerResources.at(resourceId).Binding;
+   }
+
+
+   GLuint OpenGLPipeline::GetUniformBufferBinding(const entt::id_type resourceId) const {
+      return m_UniformBufferResources.at(resourceId).Binding;
    }
 
 
@@ -402,9 +459,9 @@ namespace Pikzel {
       std::vector<uint32_t> src = ReadFile<uint32_t>(path);
 
       spirv_cross::CompilerGLSL compiler(src);
-      m_PushConstants.merge(ParsePushConstants(compiler));
+      ParsePushConstants(compiler);
 
-//      ParseResources(compiler);
+      ParseResourceBindings(compiler);
 
       std::string glsl = compiler.compile();
       m_ShaderIds.emplace_back(glCreateShader(ShaderTypeToOpenGLType(type)));
@@ -466,57 +523,6 @@ namespace Pikzel {
 
       for (const auto shaderId : m_ShaderIds) {
          glDetachShader(m_RendererId, shaderId);
-      }
-   }
-
-
-   void OpenGLPipeline::ReflectShaders() {
-      PKZL_CORE_LOG_TRACE("Reflecting shaders");
-      glUseProgram(m_RendererId);
-
-      for (auto& [id, uniform] : m_PushConstants) {
-         uniform.Location = glGetUniformLocation(m_RendererId, m_PushConstants.at(id).Name.data());
-         PKZL_CORE_LOG_TRACE("Uniform '{0}' is at location {1}", m_PushConstants.at(id).Name, uniform.Location);
-      }
-
-      for (const auto& src : m_ShaderSrcs) {
-         spirv_cross::Compiler compiler(src);
-         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
-
-         uint32_t bufferIndex = 0;
-         for (const auto& resource : resources.uniform_buffers) {
-            auto& type = compiler.get_type(resource.base_type_id);
-            size_t memberCount = type.member_types.size();
-            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-
-            if (s_UniformBuffers.find(binding) == s_UniformBuffers.end()) {
-               OpenGLUniformBuffer& uniformBuffer = s_UniformBuffers[binding];
-               uniformBuffer.Name = resource.name;
-               uniformBuffer.Binding = binding;
-               uniformBuffer.Size = static_cast<uint32_t>(compiler.get_declared_struct_size(type));
-
-               glCreateBuffers(1, &uniformBuffer.RendererId);
-               glBindBuffer(GL_UNIFORM_BUFFER, uniformBuffer.RendererId);
-               glBufferData(GL_UNIFORM_BUFFER, uniformBuffer.Size, nullptr, GL_DYNAMIC_DRAW);
-               glBindBufferBase(GL_UNIFORM_BUFFER, uniformBuffer.Binding, uniformBuffer.RendererId);
-               PKZL_CORE_LOG_TRACE("Created Uniform Buffer at binding {0} with name '{1}', size is {2} bytes", uniformBuffer.Binding, uniformBuffer.Name, uniformBuffer.Size);
-               glBindBuffer(GL_UNIFORM_BUFFER, 0);
-            }
-         }
-
-         int32_t sampler = 0;
-         for (const auto& resource : resources.sampled_images) {
-            auto& type = compiler.get_type(resource.base_type_id);
-            uint32_t bindingPoint = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            const auto& name = resource.name;
-            uint32_t dimension = type.image.dim;
-
-            GLint location = glGetUniformLocation(m_RendererId, name.data());
-            PKZL_CORE_ASSERT(location != -1, "Could not find uniform location for {0}", name);
-            m_Resources.emplace(std::make_pair(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, bindingPoint, dimension}));
-            glUniform1i(location, bindingPoint);
-            PKZL_CORE_LOG_TRACE("Found image sampler at binding point {0} with name '{1}', dimension is {2}", bindingPoint, name, dimension);
-         }
       }
    }
 

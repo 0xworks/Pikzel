@@ -3,7 +3,7 @@
 #include "Pipeline.h"
 #include "RenderCore.h"
 
-#include <spirv_cross/spirv_common.hpp>
+#include <spirv_cross/spirv_glsl.hpp>
 
 #include <filesystem>
 #include <unordered_map>

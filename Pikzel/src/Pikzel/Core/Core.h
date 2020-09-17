@@ -1,3 +1,5 @@
+#pragma once
+
 // Platform detection
 #ifdef _WIN32
 	/* Windows x64/x86 */
@@ -45,3 +47,16 @@
 #define PKZL_NOT_IMPLEMENTED throw std::logic_error(PKZL_FUNCSIG + std::string(" is not implemented"))
 
 #include <entt/core/hashed_string.hpp>
+
+namespace std {
+   template<typename T1, typename T2>
+   struct hash<std::pair<T1, T2>> {
+      size_t operator()(const std::pair<T1, T2>& pair) const {
+         auto hash1 = std::hash<T1> {};
+         auto hash2 = std::hash<T2> {};
+         size_t seed = hash1(pair.first);
+         seed ^= hash2(pair.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+         return seed;
+      }
+   };
+}
