@@ -1,8 +1,8 @@
-#include "vkpch.h"
 #include "VulkanRenderCore.h"
 
 #include "VulkanBuffer.h"
 #include "VulkanPipeline.h"
+#include "VulkanTexture.h"
 #include "VulkanUtility.h"
 #include "VulkanWindowGC.h"
 
@@ -92,7 +92,7 @@ namespace Pikzel {
 
 
    std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const std::filesystem::path& path) {
-      PKZL_NOT_IMPLEMENTED;
+      return std::make_unique<VulkanTexture2D>(m_Device, path);
    }
 
 

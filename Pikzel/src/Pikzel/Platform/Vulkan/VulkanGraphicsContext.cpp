@@ -1,4 +1,3 @@
-#include "vkpch.h"
 #include "VulkanGraphicsContext.h"
 #include "VulkanUtility.h"
 
@@ -29,7 +28,7 @@ namespace Pikzel {
          vk::FormatFeatureFlagBits::eDepthStencilAttachment
       );
       m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Extent.width, m_Extent.height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
-      m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth, 1);
+      m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
    }
 
 

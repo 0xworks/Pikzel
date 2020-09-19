@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "RenderCore.h"
 
 #define STB_IMAGE_IMPLEMENTATION

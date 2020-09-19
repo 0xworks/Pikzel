@@ -12,21 +12,21 @@ namespace Pikzel {
       OpenGLTexture2D(const std::filesystem::path& path);
       virtual ~OpenGLTexture2D();
 
-      virtual uint32_t GetWidth() const override { return m_Width; }
-      virtual uint32_t GetHeight() const override { return m_Height; }
-      virtual uint32_t GetRendererID() const override { return m_RendererID; }
+      virtual uint32_t GetWidth() const override;
+      virtual uint32_t GetHeight() const override;
 
       virtual void SetData(void* data, uint32_t size) override;
 
-      virtual bool operator==(const Texture2D& other) const override {
-         return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
-      }
+   public:
+      uint32_t GetRendererID() const;
 
    private:
       std::filesystem::path m_Path;
-      uint32_t m_Width, m_Height;
+      uint32_t m_Width;
+      uint32_t m_Height;
       uint32_t m_RendererID;
-      GLenum m_InternalFormat, m_DataFormat;
+      GLenum m_InternalFormat;
+      GLenum m_DataFormat;
    };
 
 }

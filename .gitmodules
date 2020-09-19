@@ -13,9 +13,6 @@
 [submodule "Pikzel/vendor/tracy"]
 	path = Pikzel/vendor/tracy
 	url = https://github.com/wolfpld/tracy.git
-[submodule "vendor/cmake-precompiled-header"]
-	path = vendor/cmake-precompiled-header
-	url = https://github.com/larsch/cmake-precompiled-header.git
 [submodule "Pikzel/vendor/imgui"]
 	path = Pikzel/vendor/imgui
 	url = https://github.com/ocornut/imgui.git

@@ -1,8 +1,8 @@
-#include "glpch.h"
 #include "OpenGLGraphicsContext.h"
 
 #include "OpenGLBuffer.h"
 #include "OpenGLPipeline.h"
+#include "OpenGLTexture.h"
 
 namespace Pikzel {
 
@@ -55,7 +55,7 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::Bind(const Texture2D& texture, const entt::id_type id) {
-      glBindTextureUnit(m_Pipeline->GetSamplerBinding(id), texture.GetRendererID());
+      glBindTextureUnit(m_Pipeline->GetSamplerBinding(id), static_cast<const OpenGLTexture2D&>(texture).GetRendererID());
    }
 
 

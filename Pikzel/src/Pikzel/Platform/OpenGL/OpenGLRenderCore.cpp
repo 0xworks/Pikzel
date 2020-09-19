@@ -1,4 +1,3 @@
-#include "glpch.h"
 #include "OpenGLRenderCore.h"
 #include "OpenGLBuffer.h"
 #include "OpenGLGraphicsContext.h"

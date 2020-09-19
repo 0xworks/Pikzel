@@ -1,4 +1,3 @@
-#include "vkpch.h"
 #include "VulkanDevice.h"
 #include "VulkanUtility.h"
 

@@ -1,9 +1,9 @@
-#include "vkpch.h"
 #include "VulkanWindowGC.h"
 
 #include "SwapChainSupportDetails.h"
 #include "VulkanBuffer.h"
 #include "VulkanPipeline.h"
+#include "VulkanTexture.h"
 #include "VulkanUtility.h"
 
 #include "Pikzel/Events/EventDispatcher.h"
@@ -182,20 +182,36 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::Bind(const Texture2D& texture, entt::id_type id) {
-      PKZL_NOT_IMPLEMENTED;
+      const VulkanResource& resource = m_Pipeline->GetResource(id);
+
+      vk::DescriptorImageInfo textureImageDescriptor = {
+            static_cast<const VulkanTexture2D&>(texture).GetVkSampler()   /*sampler*/,
+            static_cast<const VulkanTexture2D&>(texture).GetVkImageView() /*imageView*/,
+            vk::ImageLayout::eShaderReadOnlyOptimal                       /*imageLayout*/
+      };
+
+      vk::WriteDescriptorSet textureSamplersWrite = {
+         m_Pipeline->GetVkDescriptorSets(m_CurrentImage).at(resource.DescriptorSet)  /*dstSet*/,
+         resource.Binding                                                            /*dstBinding*/,
+         0                                                                           /*dstArrayElement*/,
+         resource.Count                                                              /*descriptorCount*/,
+         resource.Type                                                               /*descriptorType*/,
+         &textureImageDescriptor                                                     /*pImageInfo*/,
+         nullptr                                                                     /*pBufferInfo*/,
+         nullptr                                                                     /*pTexelBufferView*/
+      };
+
+      m_Device->GetVkDevice().updateDescriptorSets(textureSamplersWrite, nullptr);
    }
 
 
-   void VulkanWindowGC::Unbind(const Texture2D&) {
-      PKZL_NOT_IMPLEMENTED;
-   }
+   void VulkanWindowGC::Unbind(const Texture2D&) {}
+
 
    void VulkanWindowGC::Bind(const Pipeline& pipeline) {
-
-      // TODO: bind descriptor sets...
-
       const VulkanPipeline& vulkanPipeline = reinterpret_cast<const VulkanPipeline&>(pipeline);
       m_CommandBuffers[m_CurrentImage].bindPipeline(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipeline());
+      m_CommandBuffers[m_CurrentImage].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipelineLayout(), 0, vulkanPipeline.GetVkDescriptorSets(m_CurrentImage), nullptr);  // (i)th command buffer is bound to the (i)th set of descriptor sets
       m_Pipeline = &vulkanPipeline;
    }
 
@@ -653,7 +669,7 @@ namespace Pikzel {
 
    void VulkanWindowGC::CreateImageViews() {
       for (auto& image : m_SwapChainImages) {
-         image.CreateImageView(m_Format, vk::ImageAspectFlagBits::eColor, 1);
+         image.CreateImageView(m_Format, vk::ImageAspectFlagBits::eColor);
       }
    }
 
@@ -690,7 +706,7 @@ namespace Pikzel {
    void VulkanWindowGC::CreateFrameBuffers() {
       std::array<vk::ImageView, 2> attachments = {
          nullptr,
-         m_DepthImage->GetImageView()
+         m_DepthImage->GetVkImageView()
       };
       vk::FramebufferCreateInfo ci = {
          {}                                        /*flags*/,
@@ -704,7 +720,7 @@ namespace Pikzel {
 
       m_SwapChainFrameBuffers.reserve(m_SwapChainImages.size());
       for (const auto& swapChainImage : m_SwapChainImages) {
-         attachments[0] = swapChainImage.GetImageView();
+         attachments[0] = swapChainImage.GetVkImageView();
          m_SwapChainFrameBuffers.push_back(m_Device->GetVkDevice().createFramebuffer(ci));
       }
    }

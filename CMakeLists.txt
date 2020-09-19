@@ -1,6 +1,5 @@
-﻿cmake_minimum_required(VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.16)
 
-include("vendor/cmake-precompiled-header/PrecompiledHeader.cmake")
 include("CMakeUtils.cmake")
 
 project ("Pikzel" VERSION 0.1 DESCRIPTION "Pikzel Interactive App Engine")

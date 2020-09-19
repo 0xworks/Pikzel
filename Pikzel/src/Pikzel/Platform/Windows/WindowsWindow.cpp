@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "WindowsWindow.h"
 
 #include "Pikzel/Events/EventDispatcher.h"
@@ -7,7 +6,6 @@
 #include "Pikzel/Events/WindowEvents.h"
 #include "Pikzel/Renderer/RenderCore.h"
 
-#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 namespace Pikzel {

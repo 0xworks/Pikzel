@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "EventDispatcher.h"
 
 namespace Pikzel {

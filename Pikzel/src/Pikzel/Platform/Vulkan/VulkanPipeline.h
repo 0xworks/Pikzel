@@ -21,10 +21,12 @@ namespace Pikzel {
    };
 
 
-   struct VulkanUniformBuffer {
+   struct VulkanResource {
       std::string Name;
-      uint32_t Set = 0;
-      uint32_t BindingPoint = 0;
+      uint32_t DescriptorSet = 0;
+      uint32_t Binding = 0;
+      vk::DescriptorType Type = {};
+      uint32_t Count = 0;
       vk::ShaderStageFlags ShaderStages = {};
    };
 
@@ -37,8 +39,11 @@ namespace Pikzel {
    public:
       vk::Pipeline GetVkPipeline() const;
       vk::PipelineLayout GetVkPipelineLayout() const;
+      const std::vector<vk::DescriptorSet>& GetVkDescriptorSets(const uint32_t i) const;
 
       const VulkanPushConstant& GetPushConstant(const entt::id_type id) const;
+      const VulkanResource& GetResource(const entt::id_type id) const;
+
 
    private:
 
@@ -56,14 +61,22 @@ namespace Pikzel {
       void CreatePipeline(const VulkanGraphicsContext& gc, const PipelineSettings& settings);
       void DestroyPipeline();
 
+      void CreateDescriptorPool();
+      void DestroyDesciptorPool();
+
+      void CreateDescriptorSets();
+      void DestroyDescriptorSets();
+
    private:
       std::shared_ptr<VulkanDevice> m_Device;
-      vk::DescriptorSetLayout m_DescriptorSetLayout;
+      std::vector<vk::DescriptorSetLayout> m_DescriptorSetLayouts;
       vk::PipelineLayout m_PipelineLayout;
       vk::Pipeline m_Pipeline;
+      vk::DescriptorPool m_DescriptorPool;
+      std::vector<std::vector<vk::DescriptorSet>> m_DescriptorSets;
       std::vector<std::pair<ShaderType, std::vector<uint32_t>>> m_ShaderSrcs;
       std::unordered_map<entt::id_type, VulkanPushConstant> m_PushConstants;
-      std::unordered_map<entt::id_type, VulkanUniformBuffer> m_UniformBuffers;
+      std::unordered_map<entt::id_type, VulkanResource> m_Resources;
    };
 
 }

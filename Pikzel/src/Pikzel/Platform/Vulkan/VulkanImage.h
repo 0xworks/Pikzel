@@ -21,9 +21,15 @@ namespace Pikzel {
       vk::Extent2D GetExtent() const;
       uint32_t GetMIPLevels() const;
 
-      void CreateImageView(const vk::Format format, const vk::ImageAspectFlags imageAspect, const uint32_t mipLevels);
+      void CreateImageView(const vk::Format format, const vk::ImageAspectFlags imageAspect);
       void DestroyImageView();
-      vk::ImageView GetImageView() const;
+      vk::ImageView GetVkImageView() const;
+
+      void TransitionImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout);
+
+      void CopyFromBuffer(vk::Buffer buffer); // TODO: offsets
+
+      void GenerateMIPMaps();
 
    protected:
       std::shared_ptr<VulkanDevice> m_Device;
