@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.16)
 
 # Currently the Vulkan package is required, even if you are only going to use the OpenGL rendering backend
 # Because we are using the shaderc library shipped with the Vulkan SDK (rather than trying to build
@@ -15,8 +15,6 @@ project (
 
 set(
    ProjectSources
-   "src/pch.h"
-   "src/pch.cpp"
    "src/Pikzel/Core/Application.h"
    "src/Pikzel/Core/Application.cpp"
    "src/Pikzel/Core/Core.h"
@@ -76,6 +74,8 @@ set(
    PKZL_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
    PKZL_DESCRIPTION="${PROJECT_DESCRIPTION}"
    "$<$<CONFIG:DEBUG>:PKZL_DEBUG>"
+   NOMINMAX
+   GLFW_INCLUDE_NONE
    GLM_FORCE_DEPTH_ZERO_TO_ONE
    GLM_FORCE_RADIANS
 )
@@ -84,8 +84,8 @@ set(
    ProjectLibs
    "glfw"
    "glm"
-   "PlatformOpenGL"
-   #"PlatformVulkan"
+   #"PlatformOpenGL"
+   "PlatformVulkan"
    "shaderc_combined$<$<CONFIG:Debug>:d>"
    "spirv-cross-core$<$<CONFIG:Debug>:d>"
    "spirv-cross-glsl$<$<CONFIG:Debug>:d>"
@@ -116,6 +116,11 @@ target_include_directories(
    ${ProjectIncludes}
 )
 
+target_precompile_headers(
+   ${PROJECT_NAME} PRIVATE
+   [["Pikzel/Core/Core.h"]]
+)
+
 if(MSVC)
    target_compile_options(
       ${PROJECT_NAME} PUBLIC
@@ -142,8 +147,6 @@ if(MSVC)
    )
 endif()
 
-add_precompiled_header(${PROJECT_NAME} "pch.h" SOURCE_CXX "src/pch.cpp")
-
 # no precompiled header for ImGui or TracyClient
 set_source_files_properties(
    "vendor/imgui/imgui.cpp"
@@ -151,7 +154,7 @@ set_source_files_properties(
    "vendor/imgui/imgui_widgets.cpp"
    "vendor/tracy/TracyClient.cpp"
    PROPERTIES
-   COMPILE_FLAGS /Y-
+   SKIP_PRECOMPILE_HEADERS ON
 )
 
 
@@ -164,8 +167,8 @@ set_source_files_properties(
 #   Profile: Core
 add_library(
    "PlatformOpenGL" STATIC
-   "src/Pikzel/Platform/OpenGL/glpch.h"
-   "src/Pikzel/Platform/OpenGL/glpch.cpp"
+   
+   
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.h"
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.h"
@@ -200,7 +203,12 @@ target_include_directories(
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
 )
 
-add_precompiled_header("PlatformOpenGL" "glpch.h" SOURCE_CXX "src/Pikzel/Platform/OpenGL/glpch.cpp")
+target_precompile_headers(
+   "PlatformOpenGL" PRIVATE
+   [["Pikzel/Core/Core.h"]]
+   <glad/glad.h>
+   <GLFW/glfw3.h>
+)
 
 # add glad.c source file after setting the precompiled header
 # as otherwise the add_precompiled_header macro gets confused...
@@ -217,7 +225,7 @@ set_source_files_properties(
    "vendor/imgui/examples/imgui_impl_opengl3.h"
    "vendor/imgui/examples/imgui_impl_opengl3.cpp"
    PROPERTIES
-   COMPILE_FLAGS /Y-
+   SKIP_PRECOMPILE_HEADERS ON
 )
 
 if(${Vulkan_FOUND})
@@ -229,8 +237,6 @@ if(${Vulkan_FOUND})
    # ImGui vuklan backend is using the example code from the ImGui docking branch, with https://github.com/ocornut/imgui/pull/914 merged in
    add_library(
       "PlatformVulkan" STATIC
-      "src/Pikzel/Platform/Vulkan/vkpch.h"
-      "src/Pikzel/Platform/Vulkan/vkpch.cpp"
       "src/Pikzel/Platform/Vulkan/DescriptorBinding.h"
       "src/Pikzel/Platform/Vulkan/QueueFamilyIndices.h"
       "src/Pikzel/Platform/Vulkan/SwapChainSupportDetails.h"
@@ -248,6 +254,8 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanPipeline.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanRenderCore.h"
       "src/Pikzel/Platform/Vulkan/VulkanRenderCore.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanTexture.h"
+      "src/Pikzel/Platform/Vulkan/VulkanTexture.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanUtility.h"
       "src/Pikzel/Platform/Vulkan/VulkanUtility.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanWindowGC.h"
@@ -276,6 +284,13 @@ if(${Vulkan_FOUND})
       ${Vulkan_INCLUDE_DIRS}
    )
 
+   target_precompile_headers(
+      "PlatformVulkan" PRIVATE
+      [["Pikzel/Core/Core.h"]]
+      <vulkan/vulkan.hpp>
+      <GLFW/glfw3.h>
+   )
+
    target_link_directories(
       "PlatformVulkan" PUBLIC
       "$ENV{VULKAN_SDK}/lib"
@@ -286,8 +301,6 @@ if(${Vulkan_FOUND})
       ${Vulkan_LIBRARIES}
    )
 
-   add_precompiled_header("PlatformVulkan" "vkpch.h" SOURCE_CXX "src/Pikzel/Platform/Vulkan/vkpch.cpp")
-
    # no precompiled header for ImGui
    set_source_files_properties(
       "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
@@ -295,7 +308,7 @@ if(${Vulkan_FOUND})
       "vendor/imgui/examples/imgui_impl_glfw.h"
       "vendor/imgui/examples/imgui_impl_glfw.cpp"
       PROPERTIES
-      COMPILE_FLAGS /Y-
+      SKIP_PRECOMPILE_HEADERS ON
    )
 
 else()

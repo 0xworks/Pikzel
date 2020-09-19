@@ -1,4 +1,3 @@
-#include "glpch.h"
 #include "OpenGLPipeline.h"
 #include "OpenGLBuffer.h"
 
@@ -77,9 +76,23 @@ namespace Pikzel {
          m_UniformBufferBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_UniformBufferBindingMap.size()));
 
          uint32_t openGLBinding = m_UniformBufferBindingMap.at({set, binding});
-         //compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
-         //compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
-         m_UniformBufferResources.try_emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, 1});
+         compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
+         compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
+
+         const entt::id_type id = entt::hashed_string(name.data());
+         const auto sampler = m_SamplerResources.find(id);
+         if (sampler != m_SamplerResources.end()) {
+            throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Could be uniform buffer, or texture sampler!");
+         }
+         const auto ubo = m_UniformBufferResources.find(id);
+         if (ubo == m_UniformBufferResources.end()) {
+            m_UniformBufferResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, 1});
+         } else {
+            // already seen this name, check that binding is the same
+            if (ubo->second.Binding != openGLBinding) {
+               throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Refers to different descriptor set bindings!");
+            }
+         }
       }
 
       for (const auto& resource : resources.sampled_images) {
@@ -93,10 +106,23 @@ namespace Pikzel {
          m_SamplerBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_UniformBufferBindingMap.size()));
 
          uint32_t openGLBinding = m_SamplerBindingMap.at({set, binding});
-         //compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
-         //compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
+         compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
+         compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
 
-         m_SamplerResources.try_emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, dimension});
+         const entt::id_type id = entt::hashed_string(name.data());
+         const auto ubo = m_UniformBufferResources.find(id);
+         if (ubo != m_UniformBufferResources.end()) {
+            throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Could be uniform buffer, or texture sampler!");
+         }
+         const auto sampler = m_SamplerResources.find(id);
+         if (sampler == m_SamplerResources.end()) {
+            m_SamplerResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, dimension});
+         } else {
+            // already seen this name, check that binding is the same
+            if (sampler->second.Binding != openGLBinding) {
+               throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Refers to different texture samplers!");
+            }
+         }
       }
    }
 

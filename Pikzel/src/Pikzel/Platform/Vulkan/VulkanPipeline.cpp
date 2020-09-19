@@ -1,4 +1,3 @@
-#include "vkpch.h"
 #include "VulkanPipeline.h"
 
 #include "VulkanWindowGC.h"
@@ -72,11 +71,15 @@ namespace Pikzel {
       CreateDescriptorSetLayout(settings);
       CreatePipelineLayout();
       CreatePipeline(gc, settings);
+      CreateDescriptorPool();
+      CreateDescriptorSets();
    }
 
 
    VulkanPipeline::~VulkanPipeline() {
       m_Device->GetVkDevice().waitIdle();
+      DestroyDescriptorSets();
+      DestroyDesciptorPool();
       DestroyPipeline();
       DestroyPipelineLayout();
       DestroyDescriptorSetLayout();
@@ -95,6 +98,11 @@ namespace Pikzel {
 
    const VulkanPushConstant& VulkanPipeline::GetPushConstant(const entt::id_type id) const {
       return m_PushConstants.at(id);
+   }
+
+
+   const VulkanResource& VulkanPipeline::GetResource(const entt::id_type id) const {
+      return m_Resources.at(id);
    }
 
 
@@ -141,6 +149,60 @@ namespace Pikzel {
                }
             }
          }
+
+         for (const auto& resource : resources.uniform_buffers) {
+            const auto& name = resource.name;
+            uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            PKZL_CORE_LOG_TRACE("Found uniform buffer at set {0}, binding {1} with name '{2}'", set, binding, name);
+
+            bool found = false;
+            for (auto& [id, res] : m_Resources) {
+               if ((res.DescriptorSet == set) && (res.Binding == binding)) {
+                  if ((res.Name != name) || (res.Type != vk::DescriptorType::eUniformBuffer)) {
+                     throw std::runtime_error("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!");
+                  }
+                  res.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
+                  found = true;
+                  break;
+               }
+            }
+            entt::id_type id = entt::hashed_string(name.data());
+            if (!found) {
+               if (m_Resources.find(id) != m_Resources.end()) {
+                  throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Refers to different descriptor set bindings!");
+               } else {
+                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eUniformBuffer, 1, ShaderTypeToVulkanShaderStage(shaderType)});
+               }
+            }
+         }
+
+         for (const auto& resource : resources.sampled_images) {
+            const auto& name = resource.name;
+            uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            PKZL_CORE_LOG_TRACE("Found texture sampler at set {0}, binding {1} with name '{2}'", set, binding, name);
+
+            bool found = false;
+            for (auto& [id, res] : m_Resources) {
+               if ((res.DescriptorSet == set) && (res.Binding == binding)) {
+                  if ((res.Name != name) || (res.Type != vk::DescriptorType::eCombinedImageSampler)) {
+                     throw std::runtime_error("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!");
+                  }
+                  res.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
+                  found = true;
+                  break;
+               }
+            }
+            entt::id_type id = entt::hashed_string(name.data());
+            if (!found) {
+               if (m_Resources.find(id) != m_Resources.end()) {
+                  throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Refers to different descriptor set bindings!");
+               } else {
+                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eCombinedImageSampler, 1, ShaderTypeToVulkanShaderStage(shaderType)});
+               }
+            }
+         }
       }
    }
 
@@ -155,30 +217,29 @@ namespace Pikzel {
 
       ReflectShaders();
 
-      // TODO
-      //vk::DescriptorSetLayoutBinding uboLayoutBinding = {
-      //   0                                   /*binding*/,
-      //   vk::DescriptorType::eUniformBuffer  /*descriptorType*/,
-      //   1                                   /*descriptorCount*/,
-      //   {vk::ShaderStageFlagBits::eVertex}  /*stageFlags*/,
-      //   nullptr                             /*pImmutableSamplers*/
-      //};
+      std::vector<std::vector<vk::DescriptorSetLayoutBinding>> layoutBindings;
+      for (const auto& [id, resource] : m_Resources) {
+         layoutBindings.resize(resource.DescriptorSet + 1);
+         layoutBindings[resource.DescriptorSet].emplace_back(resource.Binding, resource.Type, resource.Count, resource.ShaderStages);
+      }
 
-      std::vector<vk::DescriptorSetLayoutBinding> layoutBindings = { /* TODO */ };
-
-      m_DescriptorSetLayout = m_Device->GetVkDevice().createDescriptorSetLayout({
-         {}                                           /*flags*/,
-         static_cast<uint32_t>(layoutBindings.size()) /*bindingCount*/,
-         layoutBindings.data()                        /*pBindings*/
-      });
+      for (const auto& layoutBinding : layoutBindings) {
+         m_DescriptorSetLayouts.emplace_back(m_Device->GetVkDevice().createDescriptorSetLayout({
+            {}                                           /*flags*/,
+            static_cast<uint32_t>(layoutBinding.size())  /*bindingCount*/,
+            layoutBinding.data()                         /*pBindings*/
+         }));
+      }
 
    }
 
 
    void VulkanPipeline::DestroyDescriptorSetLayout() {
-      if (m_Device && m_DescriptorSetLayout) {
-         m_Device->GetVkDevice().destroy(m_DescriptorSetLayout);
-         m_DescriptorSetLayout = nullptr;
+      if (m_Device) {
+         for (const auto descriptorSetLayout : m_DescriptorSetLayouts) {
+            m_Device->GetVkDevice().destroy(descriptorSetLayout);
+         }
+         m_DescriptorSetLayouts.clear();
       }
    }
 
@@ -206,11 +267,11 @@ namespace Pikzel {
       }
 
       m_PipelineLayout = m_Device->GetVkDevice().createPipelineLayout({
-         {}                                                  /*flags*/,
-         1                                                   /*setLayoutCount*/,
-         &m_DescriptorSetLayout                              /*pSetLayouts*/,
-         static_cast<uint32_t>(vkPushConstantRanges.size())  /*pushConstantRangeCount*/,
-         vkPushConstantRanges.data()                         /*pPushConstantRanges*/
+         {}                                                    /*flags*/,
+         static_cast<uint32_t>(m_DescriptorSetLayouts.size())  /*setLayoutCount*/,
+         m_DescriptorSetLayouts.data()                         /*pSetLayouts*/,
+         static_cast<uint32_t>(vkPushConstantRanges.size())    /*pushConstantRangeCount*/,
+         vkPushConstantRanges.data()                           /*pPushConstantRanges*/
       });
    }
 
@@ -410,6 +471,73 @@ namespace Pikzel {
       ;
       if (m_Device && m_Pipeline) {
          m_Device->GetVkDevice().destroy(m_Pipeline);
+      }
+   }
+
+
+   void VulkanPipeline::CreateDescriptorPool() {
+      constexpr uint32_t howMany = 5; // how are we supposed to know how many descriptor sets might end up getting allocated? For now this is just a wild guess
+
+      std::unordered_map<vk::DescriptorType, uint32_t> descriptorTypeCount;
+      for (const auto& [id, resource] : m_Resources) {
+         ++descriptorTypeCount[resource.Type];
+      }
+
+      std::vector<vk::DescriptorPoolSize> poolSizes;
+      for (const auto [type, count] : descriptorTypeCount) {
+         poolSizes.emplace_back(type, howMany * count);
+      }
+      
+      vk::DescriptorPoolCreateInfo descriptorPoolCI = {
+         vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet            /*flags*/,
+         howMany * static_cast<uint32_t>(m_DescriptorSetLayouts.size())  /*maxSets*/,
+         static_cast<uint32_t>(poolSizes.size())                         /*poolSizeCount*/,
+         poolSizes.data()                                                /*pPoolSizes*/
+      };
+      m_DescriptorPool = m_Device->GetVkDevice().createDescriptorPool(descriptorPoolCI);
+   }
+
+
+   void VulkanPipeline::DestroyDesciptorPool() {
+      if (m_Device && m_DescriptorPool) {
+         m_Device->GetVkDevice().destroy(m_DescriptorPool);
+      }
+   }
+
+
+   void VulkanPipeline::CreateDescriptorSets() {
+      vk::DescriptorSetAllocateInfo allocInfo = {
+         m_DescriptorPool,
+         static_cast<uint32_t>(m_DescriptorSetLayouts.size()),
+         m_DescriptorSetLayouts.data()
+      };
+
+      // Create 2 sets of descriptor sets.
+      // In the GraphicsContext we have a swapchain, and there are 2 images in that swapchain that we could be drawing to.
+      // We have a command buffer for each swapchain image.
+      // We need to be sure that we aren't messing with descriptor sets that are in use in a command buffer that has been submitted
+      // to the graphics device but not yet executed.
+      // To achieve this, we would like to have one (set of) descriptor sets for each command buffer (i.e for each image in swapchain)
+      // However, pipeline does not know about the graphics context and therefore does not know how many sets of descriptor sets to create...
+      // Conversely, the graphics context doesnt know about the pipeline (until its too late), so cant just move the creation of descriptor sets
+      // to the graphics context either.
+      // This is a bit of a mess...
+      m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
+      m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
+   }
+
+
+   const std::vector<vk::DescriptorSet>& VulkanPipeline::GetVkDescriptorSets(const uint32_t i) const {
+      return m_DescriptorSets.at(i);
+   }
+
+
+   void VulkanPipeline::DestroyDescriptorSets() {
+      if (m_Device) {
+         for (const auto& descriptorSets : m_DescriptorSets) {
+            m_Device->GetVkDevice().freeDescriptorSets(m_DescriptorPool, descriptorSets);
+         }
+         m_DescriptorSets.clear();
       }
    }
 

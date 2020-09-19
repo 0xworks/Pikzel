@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "ShaderUtil.h"
 #include "Pikzel/Core/Utility.h"
 

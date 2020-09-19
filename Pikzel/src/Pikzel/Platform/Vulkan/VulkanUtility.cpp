@@ -1,4 +1,3 @@
-#include "vkpch.h"
 #include "VulkanUtility.h"
 
 namespace Pikzel {

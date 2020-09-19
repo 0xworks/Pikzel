@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Application.h"
 
 // Later, we might consider making it a windows app instead of console...

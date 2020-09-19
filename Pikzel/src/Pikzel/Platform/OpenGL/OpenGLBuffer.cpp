@@ -1,4 +1,3 @@
-#include "glpch.h"
 #include "OpenGLBuffer.h"
 
 namespace Pikzel {
