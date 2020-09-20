@@ -1,9 +1,9 @@
 ﻿cmake_minimum_required(VERSION 3.16)
 
 # Currently the Vulkan package is required, even if you are only going to use the OpenGL rendering backend
-# Because we are using the shaderc library shipped with the Vulkan SDK (rather than trying to build
-# shaderc and all its dependencies ourselves)
-# TODO: use an independent copy of shaderc so that if you are building for OpenGL then you do not
+# Because we are using shaderc and SPIRV-cross shipped with the Vulkan SDK (rather than trying to build
+# those things + dependencies ourselves)
+# TODO: use an independent copy of shaderc / SPIRV-cross so that if you are building for OpenGL then you do not
 #       need the Vulkan SDK to be installed
 find_package(Vulkan REQUIRED)
 

@@ -35,19 +35,24 @@ public:
 
 private:
 
+   struct Vertex {
+      glm::vec3 Pos;
+      glm::vec3 Color;
+   };
+
+
    void CreateVertexBuffer() {
-      float vertices[] = {
-          -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-           0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-           0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+      Vertex vertices[] = {
+         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{1.0f, 0.0f, 0.0f}},
+         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{0.0f, 1.0f, 0.0f}},
+         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{0.0f, 0.0f, 1.0f}}
       };
 
-      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
+      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
       m_VertexBuffer->SetLayout({
-         { Pikzel::DataType::Vec3, "aPos" },
-         { Pikzel::DataType::Vec3, "aColor" }
+         {"inPos",   Pikzel::DataType::Vec3},
+         {"inColor", Pikzel::DataType::Vec3}
       });
-
    }
 
 
@@ -56,7 +61,7 @@ private:
           0, 1, 2
       };
 
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(indices, sizeof(indices) / sizeof(uint32_t));
+      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
    }
 
 

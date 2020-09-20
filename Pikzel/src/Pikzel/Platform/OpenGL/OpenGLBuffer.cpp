@@ -2,17 +2,17 @@
 
 namespace Pikzel {
 
-   OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size) {
+   OpenGLVertexBuffer::OpenGLVertexBuffer(const uint32_t size) {
       glCreateBuffers(1, &m_RendererID);
       glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
       glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
    }
 
 
-   OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, uint32_t size) {
+   OpenGLVertexBuffer::OpenGLVertexBuffer(const uint32_t size, const void* data) {
       glCreateBuffers(1, &m_RendererID);
       glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-      glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+      glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
    }
 
 
@@ -43,7 +43,7 @@ namespace Pikzel {
    }
 
 
-   OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t* indices, uint32_t count)
+   OpenGLIndexBuffer::OpenGLIndexBuffer(const uint32_t count, const uint32_t* indices)
    : m_Count(count)
    {
       glCreateBuffers(1, &m_RendererID);

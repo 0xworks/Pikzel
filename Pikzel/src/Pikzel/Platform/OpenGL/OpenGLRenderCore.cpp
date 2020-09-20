@@ -77,7 +77,7 @@ namespace Pikzel {
    OpenGLRenderCore::~OpenGLRenderCore() {}
 
 
-   void OpenGLRenderCore::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+   void OpenGLRenderCore::SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) {
       glViewport(x, y, width, height);
    }
 
@@ -87,22 +87,22 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(uint32_t size) {
+   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(const uint32_t size) {
       return std::make_unique<OpenGLVertexBuffer>(size);
    }
 
 
-   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(float* vertices, uint32_t size) {
-      return std::make_unique<OpenGLVertexBuffer>(vertices, size);
+   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(const uint32_t size, const void* data) {
+      return std::make_unique<OpenGLVertexBuffer>(size, data);
    }
 
 
-   std::unique_ptr<IndexBuffer> OpenGLRenderCore::CreateIndexBuffer(uint32_t* indices, uint32_t count) {
-      return std::make_unique<OpenGLIndexBuffer>(indices, count);
+   std::unique_ptr<IndexBuffer> OpenGLRenderCore::CreateIndexBuffer(const uint32_t count, const uint32_t* indices) {
+      return std::make_unique<OpenGLIndexBuffer>(count, indices);
    }
 
 
-   std::unique_ptr<Texture2D> OpenGLRenderCore::CreateTexture2D(uint32_t width, uint32_t height) {
+   std::unique_ptr<Texture2D> OpenGLRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
       return std::make_unique<OpenGLTexture2D>(width, height);
    }
 

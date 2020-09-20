@@ -25,7 +25,7 @@ namespace Pikzel {
    }
 
 
-   void RenderCore::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+   void RenderCore::SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) {
       s_RenderCore->SetViewport(x, y, width, height);
    }
 
@@ -35,22 +35,22 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(uint32_t size) {
+   std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(const uint32_t size) {
       return s_RenderCore->CreateVertexBuffer(size);
    }
 
 
-   std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(float* vertices, uint32_t size) {
-      return s_RenderCore->CreateVertexBuffer(vertices, size);
+   std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(const uint32_t size, const void* data) {
+      return s_RenderCore->CreateVertexBuffer(size, data);
    }
 
 
-   std::unique_ptr<IndexBuffer> RenderCore::CreateIndexBuffer(uint32_t* indices, uint32_t count) {
-      return s_RenderCore->CreateIndexBuffer(indices, count);
+   std::unique_ptr<IndexBuffer> RenderCore::CreateIndexBuffer(const uint32_t count, const uint32_t* indices) {
+      return s_RenderCore->CreateIndexBuffer(count, indices);
    }
 
 
-   std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(uint32_t width, uint32_t height) {
+   std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
       return s_RenderCore->CreateTexture2D(width, height);
    }
 

@@ -6,8 +6,8 @@ namespace Pikzel {
 
    class OpenGLVertexBuffer : public VertexBuffer {
    public:
-      OpenGLVertexBuffer(uint32_t size);
-      OpenGLVertexBuffer(float* vertices, uint32_t size);
+      OpenGLVertexBuffer(const uint32_t size);
+      OpenGLVertexBuffer(const uint32_t size, const void* data);
       virtual ~OpenGLVertexBuffer();
 
       virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
@@ -25,7 +25,7 @@ namespace Pikzel {
 
    class OpenGLIndexBuffer : public IndexBuffer {
    public:
-      OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
+      OpenGLIndexBuffer(const uint32_t count, const uint32_t* indices);
       virtual ~OpenGLIndexBuffer();
 
       virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;

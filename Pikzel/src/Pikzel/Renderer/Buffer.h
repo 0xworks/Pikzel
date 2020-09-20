@@ -56,7 +56,7 @@ namespace Pikzel {
       size_t Offset;
       bool Normalized;
 
-      BufferElement(DataType type, const std::string& name, bool normalized = false);
+      BufferElement(const std::string& name, DataType type);
 
       uint32_t GetComponentCount() const;
    };
