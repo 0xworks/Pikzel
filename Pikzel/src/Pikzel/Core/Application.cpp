@@ -45,8 +45,8 @@ namespace Pikzel {
    }
 
 
-   void Application::Update(DeltaTime deltaTime) {
-      Exit();
+   void Application::Update(DeltaTime) {
+      ;
    }
 
 
