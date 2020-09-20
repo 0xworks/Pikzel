@@ -95,12 +95,10 @@ namespace Pikzel {
    }
 
 
-   BufferElement::BufferElement(DataType type, const std::string& name, bool normalized /*= false*/)
-   : Name(name)
-   , Type(type)
-   , Size(DataTypeSize(type))
-   , Offset(0)
-   , Normalized(normalized)
+   BufferElement::BufferElement(const std::string& name, DataType type)
+   : Name {name}
+   , Type {type}
+   , Size {DataTypeSize(type)}
    {}
 
 

@@ -40,8 +40,8 @@ namespace Pikzel {
    class VulkanVertexBuffer : public VertexBuffer {
    public:
 
-      VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, uint32_t size);
-      VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, float* vertices, uint32_t size);
+      VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size);
+      VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size, const void* data);
 
       virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
 
@@ -60,7 +60,7 @@ namespace Pikzel {
    public:
 
       // TODO: support 64 bit indices (?)
-      VulkanIndexBuffer(std::shared_ptr<VulkanDevice> device, uint32_t* indices, uint32_t count);
+      VulkanIndexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t count, const uint32_t* indices);
 
       virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
 

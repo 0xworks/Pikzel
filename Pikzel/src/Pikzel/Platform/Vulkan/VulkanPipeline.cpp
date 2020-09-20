@@ -131,6 +131,7 @@ namespace Pikzel {
       for (const auto& [shaderType, src] : m_ShaderSrcs) {
          spirv_cross::Compiler compiler(src);
          spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+         auto variables = compiler.get_active_interface_variables();
 
          for (const auto& pushConstantBuffer : resources.push_constant_buffers) {
             const auto& bufferType = compiler.get_type(pushConstantBuffer.base_type_id);

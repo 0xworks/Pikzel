@@ -29,28 +29,33 @@ public:
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       Pikzel::GCBinder bindPipeline {gc, *m_Pipeline};
-      Pikzel::GCBinder bindTexture {gc, *m_Texture, "uTexture"_hs};
+      Pikzel::GCBinder bindTexture {gc, *m_Texture, "uTexture"_hs};   // Technically, we don't have to bind the texture every frame (once it's bound, it stays bound).  However, it makes things much easier if we do it this way, and so that's how it is for now.
 
-      //Pikzel::GCBinder bindUniformBuffer {gc, *m_UBO, "ubo"_hs};   // where m_UBO is a Pikzel::Buffer
+      //Pikzel::GCBinder bindUniformBuffer {gc, *m_UBO, "ubo"_hs};    // Ditto uniform buffer objects
       gc.PushConstant("constants.mvp"_hs, glm::identity<glm::mat4>());
       gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
    }
 
 
 private:
+   struct Vertex {
+      glm::vec3 Pos;
+      glm::vec3 Color;
+      glm::vec2 TexCoord;
+   };
 
    void CreateVertexBuffer() {
-      float vertices[] = {
-          -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-           0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-           0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, 1.0f
+      Vertex vertices[] = {
+         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{1.0f, 0.0f, 0.0f}, .TexCoord{0.0f, 0.0f}},
+         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{0.0f, 1.0f, 0.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{0.0f, 0.0f, 1.0f}, .TexCoord{0.5f, 1.0f}}
       };
 
-      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(vertices, sizeof(vertices));
+      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
       m_VertexBuffer->SetLayout({
-         { Pikzel::DataType::Vec3, "aPos" },
-         { Pikzel::DataType::Vec3, "aColor" },
-         { Pikzel::DataType::Vec2, "aTexCoord" }
+         { "inPos",      Pikzel::DataType::Vec3 },
+         { "inColor",    Pikzel::DataType::Vec3 },
+         { "inTexCoord", Pikzel::DataType::Vec2 }
       });
    }
 
@@ -60,7 +65,7 @@ private:
           0, 1, 2
       };
 
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(indices, sizeof(indices) / sizeof(uint32_t));
+      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
    }
 
 

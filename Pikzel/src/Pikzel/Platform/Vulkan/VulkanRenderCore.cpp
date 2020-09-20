@@ -61,7 +61,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanRenderCore::SetViewport(uint32_t, uint32_t, uint32_t, uint32_t) {
+   void VulkanRenderCore::SetViewport(const uint32_t, const uint32_t, const uint32_t, const uint32_t) {
       // Don't need to do anything. Vulkan swapchain resizing will deal with it
    }
 
@@ -71,23 +71,23 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<VertexBuffer> VulkanRenderCore::CreateVertexBuffer(uint32_t size) {
+   std::unique_ptr<VertexBuffer> VulkanRenderCore::CreateVertexBuffer(const uint32_t size) {
       return std::make_unique<VulkanVertexBuffer>(m_Device, size);
    }
 
 
-   std::unique_ptr<VertexBuffer> VulkanRenderCore::CreateVertexBuffer(float* vertices, uint32_t size) {
-      return std::make_unique<VulkanVertexBuffer>(m_Device, vertices, size);
+   std::unique_ptr<VertexBuffer> VulkanRenderCore::CreateVertexBuffer(const uint32_t size, const void* data) {
+      return std::make_unique<VulkanVertexBuffer>(m_Device, size, data);
    }
 
 
-   std::unique_ptr<IndexBuffer> VulkanRenderCore::CreateIndexBuffer(uint32_t* indices, uint32_t count) {
-      return std::make_unique<VulkanIndexBuffer>(m_Device, indices, count);
+   std::unique_ptr<IndexBuffer> VulkanRenderCore::CreateIndexBuffer(const uint32_t count, const uint32_t* indices) {
+      return std::make_unique<VulkanIndexBuffer>(m_Device, count, indices);
    }
 
 
-   std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(uint32_t width, uint32_t height) {
-      PKZL_NOT_IMPLEMENTED;
+   std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
+      return std::make_unique<VulkanTexture2D>(m_Device, width, height);
    }
 
 

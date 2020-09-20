@@ -95,11 +95,11 @@ namespace Pikzel {
    {}
 
 
-   VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, float* vertices, uint32_t size)
+   VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size, const void* data)
    : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal}
    {
       VulkanBuffer stagingBuffer(device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-      stagingBuffer.CopyFromHost(0, size, vertices);
+      stagingBuffer.CopyFromHost(0, size, data);
       m_Buffer.CopyFromBuffer(stagingBuffer.m_Buffer, 0, 0, size);
    }
 
@@ -127,7 +127,7 @@ namespace Pikzel {
    }
 
 
-   VulkanIndexBuffer::VulkanIndexBuffer(std::shared_ptr<VulkanDevice> device, uint32_t* indices, uint32_t count)
+   VulkanIndexBuffer::VulkanIndexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t count, const uint32_t* indices)
    : m_Buffer {device, sizeof(uint32_t) * count, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal}
    , m_Count {count}
    {
