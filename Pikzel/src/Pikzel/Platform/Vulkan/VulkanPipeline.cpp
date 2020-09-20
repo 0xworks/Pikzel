@@ -489,13 +489,15 @@ namespace Pikzel {
          poolSizes.emplace_back(type, howMany * count);
       }
       
-      vk::DescriptorPoolCreateInfo descriptorPoolCI = {
-         vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet            /*flags*/,
-         howMany * static_cast<uint32_t>(m_DescriptorSetLayouts.size())  /*maxSets*/,
-         static_cast<uint32_t>(poolSizes.size())                         /*poolSizeCount*/,
-         poolSizes.data()                                                /*pPoolSizes*/
-      };
-      m_DescriptorPool = m_Device->GetVkDevice().createDescriptorPool(descriptorPoolCI);
+      if (!poolSizes.empty()) {
+         vk::DescriptorPoolCreateInfo descriptorPoolCI = {
+            vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet            /*flags*/,
+            howMany * static_cast<uint32_t>(m_DescriptorSetLayouts.size())  /*maxSets*/,
+            static_cast<uint32_t>(poolSizes.size())                         /*poolSizeCount*/,
+            poolSizes.data()                                                /*pPoolSizes*/
+         };
+         m_DescriptorPool = m_Device->GetVkDevice().createDescriptorPool(descriptorPoolCI);
+      }
    }
 
 
@@ -507,24 +509,29 @@ namespace Pikzel {
 
 
    void VulkanPipeline::CreateDescriptorSets() {
-      vk::DescriptorSetAllocateInfo allocInfo = {
-         m_DescriptorPool,
-         static_cast<uint32_t>(m_DescriptorSetLayouts.size()),
-         m_DescriptorSetLayouts.data()
-      };
+      if (!m_DescriptorSetLayouts.empty()) {
+         vk::DescriptorSetAllocateInfo allocInfo = {
+            m_DescriptorPool,
+            static_cast<uint32_t>(m_DescriptorSetLayouts.size()),
+            m_DescriptorSetLayouts.data()
+         };
 
-      // Create 2 sets of descriptor sets.
-      // In the GraphicsContext we have a swapchain, and there are 2 images in that swapchain that we could be drawing to.
-      // We have a command buffer for each swapchain image.
-      // We need to be sure that we aren't messing with descriptor sets that are in use in a command buffer that has been submitted
-      // to the graphics device but not yet executed.
-      // To achieve this, we would like to have one (set of) descriptor sets for each command buffer (i.e for each image in swapchain)
-      // However, pipeline does not know about the graphics context and therefore does not know how many sets of descriptor sets to create...
-      // Conversely, the graphics context doesnt know about the pipeline (until its too late), so cant just move the creation of descriptor sets
-      // to the graphics context either.
-      // This is a bit of a mess...
-      m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
-      m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
+         // Create 2 sets of descriptor sets.
+         // In the GraphicsContext we have a swapchain, and there are 2 images in that swapchain that we could be drawing to.
+         // We have a command buffer for each swapchain image.
+         // We need to be sure that we aren't messing with descriptor sets that are in use in a command buffer that has been submitted
+         // to the graphics device but not yet executed.
+         // To achieve this, we would like to have one (set of) descriptor sets for each command buffer (i.e for each image in swapchain)
+         // However, pipeline does not know about the graphics context and therefore does not know how many sets of descriptor sets to create...
+         // Conversely, the graphics context doesnt know about the pipeline (until its too late), so cant just move the creation of descriptor sets
+         // to the graphics context either.
+         // This is a bit of a mess...
+         m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
+         m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
+      } else {
+         m_DescriptorSets.emplace_back();
+         m_DescriptorSets.emplace_back();
+      }
    }
 
 
@@ -536,7 +543,9 @@ namespace Pikzel {
    void VulkanPipeline::DestroyDescriptorSets() {
       if (m_Device) {
          for (const auto& descriptorSets : m_DescriptorSets) {
-            m_Device->GetVkDevice().freeDescriptorSets(m_DescriptorPool, descriptorSets);
+            if (!descriptorSets.empty()) {
+               m_Device->GetVkDevice().freeDescriptorSets(m_DescriptorPool, descriptorSets);
+            }
          }
          m_DescriptorSets.clear();
       }

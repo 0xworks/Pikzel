@@ -12,7 +12,6 @@ namespace Pikzel {
       template<typename Event, typename... Args>
       static void Send(Args... args) {
          m_Dispatcher.trigger<Event>(std::forward<Args>(args)...);
-
       }
 
       // Connect Event to a candidate free function
@@ -29,7 +28,7 @@ namespace Pikzel {
 
 
    private:
-      static entt::dispatcher m_Dispatcher;
+      inline static entt::dispatcher m_Dispatcher;
    };
 
 }

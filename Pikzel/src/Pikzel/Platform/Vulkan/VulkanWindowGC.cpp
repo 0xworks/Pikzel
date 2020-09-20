@@ -211,7 +211,9 @@ namespace Pikzel {
    void VulkanWindowGC::Bind(const Pipeline& pipeline) {
       const VulkanPipeline& vulkanPipeline = reinterpret_cast<const VulkanPipeline&>(pipeline);
       m_CommandBuffers[m_CurrentImage].bindPipeline(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipeline());
-      m_CommandBuffers[m_CurrentImage].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipelineLayout(), 0, vulkanPipeline.GetVkDescriptorSets(m_CurrentImage), nullptr);  // (i)th command buffer is bound to the (i)th set of descriptor sets
+      if (!vulkanPipeline.GetVkDescriptorSets(m_CurrentImage).empty()) {
+         m_CommandBuffers[m_CurrentImage].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipelineLayout(), 0, vulkanPipeline.GetVkDescriptorSets(m_CurrentImage), nullptr);  // (i)th command buffer is bound to the (i)th set of descriptor sets
+      }
       m_Pipeline = &vulkanPipeline;
    }
 

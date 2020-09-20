@@ -1,5 +1,6 @@
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/Utility.h"
+#include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,6 +15,7 @@ public:
    , m_bindir {argv[0]}
    {
       m_bindir.remove_filename();
+      Pikzel::Input::Init();
       CreateVertexBuffer();
       CreateIndexBuffer();
       CreatePipeline();
@@ -21,19 +23,23 @@ public:
 
 
    virtual void Update(Pikzel::DeltaTime deltaTime) override {
-      ;
+      float dx = Pikzel::Input::GetAxis("Horizontal"_hs) * deltaTime.count();
+      float dy = Pikzel::Input::GetAxis("Vertical"_hs) * deltaTime.count();
+      m_Transform = glm::translate(m_Transform, {dx, dy, 0.0f});
    }
 
 
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       Pikzel::GCBinder bind {gc, *m_Pipeline};
-      gc.PushConstant("constants.mvp"_hs, glm::identity<glm::mat4>());
+      gc.PushConstant("constants.mvp"_hs, m_Transform);
       gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
    }
 
 
 private:
+
+   glm::mat4 m_Transform = glm::identity<glm::mat4>();
 
    struct Vertex {
       glm::vec3 Pos;
