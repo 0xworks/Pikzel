@@ -696,7 +696,6 @@ namespace Pikzel {
              static_cast<uint32_t>(width),
              static_cast<uint32_t>(height)
          };
-
          actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
          actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 

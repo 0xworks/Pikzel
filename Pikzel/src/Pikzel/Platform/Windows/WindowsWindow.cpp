@@ -10,7 +10,7 @@
 
 namespace Pikzel {
 
-   std::unique_ptr<Window> Window::Create(const WindowSettings& settings) {
+   std::unique_ptr<Window> Window::Create(const Settings& settings) {
       return std::make_unique<WindowsWindow>(settings);
    }
 
@@ -18,7 +18,7 @@ namespace Pikzel {
    static uint8_t s_GLFWWindowCount = 0;
 
 
-   WindowsWindow::WindowsWindow(const WindowSettings& settings) {
+   WindowsWindow::WindowsWindow(const Settings& settings) {
       m_Settings = settings;
 
       PKZL_CORE_LOG_INFO("Platform Windows:");
@@ -62,6 +62,9 @@ namespace Pikzel {
             m_Settings.MaxWidth ? (int)m_Settings.MaxWidth : GLFW_DONT_CARE,
             m_Settings.MaxHeight ? (int)m_Settings.MaxHeight : GLFW_DONT_CARE
          );
+         if (!m_Settings.IsCursorEnabled) {
+            glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+         }
          ++s_GLFWWindowCount;
       }
 
@@ -82,26 +85,26 @@ namespace Pikzel {
       glfwSetKeyCallback(m_Window, [] (GLFWwindow* window, const int key, const int scancode, const int action, const int mods) {
          switch (action) {
             case GLFW_PRESS: {
-               EventDispatcher::Send<KeyPressedEvent>(window, key, 0);
+               EventDispatcher::Send<KeyPressedEvent>(window, static_cast<KeyCode>(key), 0);
                break;
             }
             case GLFW_RELEASE: {
-               EventDispatcher::Send<KeyReleasedEvent>(window, key);
+               EventDispatcher::Send<KeyReleasedEvent>(window, static_cast<KeyCode>(key));
                break;
             }
             case GLFW_REPEAT: {
-               EventDispatcher::Send<KeyPressedEvent>(window, key, 1);
+               EventDispatcher::Send<KeyPressedEvent>(window, static_cast<KeyCode>(key), 1);
                break;
             }
          }
       });
 
-      glfwSetCharCallback(m_Window, [] (GLFWwindow* window, unsigned int keycode) {
-         EventDispatcher::Send<KeyTypedEvent>(window, (int)keycode);
+      glfwSetCharCallback(m_Window, [] (GLFWwindow* window, unsigned int key) {
+         EventDispatcher::Send<KeyTypedEvent>(window, static_cast<KeyCode>(key));
       });
 
       glfwSetCursorPosCallback(m_Window, [] (GLFWwindow* window, const double xpos, const double ypos) {
-         EventDispatcher::Send<MouseMovedEvent>(window, (float)xpos, (float)ypos);
+         EventDispatcher::Send<MouseMovedEvent>(window, static_cast<float>(xpos), static_cast<float>(ypos));
       });
 
       glfwSetMouseButtonCallback(m_Window, [] (GLFWwindow* window, const int button, const int action, const int mods) {
@@ -198,6 +201,14 @@ namespace Pikzel {
    Pikzel::GraphicsContext& WindowsWindow::GetGraphicsContext() {
       PKZL_CORE_ASSERT(m_Context, "Accessing null graphics context!");
       return *m_Context;
+   }
+
+
+   glm::vec2 WindowsWindow::GetCursorPos() const {
+      double x;
+      double y;
+      glfwGetCursorPos(m_Window, &x, &y);
+      return {x, y};
    }
 
 }

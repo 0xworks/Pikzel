@@ -1,81 +1,115 @@
 #include "Input.h"
 
+#include "Pikzel/Core/Window.h"
 #include "Pikzel/Events/EventDispatcher.h"
-#include "Pikzel/Events/KeyEvents.h"
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 namespace Pikzel {
 
-   namespace Input {
+   using DeltaTime = std::chrono::duration<float, std::chrono::seconds::period>;
 
-      enum class InputKeyState {
-         Up,
-         Down
-      };
+   Input::Input(const Window& window, const Settings& settings)
+   : m_Window {static_cast<GLFWwindow*>(window.GetNativeWindow())}
+   , m_Settings(settings)
+   , m_Axes {
+      {"X"_hs, 0.0f},
+      {"Y"_hs, 0.0f},
+      {"Z"_hs, 0.0f},
+      {"MouseX"_hs, 0.0f},
+      {"MouseY"_hs, 0.0f},
+      {"MouseZ"_hs, 0.0f}
+   }
+   , m_MappedKeys {
+      {KeyCode::D,        {"X"_hs,  1.0f}},
+      {KeyCode::A,        {"X"_hs, -1.0f}},
+      {KeyCode::R,        {"Y"_hs,  1.0f}},
+      {KeyCode::F,        {"Y"_hs, -1.0f}},
+      {KeyCode::W,        {"Z"_hs,  1.0f}},
+      {KeyCode::S,        {"Z"_hs, -1.0f}},
+      {KeyCode::Right,    {"X"_hs,  1.0f}},
+      {KeyCode::Left,     {"X"_hs, -1.0f}},
+      {KeyCode::PageUp,   {"Y"_hs,  1.0f}},
+      {KeyCode::PageDown, {"Y"_hs, -1.0f}},
+      {KeyCode::Up,       {"Z"_hs,  1.0f}},
+      {KeyCode::Down,     {"Z"_hs, -1.0f}},
+   }
+   {
+      EventDispatcher::Connect<UpdateEvent, &Input::OnUpdate>(*this);
+      EventDispatcher::Connect<KeyPressedEvent, &Input::OnKeyPressed>(*this);
+      EventDispatcher::Connect<KeyReleasedEvent, &Input::OnKeyReleased>(*this);
+      EventDispatcher::Connect<MouseScrolledEvent, &Input::OnMouseScrolled>(*this);
+      glfwGetCursorPos(m_Window, &m_MouseX, &m_MouseY);
+   }
 
 
-      std::unordered_map<entt::id_type, float> g_Axes = {
-         {"Horizontal"_hs, 0.0f},
-         {"Vertical"_hs, 0.0f}
-      };
+   float Input::GetAxis(entt::id_type id) const {
+      return m_Axes.at(id);
+   }
 
 
-      std::unordered_map<int, std::pair<entt::id_type, float>> g_MappedKeys = {
-         {GLFW_KEY_W,     {"Vertical"_hs,    1.0f}},
-         {GLFW_KEY_A,     {"Horizontal"_hs, -1.0f}},
-         {GLFW_KEY_S,     {"Vertical"_hs,   -1.0f}},
-         {GLFW_KEY_D,     {"Horizontal"_hs,  1.0f}},
-         {GLFW_KEY_UP,    {"Vertical"_hs,    1.0f}},
-         {GLFW_KEY_LEFT,  {"Horizontal"_hs, -1.0f}},
-         {GLFW_KEY_RIGHT, {"Horizontal"_hs,  1.0f}},
-         {GLFW_KEY_DOWN,  {"Vertical"_hs,   -1.0f}},
-      };
+   bool Input::IsKeyPressed(KeyCode key) const {
+      auto state = glfwGetKey(m_Window, static_cast<int32_t>(key)); 
+      return state == GLFW_PRESS || state == GLFW_REPEAT;
+   }
 
 
-      std::unordered_map<int, InputKeyState> g_State;
+   bool Input::IsMouseButtonPressed(MouseButton button) const {
+      auto state = glfwGetMouseButton(m_Window, static_cast<int>(button));
+      return state == GLFW_PRESS;
+   }
 
 
-      void OnKeyPressed(const KeyPressedEvent& event) {
-         for (auto [keyCode, axis] : g_MappedKeys) {
-            if (event.KeyCode == keyCode) {
-               if (g_State[keyCode] == InputKeyState::Down) {
-                  return;
-               }
+   void Input::OnUpdate(const UpdateEvent& event) {
+      if (event.deltaTime.count() > 0.0f) {
+         double x;
+         double y;
+         glfwGetCursorPos(m_Window, &x, &y);
+         m_Axes["MouseX"_hs] = static_cast<float>(x -  m_MouseX) * m_Settings.MouseSensitivity / event.deltaTime.count();
+         m_Axes["MouseY"_hs] = static_cast<float>(m_MouseY - y) * m_Settings.MouseSensitivity / event.deltaTime.count(); // nb: cursor Y axis is inverted relative to world Y axis
+         m_Axes["MouseZ"_hs] = m_MouseDeltaZ / event.deltaTime.count();
+         m_MouseX = x;
+         m_MouseY = y;
+         m_MouseDeltaZ = 0.0f;
+         m_MouseDeltaW = 0.0f;
+      }
+   }
+
+
+
+   void Input::OnKeyPressed(const KeyPressedEvent& event) {
+      for (auto [keyCode, axis] : m_MappedKeys) {
+         if (event.KeyCode == keyCode) {
+            if (m_KeyState[keyCode] == KeyState::Up) {
                auto [id, delta] = axis;
-               g_Axes[id] += delta; // Floating point issues here?
-               g_State[keyCode] = InputKeyState::Down; 
+               m_Axes[id] += delta; // Floating point issues here?
+               m_KeyState[keyCode] = KeyState::Down;
             }
+            break;
          }
       }
+   }
 
 
-      void OnKeyReleased(const KeyReleasedEvent& event) {
-         for (auto [keyCode, axis] : g_MappedKeys) {
-            if (event.KeyCode == keyCode) {
-               if (g_State[keyCode] == InputKeyState::Up) {
-                  // Should not be possible...
-                  PKZL_CORE_ASSERT(FALSE, "KeyReleasedEvent when key is not down!");
-                  return;
-               }
+   void Input::OnKeyReleased(const KeyReleasedEvent& event) {
+      for (auto [keyCode, axis] : m_MappedKeys) {
+         if (event.KeyCode == keyCode) {
+            if (m_KeyState[keyCode] == KeyState::Down) {
                auto [id, delta] = axis;
-               g_Axes[id] -= delta; // Floating point issues here?
-               g_State[keyCode] = InputKeyState::Up;
+               m_Axes[id] -= delta; // Floating point issues here?
+               m_KeyState[keyCode] = KeyState::Up;
             }
+            break;
          }
       }
+   }
 
 
-      // TOOD: Later, there could be parameters to Init that let the client set their own Axes and mappings to them
-      void Init() {
-         EventDispatcher::Connect<KeyPressedEvent, OnKeyPressed>();
-         EventDispatcher::Connect<KeyReleasedEvent, OnKeyReleased>();
+   void Input::OnMouseScrolled(const MouseScrolledEvent& event) {
+      if (event.Sender == m_Window) {
+         m_MouseDeltaZ = event.YOffset;
+         m_MouseDeltaW = event.XOffset;
       }
-
-
-      float GetAxis(entt::id_type id) {
-         return g_Axes.at(id);
-      }
-
    }
 }

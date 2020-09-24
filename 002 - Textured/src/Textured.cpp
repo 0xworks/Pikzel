@@ -1,5 +1,6 @@
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/Utility.h"
+#include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,8 +11,9 @@
 class Textured final : public Pikzel::Application {
 public:
    Textured(int argc, const char* argv[])
-   : Pikzel::Application {Pikzel::WindowSettings{"Texture Demo", 1280, 720, {0.2f, 0.3f, 0.3f, 1.0f}}}
+   : Pikzel::Application {{.Title = "Texture Demo", .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
    , m_bindir {argv[0]}
+   , m_Input {GetWindow()}
    {
       m_bindir.remove_filename();
       CreateVertexBuffer();
@@ -21,8 +23,10 @@ public:
    }
 
 
-   virtual void Update(Pikzel::DeltaTime deltaTime) override {
-      ;
+   virtual void Update(const Pikzel::DeltaTime deltaTime) override {
+      float dx = m_Input.GetAxis("X"_hs) * deltaTime.count();
+      float dy = m_Input.GetAxis("Z"_hs) * deltaTime.count();
+      m_Transform = glm::translate(m_Transform, {dx, dy, 0.0f});
    }
 
 
@@ -38,6 +42,7 @@ public:
 
 
 private:
+
    struct Vertex {
       glm::vec3 Pos;
       glm::vec3 Color;
@@ -87,7 +92,9 @@ private:
 
 
 private:
+   Pikzel::Input m_Input;
    std::filesystem::path m_bindir;
+   glm::mat4 m_Transform = glm::identity<glm::mat4>();
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Texture2D> m_Texture;

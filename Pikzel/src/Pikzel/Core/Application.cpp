@@ -6,7 +6,7 @@
 
 namespace Pikzel {
 
-   Application::Application(const WindowSettings& settings) {
+   Application::Application(const Window::Settings& settings) {
 
       // Every application has to have a window whether you like it or not.
       // You cannot, for example, initialize OpenGL rendering backend without a window.
@@ -25,6 +25,7 @@ namespace Pikzel {
          PKZL_PROFILE_FRAMEMARKER();
 
          const auto currentTime = std::chrono::steady_clock::now();
+         EventDispatcher::Send<UpdateEvent>(currentTime - m_AppTime);
          Update(currentTime - m_AppTime);
          m_AppTime = currentTime;
 
@@ -45,9 +46,7 @@ namespace Pikzel {
    }
 
 
-   void Application::Update(DeltaTime) {
-      ;
-   }
+   void Application::Update(DeltaTime) {}
 
 
    void Application::RenderBegin() {

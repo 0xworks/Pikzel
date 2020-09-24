@@ -1,25 +1,27 @@
 #pragma once
 
+#include "Pikzel/Input/KeyCodes.h"
+
 namespace Pikzel {
 
    // TODO: key codes...
 
    struct KeyPressedEvent {
       void* Sender;
-      int KeyCode;
+      KeyCode KeyCode;
       int RepeatCount;
    };
 
 
    struct KeyReleasedEvent {
       void* Sender;
-      int KeyCode;
+      KeyCode KeyCode;
    };
 
 
    struct KeyTypedEvent {
       void* Sender;
-      int KeyCode;
+      KeyCode KeyCode;
    };
 
 }

@@ -25,12 +25,15 @@ set(
    "src/Pikzel/Core/Utility.h"
    "src/Pikzel/Core/Utility.cpp"
    "src/Pikzel/Core/Window.h"
+   "src/Pikzel/Events/ApplicationEvents.h"
    "src/Pikzel/Events/EventDispatcher.h"
    "src/Pikzel/Events/KeyEvents.h"
    "src/Pikzel/Events/MouseEvents.h"
    "src/Pikzel/Events/WindowEvents.h"
    "src/Pikzel/Input/Input.h"
    "src/Pikzel/Input/Input.cpp"
+   "src/Pikzel/Input/KeyCodes.h"
+   "src/Pikzel/Input/MouseButtons.h"
    "src/Pikzel/Renderer/Buffer.h"
    "src/Pikzel/Renderer/Buffer.cpp"
    "src/Pikzel/Renderer/GraphicsContext.h"
@@ -120,6 +123,8 @@ target_include_directories(
 target_precompile_headers(
    ${PROJECT_NAME} PRIVATE
    [["Pikzel/Core/Core.h"]]
+   <GLFW/glfw3.h>
+   <glm/glm.hpp>
 )
 
 if(MSVC)
@@ -209,6 +214,7 @@ target_precompile_headers(
    [["Pikzel/Core/Core.h"]]
    <glad/glad.h>
    <GLFW/glfw3.h>
+   <glm/glm.hpp>
 )
 
 # add glad.c source file after setting the precompiled header
@@ -290,6 +296,7 @@ if(${Vulkan_FOUND})
       [["Pikzel/Core/Core.h"]]
       <vulkan/vulkan.hpp>
       <GLFW/glfw3.h>
+      <glm/glm.hpp>
    )
 
    target_link_directories(

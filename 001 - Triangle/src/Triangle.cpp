@@ -11,20 +11,20 @@
 class Triangle final : public Pikzel::Application {
 public:
    Triangle(int argc, const char* argv[])
-   : Pikzel::Application { Pikzel::WindowSettings{"Triangle Demo", 1280, 720, {0.2f, 0.3f, 0.3f, 1.0f}} }
+   : Pikzel::Application {{.Title = "Triangle Demo", .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
    , m_bindir {argv[0]}
+   , m_Input {GetWindow()}
    {
       m_bindir.remove_filename();
-      Pikzel::Input::Init();
       CreateVertexBuffer();
       CreateIndexBuffer();
       CreatePipeline();
    }
 
 
-   virtual void Update(Pikzel::DeltaTime deltaTime) override {
-      float dx = Pikzel::Input::GetAxis("Horizontal"_hs) * deltaTime.count();
-      float dy = Pikzel::Input::GetAxis("Vertical"_hs) * deltaTime.count();
+   virtual void Update(const Pikzel::DeltaTime deltaTime) override {
+      float dx = m_Input.GetAxis("X"_hs) * deltaTime.count();
+      float dy = m_Input.GetAxis("Z"_hs) * deltaTime.count();
       m_Transform = glm::translate(m_Transform, {dx, dy, 0.0f});
    }
 
@@ -39,13 +39,10 @@ public:
 
 private:
 
-   glm::mat4 m_Transform = glm::identity<glm::mat4>();
-
    struct Vertex {
       glm::vec3 Pos;
       glm::vec3 Color;
    };
-
 
    void CreateVertexBuffer() {
       Vertex vertices[] = {
@@ -84,7 +81,9 @@ private:
 
 
 private:
+   Pikzel::Input m_Input;
    std::filesystem::path m_bindir;
+   glm::mat4 m_Transform = glm::identity<glm::mat4>();
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
