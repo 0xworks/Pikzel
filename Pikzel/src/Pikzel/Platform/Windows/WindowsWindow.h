@@ -10,7 +10,7 @@ namespace Pikzel {
 
    class WindowsWindow : public Window {
    public:
-      WindowsWindow(const WindowSettings& settings);
+      WindowsWindow(const Settings& settings);
       virtual ~WindowsWindow();
 
       virtual void* GetNativeWindow() const override;
@@ -30,8 +30,10 @@ namespace Pikzel {
 
       virtual GraphicsContext& GetGraphicsContext() override;
 
+      virtual glm::vec2 GetCursorPos() const override;
+
    private:
-      WindowSettings m_Settings;
+      Settings m_Settings;
 
       std::unique_ptr<GraphicsContext> m_Context;
       GLFWwindow* m_Window;

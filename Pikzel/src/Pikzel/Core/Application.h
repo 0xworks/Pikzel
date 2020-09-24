@@ -2,6 +2,7 @@
 
 #include "Core.h"
 #include "Window.h"
+#include "Pikzel/Events/ApplicationEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
 
 #include <chrono>
@@ -9,12 +10,9 @@
 
 namespace Pikzel {
 
-   using DeltaTime = std::chrono::duration<float, std::chrono::seconds::period>;
-
    class Application {
-
    public:
-      Application(const WindowSettings& settings = {});
+      Application(const Window::Settings& settings = {});
 
       virtual ~Application() = default;
 
@@ -25,7 +23,7 @@ namespace Pikzel {
       std::chrono::steady_clock::time_point GetTime();
 
    protected:
-      virtual void Update(DeltaTime deltaTime);
+      virtual void Update(const DeltaTime deltaTime);
 
       virtual void RenderBegin();
       virtual void Render();

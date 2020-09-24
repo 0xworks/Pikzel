@@ -8,23 +8,23 @@
 
 namespace Pikzel {
 
-   struct WindowSettings {
-      const char* Title = "Pikzel Engine";
-      uint32_t Width = 1280;
-      uint32_t Height = 720;
-      glm::vec4 ClearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-      bool IsResizable = true;
-      bool IsFullScreen = false;
-      bool IsCursorEnabled = true;
-      uint32_t MinWidth = 0;
-      uint32_t MinHeight = 0;
-      uint32_t MaxWidth = 0;
-      uint32_t MaxHeight = 0;
-   };
-
-
    class Window {
    public:
+
+      struct Settings {
+         const char* Title = "Pikzel Engine";
+         uint32_t Width = 1280;
+         uint32_t Height = 720;
+         glm::vec4 ClearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+         bool IsResizable = true;
+         bool IsFullScreen = false;
+         bool IsCursorEnabled = true;
+         uint32_t MinWidth = 0;
+         uint32_t MinHeight = 0;
+         uint32_t MaxWidth = 0;
+         uint32_t MaxHeight = 0;
+      };
+
       virtual ~Window() = default;
 
       virtual void* GetNativeWindow() const = 0;
@@ -44,8 +44,11 @@ namespace Pikzel {
 
       virtual GraphicsContext& GetGraphicsContext() = 0;
 
+      virtual glm::vec2 GetCursorPos() const = 0;
+
+
    public:
-      static std::unique_ptr<Window> Create(const WindowSettings& settings = WindowSettings());
+      static std::unique_ptr<Window> Create(const Settings& settings = {});
    };
 
 }
