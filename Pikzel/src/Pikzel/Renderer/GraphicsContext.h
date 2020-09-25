@@ -31,43 +31,45 @@ namespace Pikzel {
 
       virtual std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) = 0;
 
+      // Methods dealing with 3-element vectors are not implemented.
+      // This seems like the easiest way to avoid alignment headaches.
       virtual void PushConstant(const entt::id_type id, bool value) = 0;
       virtual void PushConstant(const entt::id_type id, int value) = 0;
       virtual void PushConstant(const entt::id_type id, uint32_t value) = 0;
       virtual void PushConstant(const entt::id_type id, float value) = 0;
       virtual void PushConstant(const entt::id_type id, double value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::bvec2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::bvec3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::bvec3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::bvec4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::ivec2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::ivec3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::ivec3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::ivec4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::uvec2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::uvec3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::uvec3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::uvec4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::vec2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::vec3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::vec3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::vec4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dvec2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::dvec3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::dvec3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dvec4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::mat2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::mat2x3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::mat2x3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::mat2x4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::mat3x2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::mat3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::mat3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::mat3x4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::mat4x2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::mat4x3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::mat4x3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::mat4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dmat2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::dmat2x3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::dmat2x3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dmat2x4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dmat3x2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::dmat3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::dmat3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dmat3x4& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dmat4x2& value) = 0;
-      virtual void PushConstant(const entt::id_type id, const glm::dmat4x3& value) = 0;
+      //virtual void PushConstant(const entt::id_type id, const glm::dmat4x3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dmat4& value) = 0;
 
       virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount = 0) = 0;
