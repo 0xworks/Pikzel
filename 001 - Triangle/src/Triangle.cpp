@@ -7,7 +7,6 @@
 
 #include <filesystem>
 
-// Render a triangle in a window
 class Triangle final : public Pikzel::Application {
 public:
    Triangle(int argc, const char* argv[])

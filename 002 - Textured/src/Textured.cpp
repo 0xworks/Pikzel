@@ -7,7 +7,6 @@
 
 #include <filesystem>
 
-// Render a textured triangle in a window
 class Textured final : public Pikzel::Application {
 public:
    Textured(int argc, const char* argv[])

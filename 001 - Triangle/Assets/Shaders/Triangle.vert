@@ -14,5 +14,5 @@ layout (location = 0) out vec3 outColor;
 
 void main() {
    outColor = inColor;
-   gl_Position = constants.mvp * vec4(inPos.xyz, 1.0);
+   gl_Position = constants.mvp * vec4(inPos, 1.0);
 }
