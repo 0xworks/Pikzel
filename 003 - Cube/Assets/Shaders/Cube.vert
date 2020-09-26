@@ -10,5 +10,5 @@ layout (location = 0) out vec2 outTexCoord;
 
 void main() {
     outTexCoord = inTexCoord;
-    gl_Position = constants.mvp * vec4(inPos.xyz, 1.0);
+    gl_Position = constants.mvp * vec4(inPos, 1.0);
 }

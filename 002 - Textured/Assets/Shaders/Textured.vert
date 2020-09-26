@@ -13,5 +13,5 @@ layout (location = 1) out vec2 outTexCoord;
 void main() {
     outColor = vec4(inColor.rgb, 1.0f);
     outTexCoord = inTexCoord;
-    gl_Position = constants.mvp * vec4(inPos.xyz, 1.0);
+    gl_Position = constants.mvp * vec4(inPos, 1.0);
 }

@@ -8,7 +8,6 @@
 
 #include <filesystem>
 
-// Render a textured triangle in a window
 class Cube final : public Pikzel::Application {
 public:
    Cube(int argc, const char* argv[])
