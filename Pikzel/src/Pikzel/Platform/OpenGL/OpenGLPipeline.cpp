@@ -276,10 +276,10 @@ namespace Pikzel {
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::bvec3& value) {
-   //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::BVec3, "Uniform '{0}' type mismatch.  BVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
-   //   glUniform3i(m_PushConstants.at(id).Location, value.x, value.y, value.z);
-   //}
+   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::bvec3& value) {
+      PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::BVec3, "Uniform '{0}' type mismatch.  BVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
+      glUniform3i(m_PushConstants.at(id).Location, value.x, value.y, value.z);
+   }
 
 
    void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::bvec4& value) {
@@ -294,10 +294,10 @@ namespace Pikzel {
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::ivec3& value) {
-   //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::IVec3, "Uniform '{0}' type mismatch.  IVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
-   //   glUniform3iv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
-   //}
+   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::ivec3& value) {
+      PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::IVec3, "Uniform '{0}' type mismatch.  IVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
+      glUniform3iv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
+   }
 
 
    void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::ivec4& value) {
@@ -313,10 +313,10 @@ namespace Pikzel {
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::uvec3& value) {
-   //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::UVec3, "Uniform '{0}' type mismatch.  UVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
-   //   glUniform3uiv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
-   //}
+   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::uvec3& value) {
+      PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::UVec3, "Uniform '{0}' type mismatch.  UVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
+      glUniform3uiv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
+   }
 
 
    void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::uvec4& value) {
@@ -331,10 +331,10 @@ namespace Pikzel {
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::vec3& value) {
-   //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Vec3, "Uniform '{0}' type mismatch.  Vec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
-   //   glUniform3fv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
-   //}
+   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::vec3& value) {
+      PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Vec3, "Uniform '{0}' type mismatch.  Vec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
+      glUniform3fv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
+   }
 
 
    void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::vec4& value) {
@@ -349,10 +349,10 @@ namespace Pikzel {
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dvec3& value) {
-   //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DVec3, "Uniform '{0}' type mismatch.  DVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
-   //   glUniform3dv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
-   //}
+   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dvec3& value) {
+      PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DVec3, "Uniform '{0}' type mismatch.  DVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
+      glUniform3dv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
+   }
 
 
    void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dvec4& value) {
