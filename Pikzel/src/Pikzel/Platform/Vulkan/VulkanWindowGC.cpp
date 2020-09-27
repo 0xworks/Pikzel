@@ -68,7 +68,7 @@ namespace Pikzel {
       // acquireNextImage returns as soon as it has decided which image is the next one.
       // That doesn't necessarily mean the image is available for either the CPU or the GPU to start doing stuff to it,
       // it's just that we now know which image is *going to be* the next one.
-      // The semaphore that was passed in gets signaled when the image really is available (so need to tell the GPU to wait on that sempahore
+      // The semaphore that was passed in gets signaled when the image really is available (so need to tell the GPU to wait on that semaphore
       // before doing anything to the image).
       //
       // The CPU also needs to wait.. but on what?
@@ -138,6 +138,8 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::SwapBuffers() {
+      static uint32_t frameCounter = 0;
+
       vk::PresentInfoKHR pi = {
          1                                            /*waitSemaphoreCount*/,
          &m_RenderFinishedSemaphores[m_CurrentFrame]  /*pWaitSemaphores*/,
@@ -158,7 +160,6 @@ namespace Pikzel {
       } else if (result != VK_SUCCESS) {
          throw std::runtime_error("Failed to present swap chain image!");
       }
-
       m_CurrentFrame = ++m_CurrentFrame % m_MaxFramesInFlight;
    }
 
@@ -181,8 +182,35 @@ namespace Pikzel {
    void VulkanWindowGC::Unbind(const IndexBuffer& buffer) {}
 
 
-   void VulkanWindowGC::Bind(const Texture2D& texture, entt::id_type id) {
-      const VulkanResource& resource = m_Pipeline->GetResource(id);
+   void VulkanWindowGC::Bind(const UniformBuffer& buffer, entt::id_type resourceId) {
+      const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
+
+      vk::DescriptorBufferInfo uniformBufferDescriptor = {
+         static_cast<const VulkanUniformBuffer&>(buffer).GetVkBuffer() /*buffer*/,
+         0                                                             /*offset*/,
+         VK_WHOLE_SIZE                                                 /*range*/
+      };
+
+      vk::WriteDescriptorSet uniformBufferWrite = {
+         m_Pipeline->GetVkDescriptorSets(m_CurrentImage).at(resource.DescriptorSet)  /*dstSet*/,
+         resource.Binding                                                            /*dstBinding*/,
+         0                                                                           /*dstArrayElement*/,
+         resource.Count                                                              /*descriptorCount*/,
+         resource.Type                                                               /*descriptorType*/,
+         nullptr                                                                     /*pImageInfo*/,
+         &uniformBufferDescriptor                                                    /*pBufferInfo*/,
+         nullptr                                                                     /*pTexelBufferView*/
+      };
+
+      m_Device->GetVkDevice().updateDescriptorSets(uniformBufferWrite, nullptr);
+   }
+
+
+   void VulkanWindowGC::Unbind(const UniformBuffer&) {}
+
+
+   void VulkanWindowGC::Bind(const Texture2D& texture, entt::id_type resourceId) {
+      const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::DescriptorImageInfo textureImageDescriptor = {
             static_cast<const VulkanTexture2D&>(texture).GetVkSampler()   /*sampler*/,

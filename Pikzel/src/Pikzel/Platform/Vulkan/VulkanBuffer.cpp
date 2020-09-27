@@ -98,9 +98,7 @@ namespace Pikzel {
    VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size, const void* data)
    : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal}
    {
-      VulkanBuffer stagingBuffer(device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-      stagingBuffer.CopyFromHost(0, size, data);
-      m_Buffer.CopyFromBuffer(stagingBuffer.m_Buffer, 0, 0, size);
+      CopyFromHost(0, size, data);
    }
 
 
@@ -131,9 +129,7 @@ namespace Pikzel {
    : m_Buffer {device, sizeof(uint32_t) * count, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal}
    , m_Count {count}
    {
-      VulkanBuffer stagingBuffer(device, sizeof(uint32_t) * count, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-      stagingBuffer.CopyFromHost(0, sizeof(uint32_t) * count, indices);
-      m_Buffer.CopyFromBuffer(stagingBuffer.m_Buffer, 0, 0, sizeof(uint32_t) * count);
+      CopyFromHost(0, sizeof(uint32_t) * count, indices);
    }
 
 
@@ -153,4 +149,27 @@ namespace Pikzel {
       return m_Buffer.m_Buffer;
    }
 
+
+   VulkanUniformBuffer::VulkanUniformBuffer(std::shared_ptr<VulkanDevice> device, uint32_t size)
+      : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal} {
+   }
+
+
+   VulkanUniformBuffer::VulkanUniformBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size, const void* data)
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal} {
+      CopyFromHost(0, size, data);
+   }
+
+
+   void VulkanUniformBuffer::CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) {
+      VulkanBuffer stagingBuffer(m_Buffer.m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+      stagingBuffer.CopyFromHost(0, size, pData);
+      m_Buffer.CopyFromBuffer(stagingBuffer.m_Buffer, 0, offset, size);
+   }
+
+
+   vk::Buffer VulkanUniformBuffer::GetVkBuffer() const {
+      return m_Buffer.m_Buffer;
+   }
+         
 }

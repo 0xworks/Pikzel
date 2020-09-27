@@ -74,4 +74,35 @@ namespace Pikzel {
       return m_Count;
    }
 
+
+   OpenGLUniformBuffer::OpenGLUniformBuffer(const uint32_t size) {
+      glCreateBuffers(1, &m_RendererID);
+      glBindBuffer(GL_UNIFORM_BUFFER, m_RendererID);
+      glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+
+   }
+
+
+   OpenGLUniformBuffer::OpenGLUniformBuffer(const uint32_t size, const void* data) {
+      glCreateBuffers(1, &m_RendererID);
+      glBindBuffer(GL_UNIFORM_BUFFER, m_RendererID);
+      glBufferData(GL_UNIFORM_BUFFER, size, data, GL_STATIC_DRAW);
+   }
+
+
+   OpenGLUniformBuffer::~OpenGLUniformBuffer() {
+      glDeleteBuffers(1, &m_RendererID);
+   }
+
+
+   void OpenGLUniformBuffer::CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) {
+      glBindBuffer(GL_UNIFORM_BUFFER, m_RendererID);
+      glBufferSubData(GL_UNIFORM_BUFFER, offset, size, pData);
+   }
+
+
+   GLuint OpenGLUniformBuffer::GetRendererId() const {
+      return m_RendererID;
+   }
+
 }

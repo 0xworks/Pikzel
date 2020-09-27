@@ -20,15 +20,6 @@ namespace Pikzel {
    };
 
 
-   struct OpenGLUniformBuffer {
-      std::string Name;
-      uint32_t Binding = 0;
-      uint32_t Size = 0;
-      uint32_t RendererId = 0;
-      std::vector<OpenGLUniform> Uniforms;
-   };
-
-
    struct OpenGLResourceDeclaration {
       std::string Name;
       uint32_t Binding = 0;
@@ -105,9 +96,6 @@ namespace Pikzel {
 
       uint32_t m_RendererId = 0;
       uint32_t m_VAORendererId = 0;
-
-      inline static std::unordered_map<uint32_t, OpenGLUniformBuffer> s_UniformBuffers;  // there is only one set of uniform buffers over all OpenGL pipelines
-
    };
 
 }

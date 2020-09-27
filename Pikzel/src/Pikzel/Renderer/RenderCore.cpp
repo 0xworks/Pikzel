@@ -50,6 +50,16 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<Pikzel::UniformBuffer> RenderCore::CreateUniformBuffer(const uint32_t size) {
+      return s_RenderCore->CreateUniformBuffer(size);
+   }
+
+
+   std::unique_ptr<Pikzel::UniformBuffer> RenderCore::CreateUniformBuffer(const uint32_t size, const void* data) {
+      return s_RenderCore->CreateUniformBuffer(size, data);
+   }
+
+
    std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
       return s_RenderCore->CreateTexture2D(width, height);
    }
