@@ -224,19 +224,17 @@ namespace Pikzel {
          layoutBindings[resource.DescriptorSet].emplace_back(resource.Binding, resource.Type, resource.Count, resource.ShaderStages);
       }
 
-      vk::DescriptorBindingFlags bindingFlags = vk::DescriptorBindingFlagBits::eUpdateAfterBind | vk::DescriptorBindingFlagBits::eUpdateUnusedWhilePending;
-
       for (const auto& layoutBinding : layoutBindings) {
-
+         std::vector<vk::DescriptorBindingFlags> bindingFlags {layoutBinding.size(), vk::DescriptorBindingFlagBits::eUpdateAfterBind};
          vk::DescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCI = {
-            static_cast<uint32_t>(layoutBinding.size()),  /*bindingCount*/
-            &bindingFlags                                 /*pBindingFlags*/
+            static_cast<uint32_t>(bindingFlags.size()),   /*bindingCount*/
+            bindingFlags.data()                           /*pBindingFlags*/
          };
 
          vk::DescriptorSetLayoutCreateInfo ci = {
-            {}                                           /*flags*/,
-            static_cast<uint32_t>(layoutBinding.size())  /*bindingCount*/,
-            layoutBinding.data()                         /*pBindings*/
+            vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool   /*flags*/,
+            static_cast<uint32_t>(layoutBinding.size())                   /*bindingCount*/,
+            layoutBinding.data()                                          /*pBindings*/
          };
          ci.pNext = &bindingFlagsCI;
 
@@ -501,10 +499,10 @@ namespace Pikzel {
       
       if (!poolSizes.empty()) {
          vk::DescriptorPoolCreateInfo descriptorPoolCI = {
-            vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet            /*flags*/,
-            howMany * static_cast<uint32_t>(m_DescriptorSetLayouts.size())  /*maxSets*/,
-            static_cast<uint32_t>(poolSizes.size())                         /*poolSizeCount*/,
-            poolSizes.data()                                                /*pPoolSizes*/
+            vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind  /*flags*/,
+            howMany * static_cast<uint32_t>(m_DescriptorSetLayouts.size())                                             /*maxSets*/,
+            static_cast<uint32_t>(poolSizes.size())                                                                    /*poolSizeCount*/,
+            poolSizes.data()                                                                                           /*pPoolSizes*/
          };
          m_DescriptorPool = m_Device->GetVkDevice().createDescriptorPool(descriptorPoolCI);
       }
