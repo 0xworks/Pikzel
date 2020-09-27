@@ -39,4 +39,18 @@ namespace Pikzel {
       uint32_t m_Count;
    };
 
+
+   class OpenGLUniformBuffer : public UniformBuffer {
+   public:
+      OpenGLUniformBuffer(const uint32_t size);
+      OpenGLUniformBuffer(const uint32_t size, const void* data);
+      virtual ~OpenGLUniformBuffer();
+
+      virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
+
+      GLuint GetRendererId() const;
+
+   private:
+      GLuint m_RendererID;
+   };
 }

@@ -33,7 +33,7 @@ namespace Pikzel {
       {
          data = stbi_load(path.string().c_str(), &width, &height, &channels, 0);
          if (!data) {
-            throw std::runtime_error("failed to load image '" + path.string() + "'");
+            throw std::runtime_error(fmt::format("failed to load image '{0}'", path.string()));
          }
       }
       m_Width = width;
@@ -52,7 +52,7 @@ namespace Pikzel {
       m_InternalFormat = internalFormat;
       m_DataFormat = dataFormat;
       if (!internalFormat || !dataFormat) {
-         throw std::runtime_error("'" + path.string() + "': Image format not supported!");
+         throw std::runtime_error(fmt::format("'{0}': Image format not supported!", path.string()));
       }
 
       glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);

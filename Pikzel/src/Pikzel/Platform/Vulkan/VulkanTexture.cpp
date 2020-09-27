@@ -24,7 +24,7 @@ namespace Pikzel {
 
       stbi_uc* pixels = stbi_load(path.string().data(), &width, &height, &channels, STBI_rgb_alpha);
       if (!pixels) {
-         throw std::runtime_error("failed to load texture '" + path.string() + "'!");
+         throw std::runtime_error(fmt::format("failed to load texture '{0}'", path.string()));
       }
       vk::DeviceSize size = static_cast<vk::DeviceSize>(width) * static_cast<vk::DeviceSize>(height) * 4;
       VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);

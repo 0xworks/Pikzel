@@ -161,7 +161,7 @@ namespace Pikzel {
             for (auto& [id, res] : m_Resources) {
                if ((res.DescriptorSet == set) && (res.Binding == binding)) {
                   if ((res.Name != name) || (res.Type != vk::DescriptorType::eUniformBuffer)) {
-                     throw std::runtime_error("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!");
+                     throw std::runtime_error(fmt::format("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!", set, binding));
                   }
                   res.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
                   found = true;
@@ -171,7 +171,7 @@ namespace Pikzel {
             entt::id_type id = entt::hashed_string(name.data());
             if (!found) {
                if (m_Resources.find(id) != m_Resources.end()) {
-                  throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Refers to different descriptor set bindings!");
+                  throw std::runtime_error(fmt::format("shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name));
                } else {
                   m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eUniformBuffer, 1, ShaderTypeToVulkanShaderStage(shaderType)});
                }
@@ -188,7 +188,7 @@ namespace Pikzel {
             for (auto& [id, res] : m_Resources) {
                if ((res.DescriptorSet == set) && (res.Binding == binding)) {
                   if ((res.Name != name) || (res.Type != vk::DescriptorType::eCombinedImageSampler)) {
-                     throw std::runtime_error("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!");
+                     throw std::runtime_error(fmt::format("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!", set, binding));
                   }
                   res.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
                   found = true;
@@ -198,7 +198,7 @@ namespace Pikzel {
             entt::id_type id = entt::hashed_string(name.data());
             if (!found) {
                if (m_Resources.find(id) != m_Resources.end()) {
-                  throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Refers to different descriptor set bindings!");
+                  throw std::runtime_error(fmt::format("shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name));
                } else {
                   m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eCombinedImageSampler, 1, ShaderTypeToVulkanShaderStage(shaderType)});
                }
@@ -224,14 +224,24 @@ namespace Pikzel {
          layoutBindings[resource.DescriptorSet].emplace_back(resource.Binding, resource.Type, resource.Count, resource.ShaderStages);
       }
 
+      vk::DescriptorBindingFlags bindingFlags = vk::DescriptorBindingFlagBits::eUpdateAfterBind | vk::DescriptorBindingFlagBits::eUpdateUnusedWhilePending;
+
       for (const auto& layoutBinding : layoutBindings) {
-         m_DescriptorSetLayouts.emplace_back(m_Device->GetVkDevice().createDescriptorSetLayout({
+
+         vk::DescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCI = {
+            static_cast<uint32_t>(layoutBinding.size()),  /*bindingCount*/
+            &bindingFlags                                 /*pBindingFlags*/
+         };
+
+         vk::DescriptorSetLayoutCreateInfo ci = {
             {}                                           /*flags*/,
             static_cast<uint32_t>(layoutBinding.size())  /*bindingCount*/,
             layoutBinding.data()                         /*pBindings*/
-         }));
-      }
+         };
+         ci.pNext = &bindingFlagsCI;
 
+         m_DescriptorSetLayouts.emplace_back(m_Device->GetVkDevice().createDescriptorSetLayout(ci));
+      }
    }
 
 

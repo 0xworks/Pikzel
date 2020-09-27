@@ -86,6 +86,16 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<UniformBuffer> VulkanRenderCore::CreateUniformBuffer(const uint32_t size) {
+      return std::make_unique<VulkanUniformBuffer>(m_Device, size);
+   }
+
+
+   std::unique_ptr<UniformBuffer> VulkanRenderCore::CreateUniformBuffer(const uint32_t size, const void* data) {
+      return std::make_unique<VulkanUniformBuffer>(m_Device, size, data);
+   }
+
+
    std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
       return std::make_unique<VulkanTexture2D>(m_Device, width, height);
    }
@@ -118,7 +128,7 @@ namespace Pikzel {
       PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dl.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
       VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
 
-      std::vector<const char*> layers = {/*"VK_LAYER_LUNARG_monitor"*/};   // Note: ImGui viewports seem to knobble VK_LAYER_LUNARG_monitor
+      std::vector<const char*> layers = {"VK_LAYER_LUNARG_monitor"};   // Note: ImGui viewports seem to knobble VK_LAYER_LUNARG_monitor
 #ifdef PKZL_DEBUG
       layers.push_back("VK_LAYER_KHRONOS_validation");
 #endif

@@ -173,8 +173,6 @@ set_source_files_properties(
 #   Profile: Core
 add_library(
    "PlatformOpenGL" STATIC
-   
-   
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.h"
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.h"
@@ -187,6 +185,7 @@ add_library(
    "src/Pikzel/Platform/OpenGL/OpenGLTexture.cpp"
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/glad/glad.h"
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/KHR/khrplatform.h"
+   "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
    "vendor/imgui/examples/imgui_impl_glfw.h"
    "vendor/imgui/examples/imgui_impl_glfw.cpp"
    "vendor/imgui/examples/imgui_impl_opengl3.h"
@@ -215,13 +214,6 @@ target_precompile_headers(
    <glad/glad.h>
    <GLFW/glfw3.h>
    <glm/glm.hpp>
-)
-
-# add glad.c source file after setting the precompiled header
-# as otherwise the add_precompiled_header macro gets confused...
-target_sources(
-   "PlatformOpenGL" PRIVATE
-   "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
 )
 
 # no precompiled header for ImGui or GLAD
@@ -284,7 +276,6 @@ if(${Vulkan_FOUND})
        ${ProjectDefines}
    )
 
-   # HACK: these includes should be private
    target_include_directories(
       "PlatformVulkan" PRIVATE
       ${ProjectIncludes}

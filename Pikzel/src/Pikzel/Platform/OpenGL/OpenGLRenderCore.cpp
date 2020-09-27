@@ -102,6 +102,16 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<UniformBuffer> OpenGLRenderCore::CreateUniformBuffer(const uint32_t size) {
+      return std::make_unique<OpenGLUniformBuffer>(size);
+   }
+
+
+   std::unique_ptr<UniformBuffer> OpenGLRenderCore::CreateUniformBuffer(const uint32_t size, const void* data) {
+      return std::make_unique<OpenGLUniformBuffer>(size, data);
+   }
+
+
    std::unique_ptr<Texture2D> OpenGLRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
       return std::make_unique<OpenGLTexture2D>(width, height);
    }

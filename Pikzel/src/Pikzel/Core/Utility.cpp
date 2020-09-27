@@ -8,7 +8,7 @@ namespace Pikzel {
       std::ifstream file(path, std::ios::ate | (readAsBinary? std::ios::binary : 0));
 
       if (!file.is_open()) {
-         throw std::runtime_error("failed to open file '" + path.string() + "'");
+         throw std::runtime_error(fmt::format("File '{0}' could not be accessed!", path.string()));
       }
 
       size_t fileSize = (size_t)file.tellg();

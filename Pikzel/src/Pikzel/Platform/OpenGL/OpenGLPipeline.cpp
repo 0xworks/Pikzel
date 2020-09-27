@@ -82,7 +82,7 @@ namespace Pikzel {
          const entt::id_type id = entt::hashed_string(name.data());
          const auto sampler = m_SamplerResources.find(id);
          if (sampler != m_SamplerResources.end()) {
-            throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Could be uniform buffer, or texture sampler!");
+            throw std::runtime_error(fmt::format("shader resource name '{0}' is ambiguous.  Could be uniform buffer, or texture sampler!", name));
          }
          const auto ubo = m_UniformBufferResources.find(id);
          if (ubo == m_UniformBufferResources.end()) {
@@ -90,7 +90,7 @@ namespace Pikzel {
          } else {
             // already seen this name, check that binding is the same
             if (ubo->second.Binding != openGLBinding) {
-               throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Refers to different descriptor set bindings!");
+               throw std::runtime_error(fmt::format("shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name));
             }
          }
       }
@@ -112,7 +112,7 @@ namespace Pikzel {
          const entt::id_type id = entt::hashed_string(name.data());
          const auto ubo = m_UniformBufferResources.find(id);
          if (ubo != m_UniformBufferResources.end()) {
-            throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Could be uniform buffer, or texture sampler!");
+            throw std::runtime_error(fmt::format("shader resource name '{0}'is ambiguous.  Could be uniform buffer, or texture sampler!", name));
          }
          const auto sampler = m_SamplerResources.find(id);
          if (sampler == m_SamplerResources.end()) {
@@ -120,7 +120,7 @@ namespace Pikzel {
          } else {
             // already seen this name, check that binding is the same
             if (sampler->second.Binding != openGLBinding) {
-               throw std::runtime_error("'" + name + "' shader resource name is ambiguous.  Refers to different texture samplers!");
+               throw std::runtime_error(fmt::format("shader resource name '{0}' is ambiguous.  Refers to different texture samplers!", name));
             }
          }
       }

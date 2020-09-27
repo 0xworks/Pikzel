@@ -26,6 +26,9 @@ namespace Pikzel {
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(const uint32_t count, const uint32_t* indices) = 0;
 
+      virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size) = 0;
+      virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data) = 0;
+
       // TODO: you probably also want to be able to specify things like format, and sampling parameters
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height) = 0;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) = 0;
@@ -54,6 +57,9 @@ namespace Pikzel {
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size, const void* data);
 
       static std::unique_ptr<IndexBuffer> CreateIndexBuffer(const uint32_t count, const uint32_t* indices);
+
+      static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size);
+      static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data);
 
       static std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height);
       static std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path);

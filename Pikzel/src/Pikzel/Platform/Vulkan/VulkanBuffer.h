@@ -73,4 +73,19 @@ namespace Pikzel {
       uint32_t m_Count;
    };
 
+
+   class VulkanUniformBuffer : public UniformBuffer {
+   public:
+
+      VulkanUniformBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size);
+      VulkanUniformBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size, const void* data);
+
+      virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
+
+      vk::Buffer GetVkBuffer() const;
+
+   private:
+      VulkanBuffer m_Buffer;
+   };
+
 }

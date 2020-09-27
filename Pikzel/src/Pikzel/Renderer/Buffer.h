@@ -109,4 +109,11 @@ namespace Pikzel {
       virtual uint32_t GetCount() const = 0;
    };
 
+
+   class UniformBuffer : public Buffer {
+   public:
+      virtual ~UniformBuffer() = default;
+
+   };
+
 }

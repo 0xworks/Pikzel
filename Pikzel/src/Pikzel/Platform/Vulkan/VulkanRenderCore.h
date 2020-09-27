@@ -19,6 +19,9 @@ namespace Pikzel {
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(const uint32_t count, const uint32_t* indices) override;
 
+      virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size) override;
+      virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data) override;
+
       std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height) override;
       std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) override;
 
