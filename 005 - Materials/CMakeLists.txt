@@ -1,14 +1,14 @@
 cmake_minimum_required (VERSION 3.16)
 
 project (
-   "004Lighting"
+   "005Materials"
    VERSION 0.1
-   DESCRIPTION "Pikzel Demo 004 - Lighting"
+   DESCRIPTION "Pikzel Demo 005 - Materials"
 )
 
 set(
    ProjectSources
-   "src/Lighting.cpp"
+   "src/Materials.cpp"
 )
 
 set(
