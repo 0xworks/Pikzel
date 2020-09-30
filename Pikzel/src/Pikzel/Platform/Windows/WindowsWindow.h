@@ -37,8 +37,6 @@ namespace Pikzel {
 
       std::unique_ptr<GraphicsContext> m_Context;
       GLFWwindow* m_Window;
-
-      bool m_VSync;
    };
 
 }

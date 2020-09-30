@@ -4,6 +4,8 @@
 #include "OpenGLPipeline.h"
 #include "OpenGLTexture.h"
 
+#include "Pikzel/Events/EventDispatcher.h"
+
 namespace Pikzel {
 
    OpenGLGraphicsContext::OpenGLGraphicsContext(const Window& window)
@@ -12,10 +14,13 @@ namespace Pikzel {
    , m_ClearColor {window.GetClearColor()}
    {
       PKZL_CORE_ASSERT(m_WindowHandle, "Window handle is null!")
+      EventDispatcher::Connect<WindowVSyncChangedEvent, &OpenGLGraphicsContext::OnWindowVSyncChanged>(*this);
+      glfwSwapInterval(window.IsVSync() ? 1 : 0);
    }
 
 
    void OpenGLGraphicsContext::BeginFrame() {
+      PKZL_PROFILE_FUNCTION();
       glfwMakeContextCurrent(m_WindowHandle);
       glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -28,6 +33,7 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::SwapBuffers() {
+      PKZL_PROFILE_FUNCTION();
       glfwSwapBuffers(m_WindowHandle);
    }
 
@@ -327,6 +333,13 @@ namespace Pikzel {
       GCBinder bindVB {*this, vertexBuffer};
       GCBinder bindIB {*this, indexBuffer};
       glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+   }
+
+
+   void OpenGLGraphicsContext::OnWindowVSyncChanged(const WindowVSyncChangedEvent& event) {
+      if (event.Sender == m_WindowHandle) {
+         glfwSwapInterval(event.IsVSync ? 1 : 0);
+      }
    }
 
 }

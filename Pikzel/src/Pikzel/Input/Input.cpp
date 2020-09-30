@@ -77,7 +77,6 @@ namespace Pikzel {
    }
 
 
-
    void Input::OnKeyPressed(const KeyPressedEvent& event) {
       for (auto [keyCode, axis] : m_MappedKeys) {
          if (event.KeyCode == keyCode) {

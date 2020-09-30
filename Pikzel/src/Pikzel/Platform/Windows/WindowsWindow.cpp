@@ -156,25 +156,13 @@ namespace Pikzel {
 
 
    void WindowsWindow::SetVSync(bool enabled) {
-      switch (RenderCore::GetAPI()) {
-         case RenderCore::API::OpenGL:
-            if (enabled) {
-               glfwSwapInterval(1);
-            } else {
-               glfwSwapInterval(0);
-            }
-            break;
-         case RenderCore::API::Vulkan:
-            // TODO: support SetVSync on Vulkan... you need to re-create the swapchain with a different present mode (currently hard-coded to "mailbox")
-            PKZL_CORE_LOG_WARN("SetVSync() not currently supported on Vulkan - setting ignored");
-            break;
-      }
-      m_VSync = enabled;
+      m_Settings.IsVSync = enabled;
+      EventDispatcher::Send<WindowVSyncChangedEvent>(this, enabled);
    }
 
 
    bool WindowsWindow::IsVSync() const {
-      return m_VSync;
+      return m_Settings.IsVSync;
    }
 
 
@@ -187,7 +175,10 @@ namespace Pikzel {
 
 
    void WindowsWindow::BeginFrame() {
-      glfwPollEvents();
+      {
+         PKZL_PROFILE_SCOPE("glfwPollEvents");
+         glfwPollEvents();
+      }
       m_Context->BeginFrame();
    }
 

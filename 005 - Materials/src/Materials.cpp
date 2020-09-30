@@ -26,6 +26,8 @@ public:
 
 
    virtual void Update(const Pikzel::DeltaTime deltaTime) override {
+      PKZL_PROFILE_FUNCTION();
+
       constexpr float cameraSpeed = 2.5f;
 
       if (m_Input.IsKeyPressed(Pikzel::KeyCode::Escape)) {
@@ -55,6 +57,7 @@ public:
 
 
    virtual void Render() override {
+      PKZL_PROFILE_FUNCTION();
 
       glm::mat4 projView = m_Projection * glm::lookAt(m_CameraPos, m_CameraPos + m_CameraDirection, m_CameraUp);
 

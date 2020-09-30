@@ -19,6 +19,7 @@ namespace Pikzel {
          bool IsResizable = true;
          bool IsFullScreen = false;
          bool IsCursorEnabled = true;
+         bool IsVSync = true;
          uint32_t MinWidth = 0;
          uint32_t MinHeight = 0;
          uint32_t MaxWidth = 0;

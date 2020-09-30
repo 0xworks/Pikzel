@@ -101,7 +101,10 @@ namespace Pikzel {
       void DestroySyncObjects();
 
       void RecreateSwapChain();
+
+   private:
       void OnWindowResize(const WindowResizeEvent& event);
+      void OnWindowVSyncChanged(const WindowVSyncChangedEvent& event);
 
    private:
       std::array<vk::ClearValue, 2> m_ClearValues;
@@ -124,7 +127,9 @@ namespace Pikzel {
       std::vector<vk::Fence> m_InFlightFences;
       std::vector<vk::Fence> m_ImagesInFlight;
 
+      bool m_IsVSync = false;
       bool m_WantResize = false;
+
 
    };
 

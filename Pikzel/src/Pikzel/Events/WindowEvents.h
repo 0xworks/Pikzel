@@ -9,6 +9,12 @@ namespace Pikzel {
    };
 
 
+   struct WindowVSyncChangedEvent {
+      void* Sender;
+      bool IsVSync;
+   };
+
+
    struct WindowCloseEvent {
       void* Sender;
    };

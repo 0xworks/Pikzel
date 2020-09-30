@@ -13,6 +13,11 @@ project (
    DESCRIPTION "Pikzel Engine"
 )
 
+option(
+   PKZL_PROFILE "Performance profiling instrumentation is compiled in to the code" OFF
+)
+
+
 set(
    ProjectSources
    "src/Pikzel/Core/Application.h"
@@ -84,6 +89,14 @@ set(
    GLM_FORCE_RADIANS
 )
 
+if(PKZL_PROFILE)
+   list(
+      APPEND ProjectDefines
+      PKZL_PROFILE
+      TRACY_ENABLE
+   )
+endif()
+
 set(
    ProjectLibs
    "glfw"
@@ -106,14 +119,6 @@ target_compile_definitions(
    ${PROJECT_NAME} PUBLIC
    ${ProjectDefines}
 )
-
-if(PKZL_PROFILE)
-   target_compile_definitions(
-      ${PROJECT_NAME} PUBLIC
-      PKZL_PROFILE
-      TRACY_ENABLE
-)
-endif()
 
 target_include_directories(
    ${PROJECT_NAME} PUBLIC

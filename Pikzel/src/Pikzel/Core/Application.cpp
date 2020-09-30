@@ -25,7 +25,10 @@ namespace Pikzel {
          PKZL_PROFILE_FRAMEMARKER();
 
          const auto currentTime = std::chrono::steady_clock::now();
-         EventDispatcher::Send<UpdateEvent>(currentTime - m_AppTime);
+         {
+            PKZL_PROFILE_SCOPE("EventDispatcher::Send<UpdateEvent>");
+            EventDispatcher::Send<UpdateEvent>(currentTime - m_AppTime);
+         }
          Update(currentTime - m_AppTime);
          m_AppTime = currentTime;
 

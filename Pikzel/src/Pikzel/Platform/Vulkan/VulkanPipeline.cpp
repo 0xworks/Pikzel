@@ -534,6 +534,7 @@ namespace Pikzel {
          // Conversely, the graphics context doesnt know about the pipeline (until its too late), so cant just move the creation of descriptor sets
          // to the graphics context either.
          // This is a bit of a mess...
+         // If you ever fix this mess, then please remove the ASSERT at the bottom of VulkanWindowGC::CreateSwapChain()
          m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
          m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
       } else {
