@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Pikzel/Core/Window.h"
+#include "Pikzel/Events/WindowEvents.h"
 #include "Pikzel/Renderer/GraphicsContext.h"
 
 #include <glm/glm.hpp>
@@ -77,6 +78,9 @@ namespace Pikzel {
       virtual void PushConstant(const entt::id_type id, const glm::dmat4& value) override;
 
       virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount = 0) override;
+
+   private:
+      void OnWindowVSyncChanged(const WindowVSyncChangedEvent& event);
 
    private:
       GLFWwindow* m_WindowHandle;

@@ -13,6 +13,7 @@ namespace Pikzel {
    VulkanWindowGC::VulkanWindowGC(std::shared_ptr<VulkanDevice> device, const Window& window)
    : VulkanGraphicsContext {device}
    , m_Window {static_cast<GLFWwindow*>(window.GetNativeWindow())}
+   , m_IsVSync(window.IsVSync())
    {
       CreateSurface();
       CreateSwapChain();
@@ -27,6 +28,7 @@ namespace Pikzel {
       CreatePipelineCache();
 
       EventDispatcher::Connect<WindowResizeEvent, &VulkanWindowGC::OnWindowResize>(*this);
+      EventDispatcher::Connect<WindowVSyncChangedEvent, &VulkanWindowGC::OnWindowVSyncChanged>(*this);
 
       // Set clear values for all framebuffer attachments with loadOp set to clear
       // We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
@@ -55,26 +57,30 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::BeginFrame() {
-      m_Device->GetVkDevice().waitForFences(m_InFlightFences[m_CurrentFrame], true, UINT64_MAX);
-      auto rv = m_Device->GetVkDevice().acquireNextImageKHR(m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], nullptr);
+      PKZL_PROFILE_FUNCTION();
+      {
+         PKZL_PROFILE_SCOPE("AquireNextImageKHR");
+         auto rv = m_Device->GetVkDevice().acquireNextImageKHR(m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], nullptr);
 
-      if (rv.result == vk::Result::eErrorOutOfDateKHR) {
-         RecreateSwapChain();
-         return;
-      } else if ((rv.result != vk::Result::eSuccess) && (rv.result != vk::Result::eSuboptimalKHR)) {
-         throw std::runtime_error("failed to acquire swap chain image!");
+         if (rv.result == vk::Result::eErrorOutOfDateKHR) {
+            RecreateSwapChain();
+            return;
+         } else if ((rv.result != vk::Result::eSuccess) && (rv.result != vk::Result::eSuboptimalKHR)) {
+            throw std::runtime_error("failed to acquire swap chain image!");
+         }
+
+         // acquireNextImage returns as soon as it has decided which image is the next one.
+         // That doesn't necessarily mean the image is available for either the CPU or the GPU to start doing stuff to it,
+         // it's just that we now know which image is *going to be* the next one.
+         // The semaphore that was passed in gets signaled when the image really is available (so need to tell the GPU to wait on that semaphore
+         // before doing anything to the image).
+         //
+         // The CPU also needs to wait.. but on what?
+         // That's where our in flight fences come in.  If we know which frame it was that last used this image, then we wait on that frame's fence before
+         // queuing up more stuff for the image.
+         m_CurrentImage = rv.value;
+         PKZL_PROFILE_SETVALUE(m_CurrentImage);
       }
-
-      // acquireNextImage returns as soon as it has decided which image is the next one.
-      // That doesn't necessarily mean the image is available for either the CPU or the GPU to start doing stuff to it,
-      // it's just that we now know which image is *going to be* the next one.
-      // The semaphore that was passed in gets signaled when the image really is available (so need to tell the GPU to wait on that semaphore
-      // before doing anything to the image).
-      //
-      // The CPU also needs to wait.. but on what?
-      // That's where our in flight fences come in.  If we know which frame it was that last used this image, then we wait on that frame's fence before
-      // queuing up more stuff for the image.
-      m_CurrentImage = rv.value;
 
       if (m_ImagesInFlight[m_CurrentImage]) {
          m_Device->GetVkDevice().waitForFences(m_ImagesInFlight[m_CurrentImage], true, UINT64_MAX);
@@ -117,6 +123,7 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::EndFrame() {
+      PKZL_PROFILE_FUNCTION();
 
       m_CommandBuffers[m_CurrentImage].endRenderPass();  // TODO: think about where render passes should begin/end
 
@@ -138,7 +145,7 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::SwapBuffers() {
-      static uint32_t frameCounter = 0;
+      PKZL_PROFILE_FUNCTION();
 
       vk::PresentInfoKHR pi = {
          1                                            /*waitSemaphoreCount*/,
@@ -599,9 +606,11 @@ namespace Pikzel {
 
 
    vk::PresentModeKHR VulkanWindowGC::SelectPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes) {
-      for (const auto& availablePresentMode : availablePresentModes) {
-         if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
-            return availablePresentMode;
+      if (!m_IsVSync) {
+         for (const auto& availablePresentMode : availablePresentModes) {
+            if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
+               return availablePresentMode;
+            }
          }
       }
       return vk::PresentModeKHR::eFifo;
@@ -685,8 +694,12 @@ namespace Pikzel {
       for (const auto& image : swapChainImages) {
          m_SwapChainImages.emplace_back(m_Device, image, m_Format, m_Extent);
       }
-   }
 
+      // You put hacks in VulkanPipeline that depend on there being exactly 2 swap chain images...
+      // E.g. VulkanPipeline::CreateDescriptorSets()
+      PKZL_CORE_ASSERT(swapChainImages.size() == 2, "Pikzel::VulkanPipeline expects there to be exactly 2 swapchain images!");
+   }
+   
 
    void VulkanWindowGC::DestroySwapChain(vk::SwapchainKHR& swapChain) {
       if (m_Device && swapChain) {
@@ -819,9 +832,18 @@ namespace Pikzel {
       m_WantResize = false;
    }
 
+
    void VulkanWindowGC::OnWindowResize(const WindowResizeEvent& event) {
       if (event.Sender == m_Window) {
          m_WantResize = true;
+      }
+   }
+
+
+   void VulkanWindowGC::OnWindowVSyncChanged(const WindowVSyncChangedEvent& event) {
+      if (event.Sender == m_Window) {
+         m_IsVSync = event.IsVSync;
+         m_WantResize = true; // force swapchain recreate
       }
    }
 
