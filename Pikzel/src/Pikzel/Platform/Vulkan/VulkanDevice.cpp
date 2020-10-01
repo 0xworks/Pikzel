@@ -61,6 +61,7 @@ namespace Pikzel {
    void* VulkanDevice::GetRequiredPhysicalDeviceFeaturesEXT() const {
       static vk::PhysicalDeviceDescriptorIndexingFeatures indexingFeatures;
       indexingFeatures.descriptorBindingUniformBufferUpdateAfterBind = 1;
+      indexingFeatures.descriptorBindingSampledImageUpdateAfterBind = 1;
       return &indexingFeatures;
    }
 

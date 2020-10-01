@@ -8,16 +8,17 @@
 
 #include <filesystem>
 
-class Materials final : public Pikzel::Application {
+class LightingMaps final : public Pikzel::Application {
 public:
-   Materials(int argc, const char* argv[])
-   : Pikzel::Application {{.Title = "Materials Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}}}
+   LightingMaps(int argc, const char* argv[])
+   : Pikzel::Application {{.Title = "Lighting Maps Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
       m_bindir.remove_filename();
       CreateVertexBuffer();
       CreateIndexBuffer();
+      CreateTextures();
       CreateUniformBuffers();
       CreatePipelines();
 
@@ -63,16 +64,18 @@ public:
 
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       {
-         Pikzel::GCBinder bindPipeline {gc, *m_PipelineLight};
+         gc.Bind(*m_PipelineLight);
          glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), glm::vec3 {m_LightPos}), {0.2f, 0.2f, 0.2f});
          gc.PushConstant("constants.mvp"_hs, projView * model);
          gc.PushConstant("constants.lightColor"_hs, m_LightColor);
          gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
       }
       {
-         Pikzel::GCBinder bindPipeline {gc, *m_PipelineLighting};
-         Pikzel::GCBinder bindMaterials {gc, *m_MaterialBuffer, "Materials"_hs};
-         Pikzel::GCBinder bindLights {gc, *m_LightBuffer, "Lights"_hs};
+         gc.Bind(*m_PipelineLighting);
+         gc.Bind(*m_DiffuseTexture, "diffuseMap"_hs);
+         gc.Bind(*m_SpecularTexture, "specularMap"_hs);
+         gc.Bind(*m_MaterialBuffer, "Materials"_hs);
+         gc.Bind(*m_LightBuffer, "Lights"_hs);
 
          glm::mat4 model = glm::identity<glm::mat4>();
          glm::mat4 modelInvTrans = glm::transpose(glm::inverse(model));
@@ -91,57 +94,59 @@ private:
    struct Vertex {
       glm::vec3 Pos;
       glm::vec3 Normal;
+      glm::vec2 TexCoord;
    };
 
    void CreateVertexBuffer() {
       Vertex vertices[] = {
-         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}},
-         {.Pos{ 0.5f, -0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}},
-         {.Pos{ 0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}},
-         {.Pos{ 0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}},
-         {.Pos{-0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}},
-         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}},
+         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}, .TexCoord{0.0f, 0.0f}},
+         {.Pos{ 0.5f, -0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}, .TexCoord{1.0f, 1.0f}},
+         {.Pos{ 0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}, .TexCoord{1.0f, 1.0f}},
+         {.Pos{-0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}, .TexCoord{0.0f, 1.0f}},
+         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}, .TexCoord{0.0f, 0.0f}},
 
-         {.Pos{-0.5f, -0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}},
-         {.Pos{ 0.5f, -0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}},
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}},
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}},
-         {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}},
-         {.Pos{-0.5f, -0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}},
+         {.Pos{-0.5f, -0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}, .TexCoord{0.0f, 0.0f}},
+         {.Pos{ 0.5f, -0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}, .TexCoord{1.0f, 1.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}, .TexCoord{1.0f, 1.0f}},
+         {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}, .TexCoord{0.0f, 1.0f}},
+         {.Pos{-0.5f, -0.5f,  0.5f}, .Normal{ 0.0f,  0.0f,  1.0f}, .TexCoord{0.0f, 0.0f}},
 
-         {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{-1.0f,  0.0f,  0.0f}},
-         {.Pos{-0.5f,  0.5f, -0.5f}, .Normal{-1.0f,  0.0f,  0.0f}},
-         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{-1.0f,  0.0f,  0.0f}},
-         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{-1.0f,  0.0f,  0.0f}},
-         {.Pos{-0.5f, -0.5f,  0.5f}, .Normal{-1.0f,  0.0f,  0.0f}},
-         {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{-1.0f,  0.0f,  0.0f}},
+         {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{-1.0f,  0.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{-0.5f,  0.5f, -0.5f}, .Normal{-1.0f,  0.0f,  0.0f}, .TexCoord{1.0f, 1.0f}},
+         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{-1.0f,  0.0f,  0.0f}, .TexCoord{0.0f, 1.0f}},
+         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{-1.0f,  0.0f,  0.0f}, .TexCoord{0.0f, 1.0f}},
+         {.Pos{-0.5f, -0.5f,  0.5f}, .Normal{-1.0f,  0.0f,  0.0f}, .TexCoord{0.0f, 0.0f}},
+         {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{-1.0f,  0.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
 
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}},
-         {.Pos{ 0.5f,  0.5f, -0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}},
-         {.Pos{ 0.5f, -0.5f, -0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}},
-         {.Pos{ 0.5f, -0.5f, -0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}},
-         {.Pos{ 0.5f, -0.5f,  0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}},
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f, -0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}, .TexCoord{1.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f, -0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}, .TexCoord{0.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f, -0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}, .TexCoord{0.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f,  0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}, .TexCoord{0.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 1.0f,  0.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
 
-         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}},
-         {.Pos{ 0.5f, -0.5f, -0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}},
-         {.Pos{ 0.5f, -0.5f,  0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}},
-         {.Pos{ 0.5f, -0.5f,  0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}},
-         {.Pos{-0.5f, -0.5f,  0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}},
-         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}},
+         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}, .TexCoord{0.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f, -0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}, .TexCoord{1.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f,  0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{ 0.5f, -0.5f,  0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{-0.5f, -0.5f,  0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}, .TexCoord{0.0f, 0.0f}},
+         {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f, -1.0f,  0.0f}, .TexCoord{0.0f, 1.0f}},
 
-         {.Pos{-0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}},
-         {.Pos{ 0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}},
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}},
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}},
-         {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}},
-         {.Pos{-0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}}
+         {.Pos{-0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}, .TexCoord{0.0f, 1.0f}},
+         {.Pos{ 0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}, .TexCoord{1.0f, 1.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}, .TexCoord{0.0f, 0.0f}},
+         {.Pos{-0.5f,  0.5f, -0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}, .TexCoord{0.0f, 1.0f}}
       };
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
       m_VertexBuffer->SetLayout({
          { "inPos",      Pikzel::DataType::Vec3 },
          { "inNormal",   Pikzel::DataType::Vec3 },
+         { "inTexCoord", Pikzel::DataType::Vec2 },
       });
    }
 
@@ -166,10 +171,13 @@ private:
    }
 
 
+   void CreateTextures() {
+      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture2D(m_bindir / "Assets/Textures/Diffuse.png");
+      m_SpecularTexture = Pikzel::RenderCore::CreateTexture2D(m_bindir / "Assets/Textures/Specular.png");
+   }
+
+
    struct Material {
-      alignas(16) glm::vec3 Ambient;
-      alignas(16) glm::vec3 Diffuse;
-      alignas(16) glm::vec3 Specular;
       alignas(4)  float Shininess;
    };
 
@@ -186,7 +194,7 @@ private:
 
    void CreateUniformBuffers() {
       Material materials[] = {
-         {.Ambient{1.0f, 0.5f, 0.31f}, .Diffuse{1.0f, 0.5f, 0.31f}, .Specular{0.5f, 0.5f, 0.5f}, .Shininess{32.0f}}
+         {.Shininess{32.0f}}
       };
       m_MaterialBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(materials), materials);
 
@@ -230,6 +238,8 @@ private:
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
+   std::unique_ptr<Pikzel::Texture2D> m_DiffuseTexture;
+   std::unique_ptr<Pikzel::Texture2D> m_SpecularTexture;
    std::unique_ptr<Pikzel::UniformBuffer> m_MaterialBuffer;
    std::unique_ptr<Pikzel::UniformBuffer> m_LightBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLight;
@@ -245,5 +255,5 @@ std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const c
    PKZL_LOG_INFO("DEBUG build");
 #endif
 
-   return std::make_unique<Materials>(argc, argv);
+   return std::make_unique<LightingMaps>(argc, argv);
 }

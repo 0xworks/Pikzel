@@ -103,7 +103,7 @@ namespace Pikzel {
          uint32_t dimension = type.image.dim;
 
          PKZL_CORE_LOG_TRACE("Found image sampler at set {0}, binding {1} with name '{2}', dimension is {3}", set, binding, name, dimension);
-         m_SamplerBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_UniformBufferBindingMap.size()));
+         m_SamplerBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_SamplerBindingMap.size()));
 
          uint32_t openGLBinding = m_SamplerBindingMap.at({set, binding});
          compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
