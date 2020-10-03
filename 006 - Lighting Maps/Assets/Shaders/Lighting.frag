@@ -36,5 +36,5 @@ void main() {
    vec4 reflectDir = reflect(-lightDir, inNormal);
    float specular = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 
-   outFragColor = vec4(((light.diffuse * diffuse) + light.ambient) * vec3(texture(diffuseMap, inTexCoords)) + (specular * vec3(texture(specularMap, inTexCoords)) * light.specular), 1.0f);
+   outFragColor = vec4(((light.diffuse * diffuse) + light.ambient) * vec3(texture(diffuseMap, inTexCoords)) + (specular * vec3(texture(specularMap, inTexCoords)) * light.specular), 1.0);
 }

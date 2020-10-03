@@ -75,7 +75,7 @@ public:
          Pikzel::GCBinder bindLights {gc, *m_LightBuffer, "Lights"_hs};
 
          glm::mat4 model = glm::identity<glm::mat4>();
-         glm::mat4 modelInvTrans = glm::transpose(glm::inverse(model));
+         glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
          gc.PushConstant("constants.vp"_hs, projView);
          gc.PushConstant("constants.model"_hs, model);
          gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
