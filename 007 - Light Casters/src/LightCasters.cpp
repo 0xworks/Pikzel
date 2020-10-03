@@ -8,10 +8,10 @@
 
 #include <filesystem>
 
-class LightingMaps final : public Pikzel::Application {
+class LightCasters final : public Pikzel::Application {
 public:
-   LightingMaps(int argc, const char* argv[])
-   : Pikzel::Application {{.Title = "Lighting Maps Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}}}
+   LightCasters(int argc, const char* argv[])
+   : Pikzel::Application {{.Title = "Light Casters Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}, .IsVSync = false}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
@@ -54,6 +54,40 @@ public:
          m_CameraDirection = glm::rotate(m_CameraDirection, dPitchRadians, right);
          m_CameraUp = glm::rotate(m_CameraUp, dPitchRadians, right);
       }
+
+      Light light = {
+         .Position = m_CameraPos,
+         .Direction = m_CameraDirection,
+         .CutOff = glm::cos(glm::radians(12.5f)),
+         .Ambient = {0.1f, 0.1f, 0.1f},
+         .Diffuse = {1.0f, 1.0f, 1.0f},
+         .Specular = {1.0f, 1.0f, 1.0f},
+         .Constant = 1.0f,
+         .Linear = 0.09f,
+         .Quadratic = 0.032f
+      };
+
+      // Note: This has quite an impact on framerate.
+      // Because after submitting the request to copy the buffer, it blocks until the GPU is idle.
+      // This completely undoes your attempt to be "clever" in the renderer by having multiple frames "in-flight" at once.
+      // e.g. you will no longer be queuing up work into one command buffer while another command buffer is being rendered.
+      // why?
+      // because it goes like this:
+      //
+      //    1 update uniform buffer here  (wait for GPU to finish)
+      //    2 record command buffer A (on CPU)
+      //    3 submit command buffer A (to GPU graphics queue)
+      //    4 present command buffer A (to GPU present queue)
+      //    5 update uniform buffer  (wait for GPU to finish)
+      //    6 record command buffer B (on CPU)
+      //    7 submit command buffer B (to GPU graphics queue)
+      //    8 present command buffer B (to GPU present queue)
+      //    9 goto 1
+      //
+      // Because step 5 waits for the GPU, we don't start doing 6 until 3 and 4 (as well as the uniform buffer copy) have finished.
+      // i.e effectively there is only one frame "in flight" at once.
+      //
+      m_LightBuffer->CopyFromHost(0, sizeof(Light), &light);
    }
 
 
@@ -64,27 +98,22 @@ public:
 
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       {
-         gc.Bind(*m_PipelineLight);
-         glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), glm::vec3 {m_LightPos}), {0.2f, 0.2f, 0.2f});
-         gc.PushConstant("constants.mvp"_hs, projView * model);
-         gc.PushConstant("constants.lightColor"_hs, m_LightColor);
-         gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
-      }
-      {
          gc.Bind(*m_PipelineLighting);
          gc.Bind(*m_DiffuseTexture, "diffuseMap"_hs);
          gc.Bind(*m_SpecularTexture, "specularMap"_hs);
          gc.Bind(*m_MaterialBuffer, "Materials"_hs);
          gc.Bind(*m_LightBuffer, "Lights"_hs);
 
-         glm::mat4 model = glm::identity<glm::mat4>();
-         glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
          gc.PushConstant("constants.vp"_hs, projView);
-         gc.PushConstant("constants.model"_hs, model);
-         gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
          gc.PushConstant("constants.viewPos"_hs, m_CameraPos);
 
-         gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+         for (int i = 0; i < 10; ++i) {
+            glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
+            glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
+            gc.PushConstant("constants.model"_hs, model);
+            gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
+            gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+         }
       }
    }
 
@@ -184,35 +213,28 @@ private:
 
    struct Light {
       alignas(16) glm::vec3 Position;
+      alignas(16) glm::vec3 Direction;
+      alignas(4) float CutOff;
       alignas(16) glm::vec3 Ambient;
       alignas(16) glm::vec3 Diffuse;
       alignas(16) glm::vec3 Specular;
+      alignas(4) float Constant;
+      alignas(4) float Linear;
+      alignas(4) float Quadratic;
+
    };
 
-   constexpr static glm::vec3 m_LightPos = {1.2f, 1.0f, 2.0f};
-   constexpr static glm::vec3 m_LightColor = {1.0f, 1.0f, 1.0f};
 
    void CreateUniformBuffers() {
       Material materials[] = {
          {.Shininess{32.0f}}
       };
       m_MaterialBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(materials), materials);
-
-      Light lights[] = {
-         {.Position{m_LightPos}, .Ambient{0.1f, 0.1f, 0.1f}, .Diffuse{m_LightColor}, .Specular{m_LightColor}}
-      };
-      m_LightBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(lights), lights);
+      m_LightBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(Light));
    }
 
 
    void CreatePipelines() {
-      m_PipelineLight = GetWindow().GetGraphicsContext().CreatePipeline({
-         *m_VertexBuffer,
-         {
-            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Light.vert.spv" },
-            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Light.frag.spv" }
-         }
-      });
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
          *m_VertexBuffer,
          {
@@ -224,6 +246,20 @@ private:
 
 
 private:
+
+   std::vector<glm::vec3> m_CubePositions = {
+       glm::vec3(0.0f,  0.0f,  0.0f),
+       glm::vec3(2.0f,  5.0f, -15.0f),
+       glm::vec3(-1.5f, -2.2f, -2.5f),
+       glm::vec3(-3.8f, -2.0f, -12.3f),
+       glm::vec3(2.4f, -0.4f, -3.5f),
+       glm::vec3(-1.7f,  3.0f, -7.5f),
+       glm::vec3(1.3f, -2.0f, -2.5f),
+       glm::vec3(1.5f,  2.0f, -2.5f),
+       glm::vec3(1.5f,  0.2f, -1.5f),
+       glm::vec3(-1.3f,  1.0f, -1.5f)
+   };
+
    Pikzel::Input m_Input;
    std::filesystem::path m_bindir;
 
@@ -242,7 +278,6 @@ private:
    std::unique_ptr<Pikzel::Texture2D> m_SpecularTexture;
    std::unique_ptr<Pikzel::UniformBuffer> m_MaterialBuffer;
    std::unique_ptr<Pikzel::UniformBuffer> m_LightBuffer;
-   std::unique_ptr<Pikzel::Pipeline> m_PipelineLight;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLighting;
 
 };
@@ -255,5 +290,5 @@ std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const c
    PKZL_LOG_INFO("DEBUG build");
 #endif
 
-   return std::make_unique<LightingMaps>(argc, argv);
+   return std::make_unique<LightCasters>(argc, argv);
 }
