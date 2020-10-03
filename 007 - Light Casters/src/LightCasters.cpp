@@ -14,6 +14,17 @@ public:
    : Pikzel::Application {{.Title = "Light Casters Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}, .IsVSync = false}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
+   , m_Light {
+      .Position = m_CameraPos,
+      .Direction = m_CameraDirection,
+      .CutOff = glm::cos(glm::radians(12.5f)),
+      .Ambient = {0.1f, 0.1f, 0.1f},
+      .Diffuse = {1.0f, 1.0f, 1.0f},
+      .Specular = {1.0f, 1.0f, 1.0f},
+      .Constant = 1.0f,
+      .Linear = 0.09f,
+      .Quadratic = 0.032f
+   }
    {
       m_bindir.remove_filename();
       CreateVertexBuffer();
@@ -55,39 +66,8 @@ public:
          m_CameraUp = glm::rotate(m_CameraUp, dPitchRadians, right);
       }
 
-      Light light = {
-         .Position = m_CameraPos,
-         .Direction = m_CameraDirection,
-         .CutOff = glm::cos(glm::radians(12.5f)),
-         .Ambient = {0.1f, 0.1f, 0.1f},
-         .Diffuse = {1.0f, 1.0f, 1.0f},
-         .Specular = {1.0f, 1.0f, 1.0f},
-         .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
-      };
-
-      // Note: This has quite an impact on framerate.
-      // Because after submitting the request to copy the buffer, it blocks until the GPU is idle.
-      // This completely undoes your attempt to be "clever" in the renderer by having multiple frames "in-flight" at once.
-      // e.g. you will no longer be queuing up work into one command buffer while another command buffer is being rendered.
-      // why?
-      // because it goes like this:
-      //
-      //    1 update uniform buffer here  (wait for GPU to finish)
-      //    2 record command buffer A (on CPU)
-      //    3 submit command buffer A (to GPU graphics queue)
-      //    4 present command buffer A (to GPU present queue)
-      //    5 update uniform buffer  (wait for GPU to finish)
-      //    6 record command buffer B (on CPU)
-      //    7 submit command buffer B (to GPU graphics queue)
-      //    8 present command buffer B (to GPU present queue)
-      //    9 goto 1
-      //
-      // Because step 5 waits for the GPU, we don't start doing 6 until 3 and 4 (as well as the uniform buffer copy) have finished.
-      // i.e effectively there is only one frame "in flight" at once.
-      //
-      m_LightBuffer->CopyFromHost(0, sizeof(Light), &light);
+      m_Light.Position = m_CameraPos;
+      m_Light.Direction = m_CameraDirection;
    }
 
 
@@ -95,6 +75,11 @@ public:
       PKZL_PROFILE_FUNCTION();
 
       glm::mat4 projView = m_Projection * glm::lookAt(m_CameraPos, m_CameraPos + m_CameraDirection, m_CameraUp);
+   
+      // I think there is a data race here (but nothing bad seems to happen ??)
+      // How can we be sure that the commands submitted to the GPU for the previous frame have finished with light buffer
+      // before we go copying in the new values?
+      m_LightBuffer->CopyFromHost(0, sizeof(Light), &m_Light);
 
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       {
@@ -271,6 +256,8 @@ private:
    float m_CameraFoV = 45.0f;
 
    glm::mat4 m_Projection = glm::identity<glm::mat4>();
+
+   Light m_Light;
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
