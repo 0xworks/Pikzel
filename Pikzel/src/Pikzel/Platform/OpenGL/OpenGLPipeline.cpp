@@ -68,6 +68,18 @@ namespace Pikzel {
       spirv_cross::ShaderResources resources = compiler.get_shader_resources();
       for (const auto& resource : resources.uniform_buffers) {
          const auto& name = resource.name;
+         const auto& type = compiler.get_type(resource.type_id);
+         if (type.array.size() > 0) {
+            //
+            // arrays are not currently supported.
+            // but if you're interested, you can find out array dimensions as follows:
+            // const auto& type = compiler.get_type(resource.type);
+            // const auto dimensions = type.array.size();  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
+            // for(auto dim=0; dim<dimensions; ++dim) {
+            //    const auto len = type.array[dim];  // size of [dim]th dimension of the array
+            // }
+            throw std::runtime_error(fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+         }
 
          uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
          uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
@@ -82,7 +94,7 @@ namespace Pikzel {
          const entt::id_type id = entt::hashed_string(name.data());
          const auto sampler = m_SamplerResources.find(id);
          if (sampler != m_SamplerResources.end()) {
-            throw std::runtime_error(fmt::format("shader resource name '{0}' is ambiguous.  Could be uniform buffer, or texture sampler!", name));
+            throw std::runtime_error(fmt::format("Shader resource name '{0}' is ambiguous.  Could be uniform buffer, or texture sampler!", name));
          }
          const auto ubo = m_UniformBufferResources.find(id);
          if (ubo == m_UniformBufferResources.end()) {
@@ -90,13 +102,13 @@ namespace Pikzel {
          } else {
             // already seen this name, check that binding is the same
             if (ubo->second.Binding != openGLBinding) {
-               throw std::runtime_error(fmt::format("shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name));
+               throw std::runtime_error(fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name));
             }
          }
       }
 
       for (const auto& resource : resources.sampled_images) {
-         auto& type = compiler.get_type(resource.base_type_id);
+         const auto& type = compiler.get_type(resource.base_type_id);
          const auto& name = resource.name;
          uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
          uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
@@ -112,7 +124,7 @@ namespace Pikzel {
          const entt::id_type id = entt::hashed_string(name.data());
          const auto ubo = m_UniformBufferResources.find(id);
          if (ubo != m_UniformBufferResources.end()) {
-            throw std::runtime_error(fmt::format("shader resource name '{0}'is ambiguous.  Could be uniform buffer, or texture sampler!", name));
+            throw std::runtime_error(fmt::format("Shader resource name '{0}'is ambiguous.  Could be uniform buffer, or texture sampler!", name));
          }
          const auto sampler = m_SamplerResources.find(id);
          if (sampler == m_SamplerResources.end()) {
@@ -120,7 +132,7 @@ namespace Pikzel {
          } else {
             // already seen this name, check that binding is the same
             if (sampler->second.Binding != openGLBinding) {
-               throw std::runtime_error(fmt::format("shader resource name '{0}' is ambiguous.  Refers to different texture samplers!", name));
+               throw std::runtime_error(fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different texture samplers!", name));
             }
          }
       }
