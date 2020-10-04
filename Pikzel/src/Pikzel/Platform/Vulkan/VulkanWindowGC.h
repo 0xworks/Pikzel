@@ -125,7 +125,6 @@ namespace Pikzel {
       std::vector<vk::Semaphore> m_ImageAvailableSemaphores;
       std::vector<vk::Semaphore> m_RenderFinishedSemaphores;
       std::vector<vk::Fence> m_InFlightFences;
-      std::vector<vk::Fence> m_ImagesInFlight;
 
       bool m_IsVSync = false;
       bool m_WantResize = false;

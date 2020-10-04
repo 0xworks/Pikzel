@@ -69,24 +69,14 @@ namespace Pikzel {
             throw std::runtime_error("failed to acquire swap chain image!");
          }
 
-         // acquireNextImage returns as soon as it has decided which image is the next one.
-         // That doesn't necessarily mean the image is available for either the CPU or the GPU to start doing stuff to it,
-         // it's just that we now know which image is *going to be* the next one.
-         // The semaphore that was passed in gets signaled when the image really is available (so need to tell the GPU to wait on that semaphore
-         // before doing anything to the image).
-         //
-         // The CPU also needs to wait.. but on what?
-         // That's where our in flight fences come in.  If we know which frame it was that last used this image, then we wait on that frame's fence before
-         // queuing up more stuff for the image.
          m_CurrentImage = rv.value;
          PKZL_PROFILE_SETVALUE(m_CurrentImage);
       }
 
-      if (m_ImagesInFlight[m_CurrentImage]) {
-         m_Device->GetVkDevice().waitForFences(m_ImagesInFlight[m_CurrentImage], true, UINT64_MAX);
-      }
-      // Mark the image as now being in use by this frame
-      m_ImagesInFlight[m_CurrentImage] = m_InFlightFences[m_CurrentFrame];
+      // Wait until we know GPU has finished with the command buffer we are about to use...
+      // Note that m_CurrentFrame and m_CurrentImage are not necessarily equal (particularly if we have, say, 3 swap chain images, and 2 frames-in-flight)
+      // However, we know that the GPU has finished with m_CurrentImage'th command buffer so long as the m_CurrentFrame'th fence is signaled
+      m_Device->GetVkDevice().waitForFences(m_InFlightFences[m_CurrentFrame], true, UINT64_MAX);
 
       vk::CommandBufferBeginInfo commandBufferBI = {
          vk::CommandBufferUsageFlagBits::eSimultaneousUse
@@ -782,7 +772,6 @@ namespace Pikzel {
       m_ImageAvailableSemaphores.reserve(m_MaxFramesInFlight);
       m_RenderFinishedSemaphores.reserve(m_MaxFramesInFlight);
       m_InFlightFences.reserve(m_MaxFramesInFlight);
-      m_ImagesInFlight.resize(m_SwapChainImages.size(), nullptr);
 
       vk::FenceCreateInfo ci = {
          {vk::FenceCreateFlagBits::eSignaled}
@@ -812,7 +801,6 @@ namespace Pikzel {
             m_Device->GetVkDevice().destroy(fence);
          }
          m_InFlightFences.clear();
-         m_ImagesInFlight.clear();
       }
    }
 
