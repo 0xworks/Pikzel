@@ -65,9 +65,7 @@ namespace Pikzel {
    }
 
 
-   void OpenGLGraphicsContext::Unbind(const UniformBuffer&) {
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-   }
+   void OpenGLGraphicsContext::Unbind(const UniformBuffer&) {}
 
 
    void OpenGLGraphicsContext::Bind(const Texture2D& texture, const entt::id_type resourceId) {
@@ -75,9 +73,7 @@ namespace Pikzel {
    }
 
 
-   void OpenGLGraphicsContext::Unbind(const Texture2D&) {
-      glBindTextureUnit(0, 0);
-   }
+   void OpenGLGraphicsContext::Unbind(const Texture2D&) {}
 
 
    void OpenGLGraphicsContext::Bind(const Pipeline& pipeline) {
