@@ -1,40 +1,6 @@
 #include "ShaderUtil.h"
-#include "Pikzel/Core/Utility.h"
-
-#include <shaderc/shaderc.hpp>
 
 namespace Pikzel {
-
-   static shaderc_target_env APItoShaderCTarget(const RenderCore::API api) {
-      switch (api) {
-         case RenderCore::API::OpenGL: return shaderc_target_env_opengl_compat;
-         case RenderCore::API::Vulkan: return shaderc_target_env_vulkan;
-      }
-      PKZL_CORE_ASSERT(false, "Unsupported RenderCore::API!");
-      return shaderc_target_env_default;
-   }
-
-
-   static uint32_t APItoShaderCEnvVersion(const RenderCore::API api) {
-      switch (api) {
-         case RenderCore::API::OpenGL: return shaderc_env_version_opengl_4_5;
-         case RenderCore::API::Vulkan: return shaderc_env_version_vulkan_1_2;
-      }
-      PKZL_CORE_ASSERT(false, "Unsupported RenderCore::API!");
-      return 0;
-   }
-
-
-   static shaderc_shader_kind ShaderTypeToShaderCType(const ShaderType type) {
-      switch (type) {
-         case ShaderType::Vertex:   return shaderc_glsl_default_vertex_shader;
-         case ShaderType::Fragment: return shaderc_glsl_default_fragment_shader;
-      }
-
-      PKZL_CORE_ASSERT(false, "Unknown ShaderType!");
-      return shaderc_glsl_default_vertex_shader;
-   }
-
 
    DataType SPIRTypeToDataType(const spirv_cross::SPIRType type) {
       switch (type.basetype) {
@@ -119,27 +85,6 @@ namespace Pikzel {
       }
       PKZL_CORE_ASSERT(false, "Unknown type!");
       return DataType::None;
-   }
-
-
-   std::vector<uint32_t> CompileGlslToSpv(RenderCore::API api, const ShaderType type, const std::filesystem::path path) {
-      PKZL_CORE_LOG_TRACE("Compiling shader '" + path.string() + "'...");
-      std::vector<char> src = ReadFile(path, /*readAsBinary=*/true);
-      return CompileGlslToSpv(api, type, path, src.data(), src.size());
-   }
-
-
-   std::vector<uint32_t> CompileGlslToSpv(RenderCore::API api, const ShaderType type, const std::filesystem::path path, const char* source, size_t size) {
-      shaderc::Compiler compiler;
-      shaderc::CompileOptions options;
-      options.SetTargetEnvironment(APItoShaderCTarget(api), APItoShaderCEnvVersion(api));
-      //options.SetOptimizationLevel(shaderc_optimization_level_performance);
-      shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, size, ShaderTypeToShaderCType(type), path.string().c_str(), options);
-      if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
-         PKZL_CORE_LOG_ERROR("{0}", module.GetErrorMessage());
-         throw std::runtime_error("Shader compilation failure!");
-      }
-      return std::vector<uint32_t> {module.cbegin(), module.cend()};
    }
 
 }

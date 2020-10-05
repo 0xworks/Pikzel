@@ -498,33 +498,30 @@ namespace Pikzel {
 
       spirv_cross::CompilerGLSL compiler(src);
       ParsePushConstants(compiler);
-
       ParseResourceBindings(compiler);
-
       std::string glsl = compiler.compile();
-      m_ShaderIds.emplace_back(glCreateShader(ShaderTypeToOpenGLType(type)));
-      m_ShaderSrcs.emplace_back(CompileGlslToSpv(RenderCore::API::OpenGL, type, "spirv-cross", glsl.data(), glsl.size()));
 
-      GLuint shaderId = m_ShaderIds.back();
-      std::vector<uint32_t>& srcOpenGL = m_ShaderSrcs.back();
-      
-      glShaderBinary(1, &shaderId, GL_SHADER_BINARY_FORMAT_SPIR_V, srcOpenGL.data(), static_cast<GLsizei>(srcOpenGL.size() * sizeof(uint32_t)));
-      glSpecializeShader(shaderId, "main", 0, nullptr, nullptr);
+      GLuint shader = glCreateShader(ShaderTypeToOpenGLType(type));
+      const GLchar* srcC = glsl.data();
+      glShaderSource(shader, 1, &srcC, nullptr);
+      glCompileShader(shader);
 
       GLint isCompiled = 0;
-      glGetShaderiv(shaderId, GL_COMPILE_STATUS, &isCompiled);
+      glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
       if (isCompiled == GL_FALSE) {
          GLint maxLength = 0;
-         glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &maxLength);
+         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
 
          std::vector<GLchar> infoLog(maxLength);
-         glGetShaderInfoLog(shaderId, maxLength, &maxLength, &infoLog[0]);
+         glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
 
-         glDeleteShader(shaderId);
+         glDeleteShader(shader);
 
          PKZL_CORE_LOG_ERROR("{0}", infoLog.data());
          throw std::runtime_error("Shader compilation failure!");
       }
+
+      m_ShaderIds.emplace_back(shader);
    }
 
 
