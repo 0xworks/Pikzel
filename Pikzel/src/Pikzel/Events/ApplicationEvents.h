@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 namespace Pikzel {
 
    using DeltaTime = std::chrono::duration<float, std::chrono::seconds::period>;
