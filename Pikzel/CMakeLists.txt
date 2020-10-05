@@ -1,9 +1,8 @@
 ﻿cmake_minimum_required(VERSION 3.16)
 
 # Currently the Vulkan package is required, even if you are only going to use the OpenGL rendering backend
-# Because we are using shaderc and SPIRV-cross shipped with the Vulkan SDK (rather than trying to build
-# those things + dependencies ourselves)
-# TODO: use an independent copy of shaderc / SPIRV-cross so that if you are building for OpenGL then you do not
+# Because we are using SPIRV-cross shipped with the Vulkan SDK (rather than trying to build that (+dependencies) ourselves)
+# TODO: use an independent copy of SPIRV-cross so that if you are building for OpenGL then you do not
 #       need the Vulkan SDK to be installed
 find_package(Vulkan REQUIRED)
 
@@ -61,7 +60,7 @@ if(WIN32)
    )
 endif()
 
-# Vulkan include path needed because that is where shaderc is.  TODO: improve this situation
+# Vulkan include path needed because that is where SpirV-cross is.  TODO: improve this situation
 set(
    ProjectIncludes
    "src"
@@ -71,7 +70,6 @@ set(
    "vendor/imgui"
    "vendor/spdlog/include"
    "vendor/stb"
-   "vendor/tinyobjloader"
    "vendor/tracy"
    ${Vulkan_INCLUDE_DIRS}
 )
@@ -101,9 +99,8 @@ set(
    ProjectLibs
    "glfw"
    "glm"
-   #"PlatformOpenGL"
-   "PlatformVulkan"
-   "shaderc_combined$<$<CONFIG:Debug>:d>"
+   "PlatformOpenGL"
+   #"PlatformVulkan"
    "spirv-cross-core$<$<CONFIG:Debug>:d>"
    "spirv-cross-glsl$<$<CONFIG:Debug>:d>"
 )
@@ -139,7 +136,7 @@ if(MSVC)
    )
 endif()
 
-# Vulkan lib path needed because that is where shaderc is.  TODO: improve this situation
+# Vulkan lib path needed because that is where spirv-cross is.  TODO: improve this situation
 target_link_directories(
    ${PROJECT_NAME} PUBLIC
    "$ENV{VULKAN_SDK}/lib"
