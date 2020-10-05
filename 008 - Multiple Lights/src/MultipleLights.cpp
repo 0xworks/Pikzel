@@ -1,10 +1,9 @@
+#include "Camera.h"
+
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
 
 #include <filesystem>
 
@@ -22,45 +21,23 @@ public:
       CreateUniformBuffers();
       CreatePipelines();
 
-      m_Projection = glm::perspective(glm::radians(45.0f), static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 100.0f);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 100.0f);
    }
 
 
    virtual void Update(const Pikzel::DeltaTime deltaTime) override {
       PKZL_PROFILE_FUNCTION();
-
-      constexpr float cameraSpeed = 2.5f;
-
       if (m_Input.IsKeyPressed(Pikzel::KeyCode::Escape)) {
          Exit();
       }
-
-      float dx = m_Input.GetAxis("X"_hs) * deltaTime.count() * cameraSpeed;
-      float dy = m_Input.GetAxis("Y"_hs) * deltaTime.count() * cameraSpeed;
-      float dz = m_Input.GetAxis("Z"_hs) * deltaTime.count() * cameraSpeed;
-
-      m_CameraPos += dx * glm::normalize(glm::cross(m_CameraDirection, m_CameraUp));
-      m_CameraPos += dy * m_CameraUp;
-      m_CameraPos += dz * m_CameraDirection;
-
-      if (m_Input.IsMouseButtonPressed(Pikzel::MouseButton::Right)) {
-         float dYawRadians = glm::radians(m_Input.GetAxis("MouseX"_hs) * deltaTime.count() * cameraSpeed);
-         float dPitchRadians = glm::radians(m_Input.GetAxis("MouseY"_hs) * deltaTime.count() * cameraSpeed);
-
-         m_CameraDirection = glm::rotateY(m_CameraDirection, -dYawRadians);
-         m_CameraUp = glm::rotateY(m_CameraUp, dYawRadians);
-
-         glm::vec3 right = glm::cross(m_CameraDirection, m_CameraUp);
-         m_CameraDirection = glm::rotate(m_CameraDirection, dPitchRadians, right);
-         m_CameraUp = glm::rotate(m_CameraUp, dPitchRadians, right);
-      }
+      m_Camera.Update(m_Input, deltaTime);
    }
 
 
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
 
-      glm::mat4 projView = m_Projection * glm::lookAt(m_CameraPos, m_CameraPos + m_CameraDirection, m_CameraUp);
+      glm::mat4 projView = m_Camera.Projection * glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
 
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       {
@@ -81,7 +58,7 @@ public:
          gc.Bind(*m_PointLightBuffer, "UBOPointLights"_hs);
 
          gc.PushConstant("constants.vp"_hs, projView);
-         gc.PushConstant("constants.viewPos"_hs, m_CameraPos);
+         gc.PushConstant("constants.viewPos"_hs, m_Camera.Position);
 
          for (int i = 0; i < 10; ++i) {
             glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
@@ -152,7 +129,7 @@ private:
          { "inPos",      Pikzel::DataType::Vec3 },
          { "inNormal",   Pikzel::DataType::Vec3 },
          { "inTexCoord", Pikzel::DataType::Vec2 },
-         });
+      });
    }
 
 
@@ -291,14 +268,7 @@ private:
    Pikzel::Input m_Input;
    std::filesystem::path m_bindir;
 
-   glm::vec3 m_CameraPos {0.0f, 0.0f, 3.0f};
-   glm::vec3 m_CameraDirection = {0.0f, 0.0f, -1.0f};
-   glm::vec3 m_CameraUp = {0.0f, 1.0f, 0.0f};
-   float m_CameraPitch = 0.0f;
-   float m_CameraYaw = -90.0f;
-   float m_CameraFoV = 45.0f;
-
-   glm::mat4 m_Projection = glm::identity<glm::mat4>();
+   Camera m_Camera;
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::IndexBuffer> m_IndexBuffer;

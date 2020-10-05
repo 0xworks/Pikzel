@@ -8,6 +8,8 @@ project (
 
 set(
    ProjectSources
+   "src/Camera.h"
+   "src/Camera.cpp"
    "src/MultipleLights.cpp"
 )
 
