@@ -39,18 +39,18 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::Bind(const VertexBuffer& buffer) {
-      const OpenGLVertexBuffer& glVertexBuffer = reinterpret_cast<const OpenGLVertexBuffer&>(buffer);
-      glBindBuffer(GL_ARRAY_BUFFER, glVertexBuffer.GetRendererId());
+      const OpenGLVertexBuffer& glVertexBuffer = static_cast<const OpenGLVertexBuffer&>(buffer);
+      glBindVertexBuffer(0, glVertexBuffer.GetRendererId(), 0, glVertexBuffer.GetLayout().GetStride());
    }
 
 
    void OpenGLGraphicsContext::Unbind(const VertexBuffer&) {
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glBindVertexBuffer(0, 0, 0, 0);
    }
 
 
    void OpenGLGraphicsContext::Bind(const IndexBuffer& buffer) {
-      const OpenGLIndexBuffer& glIndexBuffer = reinterpret_cast<const OpenGLIndexBuffer&>(buffer);
+      const OpenGLIndexBuffer& glIndexBuffer = static_cast<const OpenGLIndexBuffer&>(buffer);
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIndexBuffer.GetRendererId());
    }
 
@@ -77,7 +77,7 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::Bind(const Pipeline& pipeline) {
-      const OpenGLPipeline& glPipeline = reinterpret_cast<const OpenGLPipeline&>(pipeline);
+      const OpenGLPipeline& glPipeline = static_cast<const OpenGLPipeline&>(pipeline);
       glUseProgram(glPipeline.GetRendererId());
       glBindVertexArray(glPipeline.GetVAORendererId());
       m_Pipeline = const_cast<OpenGLPipeline*>(&glPipeline);

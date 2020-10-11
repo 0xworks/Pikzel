@@ -169,10 +169,9 @@ namespace Pikzel {
 
       glCreateVertexArrays(1, &m_VAORendererId);
       glBindVertexArray(m_VAORendererId);
-      GCBinder bind {gc, settings.VertexBuffer};
 
       GLuint vertexAttributeIndex = 0;
-      for (const auto& element : settings.VertexBuffer.GetLayout()) {
+      for (const auto& element : settings.BufferLayout) {
          switch (element.Type) {
             case DataType::Bool:
             case DataType::Int:
@@ -196,7 +195,8 @@ namespace Pikzel {
             case DataType::DVec4:
             {
                glEnableVertexAttribArray(vertexAttributeIndex);
-               glVertexAttribPointer(vertexAttributeIndex, element.GetComponentCount(), DataTypeToOpenGLType(element.Type), element.Normalized ? GL_TRUE : GL_FALSE, settings.VertexBuffer.GetLayout().GetStride(), (const void*)element.Offset);
+               glVertexAttribFormat(vertexAttributeIndex, element.GetComponentCount(), DataTypeToOpenGLType(element.Type), element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLuint>(element.Offset));
+               glVertexAttribBinding(vertexAttributeIndex, 0);
                ++vertexAttributeIndex;
                break;
             }
@@ -222,8 +222,9 @@ namespace Pikzel {
                uint8_t count = element.GetComponentCount();
                for (uint8_t i = 0; i < count; i++) {
                   glEnableVertexAttribArray(vertexAttributeIndex);
-                  glVertexAttribPointer(vertexAttributeIndex, count, DataTypeToOpenGLType(element.Type), element.Normalized ? GL_TRUE : GL_FALSE, settings.VertexBuffer.GetLayout().GetStride(), (const void*)(sizeof(float) * count * i));
+                  glVertexAttribFormat(vertexAttributeIndex, count, DataTypeToOpenGLType(element.Type), element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLuint>(sizeof(float) * count * i));
                   glVertexAttribDivisor(vertexAttributeIndex, 1);
+                  glVertexAttribBinding(vertexAttributeIndex, 0);
                   ++vertexAttributeIndex;
                }
                break;

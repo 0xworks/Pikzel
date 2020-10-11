@@ -80,7 +80,7 @@ private:
 
    void CreatePipeline() {
       Pikzel::PipelineSettings settings {
-         *m_VertexBuffer,
+         m_VertexBuffer->GetLayout(),
          {
             { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Textured.vert.spv" },
             { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Textured.frag.spv" }

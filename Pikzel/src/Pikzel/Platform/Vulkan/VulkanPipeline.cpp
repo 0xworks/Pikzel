@@ -448,11 +448,11 @@ namespace Pikzel {
       // Specifies the vertex input parameters for a pipeline
       auto bindingDescription = vk::VertexInputBindingDescription {
          0,
-         settings.VertexBuffer.GetLayout().GetStride(),
+         settings.BufferLayout.GetStride(),
          vk::VertexInputRate::eVertex
       };
 
-      auto attributeDescriptions = GetAttributeDescriptions(settings.VertexBuffer.GetLayout());
+      auto attributeDescriptions = GetAttributeDescriptions(settings.BufferLayout);
 
       // Vertex input state used for pipeline creation
       vk::PipelineVertexInputStateCreateInfo vertexInputState = {

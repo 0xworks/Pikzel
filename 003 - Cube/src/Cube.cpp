@@ -159,7 +159,7 @@ private:
 
    void CreatePipeline() {
       Pikzel::PipelineSettings settings {
-         *m_VertexBuffer,
+         m_VertexBuffer->GetLayout(),
          {
             { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Cube.vert.spv" },
             { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Cube.frag.spv" }
