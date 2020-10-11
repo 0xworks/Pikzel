@@ -162,7 +162,7 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::Bind(const VertexBuffer& buffer) {
-      const VulkanVertexBuffer& vulkanVertexBuffer = reinterpret_cast<const VulkanVertexBuffer&>(buffer);
+      const VulkanVertexBuffer& vulkanVertexBuffer = static_cast<const VulkanVertexBuffer&>(buffer);
       m_CommandBuffers[m_CurrentImage].bindVertexBuffers(0, vulkanVertexBuffer.GetVkBuffer(), {0});
    }
 
@@ -171,7 +171,7 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::Bind(const IndexBuffer& buffer) {
-      const VulkanIndexBuffer& vulkanIndexBuffer = reinterpret_cast<const VulkanIndexBuffer&>(buffer);
+      const VulkanIndexBuffer& vulkanIndexBuffer = static_cast<const VulkanIndexBuffer&>(buffer);
       m_CommandBuffers[m_CurrentImage].bindIndexBuffer(vulkanIndexBuffer.GetVkBuffer(), 0, vk::IndexType::eUint32);
    }
 
@@ -179,7 +179,7 @@ namespace Pikzel {
    void VulkanWindowGC::Unbind(const IndexBuffer& buffer) {}
 
 
-   void VulkanWindowGC::Bind(const UniformBuffer& buffer, entt::id_type resourceId) {
+   void VulkanWindowGC::Bind(const UniformBuffer& buffer, const entt::id_type resourceId) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::DescriptorBufferInfo uniformBufferDescriptor = {
@@ -206,7 +206,7 @@ namespace Pikzel {
    void VulkanWindowGC::Unbind(const UniformBuffer&) {}
 
 
-   void VulkanWindowGC::Bind(const Texture2D& texture, entt::id_type resourceId) {
+   void VulkanWindowGC::Bind(const Texture2D& texture, const entt::id_type resourceId) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::DescriptorImageInfo textureImageDescriptor = {
@@ -234,7 +234,7 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::Bind(const Pipeline& pipeline) {
-      const VulkanPipeline& vulkanPipeline = reinterpret_cast<const VulkanPipeline&>(pipeline);
+      const VulkanPipeline& vulkanPipeline = static_cast<const VulkanPipeline&>(pipeline);
       m_CommandBuffers[m_CurrentImage].bindPipeline(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipeline());
       if (!vulkanPipeline.GetVkDescriptorSets(m_CurrentImage).empty()) {
          m_CommandBuffers[m_CurrentImage].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipelineLayout(), 0, vulkanPipeline.GetVkDescriptorSets(m_CurrentImage), nullptr);  // (i)th command buffer is bound to the (i)th set of descriptor sets

@@ -16,7 +16,7 @@ namespace Pikzel {
    };
 
    struct PipelineSettings {
-      const VertexBuffer& VertexBuffer;         // OpenGL needs to bind vertex buffer in order that the pipeline can set the vertex attribute descriptions
+      const BufferLayout& BufferLayout;
       std::vector<std::pair<ShaderType, std::filesystem::path>> Shaders;
    };
 
