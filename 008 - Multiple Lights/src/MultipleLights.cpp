@@ -10,7 +10,7 @@
 class MultipleLights final : public Pikzel::Application {
 public:
    MultipleLights(int argc, const char* argv[])
-   : Pikzel::Application {{.Title = "Multiple Lights Demo", .ClearColor = {0.05f, 0.05f, 0.05f, 1.0f}, .IsVSync = false}}
+   : Pikzel::Application {argc, argv, {.Title = "Multiple Lights Demo", .ClearColor = {0.05f, 0.05f, 0.05f, 1.0f}, .IsVSync = false}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {

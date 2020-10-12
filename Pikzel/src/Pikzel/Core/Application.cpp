@@ -6,7 +6,14 @@
 
 namespace Pikzel {
 
-   Application::Application(const Window::Settings& settings) {
+   Application::Application(const int argc, const char* argv[], const Window::Settings& settings)
+   : m_argc {argc}
+   , m_argv {argv}
+   {
+      if (s_TheApplication) {
+         throw std::runtime_error("Attempted to initialize application more than once");
+      }
+      s_TheApplication = this;
 
       // Every application has to have a window whether you like it or not.
       // You cannot, for example, initialize OpenGL rendering backend without a window.
@@ -46,6 +53,21 @@ namespace Pikzel {
 
    std::chrono::steady_clock::time_point Application::GetTime() {
       return m_AppTime;
+   }
+
+
+   int Application::GetArgC() const {
+      return m_argc;
+   }
+
+
+   const char** Application::GetArgV() const {
+      return m_argv;
+   }
+
+
+   Application& Application::Get() {
+      return *s_TheApplication;
    }
 
 

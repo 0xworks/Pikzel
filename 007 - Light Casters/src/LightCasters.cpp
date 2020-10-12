@@ -11,7 +11,7 @@
 class LightCasters final : public Pikzel::Application {
 public:
    LightCasters(int argc, const char* argv[])
-   : Pikzel::Application {{.Title = "Light Casters Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}, .IsVSync = false}}
+   : Pikzel::Application {argc, argv, {.Title = "Light Casters Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}, .IsVSync = false}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    , m_Light {

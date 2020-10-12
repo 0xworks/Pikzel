@@ -10,7 +10,7 @@
 class Triangle final : public Pikzel::Application {
 public:
    Triangle(int argc, const char* argv[])
-   : Pikzel::Application {{.Title = "Triangle Demo", .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
+   : Pikzel::Application {argc, argv, {.Title = "Triangle Demo", .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {

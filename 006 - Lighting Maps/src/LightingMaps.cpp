@@ -11,7 +11,7 @@
 class LightingMaps final : public Pikzel::Application {
 public:
    LightingMaps(int argc, const char* argv[])
-   : Pikzel::Application {{.Title = "Lighting Maps Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}}}
+   : Pikzel::Application {argc, argv, {.Title = "Lighting Maps Demo", .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
