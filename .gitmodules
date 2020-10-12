@@ -19,6 +19,9 @@
 [submodule "Pikzel/vendor/stb"]
 	path = Pikzel/vendor/stb
 	url = https://github.com/nothings/stb.git
-[submodule "Pikzel/vendor/tinyobjloader"]
-	path = Pikzel/vendor/tinyobjloader
-	url = https://github.com/tinyobjloader/tinyobjloader.git
+[submodule "Pikzel/vendor/assimp"]
+	path = Pikzel/vendor/assimp
+	url = https://github.com/assimp/assimp
+[submodule "Pikzel/vendor/cmrc"]
+	path = Pikzel/vendor/cmrc
+	url = https://github.com/vector-of-bool/cmrc.git

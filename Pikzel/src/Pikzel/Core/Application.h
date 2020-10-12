@@ -12,7 +12,7 @@ namespace Pikzel {
 
    class Application {
    public:
-      Application(const Window::Settings& settings = {});
+      Application(const int argc, const char* argv[], const Window::Settings& settings = {});
 
       virtual ~Application() = default;
 
@@ -21,6 +21,13 @@ namespace Pikzel {
       void Exit();
 
       std::chrono::steady_clock::time_point GetTime();
+
+      int GetArgC() const;
+
+      const char** GetArgV() const;
+
+   public:
+      static Application& Get();
 
    protected:
       virtual void Update(const DeltaTime deltaTime);
@@ -36,9 +43,12 @@ namespace Pikzel {
 
    private:
       std::chrono::steady_clock::time_point m_AppTime = {};
+      const int m_argc;
+      const char** m_argv;
       std::unique_ptr<Window> m_Window;
       bool m_Running = false;
 
+      inline static Application* s_TheApplication = nullptr;
    };
 
 

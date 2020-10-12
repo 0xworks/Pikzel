@@ -6,6 +6,8 @@
 #       need the Vulkan SDK to be installed
 find_package(Vulkan REQUIRED)
 
+include("vendor/cmrc/CMakeRC.cmake")
+
 project (
    "Pikzel"
    VERSION 0.1
@@ -15,7 +17,6 @@ project (
 option(
    PKZL_PROFILE "Performance profiling instrumentation is compiled in to the code" OFF
 )
-
 
 set(
    ProjectSources
@@ -72,6 +73,7 @@ set(
    "vendor/stb"
    "vendor/tracy"
    ${Vulkan_INCLUDE_DIRS}
+   ${CMRC_INCLUDE_DIR}
 )
 
 set(
