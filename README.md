@@ -15,7 +15,7 @@ Because I want to, and that's it.
   - [x] Vulkan (rasterization)
   - [ ] Vulkan (path tracing)
   - [ ] Optix (path tracing)
-  - [ ] CPU (offline render only) (unlikely, as I'd only resort to this if there is something I cannot figure out how to do using the GPU)
+  - [ ] CPU (offline render only) (unlikely, as I'd only resort to this if there is some complicated path-tracing algorithm that I cannot figure out how to do using the GPU)
   - [ ] DirectX (unlikey, as I am not really interested in learning this)
 
 ## Building
