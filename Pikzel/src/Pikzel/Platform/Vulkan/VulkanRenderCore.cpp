@@ -96,6 +96,11 @@ namespace Pikzel {
    }
 
 
+   bool VulkanRenderCore::FlipUV() const {
+      return false;
+   }
+
+
    std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
       return std::make_unique<VulkanTexture2D>(m_Device, width, height);
    }

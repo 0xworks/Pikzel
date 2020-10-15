@@ -112,6 +112,11 @@ namespace Pikzel {
    }
 
 
+   bool OpenGLRenderCore::FlipUV() const {
+      return true;
+   }
+
+
    std::unique_ptr<Texture2D> OpenGLRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
       return std::make_unique<OpenGLTexture2D>(width, height);
    }
