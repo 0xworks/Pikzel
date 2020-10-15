@@ -144,13 +144,17 @@ namespace Pikzel {
 
       for (auto& [id, uniform] : m_PushConstants) {
          uniform.Location = glGetUniformLocation(m_RendererId, uniform.Name.data());
-         PKZL_CORE_ASSERT(uniform.Location != -1, "Could not find uniform location for {0}", uniform.Name);
+         if (uniform.Location == -1) {
+            PKZL_CORE_LOG_WARN("Could not find uniform location for {0}", uniform.Name);
+         }
          PKZL_CORE_LOG_TRACE("Uniform '{0}' is at location {1}", uniform.Name, uniform.Location);
       }
 
       for (const auto& [id, sampler] : m_SamplerResources) {
          GLint location = glGetUniformLocation(m_RendererId, sampler.Name.data());
-         PKZL_CORE_ASSERT(location != -1, "Could not find uniform location for {0}", sampler.Name);
+         if (location == -1) {
+            PKZL_CORE_LOG_WARN("Could not find uniform location for {0}", sampler.Name);
+         }
          PKZL_CORE_LOG_TRACE("Uniform '{0}' is at location {1}", sampler.Name, location);
          glUniform1i(location, sampler.Binding);
       }

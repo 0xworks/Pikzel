@@ -60,6 +60,11 @@ namespace Pikzel {
    }
 
 
+   bool RenderCore::FlipUV() {
+      return s_RenderCore->FlipUV();
+   }
+
+
    std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
       return s_RenderCore->CreateTexture2D(width, height);
    }

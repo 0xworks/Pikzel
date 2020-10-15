@@ -48,6 +48,13 @@ set(
    "src/Pikzel/Renderer/ShaderUtil.h"
    "src/Pikzel/Renderer/ShaderUtil.cpp"
    "src/Pikzel/Renderer/Texture.h"
+   "src/Pikzel/Scene/Light.h"
+   "src/Pikzel/Scene/Mesh.h"
+   "src/Pikzel/Scene/Mesh.cpp"
+   "src/Pikzel/Scene/Model.h"
+   "src/Pikzel/Scene/Model.cpp"
+   "src/Pikzel/Scene/ModelSerializer.h"
+   "src/Pikzel/Scene/ModelSerializer.cpp"
    "vendor/imgui/imgui.cpp"
    "vendor/imgui/imgui_draw.cpp"
    "vendor/imgui/imgui_widgets.cpp"
@@ -99,10 +106,12 @@ endif()
 
 set(
    ProjectLibs
+   "PikzelResources"
+   "assimp"
    "glfw"
    "glm"
-   "PlatformOpenGL"
-   #"PlatformVulkan"
+   #"PlatformOpenGL"
+   "PlatformVulkan"
    "spirv-cross-core$<$<CONFIG:Debug>:d>"
    "spirv-cross-glsl$<$<CONFIG:Debug>:d>"
 )
@@ -167,6 +176,26 @@ set_source_files_properties(
    SKIP_PRECOMPILE_HEADERS ON
 )
 
+##################################################################
+
+set(
+   ShaderSources
+   "src/Pikzel/Scene/Shaders/Mesh.vert"
+   "src/Pikzel/Scene/Shaders/Mesh.frag"
+)
+
+set(
+   ShaderHeaders
+)
+
+compile_shaders(ShaderSources ShaderHeaders Scene/Shaders CompiledShaders)
+
+cmrc_add_resource_library(
+   PikzelResources WHENCE ${CMAKE_CURRENT_BINARY_DIR}
+   ${CompiledShaders}
+)
+
+##################################################################
 
 # Platform - OpenGL
 #
@@ -230,6 +259,8 @@ set_source_files_properties(
    PROPERTIES
    SKIP_PRECOMPILE_HEADERS ON
 )
+
+##################################################################
 
 if(${Vulkan_FOUND})
 
@@ -318,5 +349,13 @@ else()
    message("WARNING: Vulkan SDK not detected.  Skipping Platform Vulkan libary!")
 endif()
 
+##################################################################
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries")
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library.")
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library.")
+set(ASSIMP_INSTALL OFF CACHE BOOL "Disable this if you want to use assimp as a submodule.")
+
+add_subdirectory("vendor/assimp")
 add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/glm")

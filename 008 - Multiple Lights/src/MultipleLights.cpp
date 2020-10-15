@@ -4,13 +4,14 @@
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Scene/Light.h"
 
 #include <filesystem>
 
 class MultipleLights final : public Pikzel::Application {
 public:
    MultipleLights(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = "Multiple Lights Demo", .ClearColor = {0.05f, 0.05f, 0.05f, 1.0f}, .IsVSync = false}}
+   : Pikzel::Application {argc, argv, {.Title = "Multiple Lights Demo", .ClearColor = {0.05f, 0.05f, 0.05f, 1.0f}, .IsVSync = true}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
@@ -164,29 +165,13 @@ private:
    };
 
 
-   struct DirectionalLight {
-      alignas(16) glm::vec3 Direction;
-      alignas(16) glm::vec3 Color;
-      alignas(16) glm::vec3 Ambient;
-   };
-
-
-   struct PointLight {
-      alignas(16) glm::vec3 Position;
-      alignas(16) glm::vec3 Color;
-      alignas(4) float Constant;
-      alignas(4) float Linear;
-      alignas(4) float Quadratic;
-   };
-
-
    void CreateUniformBuffers() {
       Material materials[] = {
          {.Shininess{32.0f}}
       };
 
       // note: shader expects exactly 1
-      DirectionalLight directionalLights[] = {
+      Pikzel::DirectionalLight directionalLights[] = {
          {
             .Direction = {-0.2f, -1.0f, -0.3f},
             .Color = {0.0f, 0.0f, 0.0f},
@@ -234,7 +219,7 @@ private:
    };
 
    // note: shader expects exactly 4
-   PointLight m_PointLights[4] = {
+   Pikzel::PointLight m_PointLights[4] = {
       {
          .Position = {0.7f, 0.2f, 2.0f},
          .Color = {0.0f, 0.0f, 1.0f},
@@ -268,7 +253,9 @@ private:
    Pikzel::Input m_Input;
    std::filesystem::path m_bindir;
 
-   Camera m_Camera;
+   Camera m_Camera = {
+      .Position = {0.0f, 0.0f, 3.0f}
+   };
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
