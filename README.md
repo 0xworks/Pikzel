@@ -16,13 +16,13 @@ Because I want to, and that's it.
   - [ ] Vulkan (path tracing)
   - [ ] Optix (path tracing)
   - [ ] CPU (offline render only) (unlikely, as I'd only resort to this if there is some complicated path-tracing algorithm that I cannot figure out how to do using the GPU)
-  - [ ] DirectX (unlikey, as I am not really interested in learning this)
+  - [ ] DirectX (unlikely, as I am not really interested in learning this)
 
 ## Building
-This project is C++ and uses the cmake to generate build system files.  My development environment is Visual Studio 2019 on Windows.  Others are untested, but may work (with hopefully minor changes).
+This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2019 on Windows.  Others are untested, but may work (with hopefully only minor changes).
 
 ### Prerequisites
-* Vulkan SDK  (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the SpirV tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future. (so that use of OpenGL will not depend on Vulkan SDK)).
+* Vulkan SDK  (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).
 * All other dependencies are brought in via submodules.  The other dependencies are:
   * assimp  (asset (aka 3d models) importing)
   * cmrc    (for embedding resources (such as shader binaries) into the compiled application)
@@ -40,4 +40,4 @@ This project is C++ and uses the cmake to generate build system files.  My devel
 * generate cmake cache (using Visual Studio built-in cmake support)
 * build
 
-Be aware that the first time you build, it will take a little longer than usual (a couple of minutes maybe) as it builds the dependecies also (in particular, assimp).
+Be aware that the first time you build, it will take a little longer than usual (a couple of minutes maybe) as it builds the dependencies also (in particular, assimp).
