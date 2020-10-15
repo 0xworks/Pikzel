@@ -41,3 +41,9 @@ This project is C++ and uses CMake to generate build system files.  My developme
 * build
 
 Be aware that the first time you build, it will take a little longer than usual (a couple of minutes maybe) as it builds the dependencies also (in particular, assimp).
+
+## Acknowledgements
+* some of the code in this project is based on The Cherno's [Game Engine Series](https://thecherno.com/engine) youtube channel
+* the demos are mostly lifted directly from Joey de Vries' [learnopengl.com](https://learnopengl.com)
+* the Vulkan renderer backend is inspired by Alexander Overvoorde's [Vulkan Tutorial](https://vulkan-tutorial.com)
+* and, of course, my thanks to all the contributors of the dependent libraries used here
