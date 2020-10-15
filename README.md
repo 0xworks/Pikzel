@@ -22,11 +22,22 @@ Because I want to, and that's it.
 This project is C++ and uses the cmake to generate build system files.  My development environment is Visual Studio 2019 on Windows.  Others are untested, but may work (with hopefully minor changes).
 
 ### Prerequisites
-* Vulkan SDK
-* All other dependences are brought in via submodules
+* Vulkan SDK  (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the SpirV tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future. (so that use of OpenGL will not depend on Vulkan SDK)).
+* All other dependences are brought in via submodules.  The other dependencies are:
+  * assimp  (asset (aka 3d models) importing)
+  * cmrc    (for embedding resources (such as shader binaries) into the compiled application)
+  * entt    (Entity Component System, plus this is also used for the event system, and compile time string hashing)
+  * glfw    (Window management)
+  * glm     (maths)
+  * imgui   (gui components)
+  * spdlog  (logging)
+  * stb     (image file loading)
+  * tracy   (performance profiling)
 
 ### Build
 * git clone --recursive https://github.com/freeman40/Pikzel.git
 * open folder in Visual Studio
 * generate cmake cache (using Visual Studio built-in cmake support)
 * build
+
+Be aware that the first time you build, it will take a little longer than usual (a couple of minutes maybe) as it builds the dependecies also (in particular, assimp).
