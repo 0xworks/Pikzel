@@ -9,7 +9,7 @@ Because I want to, and that's it.
 - [x] Provide endless hours of coding fun for me.  I might even learn something.
 - [ ] Engine should allow for both "online" (interactive rendering to a window) and "offline" (render to a file, no windows involved).
 - [x] Engine should facilitate writing client-side code that is rendering-backend-agnostic.  It should be possible to switch the rendering-backend without any changes to the client code.  e.g. if you want to render a scene using Vulkan instead of OpenGL, or using ray-tracing instead of rasterization.
-- [ ] Provide support client apps to build "tooling" UI via ImGui
+- [ ] Facilite client "tooling" apps via ImGui (in particular, it should be possible to use the engine to render to an ImGUI framebuffer (regardless of renderer backend))
 - [ ] Provide some rendering backends
   - [x] Open GL (rasterization)
   - [x] Vulkan (rasterization)
