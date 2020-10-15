@@ -23,7 +23,7 @@ This project is C++ and uses the cmake to generate build system files.  My devel
 
 ### Prerequisites
 * Vulkan SDK  (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the SpirV tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future. (so that use of OpenGL will not depend on Vulkan SDK)).
-* All other dependences are brought in via submodules.  The other dependencies are:
+* All other dependencies are brought in via submodules.  The other dependencies are:
   * assimp  (asset (aka 3d models) importing)
   * cmrc    (for embedding resources (such as shader binaries) into the compiled application)
   * entt    (Entity Component System, plus this is also used for the event system, and compile time string hashing)
