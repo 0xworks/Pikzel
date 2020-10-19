@@ -4,7 +4,7 @@
 #include "Pikzel/Core/Utility.h"
 
 #include <glm/gtc/type_ptr.hpp>
-#include <spirv_cross/spirv_glsl.hpp>
+#include <spirv_glsl.hpp>
 
 namespace Pikzel {
 
