@@ -113,7 +113,7 @@ namespace Pikzel {
 
 
    bool OpenGLRenderCore::FlipUV() const {
-      return true;
+      return false;
    }
 
 

@@ -97,7 +97,7 @@ namespace Pikzel {
 
 
    bool VulkanRenderCore::FlipUV() const {
-      return false;
+      return true;
    }
 
 
