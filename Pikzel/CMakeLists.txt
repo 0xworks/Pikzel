@@ -1,10 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.16)
 
-# Currently the Vulkan package is required, even if you are only going to use the OpenGL rendering backend
-# Because we are using SPIRV-cross shipped with the Vulkan SDK (rather than trying to build that (+dependencies) ourselves)
-# TODO: use an independent copy of SPIRV-cross so that if you are building for OpenGL then you do not
-#       need the Vulkan SDK to be installed
-find_package(Vulkan REQUIRED)
+find_package(Vulkan)
 
 include("vendor/cmrc/CMakeRC.cmake")
 
@@ -68,7 +64,6 @@ if(WIN32)
    )
 endif()
 
-# Vulkan include path needed because that is where SpirV-cross is.  TODO: improve this situation
 set(
    ProjectIncludes
    "src"
@@ -77,9 +72,9 @@ set(
    "vendor/glm"
    "vendor/imgui"
    "vendor/spdlog/include"
+   "vendor/SPIRV-cross"
    "vendor/stb"
    "vendor/tracy"
-   ${Vulkan_INCLUDE_DIRS}
    ${CMRC_INCLUDE_DIR}
 )
 
@@ -112,8 +107,8 @@ set(
    "glm"
    #"PlatformOpenGL"
    "PlatformVulkan"
-   "spirv-cross-core$<$<CONFIG:Debug>:d>"
-   "spirv-cross-glsl$<$<CONFIG:Debug>:d>"
+   "spirv-cross-core"
+   "spirv-cross-glsl"
 )
 
 add_library(${PROJECT_NAME} STATIC ${ProjectSources})
@@ -146,12 +141,6 @@ if(MSVC)
       "$<$<CONFIG:Release>:/GL>"
    )
 endif()
-
-# Vulkan lib path needed because that is where spirv-cross is.  TODO: improve this situation
-target_link_directories(
-   ${PROJECT_NAME} PUBLIC
-   "$ENV{VULKAN_SDK}/lib"
-)
 
 target_link_libraries(
    ${PROJECT_NAME} PUBLIC
@@ -359,3 +348,4 @@ set(ASSIMP_INSTALL OFF CACHE BOOL "Disable this if you want to use assimp as a s
 add_subdirectory("vendor/assimp")
 add_subdirectory("vendor/glfw")
 add_subdirectory("vendor/glm")
+add_subdirectory("vendor/SPIRV-Cross")
