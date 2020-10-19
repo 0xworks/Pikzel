@@ -3,6 +3,7 @@
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
+#include "Pikzel/Renderer/ModelRenderer.h"
 #include "Pikzel/Scene/Light.h"
 #include "Pikzel/Scene/ModelSerializer.h"
 
@@ -14,16 +15,15 @@
 class ModelAndMesh final : public Pikzel::Application {
 public:
    ModelAndMesh(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = "Model and Mesh Demo", .ClearColor = {0.05f, 0.05f, 0.05f, 1.0f}, .IsVSync = true}}
+   : Pikzel::Application {argc, argv, {.Title = "Model and Mesh Demo", .ClearColor = {0.5f, 0.5f, 0.9f, 1.0f}, .IsVSync = true}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
       m_bindir.remove_filename();
 
-      CreateModel();
       CreateModelRenderer();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 100.0f);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 512.0f);
    }
 
    ~ModelAndMesh() {
@@ -44,22 +44,20 @@ public:
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
 
-      glm::mat4 projView = m_Camera.Projection * glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
-      glm::mat4 transform = glm::identity<glm::mat4>();
+      glm::mat4 transform = glm::scale(glm::identity<glm::mat4>(), {0.2f, 0.2f, 0.2f});
 
-      m_ModelRenderer->Draw(GetWindow().GetGraphicsContext(), {projView, m_Camera.Position, m_DirectionalLights, m_PointLights}, *m_Model, transform);
+      m_ModelRenderer->Draw(
+         GetWindow().GetGraphicsContext(),
+         {m_Camera.Projection, glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector), m_Camera.Position, m_DirectionalLights, m_PointLights},
+         transform
+      );
    }
 
 
 private:
 
-   void CreateModel() {
-      m_Model = Pikzel::ModelSerializer::Import("Assets/Models/backpack.obj");
-   }
-
-
    void CreateModelRenderer() {
-      m_ModelRenderer = std::make_unique<Pikzel::ModelRenderer>(GetWindow().GetGraphicsContext());
+      m_ModelRenderer = std::make_unique<Pikzel::ModelRenderer>(GetWindow().GetGraphicsContext(), Pikzel::ModelSerializer::Import("Assets/Models/sponza/sponza.gltf"));
    }
 
 
@@ -69,15 +67,19 @@ private:
    std::filesystem::path m_bindir;
 
    Camera m_Camera = {
-      .Position = {0.0f, 0.0f, 10.0f}
+      .Position = {-125.0f, 6.25f, 0.0f},
+      .Direction = glm::normalize(glm::vec3{125.0f, -6.25f, 0.0f}),
+      .UpVector = {0.0f, 1.0f, 0.0f},
+      .FoVRadians = glm::radians(60.f),
+      .MoveSpeed = 20.0f
    };
 
    // note: currently shader expects exactly 1 directional light
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
-         .Direction = {-0.2f, -1.0f, -0.3f},
-         .Color = {0.0f, 0.0f, 0.0f},
-         .Ambient = {0.01f, 0.01f, 0.01f}
+         .Direction = {-0.0f, -1.0f, -2.0f},
+         .Color = {0.8f, 0.8f, 0.8f},
+         .Ambient = {0.2f, 0.2f, 0.2f}
       }
    };
 
