@@ -47,7 +47,7 @@ namespace Pikzel {
          that.m_Device = nullptr;
          that.m_Buffer = nullptr;
          that.m_Memory = nullptr;
-         that.m_Descriptor = {};
+         that.m_Descriptor = vk::DescriptorBufferInfo{};
          that.m_Size = 0;
          that.m_Usage = {};
          that.m_Properties = {};
