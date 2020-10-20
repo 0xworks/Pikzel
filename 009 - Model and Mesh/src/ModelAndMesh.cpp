@@ -23,11 +23,10 @@ public:
 
       CreateModelRenderer();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 512.0f);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 1.0f, 10000.0f);
    }
 
    ~ModelAndMesh() {
-      m_Model.reset();
       m_ModelRenderer.reset();
    }
 
@@ -44,7 +43,7 @@ public:
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
 
-      glm::mat4 transform = glm::scale(glm::identity<glm::mat4>(), {0.2f, 0.2f, 0.2f});
+      glm::mat4 transform = glm::identity<glm::mat4>();
 
       m_ModelRenderer->Draw(
          GetWindow().GetGraphicsContext(),
@@ -57,7 +56,7 @@ public:
 private:
 
    void CreateModelRenderer() {
-      m_ModelRenderer = std::make_unique<Pikzel::ModelRenderer>(GetWindow().GetGraphicsContext(), Pikzel::ModelSerializer::Import("Assets/Models/sponza/sponza.gltf"));
+      m_ModelRenderer = std::make_unique<Pikzel::ModelRenderer>(GetWindow().GetGraphicsContext(), Pikzel::ModelSerializer::Import("../Data/Models/Sponza/sponza.gltf"));
    }
 
 
@@ -67,8 +66,8 @@ private:
    std::filesystem::path m_bindir;
 
    Camera m_Camera = {
-      .Position = {-125.0f, 6.25f, 0.0f},
-      .Direction = glm::normalize(glm::vec3{125.0f, -6.25f, 0.0f}),
+      .Position = {-900.0f, 100.0f, 0.0f},
+      .Direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
       .UpVector = {0.0f, 1.0f, 0.0f},
       .FoVRadians = glm::radians(60.f),
       .MoveSpeed = 20.0f
@@ -78,46 +77,43 @@ private:
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
          .Direction = {-0.0f, -1.0f, -2.0f},
-         .Color = {0.8f, 0.8f, 0.8f},
-         .Ambient = {0.2f, 0.2f, 0.2f}
+         .Color = {0.6f, 0.6f, 0.6f},
+         .Ambient = {0.1f, 0.1f, 0.1f}
       }
    };
 
    // note: currently shader expects exactly 4 point lights
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
-         .Position = {0.7f, 0.2f, 2.0f},
-         .Color = {0.9f, 0.9f, 0.8f},
-         .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
-      },
-      {
-         .Position = {2.3f, -3.3f, -4.0f},
-         .Color = {0.0f, 1.0f, 0.0f},
-         .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
-      },
-      {
-         .Position = {-4.0f, 2.0f, -12.0f},
+         .Position = {-700.0f, 50.0f, 200.0f},
          .Color = {1.0f, 0.0f, 0.0f},
          .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
+         .Linear = 0.00009f,
+         .Quadratic = 0.000032f
       },
       {
-         .Position = {0.0f, 0.0f, -3.0f},
+         .Position = {100.0f, 50.0f, 200.0f},
+         .Color = {0.0f, 1.0f, 0.0f},
+         .Constant = 1.0f,
+         .Linear = 0.0009f,
+         .Quadratic = 0.00032f
+      },
+      {
+         .Position = {700.0f, 50.0f, 200.0f},
+         .Color = {0.0f, 1.0f, 1.0f},
+         .Constant = 1.0f,
+         .Linear = 0.00009f,
+         .Quadratic = 0.000032f
+      },
+      {
+         .Position = {900.0f, 50.0f, 200.0f},
          .Color = {1.0f, 1.0f, 0.0f},
          .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
+         .Linear = 0.00009f,
+         .Quadratic = 0.000032f
       }
    };
 
-
-   // the order you declare these is important.  Upon destruction, we want m_ModelRenderer to be destroyed first, then m_Model
-   std::unique_ptr<Pikzel::Model> m_Model;
    std::unique_ptr<Pikzel::ModelRenderer> m_ModelRenderer;
 
 };

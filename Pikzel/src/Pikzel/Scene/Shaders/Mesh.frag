@@ -4,6 +4,7 @@ layout(location = 0) in vec4 inNormal;
 layout(location = 1) in vec4 inFragPos;
 layout(location = 2) in vec2 inUV;
 
+
 layout(push_constant) uniform PC {
    mat4 vp;
    mat4 model;
@@ -11,18 +12,13 @@ layout(push_constant) uniform PC {
    vec3 viewPos;
 } constants;
 
-layout(set = 0, binding = 0) uniform sampler2D diffuseMap;
-layout(set = 0, binding = 1) uniform sampler2D specularMap;
-
-//layout(set = 0, binding = 2) uniform UBOMaterials {
-//    float shininess;
-//} material; 
 
 struct DirectionalLight {
    vec3 direction;
    vec3 color;
    vec3 ambient;
 };
+
 
 struct PointLight {
    vec3 position;
@@ -32,13 +28,23 @@ struct PointLight {
    float quadratic;
 };
 
-layout(set = 0, binding = 3) uniform UBODirectionalLight {
+
+layout(set = 0, binding = 0) uniform UBODirectionalLight {
    DirectionalLight light;
 } directionalLight;
 
-layout(set = 0, binding = 4) uniform UBOPointLights {
+
+layout(set = 0, binding = 1) uniform UBOPointLights {
    PointLight light[4];
 } pointLights;
+
+
+layout(set = 1, binding = 0) uniform sampler2D diffuseMap;
+layout(set = 1, binding = 1) uniform sampler2D specularMap;
+
+//layout(set = 0, binding = 2) uniform UBOMaterials {
+//    float shininess;
+//} material; 
 
 
 layout (location = 0) out vec4 outFragColor;
@@ -52,7 +58,7 @@ vec4 CalculateDirectionalLight(DirectionalLight light, vec4 viewDir) {
    vec4 reflectDir = reflect(-lightDir, inNormal);
    float specular = pow(max(dot(viewDir, reflectDir), 0.0), 32); //material.shininess);
    
-   return vec4(((light.color * diffuse) + light.ambient) * vec3(texture(diffuseMap, inUV)) + (specular * vec3(texture(specularMap, inUV)) * light.color), 1.0);
+   return ((vec4(light.color, 1.0) * diffuse) + vec4(light.ambient, 1.0)) * texture(diffuseMap, inUV) + (specular * texture(specularMap, inUV) * vec4(light.color, 1.0));
 }
 
 
@@ -67,13 +73,16 @@ vec4 CalculatePointLight(PointLight light, vec4 viewDir) {
    float distance = length(vec4(light.position, 1.0) - inFragPos);
    float attenuation = 1.0 / (light.constant + (light.linear * distance) + (light.quadratic * (distance * distance))); 
    
-   return vec4(((diffuse * attenuation * vec3(texture(diffuseMap, inUV))) + (specular * attenuation * vec3(texture(specularMap, inUV)))) * light.color, 1.0);
+   return ((diffuse * attenuation * texture(diffuseMap, inUV)) + (specular * attenuation * texture(specularMap, inUV))) * vec4(light.color, 1.0);
 }
 
 
 void main() {
    vec4 viewDir = normalize(vec4(constants.viewPos, 1.0) - inFragPos);
    outFragColor = CalculateDirectionalLight(directionalLight.light, viewDir);
+   if (outFragColor.a < 0.1) {
+      discard;
+   }
    for(int i = 0; i < 4; ++i) {
       outFragColor += CalculatePointLight(pointLights.light[i], viewDir);
    }

@@ -37,13 +37,17 @@ namespace Pikzel {
       virtual ~VulkanPipeline();
 
    public:
+
+      std::shared_ptr<VulkanDevice> GetDevice();
+
+      const std::vector<vk::DescriptorSetLayout>& GetVkDescriptorSetLayouts() const;
+      const std::vector<vk::DescriptorSet>& GetVkDescriptorSets(const uint32_t i) const;
+
       vk::Pipeline GetVkPipeline() const;
       vk::PipelineLayout GetVkPipelineLayout() const;
-      const std::vector<vk::DescriptorSet>& GetVkDescriptorSets(const uint32_t i) const;
 
       const VulkanPushConstant& GetPushConstant(const entt::id_type id) const;
       const VulkanResource& GetResource(const entt::id_type id) const;
-
 
    private:
 
@@ -52,8 +56,8 @@ namespace Pikzel {
 
       void ReflectShaders();
 
-      void CreateDescriptorSetLayout(const PipelineSettings& settings);
-      void DestroyDescriptorSetLayout();
+      void CreateDescriptorSetLayouts(const PipelineSettings& settings);
+      void DestroyDescriptorSetLayouts();
 
       void CreatePipelineLayout();
       void DestroyPipelineLayout();

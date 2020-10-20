@@ -14,6 +14,8 @@ namespace Pikzel {
 
       vk::RenderPass GetVkRenderPass() const;
       vk::PipelineCache GetVkPipelineCache() const;
+      
+      virtual vk::CommandBuffer GetVkCommandBuffer() = 0;
 
    protected:
 

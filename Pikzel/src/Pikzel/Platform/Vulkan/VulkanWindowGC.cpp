@@ -565,6 +565,11 @@ namespace Pikzel {
    }
 
 
+   vk::CommandBuffer VulkanWindowGC::GetVkCommandBuffer() {
+      return m_CommandBuffers[m_CurrentImage];
+   }
+
+
    void VulkanWindowGC::CreateSurface() {
       VkSurfaceKHR surface;
       if (glfwCreateWindowSurface(m_Device->GetVkInstance(), m_Window, nullptr, &surface) != VK_SUCCESS) {

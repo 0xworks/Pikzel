@@ -79,6 +79,9 @@ namespace Pikzel {
 
       virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount = 0) override;
 
+   public:
+      virtual vk::CommandBuffer GetVkCommandBuffer() override;
+
    private:
       void CreateSurface();
       void DestroySurface();

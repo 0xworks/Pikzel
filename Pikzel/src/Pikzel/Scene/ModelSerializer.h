@@ -12,6 +12,8 @@ namespace Pikzel {
 
       std::unique_ptr<Model> Import(const std::filesystem::path& path);
 
+      void ClearTextureCache();
+
    };
 
 }

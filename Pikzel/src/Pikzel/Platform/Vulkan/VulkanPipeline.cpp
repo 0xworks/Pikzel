@@ -68,7 +68,7 @@ namespace Pikzel {
    VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings)
    : m_Device(device)
    {
-      CreateDescriptorSetLayout(settings);
+      CreateDescriptorSetLayouts(settings);
       CreatePipelineLayout();
       CreatePipeline(gc, settings);
       CreateDescriptorPool();
@@ -82,7 +82,7 @@ namespace Pikzel {
       DestroyDesciptorPool();
       DestroyPipeline();
       DestroyPipelineLayout();
-      DestroyDescriptorSetLayout();
+      DestroyDescriptorSetLayouts();
    }
 
 
@@ -221,7 +221,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::CreateDescriptorSetLayout(const PipelineSettings& settings) {
+   void VulkanPipeline::CreateDescriptorSetLayouts(const PipelineSettings& settings) {
       // Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
       // So every shader binding should map to one descriptor set layout binding
 
@@ -233,7 +233,9 @@ namespace Pikzel {
 
       std::vector<std::vector<vk::DescriptorSetLayoutBinding>> layoutBindings;
       for (const auto& [id, resource] : m_Resources) {
-         layoutBindings.resize(resource.DescriptorSet + 1);
+         if (layoutBindings.size() <= resource.DescriptorSet) {
+            layoutBindings.resize(resource.DescriptorSet + 1);
+         }
          layoutBindings[resource.DescriptorSet].emplace_back(resource.Binding, resource.Type, resource.Count, resource.ShaderStages);
       }
 
@@ -256,7 +258,17 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::DestroyDescriptorSetLayout() {
+   std::shared_ptr<VulkanDevice> VulkanPipeline::GetDevice() {
+      return m_Device;
+   }
+
+
+   const std::vector<vk::DescriptorSetLayout>& VulkanPipeline::GetVkDescriptorSetLayouts() const {
+      return m_DescriptorSetLayouts;
+   }
+
+
+   void VulkanPipeline::DestroyDescriptorSetLayouts() {
       if (m_Device) {
          for (const auto descriptorSetLayout : m_DescriptorSetLayouts) {
             m_Device->GetVkDevice().destroy(descriptorSetLayout);
