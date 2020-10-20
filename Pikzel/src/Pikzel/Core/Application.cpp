@@ -2,6 +2,7 @@
 #include "Log.h"
 #include "Pikzel/Events/EventDispatcher.h"
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Scene/ModelSerializer.h"
 
 
 namespace Pikzel {
@@ -22,6 +23,11 @@ namespace Pikzel {
       m_Window = Pikzel::Window::Create(settings);
       EventDispatcher::Connect<WindowCloseEvent, &Application::OnWindowClose>(*this);
       EventDispatcher::Connect<WindowResizeEvent, &Application::OnWindowResize>(*this);
+   }
+
+
+   Application::~Application() {
+      ModelSerializer::ClearTextureCache();
    }
 
 

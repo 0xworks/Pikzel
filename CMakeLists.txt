@@ -5,6 +5,7 @@ include("CMakeUtils.cmake")
 project ("Pikzel" VERSION 0.1 DESCRIPTION "Pikzel Interactive App Engine")
 
 add_subdirectory("Pikzel")
+add_subdirectory("Data")
 add_subdirectory("001 - Triangle")
 add_subdirectory("002 - Textured")
 add_subdirectory("003 - Cube")

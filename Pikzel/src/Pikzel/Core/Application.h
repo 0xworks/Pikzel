@@ -14,7 +14,7 @@ namespace Pikzel {
    public:
       Application(const int argc, const char* argv[], const Window::Settings& settings = {});
 
-      virtual ~Application() = default;
+      virtual ~Application();
 
       virtual void Run();
 

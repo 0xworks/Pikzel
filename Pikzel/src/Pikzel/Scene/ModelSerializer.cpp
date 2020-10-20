@@ -49,14 +49,21 @@ namespace Pikzel {
          std::vector<uint32_t> indices;
          std::vector<Texture2D> textures;
 
+         glm::vec3 aabbMin = glm::vec3 {FLT_MAX};
+         glm::vec3 aabbMax = glm::vec3 {-FLT_MAX};
+
+         vertices.reserve(pmesh->mNumVertices);
          for (unsigned int i = 0; i < pmesh->mNumVertices; ++i) {
             vertices.emplace_back(
                glm::vec3 {pmesh->mVertices[i].x, pmesh->mVertices[i].y, pmesh->mVertices[i].z},
                glm::vec3 {pmesh->mNormals[i].x, pmesh->mNormals[i].y, pmesh->mNormals[i].z},
                pmesh->mTextureCoords[0] ? glm::vec2 {pmesh->mTextureCoords[0][i].x, pmesh->mTextureCoords[0][i].y} : glm::vec2 {}
             );
+            aabbMin = glm::min(aabbMin, vertices.back().Pos);
+            aabbMax = glm::max(aabbMax, vertices.back().Pos);
          }
 
+         indices.reserve(pmesh->mNumFaces * 3);
          for (unsigned int i = 0; i < pmesh->mNumFaces; ++i) {
             aiFace face = pmesh->mFaces[i];
             for (unsigned int j = 0; j < face.mNumIndices; ++j) {
@@ -82,6 +89,8 @@ namespace Pikzel {
             mesh.SpecularTexture = LoadMaterialTexture(material, aiTextureType_SPECULAR, modelDir);
          }
 
+         mesh.AABB = {aabbMin, aabbMax};
+
          return mesh;
       }
 
@@ -90,6 +99,8 @@ namespace Pikzel {
          for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             model.Meshes.emplace_back(ProcessMesh(mesh, scene, modelDir));
+            model.Meshes.back().Index = model.Meshes.size() - 1;
+            model.AABB = {glm::min(model.AABB.first, model.Meshes.back().AABB.first), glm::max(model.AABB.second, model.Meshes.back().AABB.second)};
          }
          for (unsigned int i = 0; i < node->mNumChildren; ++i) {
             ProcessNode(model, node->mChildren[i], scene, modelDir);
@@ -101,7 +112,7 @@ namespace Pikzel {
          std::unique_ptr model = std::make_unique<Model>();
 
          Assimp::Importer importer;
-         const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | (RenderCore::FlipUV()? aiProcess_FlipUVs : 0));
+         const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | (RenderCore::FlipUV() ? aiProcess_FlipUVs : 0));
 
          if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             throw std::runtime_error(fmt::format("Error when importing model '{0}': {1}", path.string(), importer.GetErrorString()));
@@ -112,6 +123,11 @@ namespace Pikzel {
          ProcessNode(*model, scene->mRootNode, scene, modelDir);
 
          return model;
+      }
+
+
+      void ClearTextureCache() {
+         g_TextureCache.clear();
       }
 
    }

@@ -16,7 +16,8 @@ namespace Pikzel {
 
 
    VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path)
-   : m_Device {device}
+   : m_Path {path}
+   , m_Device {device}
    {
       int width;
       int height;
