@@ -37,29 +37,29 @@ namespace Pikzel {
    }
 
 
-   vk::RenderPass VulkanGraphicsContext::CreateRenderPass() {
+   vk::RenderPass VulkanGraphicsContext::CreateRenderPass(const bool clearColorBuffer, const bool clearDepthBuffer) {
       std::vector<vk::AttachmentDescription> attachments = {
          {
-            {}                                         /*flags*/,
-            m_Format                                   /*format*/,
-            vk::SampleCountFlagBits::e1                /*samples*/,   // TODO: anti-aliasing
-            vk::AttachmentLoadOp::eClear               /*loadOp*/,
-            vk::AttachmentStoreOp::eStore              /*storeOp*/,
-            vk::AttachmentLoadOp::eDontCare            /*stencilLoadOp*/,
-            vk::AttachmentStoreOp::eDontCare           /*stencilStoreOp*/,
-            vk::ImageLayout::eUndefined                /*initialLayout*/,
-            vk::ImageLayout::ePresentSrcKHR            /*finalLayout*/     // anti-aliasing = vk::ImageLayout::eColorAttachmentOptimal here
+            {}                                                                                /*flags*/,
+            m_Format                                                                          /*format*/,
+            vk::SampleCountFlagBits::e1                                                       /*samples*/,   // TODO: anti-aliasing
+            clearColorBuffer? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare  /*loadOp*/,
+            vk::AttachmentStoreOp::eStore                                                     /*storeOp*/,
+            vk::AttachmentLoadOp::eDontCare                                                   /*stencilLoadOp*/,
+            vk::AttachmentStoreOp::eDontCare                                                  /*stencilStoreOp*/,
+            vk::ImageLayout::eUndefined                                                       /*initialLayout*/,
+            vk::ImageLayout::ePresentSrcKHR                                                   /*finalLayout*/     // anti-aliasing = vk::ImageLayout::eColorAttachmentOptimal here
          },
          {
-            {}                                              /*flags*/,
-            m_DepthFormat                                   /*format*/,
-            vk::SampleCountFlagBits::e1                     /*samples*/,   // TODO: anti-aliasing
-            vk::AttachmentLoadOp::eClear                    /*loadOp*/,
-            vk::AttachmentStoreOp::eStore                   /*storeOp*/,
-            vk::AttachmentLoadOp::eClear                    /*stencilLoadOp*/,
-            vk::AttachmentStoreOp::eDontCare                /*stencilStoreOp*/,
-            vk::ImageLayout::eUndefined                     /*initialLayout*/,
-            vk::ImageLayout::eDepthStencilAttachmentOptimal /*finalLayout*/
+            {}                                                                                /*flags*/,
+            m_DepthFormat                                                                     /*format*/,
+            vk::SampleCountFlagBits::e1                                                       /*samples*/,   // TODO: anti-aliasing
+            clearDepthBuffer? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare  /*loadOp*/,
+            vk::AttachmentStoreOp::eDontCare                                                  /*storeOp*/,
+            vk::AttachmentLoadOp::eDontCare                                                   /*stencilLoadOp*/,
+            vk::AttachmentStoreOp::eDontCare                                                  /*stencilStoreOp*/,
+            vk::ImageLayout::eUndefined                                                       /*initialLayout*/,
+            vk::ImageLayout::eDepthStencilAttachmentOptimal                                   /*finalLayout*/
          }
          //{
          //    {}                                              /*flags*/,
@@ -106,21 +106,21 @@ namespace Pikzel {
          {
             VK_SUBPASS_EXTERNAL                                                                    /*srcSubpass*/,
             0                                                                                      /*dstSubpass*/,
-            vk::PipelineStageFlagBits::eBottomOfPipe                                               /*srcStageMask*/,
+            vk::PipelineStageFlagBits::eColorAttachmentOutput                                      /*srcStageMask*/,
             vk::PipelineStageFlagBits::eColorAttachmentOutput                                      /*dstStageMask*/,
-            vk::AccessFlagBits::eMemoryRead                                                        /*srcAccessMask*/,
+            vk::AccessFlags {}                                                                     /*srcAccessMask*/,
             vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite   /*dstAccessMask*/,
             vk::DependencyFlagBits::eByRegion                                                      /*dependencyFlags*/
-         },
-         {
-            0                                                                                      /*srcSubpass*/,
-            VK_SUBPASS_EXTERNAL                                                                    /*dstSubpass*/,
-            vk::PipelineStageFlagBits::eColorAttachmentOutput                                      /*srcStageMask*/,
-            vk::PipelineStageFlagBits::eBottomOfPipe                                               /*dstStageMask*/,
-            vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite   /*srcAccessMask*/,
-            vk::AccessFlagBits::eMemoryRead                                                        /*dstAccessMask*/,
-            vk::DependencyFlagBits::eByRegion                                                      /*dependencyFlags*/
-         }
+         }//,
+//          {
+//             0                                                                                      /*srcSubpass*/,
+//             VK_SUBPASS_EXTERNAL                                                                    /*dstSubpass*/,
+//             vk::PipelineStageFlagBits::eColorAttachmentOutput                                      /*srcStageMask*/,
+//             vk::PipelineStageFlagBits::eBottomOfPipe                                               /*dstStageMask*/,
+//             vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite   /*srcAccessMask*/,
+//             vk::AccessFlagBits::eMemoryRead                                                        /*dstAccessMask*/,
+//             vk::DependencyFlagBits::eByRegion                                                      /*dependencyFlags*/
+//          }
       };
 
       return m_Device->GetVkDevice().createRenderPass({

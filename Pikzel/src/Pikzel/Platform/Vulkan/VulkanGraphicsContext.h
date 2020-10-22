@@ -22,7 +22,7 @@ namespace Pikzel {
       void CreateDepthStencil();
       void DestroyDepthStencil();
 
-      vk::RenderPass CreateRenderPass();
+      vk::RenderPass CreateRenderPass(const bool clearColorBuffer, const bool clearDepthBuffer);
       void DestroyRenderPass(vk::RenderPass renderPass);
 
       vk::DescriptorPool CreateDescriptorPool(const vk::ArrayProxy<DescriptorBinding>& descriptorBindings, size_t maxSets);

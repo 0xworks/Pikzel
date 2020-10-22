@@ -4,9 +4,6 @@
 
 namespace Pikzel {
 
-   std::shared_ptr<spdlog::logger> Log::s_loggerCore;
-   std::shared_ptr<spdlog::logger> Log::s_loggerApp;
-
    void Log::Init() {
       spdlog::set_pattern("%^[%T] %n: %v%$");
       s_loggerCore = spdlog::stdout_color_mt("CORE");

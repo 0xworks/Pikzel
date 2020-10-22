@@ -10,21 +10,35 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
+#include <imgui.h>
 #include <filesystem>
 
 class ModelAndMesh final : public Pikzel::Application {
 public:
    ModelAndMesh(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = "Model and Mesh Demo", .ClearColor = {0.5f, 0.5f, 0.9f, 1.0f}, .IsVSync = true}}
-   , m_bindir {argv[0]}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.5f, 0.5f, 0.9f, 1.0f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
-      m_bindir.remove_filename();
-
       CreateModelRenderer();
-
       m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 1.0f, 10000.0f);
+      GetWindow().InitializeImGui();
+
+      ImGuiIO& io = ImGui::GetIO();
+      ImGui::StyleColorsDark();
+      ImGuiStyle& style = ImGui::GetStyle();
+      if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+         style.WindowRounding = 0.0f;
+         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+      }
+      float scaleFactor = GetWindow().ContentScale();
+      style.ScaleAllSizes(scaleFactor);
+
+      //if (!io.Fonts->AddFontFromFileTTF("Assets/Fonts/Cousine-Regular.ttf", 13 * scaleFactor)) {
+      //   throw std::runtime_error("Failed to load ImGui font!");
+      //}
+      GetWindow().UploadImGuiFonts();
    }
+
 
    ~ModelAndMesh() {
       m_ModelRenderer.reset();
@@ -50,6 +64,19 @@ public:
          {m_Camera.Projection, glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector), m_Camera.Position, m_DirectionalLights, m_PointLights},
          transform
       );
+
+      GetWindow().BeginImGuiFrame();
+      {
+         ImGui::Begin("Statistics");
+
+         // auto stats = Renderer2D::GetStats();
+         ImGui::Text("Draw Calls: XXX"); // % d", stats.DrawCalls);
+         ImGui::Text("Quads: XXX");      // % d", stats.QuadCount);
+         ImGui::Text("Vertices: XXX");   // % d", stats.GetTotalVertexCount());
+         ImGui::Text("Indices: XXX");    // % d", stats.GetTotalIndexCount());
+         ImGui::End();
+      }
+      GetWindow().EndImGuiFrame();
    }
 
 
@@ -63,7 +90,6 @@ private:
 private:
 
    Pikzel::Input m_Input;
-   std::filesystem::path m_bindir;
 
    Camera m_Camera = {
       .Position = {-900.0f, 100.0f, 0.0f},

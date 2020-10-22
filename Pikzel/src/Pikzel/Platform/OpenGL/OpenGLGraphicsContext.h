@@ -15,9 +15,15 @@ namespace Pikzel {
    class OpenGLGraphicsContext : public GraphicsContext {
    public:
       OpenGLGraphicsContext(const Window& window);
+      virtual ~OpenGLGraphicsContext();
 
       virtual void BeginFrame() override;
       virtual void EndFrame() override;
+
+      virtual void InitializeImGui() override;
+      virtual void UploadImGuiFonts() override;
+      virtual void BeginImGuiFrame() override;
+      virtual void EndImGuiFrame() override;
 
       virtual void SwapBuffers() override;
 

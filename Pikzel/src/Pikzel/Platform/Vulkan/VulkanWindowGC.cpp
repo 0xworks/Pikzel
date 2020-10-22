@@ -8,6 +8,11 @@
 
 #include "Pikzel/Events/EventDispatcher.h"
 
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <examples/imgui_impl_glfw.h>
+#include "imgui_impl_vulkan.h"
+
 namespace Pikzel {
 
    VulkanWindowGC::VulkanWindowGC(std::shared_ptr<VulkanDevice> device, const Window& window)
@@ -19,7 +24,7 @@ namespace Pikzel {
       CreateSwapChain();
       CreateImageViews();
       CreateDepthStencil();
-      m_RenderPass = CreateRenderPass();
+      m_RenderPass = CreateRenderPass(true, true);
       CreateFrameBuffers();
 
       CreateCommandPool();
@@ -43,6 +48,13 @@ namespace Pikzel {
 
    VulkanWindowGC::~VulkanWindowGC() {
       m_Device->GetVkDevice().waitIdle();
+      if (ImGui::GetCurrentContext()) {
+         ImGui_ImplVulkan_Shutdown();
+         ImGui_ImplGlfw_Shutdown();
+         ImGui::DestroyContext();
+         DestroyRenderPass(m_RenderPassImGui);
+         DestroyDescriptorPool(m_DescriptorPoolImGui);
+      }
       DestroyPipelineCache();
       DestroySyncObjects();
       DestroyCommandBuffers();
@@ -76,7 +88,7 @@ namespace Pikzel {
       // Wait until we know GPU has finished with the command buffer we are about to use...
       // Note that m_CurrentFrame and m_CurrentImage are not necessarily equal (particularly if we have, say, 3 swap chain images, and 2 frames-in-flight)
       // However, we know that the GPU has finished with m_CurrentImage'th command buffer so long as the m_CurrentFrame'th fence is signaled
-      m_Device->GetVkDevice().waitForFences(m_InFlightFences[m_CurrentFrame], true, UINT64_MAX);
+      vk::Result result = m_Device->GetVkDevice().waitForFences(m_InFlightFences[m_CurrentFrame], true, UINT64_MAX);
 
       vk::CommandBufferBeginInfo commandBufferBI = {
          vk::CommandBufferUsageFlagBits::eSimultaneousUse
@@ -114,23 +126,102 @@ namespace Pikzel {
 
    void VulkanWindowGC::EndFrame() {
       PKZL_PROFILE_FUNCTION();
+      vk::CommandBuffer commandBuffer = m_CommandBuffers[m_CurrentImage];
+      commandBuffer.endRenderPass();  // TODO: think about where render passes should begin/end
 
-      m_CommandBuffers[m_CurrentImage].endRenderPass();  // TODO: think about where render passes should begin/end
+      if (m_ImGuiFrameStarted) {
+         vk::RenderPassBeginInfo renderPassBI = {
+            m_RenderPassImGui                          /*renderPass*/,
+            m_SwapChainFrameBuffers[m_CurrentImage]    /*framebuffer*/,
+            { {0,0}, m_Extent }                        /*renderArea*/,
+            0                                          /*clearValueCount*/,
+            nullptr                                    /*pClearValues*/
+         };
 
-      m_CommandBuffers[m_CurrentImage].end();
+         commandBuffer.beginRenderPass(renderPassBI, vk::SubpassContents::eInline);
+         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+         commandBuffer.endRenderPass();
+      }
+
+      commandBuffer.end();
       vk::PipelineStageFlags waitStages[] = {{vk::PipelineStageFlagBits::eColorAttachmentOutput}};
       vk::SubmitInfo si = {
          1                                             /*waitSemaphoreCount*/,
          &m_ImageAvailableSemaphores[m_CurrentFrame]   /*pWaitSemaphores*/,
          waitStages                                    /*pWaitDstStageMask*/,
          1                                             /*commandBufferCount*/,
-         &m_CommandBuffers[m_CurrentImage]             /*pCommandBuffers*/,
+         &commandBuffer                                /*pCommandBuffers*/,
          1                                             /*signalSemaphoreCount*/,
          &m_RenderFinishedSemaphores[m_CurrentFrame]   /*pSignalSemaphores*/
       };
 
       m_Device->GetVkDevice().resetFences(m_InFlightFences[m_CurrentFrame]);
       m_Device->GetGraphicsQueue().submit(si, m_InFlightFences[m_CurrentFrame]);
+
+      if (m_ImGuiFrameStarted) {
+         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+         }
+         m_ImGuiFrameStarted = false;
+      }
+   }
+
+
+   void VulkanWindowGC::InitializeImGui() {
+      IMGUI_CHECKVERSION();
+
+      m_DescriptorPoolImGui = CreateDescriptorPool(DescriptorBinding {0, 1, vk::DescriptorType::eCombinedImageSampler, {}}, 10);
+      m_RenderPassImGui = CreateRenderPass(false, false);
+
+      ImGui::CreateContext();
+
+      ImGuiIO& io = ImGui::GetIO();
+      io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+      ImGui_ImplGlfw_InitForVulkan(m_Window, true);
+      ImGui_ImplVulkan_InitInfo init_info = {};
+      init_info.Instance = m_Device->GetVkInstance();
+      init_info.PhysicalDevice = m_Device->GetVkPhysicalDevice();
+      init_info.Device = m_Device->GetVkDevice();
+      init_info.QueueFamily = m_Device->GetGraphicsQueueFamilyIndex();
+      init_info.Queue = m_Device->GetGraphicsQueue();
+      init_info.PipelineCache = m_PipelineCache;
+      init_info.DescriptorPool = m_DescriptorPoolImGui;
+      init_info.Allocator = nullptr; // TODO: proper allocator...
+      init_info.MinImageCount = static_cast<uint32_t>(m_SwapChainImages.size());
+      init_info.ImageCount = static_cast<uint32_t>(m_SwapChainImages.size());
+      init_info.CheckVkResultFn = [] (const VkResult err) {
+         if (err != VK_SUCCESS) {
+            throw std::runtime_error("ImGui Vulkan error!");
+         }
+      };
+      ImGui_ImplVulkan_Init(&init_info, m_RenderPassImGui);
+   }
+
+
+   void VulkanWindowGC::UploadImGuiFonts() {
+      m_Device->SubmitSingleTimeCommands([] (vk::CommandBuffer commandBuffer) {
+         if (!ImGui_ImplVulkan_CreateFontsTexture(commandBuffer)) {
+            throw std::runtime_error("failed to create ImGui font textures!");
+         }
+      });
+      ImGui_ImplVulkan_DestroyFontUploadObjects();
+   }
+
+
+   void VulkanWindowGC::BeginImGuiFrame() {
+      ImGui_ImplVulkan_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+      m_ImGuiFrameStarted = true;
+   }
+
+
+   void VulkanWindowGC::EndImGuiFrame() {
+      ImGui::Render();
    }
 
 
