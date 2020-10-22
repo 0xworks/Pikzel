@@ -19,6 +19,11 @@ namespace Pikzel {
       virtual void BeginFrame() override;
       virtual void EndFrame() override;
 
+      virtual void InitializeImGui() override;
+      virtual void UploadImGuiFonts() override;
+      virtual void BeginImGuiFrame() override;
+      virtual void EndImGuiFrame() override;
+
       virtual void SwapBuffers() override;
 
       virtual void Bind(const VertexBuffer& buffer) override;
@@ -120,6 +125,9 @@ namespace Pikzel {
       vk::SwapchainKHR m_SwapChain;
       std::vector<VulkanImage> m_SwapChainImages;
 
+      vk::DescriptorPool m_DescriptorPoolImGui;
+      vk::RenderPass m_RenderPassImGui;
+
       std::vector<vk::Framebuffer> m_SwapChainFrameBuffers;
 
       uint32_t m_MaxFramesInFlight = 2;
@@ -131,7 +139,7 @@ namespace Pikzel {
 
       bool m_IsVSync = false;
       bool m_WantResize = false;
-
+      bool m_ImGuiFrameStarted = false;
 
    };
 

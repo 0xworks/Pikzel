@@ -288,10 +288,10 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanUtility.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanWindowGC.h"
       "src/Pikzel/Platform/Vulkan/VulkanWindowGC.cpp"
-      #"src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
-      #"src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.cpp"
-      #"vendor/imgui/examples/imgui_impl_glfw.h"
-      #"vendor/imgui/examples/imgui_impl_glfw.cpp"
+      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
+      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.cpp"
+      "vendor/imgui/examples/imgui_impl_glfw.h"
+      "vendor/imgui/examples/imgui_impl_glfw.cpp"
    )
 
    target_compile_features(

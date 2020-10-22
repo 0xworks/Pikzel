@@ -6,6 +6,11 @@
 
 #include "Pikzel/Events/EventDispatcher.h"
 
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <examples/imgui_impl_glfw.h>
+#include <examples/imgui_impl_opengl3.h>
+
 namespace Pikzel {
 
    OpenGLGraphicsContext::OpenGLGraphicsContext(const Window& window)
@@ -19,6 +24,15 @@ namespace Pikzel {
    }
 
 
+   OpenGLGraphicsContext::~OpenGLGraphicsContext() {
+      if (ImGui::GetCurrentContext()) {
+         ImGui_ImplOpenGL3_Shutdown();
+         ImGui_ImplGlfw_Shutdown();
+         ImGui::DestroyContext();
+      }
+   }
+
+
    void OpenGLGraphicsContext::BeginFrame() {
       PKZL_PROFILE_FUNCTION();
       glfwMakeContextCurrent(m_WindowHandle);
@@ -29,6 +43,41 @@ namespace Pikzel {
 
    void OpenGLGraphicsContext::EndFrame() {
       ;
+   }
+
+
+   void OpenGLGraphicsContext::InitializeImGui() {
+      IMGUI_CHECKVERSION();
+      ImGui::CreateContext();
+      ImGuiIO& io = ImGui::GetIO();
+      io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+      ImGui_ImplOpenGL3_Init();
+      ImGui_ImplGlfw_InitForOpenGL(m_WindowHandle, true);
+   }
+
+
+   void OpenGLGraphicsContext::UploadImGuiFonts() {
+   }
+
+
+   void OpenGLGraphicsContext::BeginImGuiFrame() {
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+   }
+
+
+   void OpenGLGraphicsContext::EndImGuiFrame() {
+      ImGui::Render();
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+         GLFWwindow* currentContext = glfwGetCurrentContext();
+         ImGui::UpdatePlatformWindows();
+         ImGui::RenderPlatformWindowsDefault();
+         glfwMakeContextCurrent(currentContext);
+      }
    }
 
 

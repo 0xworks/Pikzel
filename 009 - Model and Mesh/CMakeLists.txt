@@ -25,8 +25,6 @@ set(
 add_executable(
    ${PROJECT_NAME}
    ${ProjectSources}
-   ${ShaderSources}
-   ${Models}
 )
 
 target_compile_features(

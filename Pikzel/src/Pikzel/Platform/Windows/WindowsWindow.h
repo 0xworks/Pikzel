@@ -28,6 +28,11 @@ namespace Pikzel {
       virtual void BeginFrame() override;
       virtual void EndFrame() override;
 
+      virtual void InitializeImGui() override;
+      virtual void UploadImGuiFonts() override;
+      virtual void BeginImGuiFrame() override;
+      virtual void EndImGuiFrame() override;
+
       virtual GraphicsContext& GetGraphicsContext() override;
 
       virtual glm::vec2 GetCursorPos() const override;

@@ -19,8 +19,8 @@ namespace Pikzel {
       static spdlog::logger& GetAppLogger();
 
    private:
-      static std::shared_ptr<spdlog::logger> s_loggerCore;
-      static std::shared_ptr<spdlog::logger> s_loggerApp;
+      static inline std::shared_ptr<spdlog::logger> s_loggerCore;
+      static inline std::shared_ptr<spdlog::logger> s_loggerApp;
    };
 
 }

@@ -11,7 +11,7 @@
 class Cube final : public Pikzel::Application {
 public:
    Cube(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = "Cube Demo", .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {

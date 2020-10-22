@@ -127,6 +127,7 @@ namespace Pikzel {
 
 
    WindowsWindow::~WindowsWindow() {
+      m_Context.reset();
       glfwDestroyWindow(m_Window);
       m_Window = nullptr;
       if (--s_GLFWWindowCount == 0) {
@@ -174,6 +175,16 @@ namespace Pikzel {
    }
 
 
+   void WindowsWindow::InitializeImGui() {
+      m_Context->InitializeImGui();
+   }
+
+
+   void WindowsWindow::UploadImGuiFonts() {
+      m_Context->UploadImGuiFonts();
+   }
+
+
    void WindowsWindow::BeginFrame() {
       {
          PKZL_PROFILE_SCOPE("glfwPollEvents");
@@ -186,6 +197,16 @@ namespace Pikzel {
    void WindowsWindow::EndFrame() {
       m_Context->EndFrame();     // i.e. "submit"
       m_Context->SwapBuffers();  // i.e. "present"
+   }
+
+
+   void WindowsWindow::BeginImGuiFrame() {
+      m_Context->BeginImGuiFrame();
+   }
+
+
+   void WindowsWindow::EndImGuiFrame() {
+      m_Context->EndImGuiFrame();
    }
 
 

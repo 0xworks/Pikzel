@@ -10,7 +10,7 @@
 class Textured final : public Pikzel::Application {
 public:
    Textured(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = "Texture Demo", .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
