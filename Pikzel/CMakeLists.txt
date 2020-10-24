@@ -211,10 +211,10 @@ add_library(
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/glad/glad.h"
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/KHR/khrplatform.h"
    "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
-   "vendor/imgui/examples/imgui_impl_glfw.h"
-   "vendor/imgui/examples/imgui_impl_glfw.cpp"
-   "vendor/imgui/examples/imgui_impl_opengl3.h"
-   "vendor/imgui/examples/imgui_impl_opengl3.cpp"
+   "vendor/imgui/backends/imgui_impl_glfw.h"
+   "vendor/imgui/backends/imgui_impl_glfw.cpp"
+   "vendor/imgui/backends/imgui_impl_opengl3.h"
+   "vendor/imgui/backends/imgui_impl_opengl3.cpp"
 )
 
 target_compile_features(
@@ -244,10 +244,10 @@ target_precompile_headers(
 # no precompiled header for ImGui or GLAD
 set_source_files_properties(
    "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
-   "vendor/imgui/examples/imgui_impl_glfw.h"
-   "vendor/imgui/examples/imgui_impl_glfw.cpp"
-   "vendor/imgui/examples/imgui_impl_opengl3.h"
-   "vendor/imgui/examples/imgui_impl_opengl3.cpp"
+   "vendor/imgui/backends/imgui_impl_glfw.h"
+   "vendor/imgui/backends/imgui_impl_glfw.cpp"
+   "vendor/imgui/backends/imgui_impl_opengl3.h"
+   "vendor/imgui/backends/imgui_impl_opengl3.cpp"
    PROPERTIES
    SKIP_PRECOMPILE_HEADERS ON
 )
@@ -260,7 +260,6 @@ if(${Vulkan_FOUND})
 
    # Platform - Vulkan
    # This requires that the Vulkan SDK is installed.
-   # ImGui vuklan backend is using the example code from the ImGui docking branch, with https://github.com/ocornut/imgui/pull/914 merged in
    add_library(
       "PlatformVulkan" STATIC
       "src/Pikzel/Platform/Vulkan/DescriptorBinding.h"
@@ -288,10 +287,10 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanUtility.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanWindowGC.h"
       "src/Pikzel/Platform/Vulkan/VulkanWindowGC.cpp"
-      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
-      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.cpp"
-      "vendor/imgui/examples/imgui_impl_glfw.h"
-      "vendor/imgui/examples/imgui_impl_glfw.cpp"
+      "vendor/imgui/backends/imgui_impl_vulkan.h"
+      "vendor/imgui/backends/imgui_impl_vulkan.cpp"
+      "vendor/imgui/backends/imgui_impl_glfw.h"
+      "vendor/imgui/backends/imgui_impl_glfw.cpp"
    )
 
    target_compile_features(
