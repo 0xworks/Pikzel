@@ -17,6 +17,7 @@ struct Camera {
    glm::vec3 UpVector = {0.0f, 1.0f, 0.0f};
    float FoVRadians = glm::radians(45.0f);
    float MoveSpeed = 2.5f; // TODO: should be in camera controller
+   float RotateSpeed = 2.5f;
 
    glm::mat4 Projection = glm::identity<glm::mat4>();
 

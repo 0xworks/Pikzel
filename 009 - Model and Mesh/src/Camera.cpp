@@ -16,8 +16,8 @@ void Camera::Update(const Pikzel::Input& input, const Pikzel::DeltaTime deltaTim
    Position += dz * Direction;
 
    if (input.IsMouseButtonPressed(Pikzel::MouseButton::Right)) {
-      float dYawRadians = glm::radians(input.GetAxis("MouseX"_hs) * deltaTime.count() * MoveSpeed);
-      float dPitchRadians = glm::radians(input.GetAxis("MouseY"_hs) * deltaTime.count() * MoveSpeed);
+      float dYawRadians = glm::radians(input.GetAxis("MouseX"_hs) * deltaTime.count() * RotateSpeed);
+      float dPitchRadians = glm::radians(input.GetAxis("MouseY"_hs) * deltaTime.count() * RotateSpeed);
 
       Direction = glm::rotate(Direction, -dYawRadians, UpVector);
       glm::vec3 right = glm::cross(Direction, UpVector);
