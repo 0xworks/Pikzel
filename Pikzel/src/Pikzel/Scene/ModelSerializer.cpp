@@ -27,10 +27,10 @@ namespace Pikzel {
 
          if (type == aiTextureType_SPECULAR) {
             if (g_TextureCache.find("**black**") == g_TextureCache.end()) {
-               std::shared_ptr<Texture2D> whiteTexture = RenderCore::CreateTexture2D(1, 1);
+               std::shared_ptr<Texture2D> blackTexture = RenderCore::CreateTexture2D(1, 1);
                uint32_t black = 0;
-               whiteTexture->SetData(&black, sizeof(uint32_t));
-               g_TextureCache["**black**"] = whiteTexture;
+               blackTexture->SetData(&black, sizeof(uint32_t));
+               g_TextureCache["**black**"] = blackTexture;
             }
             return g_TextureCache["**black**"];
          }

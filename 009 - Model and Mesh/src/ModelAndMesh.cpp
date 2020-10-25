@@ -35,8 +35,12 @@ public:
       CreateModelRenderer();
 
       m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 1.0f, 10000.0f);
+
+      // In order to render ImGui widgets, you need to initialize ImGui integration.
+      // Clients that do not wish to use ImGui simply don't call this (and so "pay" nothing)
       GetWindow().InitializeImGui();
 
+      // Optional tweaking of ImGui style
       ImGuiIO& io = ImGui::GetIO();
       ImGui::StyleColorsDark();
       ImGuiStyle& style = ImGui::GetStyle();
@@ -49,6 +53,9 @@ public:
 
       io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Bold.ttf", 15 * scaleFactor);
       io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Regular.ttf", 15 * scaleFactor);
+
+      // This is required (even if you do not override default font) to upload ImGui font texture to the ImGui backend
+      // We cannot do it as part of InitialiseImGui() in case client _does_ want to override default fonts
       GetWindow().UploadImGuiFonts();
    }
 
@@ -86,16 +93,17 @@ public:
          }
       }
 
-      // Render scene
+      // Render the model, positioned according to given transform, with camera and lighting as given
       m_ModelRenderer->Draw(
          GetWindow().GetGraphicsContext(),
          {m_Camera.Projection, view, m_Camera.Position, m_DirectionalLights, m_PointLights},
          transform
       );
 
-      // Render ImGui overlay
+      // If you want to render ImGui windows, do it between calls to BeginImGuiFrame() and EndImGuiFrame()
       GetWindow().BeginImGuiFrame();
       {
+         // You can draw multiple ImGui windows in here, you do not need to call Begin/End ImGuiFrame() again.
          ImGui::Begin("Point Lights");
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
             ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
@@ -111,32 +119,32 @@ private:
    void CreateVertexBuffer() {
       glm::vec3 vertices[] = {
          {-0.5f, -0.5f, -0.5f},
+         { 0.5f,  0.5f, -0.5f},
          { 0.5f, -0.5f, -0.5f},
          { 0.5f,  0.5f, -0.5f},
-         { 0.5f,  0.5f, -0.5f},
+         {-0.5f, -0.5f, -0.5f},
+         {-0.5f,  0.5f, -0.5f},
+
+         {-0.5f, -0.5f,  0.5f},
+         { 0.5f, -0.5f,  0.5f},
+         { 0.5f,  0.5f,  0.5f},
+         { 0.5f,  0.5f,  0.5f},
+         {-0.5f,  0.5f,  0.5f},
+         {-0.5f, -0.5f,  0.5f},
+
+         {-0.5f,  0.5f,  0.5f},
          {-0.5f,  0.5f, -0.5f},
          {-0.5f, -0.5f, -0.5f},
-
-         {-0.5f, -0.5f,  0.5f},
-         { 0.5f, -0.5f,  0.5f},
-         { 0.5f,  0.5f,  0.5f},
-         { 0.5f,  0.5f,  0.5f},
-         {-0.5f,  0.5f,  0.5f},
-         {-0.5f, -0.5f,  0.5f},
-
-         {-0.5f,  0.5f,  0.5f},
-         {-0.5f,  0.5f, -0.5f},
-         {-0.5f, -0.5f, -0.5f},
          {-0.5f, -0.5f, -0.5f},
          {-0.5f, -0.5f,  0.5f},
          {-0.5f,  0.5f,  0.5f},
 
          { 0.5f,  0.5f,  0.5f},
+         { 0.5f, -0.5f, -0.5f},
          { 0.5f,  0.5f, -0.5f},
          { 0.5f, -0.5f, -0.5f},
-         { 0.5f, -0.5f, -0.5f},
-         { 0.5f, -0.5f,  0.5f},
          { 0.5f,  0.5f,  0.5f},
+         { 0.5f, -0.5f,  0.5f},
 
          {-0.5f, -0.5f, -0.5f},
          { 0.5f, -0.5f, -0.5f},
@@ -146,11 +154,11 @@ private:
          {-0.5f, -0.5f, -0.5f},
 
          {-0.5f,  0.5f, -0.5f},
+         { 0.5f,  0.5f,  0.5f},
          { 0.5f,  0.5f, -0.5f},
          { 0.5f,  0.5f,  0.5f},
-         { 0.5f,  0.5f,  0.5f},
-         {-0.5f,  0.5f,  0.5f},
-         {-0.5f,  0.5f, -0.5f}
+         {-0.5f,  0.5f, -0.5f},
+         {-0.5f,  0.5f,  0.5f}
       };
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
@@ -216,7 +224,8 @@ private:
       .Direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
       .UpVector = {0.0f, 1.0f, 0.0f},
       .FoVRadians = glm::radians(60.f),
-      .MoveSpeed = 20.0f
+      .MoveSpeed = 200.0f,
+      .RotateSpeed = 20.0f
    };
 
    // note: currently shader expects exactly 1 directional light
