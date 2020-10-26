@@ -85,7 +85,15 @@ namespace Pikzel {
       //virtual void PushConstant(const entt::id_type id, const glm::dmat4x3& value) = 0;
       virtual void PushConstant(const entt::id_type id, const glm::dmat4& value) = 0;
 
-      virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount = 0) = 0;
+      // Draw contents of vertex buffer, assuming vertices are in groups of 3, representing triangles.
+      // You must specify the number of vertices (a multiple of 3).  Drawing starts from [vertexOffset]th element of the
+      // vertex buffer (default 0)
+      virtual void DrawTriangles(const VertexBuffer& vertexBuffer, const uint32_t vertexCount, const uint32_t vertexOffset = 0) = 0;
+
+      // Draw contents of vertex buffer, as triangles indexed by index buffer.
+      // The number of vertices drawn is determined by the number of indices in the index buffer, unless you override the indexCount parameter.
+      // Drawing starts from [vertexOffset]th element of the vertex buffer (default 0)
+      virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount = 0, const uint32_t vertexOffset = 0) = 0;
 
    };
 

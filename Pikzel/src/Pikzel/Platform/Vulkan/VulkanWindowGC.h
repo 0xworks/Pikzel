@@ -82,7 +82,8 @@ namespace Pikzel {
       //virtual void PushConstant(const entt::id_type id, const glm::dmat4x3& value) override;
       virtual void PushConstant(const entt::id_type id, const glm::dmat4& value) override;
 
-      virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount = 0) override;
+      virtual void DrawTriangles(const VertexBuffer& vertexBuffer, const uint32_t vertexCount, const uint32_t vertexOffset = 0) override;
+      virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount = 0, const uint32_t vertexOffset = 0) override;
 
    public:
       virtual vk::CommandBuffer GetVkCommandBuffer() override;
@@ -118,7 +119,6 @@ namespace Pikzel {
       std::array<vk::ClearValue, 2> m_ClearValues;
 
       GLFWwindow* m_Window = nullptr;             // VulkanWindowGC does not own the window!
-      const VulkanPipeline* m_Pipeline = nullptr; // currently bound pipeline
       VulkanPipeline* m_Pipeline = nullptr;       // currently bound pipeline  (TODO: should be a shared_ptr)
 
       vk::SurfaceKHR m_Surface;

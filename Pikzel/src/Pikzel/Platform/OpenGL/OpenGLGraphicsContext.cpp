@@ -373,11 +373,17 @@ namespace Pikzel {
    }
 
 
-   void OpenGLGraphicsContext::DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount /*= 0*/) {
+   void OpenGLGraphicsContext::DrawTriangles(const VertexBuffer& vertexBuffer, const uint32_t vertexCount, const uint32_t vertexOffset/*= 0*/) {
+      GCBinder bindVB {*this, vertexBuffer};
+      glDrawArrays(GL_TRIANGLES, vertexOffset, vertexCount);
+   }
+
+
+   void OpenGLGraphicsContext::DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount/*= 0*/, const uint32_t vertexOffset/*= 0*/) {
       uint32_t count = indexCount ? indexCount : indexBuffer.GetCount();
       GCBinder bindVB {*this, vertexBuffer};
       GCBinder bindIB {*this, indexBuffer};
-      glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+      glDrawElementsBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr, vertexOffset);
    }
 
 
