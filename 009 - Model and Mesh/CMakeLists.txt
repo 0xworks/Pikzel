@@ -44,6 +44,10 @@ set(
 compile_shaders(ShaderSources ShaderHeaders Assets/Shaders CompiledShaders)
 copy_assets(Fonts Assets/Fonts CopiedFonts)
 
+source_group("src" FILES ${ProjectSources})
+source_group("Assets/Shaders" FILES ${ShaderSources} ${ShaderHeaders})
+source_group("Assets/Fonts" FILES ${Fonts})
+
 add_executable(
    ${PROJECT_NAME}
    ${ProjectSources}

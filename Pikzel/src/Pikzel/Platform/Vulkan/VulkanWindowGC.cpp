@@ -280,14 +280,6 @@ namespace Pikzel {
       };
 
       vk::WriteDescriptorSet uniformBufferWrite = {
-         m_Pipeline->GetVkDescriptorSets(m_CurrentImage).at(resource.DescriptorSet)  /*dstSet*/,
-         resource.Binding                                                            /*dstBinding*/,
-         0                                                                           /*dstArrayElement*/,
-         resource.Count                                                              /*descriptorCount*/,
-         resource.Type                                                               /*descriptorType*/,
-         nullptr                                                                     /*pImageInfo*/,
-         &uniformBufferDescriptor                                                    /*pBufferInfo*/,
-         nullptr                                                                     /*pTexelBufferView*/
          m_Pipeline->GetVkDescriptorSet(resource.DescriptorSet)  /*dstSet*/,
          resource.Binding                                        /*dstBinding*/,
          0                                                       /*dstArrayElement*/,
@@ -315,14 +307,6 @@ namespace Pikzel {
       };
 
       vk::WriteDescriptorSet textureSamplersWrite = {
-         m_Pipeline->GetVkDescriptorSets(m_CurrentImage).at(resource.DescriptorSet)  /*dstSet*/,
-         resource.Binding                                                            /*dstBinding*/,
-         0                                                                           /*dstArrayElement*/,
-         resource.Count                                                              /*descriptorCount*/,
-         resource.Type                                                               /*descriptorType*/,
-         &textureImageDescriptor                                                     /*pImageInfo*/,
-         nullptr                                                                     /*pBufferInfo*/,
-         nullptr                                                                     /*pTexelBufferView*/
          m_Pipeline->GetVkDescriptorSet(resource.DescriptorSet)  /*dstSet*/,
          resource.Binding                                        /*dstBinding*/,
          0                                                       /*dstArrayElement*/,
@@ -343,10 +327,6 @@ namespace Pikzel {
    void VulkanWindowGC::Bind(const Pipeline& pipeline) {
       const VulkanPipeline& vulkanPipeline = static_cast<const VulkanPipeline&>(pipeline);
       m_CommandBuffers[m_CurrentImage].bindPipeline(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipeline());
-      if (!vulkanPipeline.GetVkDescriptorSets(m_CurrentImage).empty()) {
-         m_CommandBuffers[m_CurrentImage].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipelineLayout(), 0, vulkanPipeline.GetVkDescriptorSets(m_CurrentImage), nullptr);  // (i)th command buffer is bound to the (i)th set of descriptor sets
-      }
-      m_Pipeline = &vulkanPipeline;
       m_Pipeline = const_cast<VulkanPipeline*>(&vulkanPipeline);
       m_Pipeline->UnbindDescriptorSets();
    }
@@ -667,10 +647,19 @@ namespace Pikzel {
    }
 
 
-   void VulkanWindowGC::DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount /*= 0*/) {
-      GCBinder bindVB {*this, vertexBuffer};
-      GCBinder bindIB {*this, indexBuffer};
-      m_CommandBuffers[m_CurrentImage].drawIndexed(indexBuffer.GetCount(), 1, 0, 0, 0);
+   void VulkanWindowGC::DrawTriangles(const VertexBuffer& vertexBuffer, const uint32_t vertexCount, const uint32_t vertexOffset/*= 0*/) {
+      m_Pipeline->BindDescriptorSets(m_CommandBuffers[m_CurrentImage], m_InFlightFences[m_CurrentFrame]);
+      Bind(vertexBuffer);
+      m_CommandBuffers[m_CurrentImage].draw(vertexCount, 1, vertexOffset, 0);
+   }
+
+
+   void VulkanWindowGC::DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount, const uint32_t vertexOffset/*= 0*/) {
+      uint32_t count = indexCount ? indexCount : indexBuffer.GetCount();
+      m_Pipeline->BindDescriptorSets(m_CommandBuffers[m_CurrentImage], m_InFlightFences[m_CurrentFrame]);
+      Bind(vertexBuffer);
+      Bind(indexBuffer);
+      m_CommandBuffers[m_CurrentImage].drawIndexed(count, 1, 0, vertexOffset, 0);
    }
 
 

@@ -83,7 +83,8 @@ namespace Pikzel {
       //virtual void PushConstant(const entt::id_type id, const glm::dmat4x3& value) override;
       virtual void PushConstant(const entt::id_type id, const glm::dmat4& value) override;
 
-      virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, uint32_t indexCount = 0) override;
+      virtual void DrawTriangles(const VertexBuffer& vertexBuffer, const uint32_t vertexCount, const uint32_t vertexOffset = 0) override;
+      virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount = 0, const uint32_t vertexOffset = 0) override;
 
    private:
       void OnWindowVSyncChanged(const WindowVSyncChangedEvent& event);
