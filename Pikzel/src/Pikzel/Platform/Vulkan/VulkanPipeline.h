@@ -41,7 +41,9 @@ namespace Pikzel {
       std::shared_ptr<VulkanDevice> GetDevice();
 
       const std::vector<vk::DescriptorSetLayout>& GetVkDescriptorSetLayouts() const;
-      const std::vector<vk::DescriptorSet>& GetVkDescriptorSets(const uint32_t i) const;
+      vk::DescriptorSet GetVkDescriptorSet(const uint32_t set);
+      void BindDescriptorSets(vk::CommandBuffer commandBuffer, vk::Fence fence);
+      void UnbindDescriptorSets();
 
       vk::Pipeline GetVkPipeline() const;
       vk::PipelineLayout GetVkPipelineLayout() const;
@@ -68,8 +70,7 @@ namespace Pikzel {
       void CreateDescriptorPool();
       void DestroyDesciptorPool();
 
-      void CreateDescriptorSets();
-      void DestroyDescriptorSets();
+      vk::DescriptorSet AllocateDescriptorSet(const uint32_t set);
 
    private:
       std::shared_ptr<VulkanDevice> m_Device;
@@ -77,7 +78,12 @@ namespace Pikzel {
       vk::PipelineLayout m_PipelineLayout;
       vk::Pipeline m_Pipeline;
       vk::DescriptorPool m_DescriptorPool;
-      std::vector<std::vector<vk::DescriptorSet>> m_DescriptorSets;
+      std::vector<std::vector<vk::DescriptorSet>> m_DescriptorSetInstances; // m_DescriptorSets[i] = collection of descriptor sets that have been allocated for set i
+      std::vector<std::vector<bool>> m_DescriptorSetBound;                  // m_DescriptorSetBound[i] = collection of booleans indicating which elements from m_DescriptorSets[i] are currently bound to the pipeline
+      std::vector<std::vector<vk::Fence>> m_DescriptorSetFences;            // m_DescriptorSetFences[i] = collection of fences synchronizing access to m_DescriptorSets for set i
+      std::vector<uint32_t> m_DescriptorSetIndices;                         // m_DescriptorSetIndices[i] = which element (of m_DescriptorSets) is currently available for writing for set i
+      std::vector<bool> m_DescriptorSetPending;                             // m_DescriptorSetPending[i] = true <=> set i needs to be bound for next draw call
+
       std::vector<std::pair<ShaderType, std::vector<uint32_t>>> m_ShaderSrcs;
       std::unordered_map<entt::id_type, VulkanPushConstant> m_PushConstants;
       std::unordered_map<entt::id_type, VulkanResource> m_Resources;

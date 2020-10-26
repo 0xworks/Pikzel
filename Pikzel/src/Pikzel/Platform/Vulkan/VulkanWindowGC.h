@@ -119,6 +119,7 @@ namespace Pikzel {
 
       GLFWwindow* m_Window = nullptr;             // VulkanWindowGC does not own the window!
       const VulkanPipeline* m_Pipeline = nullptr; // currently bound pipeline
+      VulkanPipeline* m_Pipeline = nullptr;       // currently bound pipeline  (TODO: should be a shared_ptr)
 
       vk::SurfaceKHR m_Surface;
 
