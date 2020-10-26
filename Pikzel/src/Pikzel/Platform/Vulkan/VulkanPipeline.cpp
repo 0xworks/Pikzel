@@ -72,13 +72,11 @@ namespace Pikzel {
       CreatePipelineLayout();
       CreatePipeline(gc, settings);
       CreateDescriptorPool();
-      CreateDescriptorSets();
    }
 
 
    VulkanPipeline::~VulkanPipeline() {
       m_Device->GetVkDevice().waitIdle();
-      DestroyDescriptorSets();
       DestroyDesciptorPool();
       DestroyPipeline();
       DestroyPipelineLayout();
@@ -222,9 +220,6 @@ namespace Pikzel {
 
 
    void VulkanPipeline::CreateDescriptorSetLayouts(const PipelineSettings& settings) {
-      // Basically connects the different shader stages to descriptors for binding uniform buffers, image samplers, etc.
-      // So every shader binding should map to one descriptor set layout binding
-
       for (const auto& [shaderType, path] : settings.Shaders) {
          m_ShaderSrcs.emplace_back(shaderType, ReadFile<uint32_t>(path));
       }
@@ -240,20 +235,18 @@ namespace Pikzel {
       }
 
       for (const auto& layoutBinding : layoutBindings) {
-         std::vector<vk::DescriptorBindingFlags> bindingFlags {layoutBinding.size(), vk::DescriptorBindingFlagBits::eUpdateAfterBind};
-         vk::DescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCI = {
-            static_cast<uint32_t>(bindingFlags.size()),   /*bindingCount*/
-            bindingFlags.data()                           /*pBindingFlags*/
-         };
-
          vk::DescriptorSetLayoutCreateInfo ci = {
-            vk::DescriptorSetLayoutCreateFlagBits::eUpdateAfterBindPool   /*flags*/,
-            static_cast<uint32_t>(layoutBinding.size())                   /*bindingCount*/,
-            layoutBinding.data()                                          /*pBindings*/
+            {}                                            /*flags*/,
+            static_cast<uint32_t>(layoutBinding.size())   /*bindingCount*/,
+            layoutBinding.data()                          /*pBindings*/
          };
-         ci.pNext = &bindingFlagsCI;
 
          m_DescriptorSetLayouts.emplace_back(m_Device->GetVkDevice().createDescriptorSetLayout(ci));
+         m_DescriptorSetInstances.emplace_back();
+         m_DescriptorSetFences.emplace_back();
+         m_DescriptorSetIndices.emplace_back(0);
+         m_DescriptorSetPending.emplace_back(false);
+         m_DescriptorSetBound.emplace_back(false);
       }
    }
 
@@ -279,9 +272,6 @@ namespace Pikzel {
 
 
    void VulkanPipeline::CreatePipelineLayout() {
-      // Create the pipeline layout that is used to generate the rendering pipelines that are based on this descriptor set layout
-      // In a more complex scenario you would have different pipeline layouts for different descriptor set layouts that could be reused
-
       // Vulkan spec requires that we do not declare more than one push constant range per shader stage,
       // so figure out "unique" ranges here...
       struct PushConstantRange {
@@ -444,7 +434,7 @@ namespace Pikzel {
       pipelineCI.pDepthStencilState = &depthStencilState;
 
       // Multi sampling state
-      // This example does not make use of multi sampling (for anti-aliasing), the state must still be set and passed to the pipeline
+      // This pipeline does not make use of multi sampling (for anti-aliasing), the state must still be set and passed to the pipeline
       vk::PipelineMultisampleStateCreateInfo multisampleState = {
          {}                          /*flags*/,
          vk::SampleCountFlagBits::e1 /*rasterizationSamples*/,
@@ -490,7 +480,7 @@ namespace Pikzel {
       pipelineCI.stageCount = static_cast<uint32_t>(shaderStages.size());
       pipelineCI.pStages = shaderStages.data();
 
-      // .value works around bug in Vulkan.hpp (refer https://github.com/KhronosGroup/Vulkan-Hpp/issues/659)
+      // .value works around issue in Vulkan.hpp (refer https://github.com/KhronosGroup/Vulkan-Hpp/issues/659)
       m_Pipeline = m_Device->GetVkDevice().createGraphicsPipeline(gc.GetVkPipelineCache(), pipelineCI).value;
 
       // Shader modules are no longer needed once the graphics pipeline has been created
@@ -502,15 +492,18 @@ namespace Pikzel {
 
 
    void VulkanPipeline::DestroyPipeline() {
-      ;
       if (m_Device && m_Pipeline) {
          m_Device->GetVkDevice().destroy(m_Pipeline);
       }
+      m_Pipeline = nullptr;
    }
 
 
    void VulkanPipeline::CreateDescriptorPool() {
-      constexpr uint32_t howMany = 5; // how are we supposed to know how many descriptor sets might end up getting allocated? For now this is just a wild guess
+      constexpr uint32_t howMany = 10; // We don't really know at this point how many descriptor sets might end up being needed.
+                                       // We just create "some" here, to allow toy examples to work (TODO: may need to provide a way to set this amount)
+                                       // For more complicated rendering tasks, Pikzel provides various "Renderer" classes which manage their own descriptor
+                                       // sets.
 
       std::unordered_map<vk::DescriptorType, uint32_t> descriptorTypeCount;
       for (const auto& [id, resource] : m_Resources) {
@@ -524,10 +517,10 @@ namespace Pikzel {
       
       if (!poolSizes.empty()) {
          vk::DescriptorPoolCreateInfo descriptorPoolCI = {
-            vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind  /*flags*/,
-            howMany * static_cast<uint32_t>(m_DescriptorSetLayouts.size())                                             /*maxSets*/,
-            static_cast<uint32_t>(poolSizes.size())                                                                    /*poolSizeCount*/,
-            poolSizes.data()                                                                                           /*pPoolSizes*/
+            {}                                                               /*flags*/,
+            howMany * static_cast<uint32_t>(m_DescriptorSetLayouts.size())   /*maxSets*/,
+            static_cast<uint32_t>(poolSizes.size())                          /*poolSizeCount*/,
+            poolSizes.data()                                                 /*pPoolSizes*/
          };
          m_DescriptorPool = m_Device->GetVkDevice().createDescriptorPool(descriptorPoolCI);
       }
@@ -538,50 +531,68 @@ namespace Pikzel {
       if (m_Device && m_DescriptorPool) {
          m_Device->GetVkDevice().destroy(m_DescriptorPool);
       }
+      m_DescriptorPool = nullptr;
+      m_DescriptorSetInstances.clear();
+      m_DescriptorSetFences.clear();
+      m_DescriptorSetIndices.clear();
+      m_DescriptorSetPending.clear();
+      m_DescriptorSetBound.clear();
    }
 
 
-   void VulkanPipeline::CreateDescriptorSets() {
-      if (!m_DescriptorSetLayouts.empty()) {
-         vk::DescriptorSetAllocateInfo allocInfo = {
-            m_DescriptorPool,
-            static_cast<uint32_t>(m_DescriptorSetLayouts.size()),
-            m_DescriptorSetLayouts.data()
-         };
+   vk::DescriptorSet VulkanPipeline::AllocateDescriptorSet(const uint32_t set) {
+      vk::DescriptorSetAllocateInfo allocInfo = {
+         m_DescriptorPool,
+         1,
+         &m_DescriptorSetLayouts[set]
+      };
 
-         // Create 2 sets of descriptor sets.
-         // In the GraphicsContext we have a swapchain, and there are 2 images in that swapchain that we could be drawing to.
-         // We have a command buffer for each swapchain image.
-         // We need to be sure that we aren't messing with descriptor sets that are in use in a command buffer that has been submitted
-         // to the graphics device but not yet executed.
-         // To achieve this, we would like to have one (set of) descriptor sets for each command buffer (i.e for each image in swapchain)
-         // However, pipeline does not know about the graphics context and therefore does not know how many sets of descriptor sets to create...
-         // Conversely, the graphics context doesnt know about the pipeline (until its too late), so cant just move the creation of descriptor sets
-         // to the graphics context either.
-         // This is a bit of a mess...
-         // If you ever fix this mess, then please remove the ASSERT at the bottom of VulkanWindowGC::CreateSwapChain()
-         m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
-         m_DescriptorSets.emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo));
-      } else {
-         m_DescriptorSets.emplace_back();
-         m_DescriptorSets.emplace_back();
+      m_DescriptorSetInstances[set].emplace_back(m_Device->GetVkDevice().allocateDescriptorSets(allocInfo).front());
+      m_DescriptorSetBound[set].emplace_back(false);
+      m_DescriptorSetFences[set].emplace_back(nullptr);
+      m_DescriptorSetIndices[set] = m_DescriptorSetInstances[set].size() - 1;
+      m_DescriptorSetPending[set] = true;
+      return m_DescriptorSetInstances[set].back();
+   }
+
+
+   vk::DescriptorSet VulkanPipeline::GetVkDescriptorSet(const uint32_t set) {
+      // if we have not created an instance of the specified descriptor set yet, allocate a new one and return.
+      // otherwise, look for an instance that isn't currently in use (had not already been bound to the pipeline, and is not still in use by some previously submitted render commands) and return that one
+      // if cannot find one that isn't in use, allocate a new one and return
+      if (m_DescriptorSetInstances[set].empty()) {
+         return AllocateDescriptorSet(set);
+      }
+      uint32_t i = m_DescriptorSetIndices[set];
+      do {
+         if (!m_DescriptorSetBound[set][i] && (!m_DescriptorSetFences[set][i] || (m_Device->GetVkDevice().getFenceStatus(m_DescriptorSetFences[set][i]) == vk::Result::eSuccess))) {
+            m_DescriptorSetIndices[set] = i;
+            m_DescriptorSetPending[set] = true;
+            return m_DescriptorSetInstances[set][m_DescriptorSetIndices[set]];
+         }
+         if (++i == m_DescriptorSetInstances[set].size()) {
+            i = 0;
+         }
+      } while(i != m_DescriptorSetIndices[set]);
+      return AllocateDescriptorSet(set);
+   }
+
+
+   void VulkanPipeline::BindDescriptorSets(vk::CommandBuffer commandBuffer, vk::Fence fence) {
+      for (uint32_t i = 0; i < m_DescriptorSetInstances.size(); ++i) {
+         if (m_DescriptorSetPending[i]) {
+            commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, GetVkPipelineLayout(), i, m_DescriptorSetInstances[i][m_DescriptorSetIndices[i]], nullptr);
+            m_DescriptorSetFences[i][m_DescriptorSetIndices[i]] = fence;
+            m_DescriptorSetPending[i] = false;
+            m_DescriptorSetBound[i][m_DescriptorSetIndices[i]] = true;
+         }
       }
    }
 
 
-   const std::vector<vk::DescriptorSet>& VulkanPipeline::GetVkDescriptorSets(const uint32_t i) const {
-      return m_DescriptorSets.at(i);
-   }
-
-
-   void VulkanPipeline::DestroyDescriptorSets() {
-      if (m_Device) {
-         for (const auto& descriptorSets : m_DescriptorSets) {
-            if (!descriptorSets.empty()) {
-               m_Device->GetVkDevice().freeDescriptorSets(m_DescriptorPool, descriptorSets);
-            }
-         }
-         m_DescriptorSets.clear();
+   void VulkanPipeline::UnbindDescriptorSets() {
+      for (auto& bound : m_DescriptorSetBound) {
+         std::fill(bound.begin(), bound.end(), false);
       }
    }
 

@@ -29,10 +29,10 @@ namespace Pikzel {
    void VulkanMeshRenderer::CreateDescriptorPool(const Model& model) {
       vk::DescriptorPoolSize poolSize = {vk::DescriptorType::eCombinedImageSampler, static_cast<uint32_t>(model.Meshes.size() * 2)};
       vk::DescriptorPoolCreateInfo descriptorPoolCI = {
-         vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind  /*flags*/,
-         static_cast<uint32_t>(model.Meshes.size())                                                                 /*maxSets*/,
-         1                                                                                                          /*poolSizeCount*/,
-         &poolSize                                                                                                  /*pPoolSizes*/
+         {}                                           /*flags*/,
+         static_cast<uint32_t>(model.Meshes.size())   /*maxSets*/,
+         1                                            /*poolSizeCount*/,
+         &poolSize                                    /*pPoolSizes*/
       };
       m_DescriptorPool = m_Device->GetVkDevice().createDescriptorPool(descriptorPoolCI);
    }
@@ -107,9 +107,6 @@ namespace Pikzel {
 
 
    void VulkanMeshRenderer::DestroyDescriptorSets() {
-      if (m_Device) {
-         m_Device->GetVkDevice().freeDescriptorSets(m_DescriptorPool, m_DescriptorSets);
-      }
       m_DescriptorSets.clear();
    }
 

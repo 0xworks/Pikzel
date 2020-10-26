@@ -288,6 +288,14 @@ namespace Pikzel {
          nullptr                                                                     /*pImageInfo*/,
          &uniformBufferDescriptor                                                    /*pBufferInfo*/,
          nullptr                                                                     /*pTexelBufferView*/
+         m_Pipeline->GetVkDescriptorSet(resource.DescriptorSet)  /*dstSet*/,
+         resource.Binding                                        /*dstBinding*/,
+         0                                                       /*dstArrayElement*/,
+         resource.Count                                          /*descriptorCount*/,
+         resource.Type                                           /*descriptorType*/,
+         nullptr                                                 /*pImageInfo*/,
+         &uniformBufferDescriptor                                /*pBufferInfo*/,
+         nullptr                                                 /*pTexelBufferView*/
       };
 
       m_Device->GetVkDevice().updateDescriptorSets(uniformBufferWrite, nullptr);
@@ -315,6 +323,14 @@ namespace Pikzel {
          &textureImageDescriptor                                                     /*pImageInfo*/,
          nullptr                                                                     /*pBufferInfo*/,
          nullptr                                                                     /*pTexelBufferView*/
+         m_Pipeline->GetVkDescriptorSet(resource.DescriptorSet)  /*dstSet*/,
+         resource.Binding                                        /*dstBinding*/,
+         0                                                       /*dstArrayElement*/,
+         resource.Count                                          /*descriptorCount*/,
+         resource.Type                                           /*descriptorType*/,
+         &textureImageDescriptor                                 /*pImageInfo*/,
+         nullptr                                                 /*pBufferInfo*/,
+         nullptr                                                 /*pTexelBufferView*/
       };
 
       m_Device->GetVkDevice().updateDescriptorSets(textureSamplersWrite, nullptr);
@@ -331,6 +347,8 @@ namespace Pikzel {
          m_CommandBuffers[m_CurrentImage].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipelineLayout(), 0, vulkanPipeline.GetVkDescriptorSets(m_CurrentImage), nullptr);  // (i)th command buffer is bound to the (i)th set of descriptor sets
       }
       m_Pipeline = &vulkanPipeline;
+      m_Pipeline = const_cast<VulkanPipeline*>(&vulkanPipeline);
+      m_Pipeline->UnbindDescriptorSets();
    }
 
 

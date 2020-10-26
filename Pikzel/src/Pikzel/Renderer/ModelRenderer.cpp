@@ -2,7 +2,7 @@
 
 namespace Pikzel {
 
-   ModelRenderer::ModelRenderer(GraphicsContext& gc, std::unique_ptr<Model> model)
+   ModelRenderer::ModelRenderer(GraphicsContext& gc, std::shared_ptr<Model> model)
    : m_Model {std::move(model)}
    , m_MeshRenderer {MeshRenderer::Create(gc, *m_Model)}
    {}
