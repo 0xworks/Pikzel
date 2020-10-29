@@ -58,10 +58,6 @@ namespace Pikzel {
    }
 
 
-   void OpenGLGraphicsContext::UploadImGuiFonts() {
-   }
-
-
    void OpenGLGraphicsContext::BeginImGuiFrame() {
       ImGui_ImplOpenGL3_NewFrame();
       ImGui_ImplGlfw_NewFrame();

@@ -47,7 +47,6 @@ namespace Pikzel {
       // These shouldn't be part of Window. (e.g. maybe client wants to use Nano GUI instead, and doesn't want any ImGui baggage)
       // TODO: move these somewhere else
       virtual void InitializeImGui() = 0;
-      virtual void UploadImGuiFonts() = 0;
       virtual void BeginImGuiFrame() = 0;
       virtual void EndImGuiFrame() = 0;
 

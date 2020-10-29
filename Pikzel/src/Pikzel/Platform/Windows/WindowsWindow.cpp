@@ -180,11 +180,6 @@ namespace Pikzel {
    }
 
 
-   void WindowsWindow::UploadImGuiFonts() {
-      m_Context->UploadImGuiFonts();
-   }
-
-
    void WindowsWindow::BeginFrame() {
       {
          PKZL_PROFILE_SCOPE("glfwPollEvents");

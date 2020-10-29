@@ -202,16 +202,6 @@ namespace Pikzel {
    }
 
 
-   void VulkanWindowGC::UploadImGuiFonts() {
-      m_Device->SubmitSingleTimeCommands([] (vk::CommandBuffer commandBuffer) {
-         if (!ImGui_ImplVulkan_CreateFontsTexture(commandBuffer)) {
-            throw std::runtime_error("failed to create ImGui font textures!");
-         }
-      });
-      ImGui_ImplVulkan_DestroyFontUploadObjects();
-   }
-
-
    void VulkanWindowGC::BeginImGuiFrame() {
       ImGui_ImplVulkan_NewFrame();
       ImGui_ImplGlfw_NewFrame();
@@ -787,10 +777,6 @@ namespace Pikzel {
       for (const auto& image : swapChainImages) {
          m_SwapChainImages.emplace_back(m_Device, image, m_Format, m_Extent);
       }
-
-      // You put hacks in VulkanPipeline that depend on there being exactly 2 swap chain images...
-      // E.g. VulkanPipeline::CreateDescriptorSets()
-      PKZL_CORE_ASSERT(swapChainImages.size() == 2, "Pikzel::VulkanPipeline expects there to be exactly 2 swapchain images!");
    }
    
 

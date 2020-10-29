@@ -17,6 +17,8 @@ namespace Pikzel {
    struct IRenderCore {
       virtual ~IRenderCore() = default;
 
+      virtual void UploadImGuiFonts() = 0;
+
       virtual void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) = 0;
 
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) = 0;
@@ -50,6 +52,8 @@ namespace Pikzel {
       static API GetAPI();
 
       static void Init(const Window& window);
+
+      static void UploadImGuiFonts();
 
       static void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height);
 
