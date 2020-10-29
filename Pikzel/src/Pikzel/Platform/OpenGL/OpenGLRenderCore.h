@@ -9,6 +9,8 @@ namespace Pikzel {
       OpenGLRenderCore(const Window& window);
       virtual ~OpenGLRenderCore();
 
+      virtual void UploadImGuiFonts() override;
+
       virtual void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) override;
 
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) override;

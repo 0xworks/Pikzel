@@ -6,6 +6,8 @@
 #include "VulkanUtility.h"
 #include "VulkanWindowGC.h"
 
+#include <backends/imgui_impl_vulkan.h>
+
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace Pikzel {
@@ -58,6 +60,16 @@ namespace Pikzel {
    VulkanRenderCore::~VulkanRenderCore() {
       m_Device = nullptr;
       DestroyInstance();
+   }
+
+
+   void VulkanRenderCore::UploadImGuiFonts() {
+      m_Device->SubmitSingleTimeCommands([] (vk::CommandBuffer commandBuffer) {
+         if (!ImGui_ImplVulkan_CreateFontsTexture(commandBuffer)) {
+            throw std::runtime_error("failed to create ImGui font textures!");
+         }
+      });
+      ImGui_ImplVulkan_DestroyFontUploadObjects();
    }
 
 

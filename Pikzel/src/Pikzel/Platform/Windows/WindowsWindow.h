@@ -29,7 +29,6 @@ namespace Pikzel {
       virtual void EndFrame() override;
 
       virtual void InitializeImGui() override;
-      virtual void UploadImGuiFonts() override;
       virtual void BeginImGuiFrame() override;
       virtual void EndImGuiFrame() override;
 

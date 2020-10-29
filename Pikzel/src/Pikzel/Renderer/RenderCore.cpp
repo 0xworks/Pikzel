@@ -25,6 +25,11 @@ namespace Pikzel {
    }
 
 
+   void RenderCore::UploadImGuiFonts() {
+      s_RenderCore->UploadImGuiFonts();
+   }
+
+
    void RenderCore::SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) {
       s_RenderCore->SetViewport(x, y, width, height);
    }

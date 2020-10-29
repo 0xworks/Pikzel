@@ -79,6 +79,10 @@ namespace Pikzel {
    OpenGLRenderCore::~OpenGLRenderCore() {}
 
 
+   void OpenGLRenderCore::UploadImGuiFonts() {
+   }
+
+
    void OpenGLRenderCore::SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) {
       glViewport(x, y, width, height);
    }

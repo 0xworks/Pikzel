@@ -17,7 +17,6 @@ namespace Pikzel {
 
       // These don't belong here - what if client doesn't want ImGui baggage?  TODO: move somewhere else.
       virtual void InitializeImGui() = 0;
-      virtual void UploadImGuiFonts() = 0;
       virtual void BeginImGuiFrame() = 0;
       virtual void EndImGuiFrame() = 0;
 

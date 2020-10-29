@@ -56,7 +56,7 @@ public:
 
       // This is required (even if you do not override default font) to upload ImGui font texture to the ImGui backend
       // We cannot do it as part of InitialiseImGui() in case client _does_ want to override default fonts
-      GetWindow().UploadImGuiFonts();
+      Pikzel::RenderCore::UploadImGuiFonts();
    }
 
 
