@@ -1,6 +1,7 @@
 #include "OpenGLGraphicsContext.h"
 
 #include "OpenGLBuffer.h"
+#include "OpenGLFramebuffer.h"
 #include "OpenGLPipeline.h"
 #include "OpenGLTexture.h"
 
@@ -13,74 +14,20 @@
 
 namespace Pikzel {
 
-   OpenGLGraphicsContext::OpenGLGraphicsContext(const Window& window)
-   : m_WindowHandle {(GLFWwindow*)window.GetNativeWindow()}
-   , m_Pipeline {nullptr}
-   , m_ClearColor {window.GetClearColor()}
-   {
-      PKZL_CORE_ASSERT(m_WindowHandle, "Window handle is null!")
-      EventDispatcher::Connect<WindowVSyncChangedEvent, &OpenGLGraphicsContext::OnWindowVSyncChanged>(*this);
-      glfwSwapInterval(window.IsVSync() ? 1 : 0);
+   OpenGLGraphicsContext::OpenGLGraphicsContext(const glm::vec4& clearColor)
+   : m_Pipeline {nullptr}
+   , m_ClearColor {clearColor}
+   {}
+
+
+   const glm::vec4 OpenGLGraphicsContext::GetClearColor() const {
+      return m_ClearColor;
    }
 
 
-   OpenGLGraphicsContext::~OpenGLGraphicsContext() {
-      if (ImGui::GetCurrentContext()) {
-         ImGui_ImplOpenGL3_Shutdown();
-         ImGui_ImplGlfw_Shutdown();
-         ImGui::DestroyContext();
-      }
-   }
-
-
-   void OpenGLGraphicsContext::BeginFrame() {
-      PKZL_PROFILE_FUNCTION();
-      glfwMakeContextCurrent(m_WindowHandle);
-      glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   }
-
-
-   void OpenGLGraphicsContext::EndFrame() {
-      ;
-   }
-
-
-   void OpenGLGraphicsContext::InitializeImGui() {
-      IMGUI_CHECKVERSION();
-      ImGui::CreateContext();
-      ImGuiIO& io = ImGui::GetIO();
-      io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-      ImGui_ImplOpenGL3_Init();
-      ImGui_ImplGlfw_InitForOpenGL(m_WindowHandle, true);
-   }
-
-
-   void OpenGLGraphicsContext::BeginImGuiFrame() {
-      ImGui_ImplOpenGL3_NewFrame();
-      ImGui_ImplGlfw_NewFrame();
-      ImGui::NewFrame();
-   }
-
-
-   void OpenGLGraphicsContext::EndImGuiFrame() {
-      ImGui::Render();
-      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-      if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-         GLFWwindow* currentContext = glfwGetCurrentContext();
-         ImGui::UpdatePlatformWindows();
-         ImGui::RenderPlatformWindowsDefault();
-         glfwMakeContextCurrent(currentContext);
-      }
-   }
-
-
-   void OpenGLGraphicsContext::SwapBuffers() {
-      PKZL_PROFILE_FUNCTION();
-      glfwSwapBuffers(m_WindowHandle);
-   }
+   void OpenGLGraphicsContext::InitializeImGui() {}
+   void OpenGLGraphicsContext::BeginImGuiFrame() {}
+   void OpenGLGraphicsContext::EndImGuiFrame() {}
 
 
    void OpenGLGraphicsContext::Bind(const VertexBuffer& buffer) {
@@ -114,7 +61,7 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::Bind(const Texture2D& texture, const entt::id_type resourceId) {
-      glBindTextureUnit(m_Pipeline->GetSamplerBinding(resourceId), static_cast<const OpenGLTexture2D&>(texture).GetRendererID());
+      glBindTextureUnit(m_Pipeline->GetSamplerBinding(resourceId), static_cast<const OpenGLTexture2D&>(texture).GetRendererId());
    }
 
 
@@ -136,8 +83,13 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<Framebuffer> OpenGLGraphicsContext::CreateFramebuffer(const FramebufferSettings& settings) {
+      return std::make_unique<OpenGLFramebuffer>(settings);
+   }
+
+
    std::unique_ptr<Pikzel::Pipeline> OpenGLGraphicsContext::CreatePipeline(const PipelineSettings& settings) {
-      return std::make_unique<OpenGLPipeline>(*this, settings);
+      return std::make_unique<OpenGLPipeline>(settings);
    }
 
 
@@ -383,10 +335,110 @@ namespace Pikzel {
    }
 
 
-   void OpenGLGraphicsContext::OnWindowVSyncChanged(const WindowVSyncChangedEvent& event) {
+   OpenGLWindowGC::OpenGLWindowGC(const Window& window)
+   : OpenGLGraphicsContext {window.GetClearColor()}
+   , m_WindowHandle {(GLFWwindow*)window.GetNativeWindow()}
+   {
+      PKZL_CORE_ASSERT(m_WindowHandle, "Window handle is null!")
+      EventDispatcher::Connect<WindowVSyncChangedEvent, &OpenGLWindowGC::OnWindowVSyncChanged>(*this);
+      glfwSwapInterval(window.IsVSync() ? 1 : 0);
+   }
+
+
+   OpenGLWindowGC::~OpenGLWindowGC() {
+      if (ImGui::GetCurrentContext()) {
+         ImGui_ImplOpenGL3_Shutdown();
+         ImGui_ImplGlfw_Shutdown();
+         ImGui::DestroyContext();
+      }
+   }
+
+
+   void OpenGLWindowGC::InitializeImGui() {
+      IMGUI_CHECKVERSION();
+      ImGui::CreateContext();
+      ImGuiIO& io = ImGui::GetIO();
+      io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+      ImGui_ImplOpenGL3_Init();
+      ImGui_ImplGlfw_InitForOpenGL(m_WindowHandle, true);
+   }
+
+
+   void OpenGLWindowGC::BeginImGuiFrame() {
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+   }
+
+
+   void OpenGLWindowGC::EndImGuiFrame() {
+      ImGui::Render();
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+         GLFWwindow* currentContext = glfwGetCurrentContext();
+         ImGui::UpdatePlatformWindows();
+         ImGui::RenderPlatformWindowsDefault();
+         glfwMakeContextCurrent(currentContext);
+      }
+   }
+
+
+   void OpenGLWindowGC::BeginFrame() {
+      PKZL_PROFILE_FUNCTION();
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      glfwMakeContextCurrent(m_WindowHandle);
+      int width;
+      int height;
+      glfwGetWindowSize(m_WindowHandle, &width, &height);
+      //glViewport(0, 0, width, height);
+      glm::vec4 clearColor = GetClearColor();
+      glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   }
+
+
+   void OpenGLWindowGC::EndFrame() {}
+
+
+   void OpenGLWindowGC::OnWindowVSyncChanged(const WindowVSyncChangedEvent& event) {
       if (event.Sender == m_WindowHandle) {
          glfwSwapInterval(event.IsVSync ? 1 : 0);
       }
+   }
+
+
+   void OpenGLWindowGC::SwapBuffers() {
+      PKZL_PROFILE_FUNCTION();
+      glfwSwapBuffers(m_WindowHandle);
+   }
+
+
+   OpenGLFramebufferGC::OpenGLFramebufferGC(OpenGLFramebuffer* framebuffer)
+   : OpenGLGraphicsContext(framebuffer->GetClearColor())
+   , m_Framebuffer {framebuffer}
+   {}
+
+
+   void OpenGLFramebufferGC::BeginFrame() {
+      PKZL_PROFILE_FUNCTION();
+      glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer->GetRendererId());
+      glViewport(0, 0, m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight());
+      glm::vec4 clearColor = GetClearColor();
+      glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   }
+
+
+   void OpenGLFramebufferGC::EndFrame() {}
+
+
+   void OpenGLFramebufferGC::SwapBuffers() {
+      PKZL_PROFILE_FUNCTION();
+      // "swap" back to the default framebuffer.
+      // OpenGL will block until the gpu has finished rendering to our framebuffer
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
    }
 
 }

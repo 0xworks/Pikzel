@@ -135,6 +135,7 @@ target_precompile_headers(
    [["Pikzel/Core/Core.h"]]
    <GLFW/glfw3.h>
    <glm/glm.hpp>
+   <imgui.h>
 )
 
 if(MSVC)
@@ -157,15 +158,6 @@ if(MSVC)
    )
 endif()
 
-# no precompiled header for ImGui or TracyClient
-set_source_files_properties(
-   "vendor/imgui/imgui.cpp"
-   "vendor/imgui/imgui_draw.cpp"
-   "vendor/imgui/imgui_widgets.cpp"
-   "vendor/tracy/TracyClient.cpp"
-   PROPERTIES
-   SKIP_PRECOMPILE_HEADERS ON
-)
 
 ##################################################################
 
@@ -199,6 +191,8 @@ add_library(
    "PlatformOpenGL" STATIC
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.h"
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.cpp"
+   "src/Pikzel/Platform/OpenGL/OpenGLFramebuffer.h"
+   "src/Pikzel/Platform/OpenGL/OpenGLFramebuffer.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.h"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLMeshRenderer.cpp"
@@ -244,10 +238,6 @@ target_precompile_headers(
 # no precompiled header for ImGui or GLAD
 set_source_files_properties(
    "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
-   "vendor/imgui/backends/imgui_impl_glfw.h"
-   "vendor/imgui/backends/imgui_impl_glfw.cpp"
-   "vendor/imgui/backends/imgui_impl_opengl3.h"
-   "vendor/imgui/backends/imgui_impl_opengl3.cpp"
    PROPERTIES
    SKIP_PRECOMPILE_HEADERS ON
 )
@@ -260,6 +250,7 @@ if(${Vulkan_FOUND})
 
    # Platform - Vulkan
    # This requires that the Vulkan SDK is installed.
+   # The imgui_impl_vulkan.h and .cpp files are the ones from vendor/imgui/backends, with https://github.com/ocornut/imgui/pull/914 merged in
    add_library(
       "PlatformVulkan" STATIC
       "src/Pikzel/Platform/Vulkan/DescriptorBinding.h"
@@ -269,12 +260,12 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanBuffer.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanDevice.h"
       "src/Pikzel/Platform/Vulkan/VulkanDevice.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanFramebuffer.h"
+      "src/Pikzel/Platform/Vulkan/VulkanFramebuffer.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanGraphicsContext.h"
       "src/Pikzel/Platform/Vulkan/VulkanGraphicsContext.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanImage.h"
       "src/Pikzel/Platform/Vulkan/VulkanImage.cpp"
-      #"src/Pikzel/Platform/Vulkan/VulkanImageGC.h"
-      #"src/Pikzel/Platform/Vulkan/VulkanImageGC.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanMeshRenderer.h"
       "src/Pikzel/Platform/Vulkan/VulkanMeshRenderer.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanPipeline.h"
@@ -285,10 +276,8 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanTexture.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanUtility.h"
       "src/Pikzel/Platform/Vulkan/VulkanUtility.cpp"
-      "src/Pikzel/Platform/Vulkan/VulkanWindowGC.h"
-      "src/Pikzel/Platform/Vulkan/VulkanWindowGC.cpp"
-      "vendor/imgui/backends/imgui_impl_vulkan.h"
-      "vendor/imgui/backends/imgui_impl_vulkan.cpp"
+      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
+      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.cpp"
       "vendor/imgui/backends/imgui_impl_glfw.h"
       "vendor/imgui/backends/imgui_impl_glfw.cpp"
    )
@@ -326,16 +315,6 @@ if(${Vulkan_FOUND})
    target_link_libraries(
       "PlatformVulkan" PRIVATE
       ${Vulkan_LIBRARIES}
-   )
-
-   # no precompiled header for ImGui
-   set_source_files_properties(
-      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
-      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.cpp"
-      "vendor/imgui/examples/imgui_impl_glfw.h"
-      "vendor/imgui/examples/imgui_impl_glfw.cpp"
-      PROPERTIES
-      SKIP_PRECOMPILE_HEADERS ON
    )
 
 else()

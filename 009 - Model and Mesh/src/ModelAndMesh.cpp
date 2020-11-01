@@ -51,8 +51,8 @@ public:
       float scaleFactor = GetWindow().ContentScale();
       style.ScaleAllSizes(scaleFactor);
 
-      io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Bold.ttf", 15 * scaleFactor);
-      io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Regular.ttf", 15 * scaleFactor);
+      io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Bold.ttf", 16 * scaleFactor);
+      io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Regular.ttf", 16 * scaleFactor);
 
       // This is required (even if you do not override default font) to upload ImGui font texture to the ImGui backend
       // We cannot do it as part of InitialiseImGui() in case client _does_ want to override default fonts

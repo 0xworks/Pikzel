@@ -17,8 +17,9 @@ namespace Pikzel {
 
       virtual ~VulkanImage();
 
-      vk::Format GetFormat() const;
-      vk::Extent2D GetExtent() const;
+   public:
+      vk::Format GetVkFormat() const;
+      vk::Extent2D GetVkExtent() const;
       uint32_t GetMIPLevels() const;
 
       void CreateImageView(const vk::Format format, const vk::ImageAspectFlags imageAspect);

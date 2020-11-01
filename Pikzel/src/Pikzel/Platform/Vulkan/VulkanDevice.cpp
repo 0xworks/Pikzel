@@ -42,7 +42,7 @@ namespace Pikzel {
 
 
    std::vector<const char*> VulkanDevice::GetRequiredDeviceExtensions() const {
-      return {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+      return {VK_KHR_SWAPCHAIN_EXTENSION_NAME /*, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME*/};   // At time of writing VK_EXT_extended_dynamic_state is not available in the nvidia general release drivers.
    }
 
 

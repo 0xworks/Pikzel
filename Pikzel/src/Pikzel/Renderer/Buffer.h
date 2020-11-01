@@ -113,7 +113,6 @@ namespace Pikzel {
    class UniformBuffer : public Buffer {
    public:
       virtual ~UniformBuffer() = default;
-
    };
 
 }

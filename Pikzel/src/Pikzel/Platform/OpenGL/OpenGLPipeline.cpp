@@ -161,7 +161,7 @@ namespace Pikzel {
    }
 
 
-   OpenGLPipeline::OpenGLPipeline(GraphicsContext& gc, const PipelineSettings& settings) {
+   OpenGLPipeline::OpenGLPipeline(const PipelineSettings& settings) {
       std::vector<GLuint> shaders;
       for (const auto& [shaderType, src] : settings.Shaders) {
          AppendShader(shaderType, src);
