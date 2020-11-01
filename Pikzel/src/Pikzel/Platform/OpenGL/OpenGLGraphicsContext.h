@@ -1,10 +1,14 @@
 #pragma once
 
+#include "OpenGLFramebuffer.h"
+
 #include "Pikzel/Core/Window.h"
 #include "Pikzel/Events/WindowEvents.h"
 #include "Pikzel/Renderer/GraphicsContext.h"
 
 #include <glm/glm.hpp>
+
+#include <memory>
 
 struct GLFWwindow;
 
@@ -13,18 +17,17 @@ namespace Pikzel {
    class OpenGLPipeline;
 
    class OpenGLGraphicsContext : public GraphicsContext {
-   public:
-      OpenGLGraphicsContext(const Window& window);
-      virtual ~OpenGLGraphicsContext();
+   protected:
+      OpenGLGraphicsContext(const glm::vec4& clearColor);
+      virtual ~OpenGLGraphicsContext() = default;
 
-      virtual void BeginFrame() override;
-      virtual void EndFrame() override;
+   public:
+
+      const glm::vec4 GetClearColor() const;
 
       virtual void InitializeImGui() override;
       virtual void BeginImGuiFrame() override;
       virtual void EndImGuiFrame() override;
-
-      virtual void SwapBuffers() override;
 
       virtual void Bind(const VertexBuffer& buffer) override;
       virtual void Unbind(const VertexBuffer& buffer) override;
@@ -41,6 +44,7 @@ namespace Pikzel {
       virtual void Bind(const Pipeline& pipeline) override;
       virtual void Unbind(const Pipeline& pipeline) override;
 
+      virtual std::unique_ptr<Framebuffer> CreateFramebuffer(const FramebufferSettings& settings) override;
       virtual std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) override;
 
       virtual void PushConstant(const entt::id_type id, bool value) override;
@@ -86,12 +90,44 @@ namespace Pikzel {
       virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount = 0, const uint32_t vertexOffset = 0) override;
 
    private:
+      OpenGLPipeline* m_Pipeline;
+      glm::vec4 m_ClearColor;
+   };
+
+
+   class OpenGLWindowGC : public OpenGLGraphicsContext {
+   public:
+      OpenGLWindowGC(const Window& window);
+      ~OpenGLWindowGC();
+
+      virtual void InitializeImGui() override;
+      virtual void BeginImGuiFrame() override;
+      virtual void EndImGuiFrame() override;
+
+      virtual void BeginFrame() override;
+      virtual void EndFrame() override;
+
+      virtual void SwapBuffers() override;
+
+   private:
       void OnWindowVSyncChanged(const WindowVSyncChangedEvent& event);
 
    private:
       GLFWwindow* m_WindowHandle;
-      OpenGLPipeline* m_Pipeline;
-      glm::vec4 m_ClearColor;
+   };
+
+
+   class OpenGLFramebufferGC : public OpenGLGraphicsContext {
+   public:
+      OpenGLFramebufferGC(OpenGLFramebuffer* framebuffer); // raw pointer is fine here.  We know the OpenGLFramebufferGC lifetime is nested inside the framebuffer's lifetime
+
+      virtual void BeginFrame() override;
+      virtual void EndFrame() override;
+
+      virtual void SwapBuffers() override;
+
+   private:
+      OpenGLFramebuffer* m_Framebuffer;
    };
 
 }

@@ -1,12 +1,12 @@
 #include "VulkanRenderCore.h"
 
 #include "VulkanBuffer.h"
+#include "VulkanGraphicsContext.h"
 #include "VulkanPipeline.h"
 #include "VulkanTexture.h"
 #include "VulkanUtility.h"
-#include "VulkanWindowGC.h"
 
-#include <backends/imgui_impl_vulkan.h>
+#include "imgui_impl_vulkan.h"
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -108,13 +108,8 @@ namespace Pikzel {
    }
 
 
-   bool VulkanRenderCore::FlipUV() const {
-      return true;
-   }
-
-
    std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
-      return std::make_unique<VulkanTexture2D>(m_Device, width, height);
+      return std::make_unique<VulkanTexture2D>(m_Device, width, height, vk::Format::eR8G8B8A8Unorm); // TODO: remove hard coded format
    }
 
 

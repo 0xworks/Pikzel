@@ -45,7 +45,8 @@ namespace Pikzel {
       void BindDescriptorSets(vk::CommandBuffer commandBuffer, vk::Fence fence);
       void UnbindDescriptorSets();
 
-      vk::Pipeline GetVkPipeline() const;
+      vk::Pipeline GetVkPipelineFrontFaceCCW() const;
+      vk::Pipeline GetVkPipelineFrontFaceCW() const;
       vk::PipelineLayout GetVkPipelineLayout() const;
 
       const VulkanPushConstant& GetPushConstant(const entt::id_type id) const;
@@ -76,7 +77,9 @@ namespace Pikzel {
       std::shared_ptr<VulkanDevice> m_Device;
       std::vector<vk::DescriptorSetLayout> m_DescriptorSetLayouts;
       vk::PipelineLayout m_PipelineLayout;
-      vk::Pipeline m_Pipeline;
+      vk::Pipeline m_PipelineFrontFaceCCW; // }- Need to create two variations of the pipeline, one has front faces CCW and the other has them CW
+      vk::Pipeline m_PipelineFrontFaceCW;  // }  If/when VK_EXT_extended_dynamic_state becomes more widely available (e.g. in the nvidia general release drivers)
+                                           // }  then the front face winding order can be a dynamic state
       vk::DescriptorPool m_DescriptorPool;
       std::vector<std::vector<vk::DescriptorSet>> m_DescriptorSetInstances; // m_DescriptorSets[i] = collection of descriptor sets that have been allocated for set i
       std::vector<std::vector<bool>> m_DescriptorSetBound;                  // m_DescriptorSetBound[i] = collection of booleans indicating which elements from m_DescriptorSets[i] are currently bound to the pipeline

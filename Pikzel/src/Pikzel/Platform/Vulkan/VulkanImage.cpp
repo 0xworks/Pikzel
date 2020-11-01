@@ -71,12 +71,12 @@ namespace Pikzel {
    }
 
 
-   vk::Format VulkanImage::GetFormat() const {
+   vk::Format VulkanImage::GetVkFormat() const {
       return m_Format;
    }
 
 
-   vk::Extent2D VulkanImage::GetExtent() const {
+   vk::Extent2D VulkanImage::GetVkExtent() const {
       return m_Extent;
    }
 

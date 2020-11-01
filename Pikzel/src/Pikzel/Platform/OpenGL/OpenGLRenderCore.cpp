@@ -89,7 +89,7 @@ namespace Pikzel {
 
 
    std::unique_ptr<GraphicsContext> OpenGLRenderCore::CreateGraphicsContext(const Window& window) {
-      return std::make_unique<OpenGLGraphicsContext>(window);
+      return std::make_unique<OpenGLWindowGC>(window);
    }
 
 
@@ -115,11 +115,6 @@ namespace Pikzel {
 
    std::unique_ptr<UniformBuffer> OpenGLRenderCore::CreateUniformBuffer(const uint32_t size, const void* data) {
       return std::make_unique<OpenGLUniformBuffer>(size, data);
-   }
-
-
-   bool OpenGLRenderCore::FlipUV() const {
-      return false;
    }
 
 

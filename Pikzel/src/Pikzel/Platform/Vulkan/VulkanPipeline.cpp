@@ -1,6 +1,6 @@
 #include "VulkanPipeline.h"
 
-#include "VulkanWindowGC.h"
+#include "VulkanGraphicsContext.h"
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Core/Window.h"
 #include "Pikzel/Renderer/ShaderUtil.h"
@@ -84,8 +84,13 @@ namespace Pikzel {
    }
 
 
-   vk::Pipeline VulkanPipeline::GetVkPipeline() const {
-      return m_Pipeline;
+   vk::Pipeline VulkanPipeline::GetVkPipelineFrontFaceCCW() const {
+      return m_PipelineFrontFaceCCW;
+   }
+
+
+   vk::Pipeline VulkanPipeline::GetVkPipelineFrontFaceCW() const {
+      return m_PipelineFrontFaceCW;
    }
 
 
@@ -363,7 +368,7 @@ namespace Pikzel {
       pipelineCI.pColorBlendState = &colorBlendState;
 
       // Viewport state sets the number of viewports and scissor used in this pipeline
-      // Note: Doesn't actually matter what you set here, it gets overridden by the dynamic states (see below)
+      // Note: Doesn't actually matter what you set here, it gets overwritten by the dynamic states
       vk::Viewport viewport = {
          0.0f, 720.f,
          1280.0f, -720.0f,
@@ -390,6 +395,7 @@ namespace Pikzel {
       // Their actual states are set later on in the command buffer.
       // We will set the viewport and scissor using dynamic states
       std::array<vk::DynamicState, 2> dynamicStates = {
+         // vk::DynamicState::eFrontFaceEXT,    // at time of writing, VK_EXT_extended_dynamic_state is not available in the nvidia general release drivers, so for now we will create two separate pipelines!
          vk::DynamicState::eViewport,
          vk::DynamicState::eScissor
       };
@@ -481,7 +487,10 @@ namespace Pikzel {
       pipelineCI.pStages = shaderStages.data();
 
       // .value works around issue in Vulkan.hpp (refer https://github.com/KhronosGroup/Vulkan-Hpp/issues/659)
-      m_Pipeline = m_Device->GetVkDevice().createGraphicsPipeline(gc.GetVkPipelineCache(), pipelineCI).value;
+      m_PipelineFrontFaceCCW = m_Device->GetVkDevice().createGraphicsPipeline(gc.GetVkPipelineCache(), pipelineCI).value;
+
+      rasterizationState.frontFace = vk::FrontFace::eClockwise;
+      m_PipelineFrontFaceCW = m_Device->GetVkDevice().createGraphicsPipeline(gc.GetVkPipelineCache(), pipelineCI).value;
 
       // Shader modules are no longer needed once the graphics pipeline has been created
       for (auto& shaderStage : shaderStages) {
@@ -492,10 +501,16 @@ namespace Pikzel {
 
 
    void VulkanPipeline::DestroyPipeline() {
-      if (m_Device && m_Pipeline) {
-         m_Device->GetVkDevice().destroy(m_Pipeline);
+      if (m_Device) {
+         if (m_PipelineFrontFaceCCW) {
+            m_Device->GetVkDevice().destroy(m_PipelineFrontFaceCCW);
+            m_PipelineFrontFaceCCW = nullptr;
+         }
+         if (m_PipelineFrontFaceCW) {
+            m_Device->GetVkDevice().destroy(m_PipelineFrontFaceCW);
+            m_PipelineFrontFaceCW = nullptr;
+         }
       }
-      m_Pipeline = nullptr;
    }
 
 
@@ -558,7 +573,7 @@ namespace Pikzel {
 
    vk::DescriptorSet VulkanPipeline::GetVkDescriptorSet(const uint32_t set) {
       // if we have not created an instance of the specified descriptor set yet, allocate a new one and return.
-      // otherwise, look for an instance that isn't currently in use (had not already been bound to the pipeline, and is not still in use by some previously submitted render commands) and return that one
+      // otherwise, look for an instance that isn't currently in use (has not already been bound to the pipeline, and is not still in use by some previously submitted render commands) and return that one
       // if cannot find one that isn't in use, allocate a new one and return
       if (m_DescriptorSetInstances[set].empty()) {
          return AllocateDescriptorSet(set);
@@ -593,6 +608,9 @@ namespace Pikzel {
    void VulkanPipeline::UnbindDescriptorSets() {
       for (auto& bound : m_DescriptorSetBound) {
          std::fill(bound.begin(), bound.end(), false);
+      }
+      for (auto& fences : m_DescriptorSetFences) {
+         std::fill(fences.begin(), fences.end(), nullptr);
       }
    }
 

@@ -10,7 +10,7 @@ namespace Pikzel {
 
    class VulkanTexture2D : public Texture2D {
    public:
-      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, uint32_t width, uint32_t height);
+      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const vk::Format format);
       VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path);
       virtual ~VulkanTexture2D();
 
@@ -22,9 +22,10 @@ namespace Pikzel {
    public:
       vk::Sampler GetVkSampler() const;
       vk::ImageView GetVkImageView() const;
+      vk::Format GetVkFormat() const;
 
    private:
-      void CreateImage(const uint32_t width, const uint32_t height);
+      void CreateImage(const uint32_t width, const uint32_t height, const vk::Format format);
       void DestroyImage();
 
       void CreateSampler();

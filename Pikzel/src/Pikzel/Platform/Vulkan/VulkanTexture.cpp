@@ -7,10 +7,10 @@
 namespace Pikzel {
 
 
-   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, uint32_t width, uint32_t height)
+   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const vk::Format format)
    : m_Device {device} 
    {
-      CreateImage(width, height);
+      CreateImage(width, height, format);
       CreateSampler();
    }
 
@@ -23,6 +23,7 @@ namespace Pikzel {
       int height;
       int channels;
 
+      stbi_set_flip_vertically_on_load(1);
       stbi_uc* pixels = stbi_load(path.string().data(), &width, &height, &channels, STBI_rgb_alpha);
       if (!pixels) {
          throw std::runtime_error(fmt::format("failed to load texture '{0}'", path.string()));
@@ -32,7 +33,7 @@ namespace Pikzel {
       stagingBuffer.CopyFromHost(0, size, pixels);
       stbi_image_free(pixels);
 
-      CreateImage(width, height);
+      CreateImage(width, height, vk::Format::eR8G8B8A8Unorm);  // format?
 
       m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
       m_Image->CopyFromBuffer(stagingBuffer.m_Buffer);
@@ -49,12 +50,12 @@ namespace Pikzel {
 
 
    uint32_t VulkanTexture2D::GetWidth() const {
-      return m_Image->GetExtent().width;
+      return m_Image->GetVkExtent().width;
    }
 
 
    uint32_t VulkanTexture2D::GetHeight() const {
-      return m_Image->GetExtent().height;
+      return m_Image->GetVkExtent().height;
    }
 
 
@@ -77,7 +78,12 @@ namespace Pikzel {
    }
 
 
-   void VulkanTexture2D::CreateImage(const uint32_t width, const uint32_t height) {
+   vk::Format VulkanTexture2D::GetVkFormat() const {
+      return m_Image->GetVkFormat();
+   }
+
+
+   void VulkanTexture2D::CreateImage(const uint32_t width, const uint32_t height, const vk::Format format) {
       uint32_t mipLevels = 1; // static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
       m_Image = std::make_unique<VulkanImage>(
          m_Device,
@@ -85,12 +91,12 @@ namespace Pikzel {
          height,
          mipLevels,
          vk::SampleCountFlagBits::e1,
-         vk::Format::eR8G8B8A8Unorm,
+         format,
          vk::ImageTiling::eOptimal,
-         vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+         vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment,
          vk::MemoryPropertyFlagBits::eDeviceLocal
       );
-      m_Image->CreateImageView(vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor);
+      m_Image->CreateImageView(format, vk::ImageAspectFlagBits::eColor);
    }
 
 

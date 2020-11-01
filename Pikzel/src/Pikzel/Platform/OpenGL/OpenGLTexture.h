@@ -18,13 +18,13 @@ namespace Pikzel {
       virtual void SetData(void* data, uint32_t size) override;
 
    public:
-      uint32_t GetRendererID() const;
+      uint32_t GetRendererId() const;
 
    private:
       std::filesystem::path m_Path;
       uint32_t m_Width;
       uint32_t m_Height;
-      uint32_t m_RendererID;
+      uint32_t m_RendererId;
       GLenum m_InternalFormat;
       GLenum m_DataFormat;
    };

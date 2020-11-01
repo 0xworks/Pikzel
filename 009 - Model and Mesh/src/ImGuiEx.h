@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 namespace ImGuiEx {
 

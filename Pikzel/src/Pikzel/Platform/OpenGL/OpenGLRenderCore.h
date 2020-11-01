@@ -23,7 +23,6 @@ namespace Pikzel {
       virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size) override;
       virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data) override;
 
-      virtual bool FlipUV() const;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height) override;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) override;
 

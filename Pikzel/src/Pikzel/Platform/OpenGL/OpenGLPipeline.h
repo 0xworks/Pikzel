@@ -29,7 +29,7 @@ namespace Pikzel {
 
    class OpenGLPipeline : public Pipeline {
    public:
-      OpenGLPipeline(GraphicsContext& gc, const PipelineSettings& settings);
+      OpenGLPipeline(const PipelineSettings& settings);
       virtual ~OpenGLPipeline();
 
       GLuint GetRendererId() const;

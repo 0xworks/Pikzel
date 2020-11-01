@@ -142,12 +142,18 @@ namespace Pikzel {
 
 
    uint32_t WindowsWindow::GetWidth() const {
-      return m_Settings.Width;
+      int width;
+      int height;
+      glfwGetWindowSize(m_Window, &width, &height);
+      return static_cast<uint32_t>(width);
    }
 
 
    uint32_t WindowsWindow::GetHeight() const {
-      return m_Settings.Height;
+      int width;
+      int height;
+      glfwGetWindowSize(m_Window, &width, &height);
+      return static_cast<uint32_t>(height);
    }
 
 
@@ -181,10 +187,6 @@ namespace Pikzel {
 
 
    void WindowsWindow::BeginFrame() {
-      {
-         PKZL_PROFILE_SCOPE("glfwPollEvents");
-         glfwPollEvents();
-      }
       m_Context->BeginFrame();
    }
 
@@ -192,6 +194,10 @@ namespace Pikzel {
    void WindowsWindow::EndFrame() {
       m_Context->EndFrame();     // i.e. "submit"
       m_Context->SwapBuffers();  // i.e. "present"
+      {
+         PKZL_PROFILE_SCOPE("glfwPollEvents");
+         glfwPollEvents();
+      }
    }
 
 
