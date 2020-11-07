@@ -23,6 +23,7 @@ set(
    "src/Pikzel/Core/main.cpp"
    "src/Pikzel/Core/Log.h"
    "src/Pikzel/Core/Log.cpp"
+   "src/Pikzel/Core/PlatformUtility.h"
    "src/Pikzel/Core/Utility.h"
    "src/Pikzel/Core/Utility.cpp"
    "src/Pikzel/Core/Window.h"
@@ -62,6 +63,7 @@ set(
 if(WIN32)
    list(
       APPEND ProjectSources
+      "src/Pikzel/Platform/Windows/WindowsPlatformUtility.cpp"
       "src/Pikzel/Platform/Windows/WindowsWindow.cpp"
    )
 endif()
