@@ -26,6 +26,8 @@ namespace Pikzel {
 
       const char** GetArgV() const;
 
+      Window& GetWindow();
+
    public:
       static Application& Get();
 
@@ -38,8 +40,6 @@ namespace Pikzel {
 
       virtual void OnWindowClose(const WindowCloseEvent& event);
       virtual void OnWindowResize(const WindowResizeEvent& event);
-
-      Window& GetWindow();
 
    private:
       std::chrono::steady_clock::time_point m_AppTime = {};
