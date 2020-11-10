@@ -43,6 +43,7 @@ namespace Pikzel {
       switch (type) {
          case ShaderType::Vertex: return vk::ShaderStageFlagBits::eVertex;
          case ShaderType::Fragment: return vk::ShaderStageFlagBits::eFragment;
+         case ShaderType::Compute: return vk::ShaderStageFlagBits::eCompute;
       }
 
       PKZL_CORE_ASSERT(false, "Unknown ShaderType!");
@@ -65,12 +66,21 @@ namespace Pikzel {
    }
 
 
+   VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, const PipelineSettings& settings)
+   : m_Device(device) {
+      CreateDescriptorSetLayouts(settings);
+      CreatePipelineLayout();
+      CreateComputePipeline(settings);
+      CreateDescriptorPool();
+   }
+
+
    VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings)
    : m_Device(device)
    {
       CreateDescriptorSetLayouts(settings);
       CreatePipelineLayout();
-      CreatePipeline(gc, settings);
+      CreateGraphicsPipeline(gc, settings);
       CreateDescriptorPool();
    }
 
@@ -81,6 +91,11 @@ namespace Pikzel {
       DestroyPipeline();
       DestroyPipelineLayout();
       DestroyDescriptorSetLayouts();
+   }
+
+
+   vk::Pipeline VulkanPipeline::GetVkPipelineCompute() const {
+      return m_PipelineCompute;
    }
 
 
@@ -314,7 +329,33 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::CreatePipeline(const VulkanGraphicsContext& gc, const PipelineSettings& settings) {
+   void VulkanPipeline::CreateComputePipeline(const PipelineSettings& settings) {
+      m_PipelineBindPoint = vk::PipelineBindPoint::eCompute;
+
+      vk::ComputePipelineCreateInfo pipelineCI;
+      pipelineCI.layout = m_PipelineLayout;
+
+      const auto& [shaderType, src] = m_ShaderSrcs.front();
+      pipelineCI.stage = {
+         vk::PipelineShaderStageCreateFlags {}           /*flags*/,
+         ShaderTypeToVulkanShaderStage(shaderType)       /*stage*/,
+         CreateShaderModule(shaderType, src)             /*module*/,
+         "main"                                          /*name*/,
+         nullptr                                         /*pSpecializationInfo*/
+      };
+
+      // .value works around issue in Vulkan.hpp (refer https://github.com/KhronosGroup/Vulkan-Hpp/issues/659)
+      m_PipelineCompute = m_Device->GetVkDevice().createComputePipeline({}, pipelineCI).value;
+
+      // Shader modules are no longer needed once the pipeline has been created
+      DestroyShaderModule(pipelineCI.stage.module);
+      m_ShaderSrcs.clear();
+   }
+
+
+   void VulkanPipeline::CreateGraphicsPipeline(const VulkanGraphicsContext& gc, const PipelineSettings& settings) {
+      m_PipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+
       vk::GraphicsPipelineCreateInfo pipelineCI;
       pipelineCI.layout = m_PipelineLayout;
       pipelineCI.renderPass = gc.GetVkRenderPass();
@@ -509,6 +550,10 @@ namespace Pikzel {
          if (m_PipelineFrontFaceCW) {
             m_Device->GetVkDevice().destroy(m_PipelineFrontFaceCW);
             m_PipelineFrontFaceCW = nullptr;
+         }
+         if (m_PipelineCompute) {
+            m_Device->GetVkDevice().destroy(m_PipelineCompute);
+            m_PipelineCompute = nullptr;
          }
       }
    }

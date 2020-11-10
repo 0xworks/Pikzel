@@ -25,7 +25,7 @@ namespace Pikzel {
       bool extensionsSupported = false;
       bool swapChainAdequate = false;
       QueueFamilyIndices indices = FindQueueFamilies(physicalDevice, surface);
-      if (indices.GraphicsFamily.has_value() && (!surface || indices.PresentFamily.has_value())) {
+      if (indices.GraphicsFamily.has_value() && (!surface || indices.PresentFamily.has_value()) && indices.ComputeFamily.has_value() && indices.TransferFamily.has_value()) {
          queueAdequate = true;
          extensionsSupported = CheckDeviceExtensionSupport(physicalDevice, GetRequiredDeviceExtensions());
          if (extensionsSupported) {
@@ -52,7 +52,7 @@ namespace Pikzel {
          features.setSamplerAnisotropy(true);
       } else {
          // TODO: just don't use this feature if it isn't available, rather than fatal error
-         throw std::runtime_error("Sampler Anisotropy is not supported on this device!");
+         throw std::runtime_error {"Sampler Anisotropy is not supported on this device!"};
       }
       return features;
    }
@@ -77,7 +77,7 @@ namespace Pikzel {
          }
       }
       if (!m_PhysicalDevice) {
-         throw std::runtime_error("failed to find a suitable GPU!");
+         throw std::runtime_error {"failed to find a suitable GPU!"};
       }
    }
 
@@ -94,6 +94,9 @@ namespace Pikzel {
       }
       if (m_QueueFamilyIndices.PresentFamily.has_value()) {
          uniqueQueueFamilies.insert(m_QueueFamilyIndices.PresentFamily.value());
+      }
+      if (m_QueueFamilyIndices.ComputeFamily.has_value()) {
+         uniqueQueueFamilies.insert(m_QueueFamilyIndices.ComputeFamily.value());
       }
 
       for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -134,6 +137,12 @@ namespace Pikzel {
       }
       if (m_QueueFamilyIndices.PresentFamily.has_value()) {
          m_PresentQueue = m_Device.getQueue(m_QueueFamilyIndices.PresentFamily.value(), 0);
+      }
+      if (m_QueueFamilyIndices.ComputeFamily.has_value()) {
+         m_ComputeQueue = m_Device.getQueue(m_QueueFamilyIndices.ComputeFamily.value(), 0);
+      }
+      if (m_QueueFamilyIndices.TransferFamily.has_value()) {
+         m_TransferQueue = m_Device.getQueue(m_QueueFamilyIndices.ComputeFamily.value(), 0);
       }
    }
 
@@ -189,6 +198,18 @@ namespace Pikzel {
    }
 
 
+   uint32_t VulkanDevice::GetComputeQueueFamilyIndex() const {
+      PKZL_CORE_ASSERT(m_QueueFamilyIndices.ComputeFamily.has_value(), "no compute queue family index");
+      return m_QueueFamilyIndices.ComputeFamily.value();
+   }
+
+
+   uint32_t VulkanDevice::GetTransferQueueFamilyIndex() const {
+      PKZL_CORE_ASSERT(m_QueueFamilyIndices.TransferFamily.has_value(), "no transfer queue family index");
+      return m_QueueFamilyIndices.TransferFamily.value();
+   }
+
+
    vk::Queue VulkanDevice::GetGraphicsQueue() const {
       return m_GraphicsQueue;
    }
@@ -199,7 +220,17 @@ namespace Pikzel {
    }
 
 
-   void VulkanDevice::SubmitSingleTimeCommands(const std::function<void(vk::CommandBuffer)>& action) {
+   vk::Queue VulkanDevice::GetComputeQueue() const {
+      return m_ComputeQueue;
+   }
+
+
+   vk::Queue VulkanDevice::GetTransferQueue() const {
+      return m_TransferQueue;
+   }
+
+
+   void VulkanDevice::SubmitSingleTimeCommands(vk::Queue queue, const std::function<void(vk::CommandBuffer)>& action) {
       std::vector<vk::CommandBuffer> commandBuffers = m_Device.allocateCommandBuffers({
          m_CommandPool                    /*commandPool*/,
          vk::CommandBufferLevel::ePrimary /*level*/,
@@ -213,8 +244,8 @@ namespace Pikzel {
       vk::SubmitInfo si;
       si.commandBufferCount = 1;
       si.pCommandBuffers = commandBuffers.data();
-      GetGraphicsQueue().submit(si, nullptr);
-      GetGraphicsQueue().waitIdle();
+      queue.submit(si, nullptr);
+      queue.waitIdle();
       m_Device.freeCommandBuffers(m_CommandPool, commandBuffers);
    }
 

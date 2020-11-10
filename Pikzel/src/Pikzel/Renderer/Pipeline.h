@@ -12,7 +12,8 @@ namespace Pikzel {
 
    enum class ShaderType {
       Vertex,
-      Fragment
+      Fragment,
+      Compute
    };
 
    struct PipelineSettings {
@@ -24,8 +25,6 @@ namespace Pikzel {
    class Pipeline {
    public:
       virtual ~Pipeline() = default;
-
-
    };
 
 }

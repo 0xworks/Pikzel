@@ -86,7 +86,15 @@ namespace Pikzel {
             }
          }
 
-         if (indices.GraphicsFamily.has_value() && indices.PresentFamily.has_value()) {
+         if (queueFamily.queueFlags & vk::QueueFlagBits::eCompute) {
+            indices.ComputeFamily = i;
+         }
+
+         if (queueFamily.queueFlags & vk::QueueFlagBits::eTransfer) {
+            indices.TransferFamily = i;
+         }
+
+         if (indices.GraphicsFamily.has_value() && indices.PresentFamily.has_value() && indices.ComputeFamily.has_value() && indices.TransferFamily.has_value()) {
             break;
          }
 

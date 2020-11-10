@@ -33,7 +33,12 @@ namespace Pikzel {
 
    class VulkanPipeline : public Pipeline {
    public:
+      // construct compute pipeline with settings
+      VulkanPipeline(std::shared_ptr<VulkanDevice> device, const PipelineSettings& settings);
+
+      // construct graphics pipeline with context and settings
       VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings);
+
       virtual ~VulkanPipeline();
 
    public:
@@ -45,6 +50,9 @@ namespace Pikzel {
       void BindDescriptorSets(vk::CommandBuffer commandBuffer, vk::Fence fence);
       void UnbindDescriptorSets();
 
+      // TODO: tidy this. It would be better to have just one GetVkPipeline()
+      //       but need extended dynamic state for that...
+      vk::Pipeline GetVkPipelineCompute() const;
       vk::Pipeline GetVkPipelineFrontFaceCCW() const;
       vk::Pipeline GetVkPipelineFrontFaceCW() const;
       vk::PipelineLayout GetVkPipelineLayout() const;
@@ -65,7 +73,8 @@ namespace Pikzel {
       void CreatePipelineLayout();
       void DestroyPipelineLayout();
 
-      void CreatePipeline(const VulkanGraphicsContext& gc, const PipelineSettings& settings);
+      void CreateComputePipeline(const PipelineSettings& settings);
+      void CreateGraphicsPipeline(const VulkanGraphicsContext& gc, const PipelineSettings& settings);
       void DestroyPipeline();
 
       void CreateDescriptorPool();
@@ -76,8 +85,10 @@ namespace Pikzel {
    private:
       std::shared_ptr<VulkanDevice> m_Device;
       std::vector<vk::DescriptorSetLayout> m_DescriptorSetLayouts;
+      vk::PipelineBindPoint m_PipelineBindPoint;
       vk::PipelineLayout m_PipelineLayout;
-      vk::Pipeline m_PipelineFrontFaceCCW; // }- Need to create two variations of the pipeline, one has front faces CCW and the other has them CW
+      vk::Pipeline m_PipelineCompute;
+      vk::Pipeline m_PipelineFrontFaceCCW; // }- Need to create two variations of graphics pipelines, one has front faces CCW and the other has them CW
       vk::Pipeline m_PipelineFrontFaceCW;  // }  If/when VK_EXT_extended_dynamic_state becomes more widely available (e.g. in the nvidia general release drivers)
                                            // }  then the front face winding order can be a dynamic state
       vk::DescriptorPool m_DescriptorPool;
