@@ -75,9 +75,9 @@ namespace Pikzel {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::DescriptorImageInfo textureImageDescriptor = {
-            static_cast<const VulkanTexture2D&>(texture).GetVkSampler()   /*sampler*/,
-            static_cast<const VulkanTexture2D&>(texture).GetVkImageView() /*imageView*/,
-            vk::ImageLayout::eShaderReadOnlyOptimal                       /*imageLayout*/
+         static_cast<const VulkanTexture2D&>(texture).GetVkSampler()   /*sampler*/,
+         static_cast<const VulkanTexture2D&>(texture).GetVkImageView() /*imageView*/,
+         vk::ImageLayout::eShaderReadOnlyOptimal                       /*imageLayout*/
       };
 
       vk::WriteDescriptorSet textureSamplersWrite = {
@@ -96,6 +96,33 @@ namespace Pikzel {
 
 
    void VulkanGraphicsContext::Unbind(const Texture2D&) {}
+
+
+   void VulkanGraphicsContext::Bind(const TextureCube& texture, const entt::id_type resourceId) {
+      const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
+
+      vk::DescriptorImageInfo textureImageDescriptor = {
+         static_cast<const VulkanTextureCube&>(texture).GetVkSampler()   /*sampler*/,
+         static_cast<const VulkanTextureCube&>(texture).GetVkImageView() /*imageView*/,
+         vk::ImageLayout::eShaderReadOnlyOptimal                         /*imageLayout*/
+      };
+
+      vk::WriteDescriptorSet textureSamplersWrite = {
+         m_Pipeline->GetVkDescriptorSet(resource.DescriptorSet)  /*dstSet*/,
+         resource.Binding                                        /*dstBinding*/,
+         0                                                       /*dstArrayElement*/,
+         resource.Count                                          /*descriptorCount*/,
+         resource.Type                                           /*descriptorType*/,
+         &textureImageDescriptor                                 /*pImageInfo*/,
+         nullptr                                                 /*pBufferInfo*/,
+         nullptr                                                 /*pTexelBufferView*/
+      };
+
+      m_Device->GetVkDevice().updateDescriptorSets(textureSamplersWrite, nullptr);
+   }
+
+
+   void VulkanGraphicsContext::Unbind(const TextureCube&) {}
 
 
    std::unique_ptr<Framebuffer> VulkanGraphicsContext::CreateFramebuffer(const FramebufferSettings& settings) {
@@ -447,7 +474,7 @@ namespace Pikzel {
          vk::ImageTiling::eOptimal,
          vk::FormatFeatureFlagBits::eDepthStencilAttachment
       );
-      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Extent.width, m_Extent.height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Extent.width, m_Extent.height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
       m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
    }
 
@@ -703,7 +730,7 @@ namespace Pikzel {
             RecreateSwapChain();
             return;
          } else if ((rv.result != vk::Result::eSuccess) && (rv.result != vk::Result::eSuboptimalKHR)) {
-            throw std::runtime_error("failed to acquire swap chain image!");
+            throw std::runtime_error {"failed to acquire swap chain image!"};
          }
 
          m_CurrentImage = rv.value;
@@ -828,7 +855,7 @@ namespace Pikzel {
       init_info.ImageCount = static_cast<uint32_t>(m_SwapChainImages.size());
       init_info.CheckVkResultFn = [] (const VkResult err) {
          if (err != VK_SUCCESS) {
-            throw std::runtime_error("ImGui Vulkan error!");
+            throw std::runtime_error {"ImGui Vulkan error!"};
          }
       };
       ImGui_ImplVulkan_Init(&init_info, m_RenderPassImGui);
@@ -882,7 +909,7 @@ namespace Pikzel {
       if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_WantResize) {
          RecreateSwapChain();
       } else if (result != VK_SUCCESS) {
-         throw std::runtime_error("Failed to present swap chain image!");
+         throw std::runtime_error {"Failed to present swap chain image!"};
       }
       m_CurrentFrame = ++m_CurrentFrame % m_MaxFramesInFlight;
    }
@@ -900,10 +927,10 @@ namespace Pikzel {
    void VulkanWindowGC::CreateSurface() {
       VkSurfaceKHR surface;
       if (glfwCreateWindowSurface(m_Device->GetVkInstance(), m_Window, nullptr, &surface) != VK_SUCCESS) {
-         throw std::runtime_error("failed to create window surface!");
+         throw std::runtime_error {"failed to create window surface!"};
       }
       if (!m_Device->GetVkPhysicalDevice().getSurfaceSupportKHR(m_Device->GetPresentQueueFamilyIndex(), surface)) {
-         throw std::runtime_error("Vulkan physical device does not support window surface!");
+         throw std::runtime_error {"Vulkan physical device does not support window surface!"};
       }
       m_Surface = surface;
    }

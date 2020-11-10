@@ -23,7 +23,7 @@ namespace Pikzel {
 
          size_t fileSize = file.size();
          if (fileSize % sizeof(T) != 0) {
-            throw std::runtime_error(fmt::format("Size of file '{0}' is {1}.  Expected a multiple of {2}!", path, fileSize, sizeof(T)));
+            throw std::runtime_error {fmt::format("Size of file '{0}' is {1}.  Expected a multiple of {2}!", path, fileSize, sizeof(T))};
          }
 
          std::vector<T> buffer(file.size() / sizeof(T));
@@ -32,7 +32,7 @@ namespace Pikzel {
          return buffer;
 
       } catch (std::system_error) {
-         throw std::runtime_error(fmt::format("Could not access file '{0}'!", path));
+         throw std::runtime_error {fmt::format("Could not access file '{0}'!", path)};
       }
    }
 
@@ -62,7 +62,7 @@ namespace Pikzel {
 
       std::streampos fileSize = file.tellg();
       if (fileSize % sizeof(T) != 0) {
-         throw std::runtime_error(fmt::format("Size of file '{0}' is {1}.  Expected a multiple of {2}!", path.string(), fileSize, sizeof(T)));
+         throw std::runtime_error {fmt::format("Size of file '{0}' is {1}.  Expected a multiple of {2}!", path.string(), fileSize, sizeof(T))};
       }
       file.seekg(0);
 

@@ -74,4 +74,9 @@ namespace Pikzel {
       return s_RenderCore->CreateTexture2D(path);
    }
 
+
+   std::unique_ptr<TextureCube> RenderCore::CreateTextureCube(const std::filesystem::path& path) {
+      return s_RenderCore->CreateTextureCube(path);
+   }
+
 }

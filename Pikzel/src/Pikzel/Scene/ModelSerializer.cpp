@@ -115,7 +115,7 @@ namespace Pikzel {
          const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
 
          if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-            throw std::runtime_error(fmt::format("Error when importing model '{0}': {1}", path.string(), importer.GetErrorString()));
+            throw std::runtime_error {fmt::format("Error when importing model '{0}': {1}", path.string(), importer.GetErrorString())};
          }
 
          std::filesystem::path modelDir = path;

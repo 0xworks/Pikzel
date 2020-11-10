@@ -164,20 +164,32 @@ endif()
 ##################################################################
 
 set(
-   ShaderSources
+   RendererShaderSources
+   "src/Pikzel/Renderer/EquirectangularToCubeMap.comp"
+   "src/Pikzel/Renderer/SixFacesToCubeMap.comp"
+)
+
+set(
+   RendererShaderHeaders
+)
+
+set(
+   SceneShaderSources
    "src/Pikzel/Scene/Shaders/Mesh.vert"
    "src/Pikzel/Scene/Shaders/Mesh.frag"
 )
 
 set(
-   ShaderHeaders
+   SceneShaderHeaders
 )
 
-compile_shaders(ShaderSources ShaderHeaders Scene/Shaders CompiledShaders)
+compile_shaders(RendererShaderSources RendererShaderHeaders Renderer CompiledRendererShaders)
+compile_shaders(SceneShaderSources SceneShaderHeaders Scene/Shaders CompiledSceneShaders)
 
 cmrc_add_resource_library(
    PikzelResources WHENCE ${CMAKE_CURRENT_BINARY_DIR}
-   ${CompiledShaders}
+   ${CompiledRendererShaders}
+   ${CompiledSceneShaders}
 )
 
 ##################################################################

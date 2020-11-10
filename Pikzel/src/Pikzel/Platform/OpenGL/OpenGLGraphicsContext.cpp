@@ -68,6 +68,14 @@ namespace Pikzel {
    void OpenGLGraphicsContext::Unbind(const Texture2D&) {}
 
 
+   void OpenGLGraphicsContext::Bind(const TextureCube& texture, const entt::id_type resourceId) {
+      glBindTexture(GL_TEXTURE_CUBE_MAP, /*m_Pipeline->GetSamplerBinding(resourceId),*/ static_cast<const OpenGLTextureCube&>(texture).GetRendererId());
+   }
+
+
+   void OpenGLGraphicsContext::Unbind(const TextureCube&) {}
+
+
    void OpenGLGraphicsContext::Bind(const Pipeline& pipeline) {
       const OpenGLPipeline& glPipeline = static_cast<const OpenGLPipeline&>(pipeline);
       glUseProgram(glPipeline.GetRendererId());

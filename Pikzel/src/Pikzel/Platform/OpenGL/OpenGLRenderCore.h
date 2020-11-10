@@ -26,6 +26,8 @@ namespace Pikzel {
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height) override;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) override;
 
+      virtual std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path) override;
+
    };
 
 }

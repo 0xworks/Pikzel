@@ -27,7 +27,7 @@ namespace Pikzel {
 
       if (s_GLFWWindowCount == 0) {
          if (!glfwInit()) {
-            throw std::runtime_error("Could not initialize GLFW!");
+            throw std::runtime_error {"Could not initialize GLFW!"};
          }
          glfwSetErrorCallback([] (int error, const char* description) {
             PKZL_CORE_LOG_ERROR("GLFW Error ({0}): {1}", error, description);
@@ -46,14 +46,14 @@ namespace Pikzel {
          }
          if (RenderCore::GetAPI() == RenderCore::API::Vulkan) {
             if (!glfwVulkanSupported()) {
-               throw std::runtime_error("GLFW detects no support for Vulkan!");
+               throw std::runtime_error {"GLFW detects no support for Vulkan!"};
             }
          }
          glfwWindowHint(GLFW_CLIENT_API, clientAPI);
          glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
          m_Window = glfwCreateWindow((int)m_Settings.Width, (int)m_Settings.Height, m_Settings.Title, monitor, nullptr);
          if (!m_Window) {
-            throw std::runtime_error("failed to create window");
+            throw std::runtime_error {"failed to create window"};
          }
          glfwSetWindowSizeLimits(
             m_Window,

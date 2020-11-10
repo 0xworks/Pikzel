@@ -1,0 +1,66 @@
+#version 450 core
+
+// Converts equirectangular projection texture into a cubemap
+//
+// Tonemapping and gamma correction is done here and baked into the cubemap
+// (as opposed to doing this calculation at frame-render time)
+
+const float PI = 3.141592;
+
+layout(push_constant) uniform PC {
+   int tonemap; // 0 = none, 1 = Reinhard
+   float gamma;
+} constants;
+
+layout(set = 0, binding = 0) uniform sampler2D uTexture;
+
+layout(set = 0, binding = 1, rgba8) restrict writeonly uniform imageCube outCubeMap;
+
+
+vec3 GetCubeTexCoords() {
+   vec2 st = gl_GlobalInvocationID.xy / vec2(imageSize(outCubeMap));
+   vec2 uv = 2.0 * vec2(st.x, st.y) - vec2(1.0f);
+
+   vec3 ret;
+   if (gl_GlobalInvocationID.z == 0) {
+      ret = vec3(  1.0, uv.y, -uv.x);
+   } else if (gl_GlobalInvocationID.z == 1) {
+      ret = vec3( -1.0, uv.y,  uv.x);
+   } else if (gl_GlobalInvocationID.z == 2) {
+      ret = vec3( uv.x, -1.0,  uv.y);
+   } else if (gl_GlobalInvocationID.z == 3) {
+      ret = vec3( uv.x,  1.0, -uv.y);
+   } else if (gl_GlobalInvocationID.z == 4) {
+      ret = vec3( uv.x, uv.y,  1.0);
+   } else if (gl_GlobalInvocationID.z == 5) {
+      ret = vec3(-uv.x, uv.y, -1.0);
+   }
+   return normalize(ret);
+}
+
+
+vec2 CubeTexCoordsToSphericalUV(vec3 tc) {
+   // https://en.wikipedia.org/wiki/Spherical_coordinate_system#Cartesian_coordinates
+   float phi = atan(tc.z, tc.x);
+   float theta = acos(tc.y);
+   return vec2(phi / (2.0 * PI) + 0.5, theta / PI);
+}
+
+
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+void main() {
+   vec3 cubeTexCoords = GetCubeTexCoords();
+   vec2 uv = CubeTexCoordsToSphericalUV(cubeTexCoords);
+
+   vec4 color = texture(uTexture, uv);
+
+   // Reinhard tonemap (TODO: other tonemaps)
+   if(constants.tonemap == 1) {
+      color = vec4(vec3(color.rgb / (1.0 + color.rgb)), color.a);
+   }
+
+   // Gamma correction
+   color = vec4(pow(color.rgb, vec3(1.0 / constants.gamma)), color.a);
+
+   imageStore(outCubeMap, ivec3(gl_GlobalInvocationID), color);
+}

@@ -20,7 +20,7 @@ namespace Pikzel {
             std::string msg {"layer '"};
             msg += layer;
             msg += "' requested but is not available!";
-            throw std::runtime_error(msg);
+            throw std::runtime_error {msg};
          }
       }
    }
@@ -44,7 +44,7 @@ namespace Pikzel {
             std::string msg {"extension '"};
             msg += extension;
             msg += "' requested but is not available!";
-            throw std::runtime_error(msg);
+            throw std::runtime_error {msg};
          }
       }
    }
@@ -114,7 +114,7 @@ namespace Pikzel {
             return format;
          }
       }
-      throw std::runtime_error("failed to find supported format!");
+      throw std::runtime_error {"failed to find supported format!"};
    }
 
 
@@ -125,7 +125,7 @@ namespace Pikzel {
             return i;
          }
       }
-      throw std::runtime_error("Failed to find suitable memory type!");
+      throw std::runtime_error {"Failed to find suitable memory type!"};
    }
 
 

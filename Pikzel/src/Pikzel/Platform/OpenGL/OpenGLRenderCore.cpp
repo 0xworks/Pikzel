@@ -44,7 +44,7 @@ namespace Pikzel {
       glfwMakeContextCurrent(static_cast<GLFWwindow*>(window.GetNativeWindow()));
 
       if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-         throw std::runtime_error("Failed to initialize Glad!");
+         throw std::runtime_error {"Failed to initialize Glad!"};
       }
 
       PKZL_CORE_LOG_INFO("OpenGL Info:");
@@ -72,7 +72,11 @@ namespace Pikzel {
 
       glEnable(GL_CULL_FACE);
       glFrontFace(GL_CCW);
+
       glEnable(GL_DEPTH_TEST);
+      glDepthFunc(GL_LEQUAL);
+
+      glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
    }
 
 
@@ -125,6 +129,11 @@ namespace Pikzel {
 
    std::unique_ptr<Texture2D> OpenGLRenderCore::CreateTexture2D(const std::filesystem::path& path) {
       return std::make_unique<OpenGLTexture2D>(path);
+   }
+
+
+   std::unique_ptr<Pikzel::TextureCube> OpenGLRenderCore::CreateTextureCube(const std::filesystem::path& path) {
+      return std::make_unique<OpenGLTextureCube>(path);
    }
 
 }

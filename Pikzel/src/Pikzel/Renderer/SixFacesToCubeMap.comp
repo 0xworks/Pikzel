@@ -1,0 +1,69 @@
+#version 450 core
+
+// Converts equirectangular projection texture into a cubemap
+//
+// Tonemapping and gamma correction is done here and baked into the cubemap
+// (as opposed to doing this calculation at frame-render time)
+
+const float PI = 3.141592;
+
+layout(push_constant) uniform PC {
+   int tonemap; // 0 = none, 1 = Reinhard
+   float gamma;
+} constants;
+
+layout(set = 0, binding = 0) uniform sampler2D uTexture;
+
+layout(set = 0, binding = 1, rgba8) restrict writeonly uniform imageCube outCubeMap;
+
+
+vec2 GetTexCoords() {
+   vec2 st = gl_GlobalInvocationID.xy / vec2(imageSize(outCubeMap));
+   float u;
+   float v;
+   if (gl_GlobalInvocationID.z == 0) {
+      // +x;
+      u = (3.0 - st.s) / 4.0;
+      v = (2.0 - st.t) / 3.0;
+   } else if (gl_GlobalInvocationID.z == 1) {
+      // -x
+      u = (1.0 - st.s) / 4.0;
+      v = (2.0 - st.t) / 3.0;
+   } else if (gl_GlobalInvocationID.z == 2) {
+      // -y
+      u = (2.0 - st.s) / 4.0;
+      v = (3.0 - st.t) / 3.0;
+   } else if (gl_GlobalInvocationID.z == 3) {
+      // +y
+      u = (2.0 - st.s) / 4.0;
+      v = (1.0 - st.t) / 3.0;
+   } else if (gl_GlobalInvocationID.z == 4) {
+      // +z
+      u = (4.0 - st.s) / 4.0;
+      v = (2.0 - st.t) / 3.0;
+   } else if (gl_GlobalInvocationID.z == 5) {
+      // -z
+      u = (2.0 - st.s) / 4.0;
+      v = (2.0 - st.t) / 3.0;
+   }
+   return vec2(u,v);
+}
+
+
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+void main() {
+   //vec3 cubeTexCoords = GetCubeTexCoords();
+   //vec2 uv = CubeTexCoordsToSixFacesUV(cubeTexCoords);
+   vec2 uv = GetTexCoords();
+   vec4 color = texture(uTexture, uv);
+
+   // Reinhard tonemap (TODO: other tonemaps)
+   if(constants.tonemap == 1) {
+      color = vec4(vec3(color.rgb / (1.0 + color.rgb)), color.a);
+   }
+
+   // Gamma correction
+   color = vec4(pow(color.rgb, vec3(1.0 / constants.gamma)), color.a);
+
+   imageStore(outCubeMap, ivec3(gl_GlobalInvocationID), color);
+}
