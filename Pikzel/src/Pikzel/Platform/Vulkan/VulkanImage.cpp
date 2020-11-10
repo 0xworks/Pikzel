@@ -3,27 +3,28 @@
 
 namespace Pikzel {
 
-   VulkanImage::VulkanImage(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const uint32_t mipLevels, vk::SampleCountFlagBits numSamples, const vk::Format format, const vk::ImageTiling tiling, const vk::ImageUsageFlags usage, const vk::MemoryPropertyFlags properties)
+   VulkanImage::VulkanImage(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const uint32_t mipLevels, vk::SampleCountFlagBits numSamples, const vk::Format format, const vk::ImageTiling tiling, const vk::ImageUsageFlags usage, const vk::MemoryPropertyFlags properties, const vk::ImageCreateFlags createFlags)
    : m_Device {device}
    , m_Format {format}
    , m_Extent {width, height}
    , m_MIPLevels {mipLevels}
+   , m_IsCubeCompatible{createFlags & vk::ImageCreateFlagBits::eCubeCompatible}
    {
 
       m_Image = m_Device->GetVkDevice().createImage({
-         {}                               /*flags*/,
-         vk::ImageType::e2D               /*imageType*/,
-         format                           /*format*/,
-         {width, height, 1}               /*extent*/,
-         mipLevels                        /*mipLevels*/,
-         1                                /*arrayLayers*/,
-         numSamples                       /*samples*/,
-         tiling                           /*tiling*/,
-         usage                            /*usage*/,
-         vk::SharingMode::eExclusive      /*sharingMode*/,
-         0                                /*queueFamilyIndexCount*/,
-         nullptr                          /*pQueueFamilyIndices*/,
-         vk::ImageLayout::eUndefined      /*initialLayout*/
+         createFlags                 /*flags*/,
+         vk::ImageType::e2D          /*imageType*/,
+         format                      /*format*/,
+         {width, height, 1}          /*extent*/,
+         mipLevels                   /*mipLevels*/,
+         m_IsCubeCompatible? 6u : 1u /*arrayLayers*/,
+         numSamples                  /*samples*/,
+         tiling                      /*tiling*/,
+         usage                       /*usage*/,
+         vk::SharingMode::eExclusive /*sharingMode*/,
+         0                           /*queueFamilyIndexCount*/,
+         nullptr                     /*pQueueFamilyIndices*/,
+         vk::ImageLayout::eUndefined /*initialLayout*/
       });
 
       vk::MemoryRequirements memRequirements = m_Device->GetVkDevice().getImageMemoryRequirements(m_Image);
@@ -41,6 +42,7 @@ namespace Pikzel {
    , m_Format {format}
    , m_Extent {extent}
    , m_MIPLevels {1}
+   , m_IsCubeCompatible {false}
    {}
 
 
@@ -67,6 +69,11 @@ namespace Pikzel {
    }
 
 
+   vk::Image VulkanImage::GetVkImage() const {
+      return m_Image;
+   }
+
+
    vk::Format VulkanImage::GetVkFormat() const {
       return m_Format;
    }
@@ -84,18 +91,18 @@ namespace Pikzel {
 
    void VulkanImage::CreateImageView(const vk::Format format, const vk::ImageAspectFlags imageAspect) {
       m_ImageView = m_Device->GetVkDevice().createImageView({
-         {}                                 /*flags*/,
-         m_Image                            /*image*/,
-         vk::ImageViewType::e2D             /*viewType*/,
-         format                             /*format*/,
-         {}                                 /*components*/,
+         {}                                                                    /*flags*/,
+         m_Image                                                               /*image*/,
+         m_IsCubeCompatible? vk::ImageViewType::eCube : vk::ImageViewType::e2D /*viewType*/,
+         format                                                                /*format*/,
+         {}                                                                    /*components*/,
          {
-            imageAspect                        /*aspectMask*/,
-            0                                  /*baseMipLevel*/,
-            m_MIPLevels                        /*levelCount*/,
-            0                                  /*baseArrayLevel*/,
-            1                                  /*layerCount*/
-         }                                  /*subresourceRange*/
+            imageAspect                                                           /*aspectMask*/,
+            0                                                                     /*baseMipLevel*/,
+            m_MIPLevels                                                           /*levelCount*/,
+            0                                                                     /*baseArrayLevel*/,
+            m_IsCubeCompatible ? 6u : 1u                                          /*layerCount*/
+         }                                                                     /*subresourceRange*/
       });
    }
 
@@ -128,7 +135,7 @@ namespace Pikzel {
                0                                   /*baseMipLevel*/,
                m_MIPLevels                         /*levelCount*/,
                0                                   /*baseArrayLayer*/,
-               1                                   /*layerCount*/
+               m_IsCubeCompatible? 6u : 1u         /*layerCount*/
             }                                   /*subresourceRange*/
          };
 
@@ -145,7 +152,12 @@ namespace Pikzel {
             barrier.dstAccessMask = {};
             sourceStage = vk::PipelineStageFlagBits::eAllCommands;
             destinationStage = vk::PipelineStageFlagBits::eAllCommands;
-         } else if ((oldLayout == vk::ImageLayout::eTransferDstOptimal) && (newLayout == vk::ImageLayout::eShaderReadOnlyOptimal)) {
+         } else if ((oldLayout == vk::ImageLayout::eGeneral) && (newLayout == vk::ImageLayout::eTransferDstOptimal)) {
+            barrier.srcAccessMask = {};
+            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            sourceStage = vk::PipelineStageFlagBits::eAllCommands;
+            destinationStage = vk::PipelineStageFlagBits::eTransfer;
+         }  else if ((oldLayout == vk::ImageLayout::eTransferDstOptimal) && (newLayout == vk::ImageLayout::eShaderReadOnlyOptimal)) {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
             sourceStage = vk::PipelineStageFlagBits::eTransfer;
@@ -169,7 +181,7 @@ namespace Pikzel {
                vk::ImageAspectFlagBits::eColor      /*aspectMask*/,
                0                                    /*mipLevel*/,
                0                                    /*baseArrayLayer*/,
-               1                                    /*layerCount*/
+               m_IsCubeCompatible? 6u: 1u           /*layerCount*/
             }                                    /*imageSubresource*/,
             {0, 0, 0}                            /*imageOffset*/,
             {m_Extent.width, m_Extent.height, 1}     /*imageExtent*/
@@ -183,7 +195,7 @@ namespace Pikzel {
       // Check if image format supports linear blitting
       vk::FormatProperties formatProperties = m_Device->GetVkPhysicalDevice().getFormatProperties(m_Format);
       if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eSampledImageFilterLinear)) {
-         throw std::runtime_error("texture image format does not support linear blitting!");
+         throw std::runtime_error {"texture image format does not support linear blitting!"};
       }
 
       m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this] (vk::CommandBuffer cmd) {
@@ -200,7 +212,7 @@ namespace Pikzel {
                0                                    /*baseMipLevel*/,
                1                                    /*levelCount*/,
                0                                    /*baseArrayLayer*/,
-               1                                    /*layerCount*/
+               m_IsCubeCompatible? 6u : 1u          /*layerCount*/
             }                                    /*subresourceRange*/
          };
 
@@ -221,13 +233,13 @@ namespace Pikzel {
             blit.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
             blit.srcSubresource.mipLevel = i - 1;
             blit.srcSubresource.baseArrayLayer = 0;
-            blit.srcSubresource.layerCount = 1;
+            blit.srcSubresource.layerCount = m_IsCubeCompatible? 6u: 1u;
             blit.dstOffsets[0] = vk::Offset3D {0, 0, 0};
             blit.dstOffsets[1] = vk::Offset3D {mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1};
             blit.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
             blit.dstSubresource.mipLevel = i;
             blit.dstSubresource.baseArrayLayer = 0;
-            blit.dstSubresource.layerCount = 1;
+            blit.dstSubresource.layerCount = m_IsCubeCompatible? 6u: 1u;
             cmd.blitImage(m_Image, vk::ImageLayout::eTransferSrcOptimal, m_Image, vk::ImageLayout::eTransferDstOptimal, blit, vk::Filter::eLinear);
 
             barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;

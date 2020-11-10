@@ -12,7 +12,7 @@ namespace Pikzel {
    , m_argv {argv}
    {
       if (s_TheApplication) {
-         throw std::runtime_error("Attempted to initialize application more than once");
+         throw std::runtime_error {"Attempted to initialize application more than once"};
       }
       s_TheApplication = this;
 

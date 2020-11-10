@@ -7,16 +7,18 @@ namespace Pikzel {
    class VulkanImage {
    public:
 
-      VulkanImage(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const uint32_t mipLevels, vk::SampleCountFlagBits numSamples, const vk::Format format, const vk::ImageTiling tiling, const vk::ImageUsageFlags usage, const vk::MemoryPropertyFlags properties);
+      VulkanImage(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const uint32_t mipLevels, vk::SampleCountFlagBits numSamples, const vk::Format format, const vk::ImageTiling tiling, const vk::ImageUsageFlags usage, const vk::MemoryPropertyFlags properties, const vk::ImageCreateFlags createFlags);
       VulkanImage(std::shared_ptr<VulkanDevice> device, const vk::Image& image, vk::Format format, vk::Extent2D extent);
       VulkanImage(const VulkanImage&) = delete;   // You cannot copy Image wrapper object
       VulkanImage(VulkanImage&& that) noexcept = default;   // but you can move it (i.e. move the underlying vulkan resources to another Image wrapper)
 
       VulkanImage& operator=(const VulkanImage&) = delete;
+      //VulkanImage& operator=(VulkanImage&& that) noexcept = default;
 
       virtual ~VulkanImage();
 
    public:
+      vk::Image GetVkImage() const;
       vk::Format GetVkFormat() const;
       vk::Extent2D GetVkExtent() const;
       uint32_t GetMIPLevels() const;
@@ -41,6 +43,7 @@ namespace Pikzel {
       vk::DeviceMemory m_Memory;
 
       vk::ImageView m_ImageView;
+      bool m_IsCubeCompatible;
    };
 
 }

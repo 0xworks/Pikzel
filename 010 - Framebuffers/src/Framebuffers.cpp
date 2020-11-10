@@ -78,7 +78,9 @@ protected:
       // Although in practice, OpenGL only has one "context", and if you try and mix rendering commands between different GraphicsContext instances it wont work
       // You have to do one at a time.
 
-#if 1
+#define RENDER_TO_FRAMEBUFFER 1
+
+#if RENDER_TO_FRAMEBUFFER
       // Render to framebuffer
       Pikzel::GraphicsContext& gc = m_Framebuffer->GetGraphicsContext();
       gc.BeginFrame();  // this will "bind" the frame buffer object.
@@ -103,7 +105,7 @@ protected:
       gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
       gc.DrawTriangles(*m_VertexBuffer, 6, 36);
 
-#if 1
+#if RENDER_TO_FRAMEBUFFER
       gc.EndFrame();    // This submits the rendering tasks to the graphics queue, and returns immediately.  Rendering is not necessarily complete.
       gc.SwapBuffers(); // This "swaps buffers" for framebuffer. A framebuffer doesn't have anything to swap, so all this does is waits for rendering to that buffer to complete.
                         // You could swapbuffers here, or you could do other stuff on the CPU here (while GPU is rendering), and then swapbuffers later...

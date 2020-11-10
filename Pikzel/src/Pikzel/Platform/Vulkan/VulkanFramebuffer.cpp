@@ -17,10 +17,10 @@ namespace Pikzel {
          vk::ImageTiling::eOptimal,
          vk::FormatFeatureFlagBits::eDepthStencilAttachment
       );
-      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
       m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
 
-      m_Texture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, vk::Format::eB8G8R8A8Unorm); // TODO: remove hard-coded format
+      m_Texture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, TextureFormat::BGRA8);
 
       std::array<vk::ImageView, 2> attachments = {
          m_Texture->GetVkImageView(),
@@ -97,10 +97,10 @@ namespace Pikzel {
       m_Settings.Width = width;
       m_Settings.Height = height;
 
-      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
       m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
 
-      m_Texture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, vk::Format::eB8G8R8A8Unorm); // TODO: remove hard-coded format
+      m_Texture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, TextureFormat::RGBA8);
 
       std::array<vk::ImageView, 2> attachments = {
          m_Texture->GetVkImageView(),

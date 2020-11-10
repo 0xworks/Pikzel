@@ -35,6 +35,8 @@ namespace Pikzel {
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height) = 0;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) = 0;
 
+      virtual std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path) = 0;
+
    };
 
 
@@ -68,6 +70,8 @@ namespace Pikzel {
       static bool FlipUV(); // true if UV coordinates need to be flipped in Y-axis (like, OpenGL vs. Vulkan)
       static std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height);
       static std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path);
+
+      static std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path);
 
    private:
       static API s_API;

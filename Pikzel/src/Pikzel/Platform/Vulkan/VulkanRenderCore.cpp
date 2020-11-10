@@ -50,7 +50,7 @@ namespace Pikzel {
       // real surface is created later (in GraphicsContext)
       VkSurfaceKHR surface;
       if (glfwCreateWindowSurface(m_Instance, static_cast<GLFWwindow*>(window.GetNativeWindow()), nullptr, &surface) != VK_SUCCESS) {
-         throw std::runtime_error("failed to create window surface!");
+         throw std::runtime_error {"failed to create window surface!"};
       }
       m_Device = std::make_shared<VulkanDevice>(m_Instance, surface);
       m_Instance.destroy(surface);
@@ -66,7 +66,7 @@ namespace Pikzel {
    void VulkanRenderCore::UploadImGuiFonts() {
       m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [] (vk::CommandBuffer commandBuffer) {
          if (!ImGui_ImplVulkan_CreateFontsTexture(commandBuffer)) {
-            throw std::runtime_error("failed to create ImGui font textures!");
+            throw std::runtime_error {"failed to create ImGui font textures!"};
          }
       });
       ImGui_ImplVulkan_DestroyFontUploadObjects();
@@ -109,12 +109,17 @@ namespace Pikzel {
 
 
    std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
-      return std::make_unique<VulkanTexture2D>(m_Device, width, height, vk::Format::eR8G8B8A8Unorm); // TODO: remove hard coded format
+      return std::make_unique<VulkanTexture2D>(m_Device, width, height, TextureFormat::RGBA8); // TODO: remove hard coded format
    }
 
 
    std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const std::filesystem::path& path) {
       return std::make_unique<VulkanTexture2D>(m_Device, path);
+   }
+
+
+   std::unique_ptr<Pikzel::TextureCube> VulkanRenderCore::CreateTextureCube(const std::filesystem::path& path) {
+      return std::make_unique<VulkanTextureCube>(m_Device, path);
    }
 
 

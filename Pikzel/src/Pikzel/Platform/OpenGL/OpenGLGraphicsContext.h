@@ -41,6 +41,9 @@ namespace Pikzel {
       virtual void Bind(const Texture2D& texture, const entt::id_type resourceId) override;
       virtual void Unbind(const Texture2D& texture) override;
 
+      virtual void Bind(const TextureCube& texture, const entt::id_type resourceId) override;
+      virtual void Unbind(const TextureCube& texture) override;
+
       virtual void Bind(const Pipeline& pipeline) override;
       virtual void Unbind(const Pipeline& pipeline) override;
 

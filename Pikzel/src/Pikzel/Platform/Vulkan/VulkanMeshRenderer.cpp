@@ -51,7 +51,7 @@ namespace Pikzel {
 
       const auto& descriptorSetLayouts = vkp.GetVkDescriptorSetLayouts();
       if (descriptorSetLayouts.size() != 2) {
-         throw std::runtime_error("VulkanMeshRenderer expects exactly 2 descriptor set: one for the lights, and one for the material textures - check which shaders you constructed the pipeline with.");
+         throw std::runtime_error {"VulkanMeshRenderer expects exactly 2 descriptor set: one for the lights, and one for the material textures - check which shaders you constructed the pipeline with."};
       }
 
       vk::DescriptorSetAllocateInfo allocInfo = {

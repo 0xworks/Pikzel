@@ -181,7 +181,7 @@ namespace Pikzel {
                // for(auto dim=0; dim<dimensions; ++dim) {
                //    const auto len = type.array[dim];  // size of [dim]th dimension of the array
                // }
-               throw std::runtime_error(fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+               throw std::runtime_error {fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name)};
             }
 
             uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
@@ -192,7 +192,7 @@ namespace Pikzel {
             for (auto& [id, res] : m_Resources) {
                if ((res.DescriptorSet == set) && (res.Binding == binding)) {
                   if ((res.Name != name) || (res.Type != vk::DescriptorType::eUniformBuffer)) {
-                     throw std::runtime_error(fmt::format("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!", set, binding));
+                     throw std::runtime_error {fmt::format("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!", set, binding)};
                   }
                   res.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
                   found = true;
@@ -202,7 +202,7 @@ namespace Pikzel {
             entt::id_type id = entt::hashed_string(name.data());
             if (!found) {
                if (m_Resources.find(id) != m_Resources.end()) {
-                  throw std::runtime_error(fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name));
+                  throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};
                } else {
                   m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eUniformBuffer, 1, ShaderTypeToVulkanShaderStage(shaderType)});
                }
@@ -219,7 +219,7 @@ namespace Pikzel {
             for (auto& [id, res] : m_Resources) {
                if ((res.DescriptorSet == set) && (res.Binding == binding)) {
                   if ((res.Name != name) || (res.Type != vk::DescriptorType::eCombinedImageSampler)) {
-                     throw std::runtime_error(fmt::format("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!", set, binding));
+                     throw std::runtime_error {fmt::format("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!", set, binding)};
                   }
                   res.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
                   found = true;
@@ -229,9 +229,36 @@ namespace Pikzel {
             entt::id_type id = entt::hashed_string(name.data());
             if (!found) {
                if (m_Resources.find(id) != m_Resources.end()) {
-                  throw std::runtime_error(fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name));
+                  throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};
                } else {
                   m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eCombinedImageSampler, 1, ShaderTypeToVulkanShaderStage(shaderType)});
+               }
+            }
+         }
+
+         for (const auto& resource : resources.storage_images) {
+            const auto& name = resource.name;
+            uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            PKZL_CORE_LOG_TRACE("Found storage image at set {0}, binding {1} with name '{2}'", set, binding, name);
+
+            bool found = false;
+            for (auto& [id, res] : m_Resources) {
+               if ((res.DescriptorSet == set) && (res.Binding == binding)) {
+                  if ((res.Name != name) || (res.Type != vk::DescriptorType::eStorageImage)) {
+                     throw std::runtime_error {fmt::format("Descriptor set {0}, binding {1} is ambiguous.  Refers to different names (or types)!", set, binding)};
+                  }
+                  res.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
+                  found = true;
+                  break;
+               }
+            }
+            entt::id_type id = entt::hashed_string(name.data());
+            if (!found) {
+               if (m_Resources.find(id) != m_Resources.end()) {
+                  throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};
+               } else {
+                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eStorageImage, 1, ShaderTypeToVulkanShaderStage(shaderType)});
                }
             }
          }
@@ -451,12 +478,12 @@ namespace Pikzel {
       // Depth and stencil state containing depth and stencil compare and test operations
       // We only use depth tests and want depth tests and writes to be enabled and compare with less
       vk::PipelineDepthStencilStateCreateInfo depthStencilState = {
-         {}                    /*flags*/,
-         true                  /*depthTestEnable*/,
-         true                  /*depthWriteEnable*/,
-         vk::CompareOp::eLess  /*depthCompareOp*/,
-         false                 /*depthBoundsTestEnable*/,
-         false                 /*stencilTestEnable*/,
+         {}                           /*flags*/,
+         true                         /*depthTestEnable*/,
+         true                         /*depthWriteEnable*/,
+         vk::CompareOp::eLessOrEqual  /*depthCompareOp*/,          // LE for skybox
+         false                        /*depthBoundsTestEnable*/,
+         false                        /*stencilTestEnable*/,
          {
             vk::StencilOp::eKeep    /*failOp*/,
             vk::StencilOp::eKeep    /*passOp*/,

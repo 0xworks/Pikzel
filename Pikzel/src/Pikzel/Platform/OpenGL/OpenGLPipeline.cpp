@@ -79,7 +79,7 @@ namespace Pikzel {
             // for(auto dim=0; dim<dimensions; ++dim) {
             //    const auto len = type.array[dim];  // size of [dim]th dimension of the array
             // }
-            throw std::runtime_error(fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+            throw std::runtime_error {fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name)};
          }
 
          uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
@@ -95,7 +95,11 @@ namespace Pikzel {
          const entt::id_type id = entt::hashed_string(name.data());
          const auto sampler = m_SamplerResources.find(id);
          if (sampler != m_SamplerResources.end()) {
-            throw std::runtime_error(fmt::format("Shader resource name '{0}' is ambiguous.  Could be uniform buffer, or texture sampler!", name));
+            throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Could be texture sampler, or uniform buffer!", name)};
+         }
+         const auto image = m_StorageImageResources.find(id);
+         if (image != m_StorageImageResources.end()) {
+            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be storage image, or uniform buffer!", name)};
          }
          const auto ubo = m_UniformBufferResources.find(id);
          if (ubo == m_UniformBufferResources.end()) {
@@ -103,7 +107,7 @@ namespace Pikzel {
          } else {
             // already seen this name, check that binding is the same
             if (ubo->second.Binding != openGLBinding) {
-               throw std::runtime_error(fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name));
+               throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};
             }
          }
       }
@@ -125,7 +129,11 @@ namespace Pikzel {
          const entt::id_type id = entt::hashed_string(name.data());
          const auto ubo = m_UniformBufferResources.find(id);
          if (ubo != m_UniformBufferResources.end()) {
-            throw std::runtime_error(fmt::format("Shader resource name '{0}'is ambiguous.  Could be uniform buffer, or texture sampler!", name));
+            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be uniform buffer, or texture sampler!", name)};
+         }
+         const auto image = m_StorageImageResources.find(id);
+         if (image != m_StorageImageResources.end()) {
+            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be storage image, or texture sampler!", name)};
          }
          const auto sampler = m_SamplerResources.find(id);
          if (sampler == m_SamplerResources.end()) {
@@ -133,7 +141,41 @@ namespace Pikzel {
          } else {
             // already seen this name, check that binding is the same
             if (sampler->second.Binding != openGLBinding) {
-               throw std::runtime_error(fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different texture samplers!", name));
+               throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different texture samplers!", name)};
+            }
+         }
+      }
+
+      for (const auto& resource : resources.storage_images) {
+         const auto& type = compiler.get_type(resource.base_type_id);
+         const auto& name = resource.name;
+         uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+         uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+         uint32_t dimension = type.image.dim;
+
+         PKZL_CORE_LOG_TRACE("Found storage image at set {0}, binding {1} with name '{2}', dimension is {3}", set, binding, name, dimension);
+         m_StorageImageBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_StorageImageBindingMap.size()));
+
+         uint32_t openGLBinding = m_StorageImageBindingMap.at({set, binding});
+         compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
+         compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
+
+         const entt::id_type id = entt::hashed_string(name.data());
+         const auto ubo = m_UniformBufferResources.find(id);
+         if (ubo != m_UniformBufferResources.end()) {
+            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be uniform buffer, or storage image!", name)};
+         }
+         const auto sampler = m_SamplerResources.find(id);
+         if (sampler != m_SamplerResources.end()) {
+            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be texture sampler, or storage image!", name)};
+         }
+         const auto image = m_StorageImageResources.find(id);
+         if (image == m_StorageImageResources.end()) {
+            m_StorageImageResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, dimension});
+         } else {
+            // already seen this name, check that binding is the same
+            if (sampler->second.Binding != openGLBinding) {
+               throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different storage images!", name)};
             }
          }
       }
@@ -158,6 +200,15 @@ namespace Pikzel {
          }
          PKZL_CORE_LOG_TRACE("Uniform '{0}' is at location {1}", sampler.Name, location);
          glUniform1i(location, sampler.Binding);
+      }
+
+      for (const auto& [id, image] : m_StorageImageResources) {
+         GLint location = glGetUniformLocation(m_RendererId, image.Name.data());
+         if (location == -1) {
+            PKZL_CORE_LOG_WARN("Could not find uniform location for {0}", image.Name);
+         }
+         PKZL_CORE_LOG_TRACE("Uniform '{0}' is at location {1}", image.Name, location);
+         glUniform1i(location, image.Binding);
       }
    }
 
@@ -238,7 +289,6 @@ namespace Pikzel {
                PKZL_CORE_ASSERT(false, "Unknown DataType!");
          }
       }
-
    }
 
 
@@ -492,6 +542,11 @@ namespace Pikzel {
    }
 
 
+   GLuint OpenGLPipeline::GetStorageImageBinding(const entt::id_type resourceId) const {
+      return m_StorageImageResources.at(resourceId).Binding;
+   }
+
+
    GLuint OpenGLPipeline::GetUniformBufferBinding(const entt::id_type resourceId) const {
       return m_UniformBufferResources.at(resourceId).Binding;
    }
@@ -524,7 +579,7 @@ namespace Pikzel {
          glDeleteShader(shader);
 
          PKZL_CORE_LOG_ERROR("{0}", infoLog.data());
-         throw std::runtime_error("Shader compilation failure!");
+         throw std::runtime_error {"Shader compilation failure!"};
       }
 
       m_ShaderIds.emplace_back(shader);
@@ -559,7 +614,7 @@ namespace Pikzel {
          }
 
          PKZL_CORE_LOG_ERROR("{0}", infoLog.data());
-         throw std::runtime_error("Shader link failure!");
+         throw std::runtime_error {"Shader link failure!"};
       }
 
       for (const auto shaderId : m_ShaderIds) {
