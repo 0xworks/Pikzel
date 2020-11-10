@@ -9,6 +9,7 @@ namespace Pikzel {
    , m_Extent {width, height}
    , m_MIPLevels {mipLevels}
    {
+
       m_Image = m_Device->GetVkDevice().createImage({
          {}                               /*flags*/,
          vk::ImageType::e2D               /*imageType*/,
@@ -27,7 +28,7 @@ namespace Pikzel {
 
       vk::MemoryRequirements memRequirements = m_Device->GetVkDevice().getImageMemoryRequirements(m_Image);
       m_Memory = m_Device->GetVkDevice().allocateMemory({
-         memRequirements.size                                        /*allocationSize*/,
+         memRequirements.size                                                                         /*allocationSize*/,
          FindMemoryType(m_Device->GetVkPhysicalDevice(), memRequirements.memoryTypeBits, properties)  /*memoryTypeIndex*/
       });
       m_Device->GetVkDevice().bindImageMemory(m_Image, m_Memory, 0);
@@ -41,11 +42,6 @@ namespace Pikzel {
    , m_Extent {extent}
    , m_MIPLevels {1}
    {}
-
-
-   VulkanImage::VulkanImage(VulkanImage&& that) noexcept {
-      *this = std::move(that);
-   }
 
 
    VulkanImage::~VulkanImage() {
@@ -86,24 +82,6 @@ namespace Pikzel {
    }
 
 
-   VulkanImage& VulkanImage::operator=(VulkanImage&& that) noexcept {
-      if (this != &that) {
-         m_Device = that.m_Device;
-         m_Image = that.m_Image;
-         m_ImageView = that.m_ImageView;
-         m_Memory = that.m_Memory;
-         that.m_Device = nullptr;
-         that.m_Image = nullptr;
-         that.m_ImageView = nullptr;
-         that.m_Memory = nullptr;
-         m_Format = that.m_Format;
-         m_Extent = that.m_Extent;
-         m_MIPLevels = that.m_MIPLevels;
-      }
-      return *this;
-   }
-
-
    void VulkanImage::CreateImageView(const vk::Format format, const vk::ImageAspectFlags imageAspect) {
       m_ImageView = m_Device->GetVkDevice().createImageView({
          {}                                 /*flags*/,
@@ -136,7 +114,7 @@ namespace Pikzel {
 
 
    void VulkanImage::TransitionImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout) {
-      m_Device->SubmitSingleTimeCommands([this, oldLayout, newLayout] (vk::CommandBuffer cmd) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this, oldLayout, newLayout] (vk::CommandBuffer cmd) {
          vk::ImageMemoryBarrier barrier = {
             {}                                  /*srcAccessMask*/,
             {}                                  /*dstAccessMask*/,
@@ -182,7 +160,7 @@ namespace Pikzel {
 
 
    void VulkanImage::CopyFromBuffer(vk::Buffer buffer) {
-      m_Device->SubmitSingleTimeCommands([this, buffer] (vk::CommandBuffer cmd) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [this, buffer] (vk::CommandBuffer cmd) {
          vk::BufferImageCopy region = {
             0                                    /*bufferOffset*/,
             0                                    /*bufferRowLength*/,
@@ -208,8 +186,7 @@ namespace Pikzel {
          throw std::runtime_error("texture image format does not support linear blitting!");
       }
 
-      
-      m_Device->SubmitSingleTimeCommands([this] (vk::CommandBuffer cmd) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this] (vk::CommandBuffer cmd) {
          vk::ImageMemoryBarrier barrier = {
             {}                                   /*srcAccessMask*/,
             {}                                   /*dstAccessMask*/,

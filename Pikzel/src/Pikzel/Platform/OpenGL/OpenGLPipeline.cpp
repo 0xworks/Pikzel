@@ -41,6 +41,7 @@ namespace Pikzel {
       switch (type) {
          case ShaderType::Vertex:   return GL_VERTEX_SHADER;
          case ShaderType::Fragment: return GL_FRAGMENT_SHADER;
+         case ShaderType::Compute:  return GL_COMPUTE_SHADER;
       }
 
       PKZL_CORE_ASSERT(false, "Unknown ShaderType!");

@@ -79,7 +79,7 @@ namespace Pikzel {
 
    void VulkanBuffer::CopyFromBuffer(vk::Buffer src, const vk::DeviceSize srcOffset, const vk::DeviceSize dstOffset, const vk::DeviceSize size) {
       PKZL_ASSERT(dstOffset + size <= m_Size, "VulkanBuffer::CopyFromBuffer() buffer overrun!");
-      m_Device->SubmitSingleTimeCommands([this, src, srcOffset, dstOffset, size] (vk::CommandBuffer cmd) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [this, src, srcOffset, dstOffset, size] (vk::CommandBuffer cmd) {
          vk::BufferCopy copyRegion = {
             srcOffset,
             dstOffset,

@@ -15,11 +15,15 @@ namespace Pikzel {
 
       uint32_t GetGraphicsQueueFamilyIndex() const;
       uint32_t GetPresentQueueFamilyIndex() const;
+      uint32_t GetComputeQueueFamilyIndex() const;
+      uint32_t GetTransferQueueFamilyIndex() const;
 
       vk::Queue GetGraphicsQueue() const;
       vk::Queue GetPresentQueue() const;
+      vk::Queue GetComputeQueue() const;
+      vk::Queue GetTransferQueue() const;
 
-      void SubmitSingleTimeCommands(const std::function<void(vk::CommandBuffer)>& action);
+      void SubmitSingleTimeCommands(vk::Queue queue, const std::function<void(vk::CommandBuffer)>& action);
 
    private:
       bool IsPhysicalDeviceSuitable(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
@@ -47,6 +51,8 @@ namespace Pikzel {
 
       vk::Queue m_GraphicsQueue;
       vk::Queue m_PresentQueue;
+      vk::Queue m_ComputeQueue;
+      vk::Queue m_TransferQueue;
 
       vk::CommandPool m_CommandPool;
 
