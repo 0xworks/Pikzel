@@ -75,13 +75,13 @@ namespace Pikzel {
    }
 
 
-   OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, TextureFormat format /*= TextureFormat::RGB8*/)
+   OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, TextureFormat format, const uint32_t mipLevels)
    : m_Format {format}
    , m_Width {width}
    , m_Height {height}
    {
       glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
-      glTextureStorage2D(m_RendererId, 1, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
+      glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
 
       glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
       glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -150,7 +150,7 @@ namespace Pikzel {
 
 
 
-   OpenGLTextureCube::OpenGLTextureCube(uint32_t size, TextureFormat format /*=TextureFormat::RGB8*/)
+   OpenGLTextureCube::OpenGLTextureCube(uint32_t size, TextureFormat format)
    : m_Format {format}
    , m_Size {size}
    {
@@ -216,7 +216,7 @@ namespace Pikzel {
          throw std::runtime_error("Data must be entire texture!");
       }
 
-      std::unique_ptr<OpenGLTexture2D> tex2d = std::make_unique<OpenGLTexture2D>(width, height, m_DataFormat);
+      std::unique_ptr<OpenGLTexture2D> tex2d = std::make_unique<OpenGLTexture2D>(width, height, m_DataFormat, 1);
       tex2d->SetData(data, size);
       int tonemap = 0;
       float gamma = 1.0f;

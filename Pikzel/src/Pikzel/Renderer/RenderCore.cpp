@@ -65,8 +65,8 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const uint32_t width, const uint32_t height) {
-      return s_RenderCore->CreateTexture2D(width, height);
+   std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) {
+      return s_RenderCore->CreateTexture2D(width, height, format, mipLevels);
    }
 
 
