@@ -64,7 +64,7 @@ namespace Pikzel {
    }
 
 
-   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format /*= TextureFormat::RGB8*/, const uint32_t mipLevels /*=1*/)
+   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels)
    : m_Device {device} 
    {
       CreateImage(width, height, TextureFormatToVkFormat(format), mipLevels);
@@ -191,9 +191,9 @@ namespace Pikzel {
    }
 
 
-   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format /*= TextureFormat::RGB8*/)
+   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels)
    : m_Device {device} {
-      CreateImage(size, TextureFormatToVkFormat(format));
+      CreateImage(size, TextureFormatToVkFormat(format), mipLevels);
       CreateSampler();
    }
 
@@ -215,7 +215,7 @@ namespace Pikzel {
       } else {
          size = width / 4;
       }
-      CreateImage(size, TextureFormatToVkFormat(TextureFormat::RGBA8));
+      CreateImage(size, TextureFormatToVkFormat(TextureFormat::RGBA8), CalculateMipMapLevels(size, size));
       CreateSampler();
       SetData(data, width * height * BPP(m_DataFormat));
 
@@ -259,7 +259,7 @@ namespace Pikzel {
          throw std::runtime_error("Data must be entire texture!");
       }
 
-      std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, width, height, m_DataFormat);
+      std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, width, height, m_DataFormat, 1);
       tex2d->SetData(data, size);
       int tonemap = 0;
       float gamma = 1.0f;
@@ -358,8 +358,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanTextureCube::CreateImage(const uint32_t size, const vk::Format format) {
-      uint32_t mipLevels = CalculateMipMapLevels(size, size);
+   void VulkanTextureCube::CreateImage(const uint32_t size, const vk::Format format, const uint32_t mipLevels) {
       m_Image = std::make_unique<VulkanImage>(
          m_Device,
          size,

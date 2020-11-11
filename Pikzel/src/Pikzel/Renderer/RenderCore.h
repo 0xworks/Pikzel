@@ -31,8 +31,7 @@ namespace Pikzel {
       virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size) = 0;
       virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data) = 0;
 
-      // TODO: you probably also want to be able to specify things like format, and sampling parameters
-      virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height) = 0;
+      virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) = 0;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) = 0;
 
       virtual std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path) = 0;
@@ -67,8 +66,7 @@ namespace Pikzel {
       static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size);
       static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data);
 
-      static bool FlipUV(); // true if UV coordinates need to be flipped in Y-axis (like, OpenGL vs. Vulkan)
-      static std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height);
+      static std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
       static std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path);
 
       static std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path);

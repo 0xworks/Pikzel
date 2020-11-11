@@ -20,7 +20,7 @@
 class ModelAndMesh final : public Pikzel::Application {
 public:
    ModelAndMesh(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.5f, 0.5f, 0.9f, 1.0f}, .IsVSync = true}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.2f, 1.0f}, .IsVSync = true}}
    , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
@@ -223,7 +223,7 @@ private:
       .Position = {-900.0f, 100.0f, 0.0f},
       .Direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
       .UpVector = {0.0f, 1.0f, 0.0f},
-      .FoVRadians = glm::radians(60.f),
+      .FoVRadians = glm::radians(80.f),
       .MoveSpeed = 200.0f,
       .RotateSpeed = 20.0f
    };
@@ -232,7 +232,7 @@ private:
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
          .Direction = {-0.0f, -1.0f, -2.0f},
-         .Color = {0.6f, 0.6f, 0.6f},
+         .Color = {0.1f, 0.2f, 0.1f},
          .Ambient = {0.1f, 0.1f, 0.1f}
       }
    };

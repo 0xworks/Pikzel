@@ -8,7 +8,7 @@ namespace Pikzel {
 
    class OpenGLTexture2D : public Texture2D {
    public:
-      OpenGLTexture2D(uint32_t width, uint32_t height, TextureFormat format = TextureFormat::RGB8);
+      OpenGLTexture2D(uint32_t width, uint32_t height, const TextureFormat format, const uint32_t mipLevels);
       OpenGLTexture2D(const std::filesystem::path& path);
       virtual ~OpenGLTexture2D();
 
@@ -35,7 +35,7 @@ namespace Pikzel {
    class OpenGLTextureCube : public TextureCube {
    public:
 
-      OpenGLTextureCube(uint32_t size, TextureFormat format = TextureFormat::RGB8);
+      OpenGLTextureCube(uint32_t size, TextureFormat format);
       OpenGLTextureCube(const std::filesystem::path& path);
       virtual ~OpenGLTextureCube();
 

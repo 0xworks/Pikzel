@@ -10,7 +10,7 @@ namespace Pikzel {
 
    class VulkanTexture2D : public Texture2D {
    public:
-      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format = TextureFormat::RGB8, const uint32_t mipLevels = 1);
+      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
       VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path);
       virtual ~VulkanTexture2D();
 
@@ -45,7 +45,7 @@ namespace Pikzel {
    class VulkanTextureCube : public TextureCube {
    public:
 
-      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format = TextureFormat::RGB8);
+      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels);
       VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path);
       virtual ~VulkanTextureCube();
 
@@ -63,7 +63,7 @@ namespace Pikzel {
       vk::Format GetVkFormat() const;
 
    private:
-      void CreateImage(const uint32_t size, const vk::Format format);
+      void CreateImage(const uint32_t size, const vk::Format format, const uint32_t mipLevels);
       void DestroyImage();
 
       void CreateSampler();

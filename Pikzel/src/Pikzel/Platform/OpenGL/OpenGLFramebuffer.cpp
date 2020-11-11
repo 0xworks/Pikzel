@@ -9,7 +9,7 @@ namespace Pikzel {
       glGenFramebuffers(1, &m_RendererId);
       glBindFramebuffer(GL_FRAMEBUFFER, m_RendererId);
 
-      m_Texture = std::make_unique<OpenGLTexture2D>(settings.Width, settings.Height);
+      m_Texture = std::make_unique<OpenGLTexture2D>(settings.Width, settings.Height, TextureFormat::RGBA8, 1);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Texture->GetRendererId(), 0);
 
       glGenRenderbuffers(1, &m_DepthStencilAttachmentRendererId);
@@ -60,7 +60,7 @@ namespace Pikzel {
       m_Settings.Width = width;
       m_Settings.Height = height;
 
-      m_Texture = std::make_unique<OpenGLTexture2D>(m_Settings.Width, m_Settings.Height);
+      m_Texture = std::make_unique<OpenGLTexture2D>(m_Settings.Width, m_Settings.Height, TextureFormat::RGBA8, 1);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Texture->GetRendererId(), 0);
 
       glGenRenderbuffers(1, &m_DepthStencilAttachmentRendererId);
