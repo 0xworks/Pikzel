@@ -166,12 +166,12 @@ private:
          {.Pos{ 1.0f, -1.0f,  1.0f}, .TexCoords{0.0f, 1.0f}},
 
          // Cube (note opposite winding order from skybox)
-         {.Pos{-0.5f, -0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
-         {.Pos{ 0.5f,  0.5f, -0.5f}, .TexCoords{1.0f, 1.0f}},
-         {.Pos{ 0.5f, -0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
-         {.Pos{ 0.5f,  0.5f, -0.5f}, .TexCoords{1.0f, 1.0f}},
-         {.Pos{-0.5f, -0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
-         {.Pos{-0.5f,  0.5f, -0.5f}, .TexCoords{0.0f, 1.0f}},
+         {.Pos{-0.5f, -0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f, -0.5f}, .TexCoords{0.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f, -0.5f}, .TexCoords{0.0f, 1.0f}},
+         {.Pos{-0.5f, -0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
+         {.Pos{-0.5f,  0.5f, -0.5f}, .TexCoords{1.0f, 1.0f}},
 
          {.Pos{-0.5f, -0.5f,  0.5f}, .TexCoords{0.0f, 0.0f}},
          {.Pos{ 0.5f, -0.5f,  0.5f}, .TexCoords{1.0f, 0.0f}},
@@ -187,12 +187,12 @@ private:
          {.Pos{-0.5f, -0.5f,  0.5f}, .TexCoords{1.0f, 0.0f}},
          {.Pos{-0.5f,  0.5f,  0.5f}, .TexCoords{1.0f, 1.0f}},
 
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .TexCoords{1.0f, 1.0f}},
-         {.Pos{ 0.5f, -0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
-         {.Pos{ 0.5f,  0.5f, -0.5f}, .TexCoords{0.0f, 1.0f}},
-         {.Pos{ 0.5f, -0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .TexCoords{1.0f, 1.0f}},
-         {.Pos{ 0.5f, -0.5f,  0.5f}, .TexCoords{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .TexCoords{0.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f, -0.5f}, .TexCoords{1.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .TexCoords{0.0f, 1.0f}},
+         {.Pos{ 0.5f, -0.5f,  0.5f}, .TexCoords{0.0f, 0.0f}},
 
          {.Pos{-0.5f, -0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
          {.Pos{ 0.5f, -0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
@@ -201,12 +201,12 @@ private:
          {.Pos{-0.5f, -0.5f,  0.5f}, .TexCoords{0.0f, 1.0f}},
          {.Pos{-0.5f, -0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
 
-         {.Pos{-0.5f,  0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .TexCoords{1.0f, 1.0f}},
-         {.Pos{ 0.5f,  0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
-         {.Pos{ 0.5f,  0.5f,  0.5f}, .TexCoords{1.0f, 1.0f}},
-         {.Pos{-0.5f,  0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
-         {.Pos{-0.5f,  0.5f,  0.5f}, .TexCoords{0.0f, 1.0f}},
+         {.Pos{-0.5f,  0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .TexCoords{0.0f, 1.0f}},
+         {.Pos{ 0.5f,  0.5f, -0.5f}, .TexCoords{0.0f, 0.0f}},
+         {.Pos{ 0.5f,  0.5f,  0.5f}, .TexCoords{0.0f, 1.0f}},
+         {.Pos{-0.5f,  0.5f, -0.5f}, .TexCoords{1.0f, 0.0f}},
+         {.Pos{-0.5f,  0.5f,  0.5f}, .TexCoords{1.0f, 1.0f}},
 
          // Plane
          {.Pos{ 5.0f, -0.5f,  5.0f}, .TexCoords{2.0f, 0.0f}},
