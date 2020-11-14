@@ -1,4 +1,9 @@
+#pragma once
+
 #include "Application.h"
+
+// Must be defined in client
+std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]);
 
 // Later, we might consider making it a windows app instead of console...
 // but until such time as we have a good place to send stdout to, lets
@@ -25,7 +30,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 int main(int argc, const char* argv[]) {
    Pikzel::Log::Init();
    try {
-      Pikzel::CreateApplication(argc, argv)->Run();
+      CreateApplication(argc, argv)->Run();
    } catch (std::exception err) {
       PKZL_CORE_LOG_FATAL(err.what());
       return EXIT_FAILURE;

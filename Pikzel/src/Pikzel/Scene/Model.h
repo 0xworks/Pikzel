@@ -10,12 +10,7 @@
 namespace Pikzel {
 
    // Right now, a "model" is just a collection of meshes, that's it.
-   struct Model {
-
-      ~Model() {
-         ;
-      }
-
+   struct PKZL_API Model {
       std::pair<glm::vec3, glm::vec3> AABB = {glm::vec3{FLT_MAX}, glm::vec3{-FLT_MAX}};
       std::vector<Mesh> Meshes;
    };

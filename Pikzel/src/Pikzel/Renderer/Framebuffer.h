@@ -5,14 +5,14 @@
 
 namespace Pikzel {
 
-   struct FramebufferSettings {
+   struct PKZL_API FramebufferSettings {
       uint32_t Width = 1920;
       uint32_t Height = 1080;
       glm::vec4 ClearColor = {};
    };
 
 
-   class Framebuffer {
+   class PKZL_API Framebuffer {
    public:
       virtual ~Framebuffer() = default;
 

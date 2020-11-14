@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Pikzel/Core/Core.h"
+
 #include <entt/signal/dispatcher.hpp>
 
 namespace Pikzel {
 
-   struct EventDispatcher {
+   struct PKZL_API EventDispatcher {
       EventDispatcher() = delete;
       ~EventDispatcher() = delete;
 

@@ -12,9 +12,6 @@ CMRC_DECLARE(PikzelResources);
 
 namespace Pikzel {
 
-   std::vector<char> ReadFile(const std::filesystem::path& path, const bool readAsBinary);
-
-
    template<typename T>
    std::vector<T> ReadCMRCFile(const std::string& path) {
       try {

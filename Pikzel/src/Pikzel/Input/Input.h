@@ -17,7 +17,7 @@ namespace Pikzel {
 
    using DeltaTime = std::chrono::duration<float, std::chrono::seconds::period>;
 
-   class Input {
+   class PKZL_API Input {
    public:
 
       // later we might have some other things in here... such as choice of input "scheme" to use...

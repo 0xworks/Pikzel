@@ -10,7 +10,7 @@
 
 namespace Pikzel {
 
-   class Log {
+   class PKZL_API Log {
    public:
 
       static void Init();

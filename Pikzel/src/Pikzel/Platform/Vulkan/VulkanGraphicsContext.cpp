@@ -21,7 +21,16 @@ namespace Pikzel {
    VulkanGraphicsContext::~VulkanGraphicsContext() {}
 
 
-   void VulkanGraphicsContext::InitializeImGui() {}
+   void VulkanGraphicsContext::InitializeImGui() {
+       __super::InitializeImGui();
+   }
+
+
+   ImGuiContext* VulkanGraphicsContext::GetImGuiContext() {
+      return ImGui::GetCurrentContext();
+   }
+
+
    void VulkanGraphicsContext::BeginImGuiFrame() {}
    void VulkanGraphicsContext::EndImGuiFrame() {}
 
@@ -592,7 +601,7 @@ namespace Pikzel {
    }
 
 
-   vk::DescriptorPool VulkanGraphicsContext::CreateDescriptorPool(const vk::ArrayProxy<DescriptorBinding>& descriptorBindings, size_t maxSets) {
+   vk::DescriptorPool VulkanGraphicsContext::CreateDescriptorPool(const vk::ArrayProxy<const DescriptorBinding>& descriptorBindings, size_t maxSets) {
       std::vector<vk::DescriptorPoolSize> poolSizes;
       poolSizes.reserve(descriptorBindings.size());
 
@@ -859,6 +868,7 @@ namespace Pikzel {
          }
       };
       ImGui_ImplVulkan_Init(&init_info, m_RenderPassImGui);
+      __super::InitializeImGui();
    }
 
 
@@ -891,7 +901,7 @@ namespace Pikzel {
    void VulkanWindowGC::SwapBuffers() {
       PKZL_PROFILE_FUNCTION();
 
-      vk::PresentInfoKHR pi = {
+      vk::PresentInfoKHR piKHR = {
          1                                            /*waitSemaphoreCount*/,
          &m_RenderFinishedSemaphores[m_CurrentFrame]  /*pWaitSemaphores*/,
          1                                            /*swapchainCount*/,
@@ -905,7 +915,8 @@ namespace Pikzel {
       // than a valid return code.
       // Of course, you could try..catch but that seems quite an inefficient way to do it.
       //auto result = m_PresentQueue.presentKHR(pi);
-      auto result = vkQueuePresentKHR(m_Device->GetPresentQueue(), &(VkPresentInfoKHR)pi);
+      VkPresentInfoKHR vkPiKHR = (VkPresentInfoKHR)piKHR;
+      auto result = vkQueuePresentKHR(m_Device->GetPresentQueue(), &vkPiKHR);
       if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_WantResize) {
          RecreateSwapChain();
       } else if (result != VK_SUCCESS) {

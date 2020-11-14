@@ -16,13 +16,13 @@ namespace Pikzel {
       Compute
    };
 
-   struct PipelineSettings {
+   struct PKZL_API PipelineSettings {
       const BufferLayout& BufferLayout;
       std::vector<std::pair<ShaderType, std::filesystem::path>> Shaders;
    };
 
 
-   class Pipeline {
+   class PKZL_API Pipeline {
    public:
       virtual ~Pipeline() = default;
    };

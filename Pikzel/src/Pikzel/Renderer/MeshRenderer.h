@@ -11,7 +11,7 @@
 
 namespace Pikzel {
 
-   struct DrawData {
+   struct PKZL_API DrawData {
       const glm::mat4& Projection;
       const glm::mat4& View;
       const glm::vec3& ViewPosition;
@@ -20,9 +20,9 @@ namespace Pikzel {
    };
 
 
-   class MeshRenderer {
+   class PKZL_API MeshRenderer {
    public:
-      MeshRenderer(GraphicsContext& gc, const Model& model);
+      MeshRenderer(GraphicsContext& gc);
       virtual ~MeshRenderer() = default;
 
       virtual void BindToGC(GraphicsContext& gc) const;
@@ -33,7 +33,6 @@ namespace Pikzel {
       virtual void Draw(GraphicsContext& gc, const Mesh& mesh) const;
 
    public:
-      // provided by external renderer back-end.  Could return MeshRenderer directly, or a derived class
       static std::unique_ptr<MeshRenderer> Create(GraphicsContext& gc, const Model& model);
 
    protected:
@@ -42,6 +41,11 @@ namespace Pikzel {
    private:
       std::unique_ptr<UniformBuffer> m_DirectionalLightBuffer;
       std::unique_ptr<UniformBuffer> m_PointLightBuffer;
+
+      using MESHRENDERERCREATEPROC = MeshRenderer* (__cdecl*)(GraphicsContext*, const Model*);
+      inline static MESHRENDERERCREATEPROC CreateMeshRenderer;
+
+      friend class RenderCore;
    };
 
 }

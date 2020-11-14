@@ -5,13 +5,15 @@
 
 namespace Pikzel {
 
-   std::unique_ptr<MeshRenderer> MeshRenderer::Create(GraphicsContext& gc, const Model& model) {
-      return std::make_unique<VulkanMeshRenderer>(gc, model);
+   extern "C" __declspec(dllexport) MeshRenderer* CreateMeshRenderer(GraphicsContext* gc, const Model* model) {
+      PKZL_CORE_ASSERT(gc, "GraphicsContext was null in call to CreateMeshRenderer!");
+      PKZL_CORE_ASSERT(model, "Model was null in call to CreateMeshRenderer!");
+      return new VulkanMeshRenderer {*gc, *model};
    }
 
 
    VulkanMeshRenderer::VulkanMeshRenderer(GraphicsContext& gc, const Model& model)
-   : MeshRenderer {gc, model}
+   : MeshRenderer {gc}
    , m_Device {static_cast<VulkanPipeline&>(*m_Pipeline).GetDevice()}
    {
       CreateDescriptorPool(model);

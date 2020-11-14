@@ -22,6 +22,7 @@ set(
 set(
    ProjectLibs
    "Pikzel"
+   "ImGui"
 )
 
 set(
@@ -34,19 +35,8 @@ set(
    ShaderHeaders
 )
 
-set(
-   Fonts
-   "Assets/Fonts/LICENSE.txt"
-   "Assets/Fonts/OpenSans-Bold.ttf"
-   "Assets/Fonts/OpenSans-Regular.ttf"
-)
-
-compile_shaders(ShaderSources ShaderHeaders Assets/Shaders CompiledShaders)
-copy_assets(Fonts Assets/Fonts CopiedFonts)
-
 source_group("src" FILES ${ProjectSources})
 source_group("Assets/Shaders" FILES ${ShaderSources} ${ShaderHeaders})
-source_group("Assets/Fonts" FILES ${Fonts})
 
 add_executable(
    ${PROJECT_NAME}
@@ -60,6 +50,7 @@ target_compile_features(
 
 target_compile_definitions(
    ${PROJECT_NAME} PRIVATE
+   APP_NAME="${PROJECT_NAME}"
    APP_VERSION="${PROJECT_VERSION}"
    APP_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
    APP_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
@@ -81,14 +72,14 @@ add_dependencies(
    "Data"
 )
 
+compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)
+
 # These arent really "source" files.
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)
 # The correct way to do this is to add_custom_target() and then add_dependencies() on the custom target.
 # I do not want to clutter up the project with a whole load of custom targets, however.
 set_source_files_properties(${CompiledShaders} PROPERTIES GENERATED TRUE)
-set_source_files_properties(${CopiedFonts} PROPERTIES GENERATED TRUE)
 target_sources(
    ${PROJECT_NAME} PRIVATE
    ${CompiledShaders}
-   ${CopiedFonts}
 )

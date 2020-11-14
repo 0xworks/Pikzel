@@ -12,10 +12,9 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace Pikzel {
 
-   RenderCore::API RenderCore::s_API = RenderCore::API::Vulkan;
-
-   std::unique_ptr<IRenderCore> CreateRenderCore(const Window& window) {
-      return std::make_unique<VulkanRenderCore>(window);
+   extern "C" __declspec(dllexport) IRenderCore * _cdecl CreateRenderCore(const Window * window) {
+      PKZL_CORE_ASSERT(window, "Window is null in call to CreateRenderCore!");
+      return new VulkanRenderCore {*window};
    }
 
 

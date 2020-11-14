@@ -36,9 +36,6 @@ set(
    Textures
 )
 
-compile_shaders(ShaderSources ShaderHeaders Assets/Shaders CompiledShaders)
-copy_assets(Textures Assets/Textures CopiedTextures)
-
 source_group("src" FILES ${ProjectSources})
 source_group("Assets/Shaders" FILES ${ShaderSources})
 source_group("Assets/Textures" FILES ${Textures})
@@ -57,6 +54,7 @@ target_compile_features(
 
 target_compile_definitions(
    ${PROJECT_NAME} PRIVATE
+   APP_NAME="${PROJECT_NAME}"
    APP_VERSION="${PROJECT_VERSION}"
    APP_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
    APP_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
@@ -72,6 +70,9 @@ target_link_libraries(
    ${PROJECT_NAME} PRIVATE
    ${ProjectLibs}
 )
+
+compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)
+copy_assets(Textures Assets/${PROJECT_NAME}/Textures CopiedTextures)
 
 # These arent really "source" files.
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)

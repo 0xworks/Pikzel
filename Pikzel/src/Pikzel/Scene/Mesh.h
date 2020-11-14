@@ -9,7 +9,7 @@
 
 namespace Pikzel {
 
-   struct Mesh {
+   struct PKZL_API Mesh {
 
       struct Vertex {
          Vertex(glm::vec3 pos, glm::vec3 normal, glm::vec2 uv) : Pos {pos}, Normal { normal }, UV {uv} {}
@@ -18,16 +18,9 @@ namespace Pikzel {
          glm::vec2 UV;
       };
 
-      Mesh() = default;
-      Mesh(const Mesh&) = default;
-      Mesh(Mesh&&) = default;
-      ~Mesh() {
-         ;
-      }
-
       std::pair<glm::vec3, glm::vec3> AABB = {glm::vec3{FLT_MAX}, glm::vec3{-FLT_MAX}};
-      std::unique_ptr<Pikzel::VertexBuffer> VertexBuffer;
-      std::unique_ptr<Pikzel::IndexBuffer> IndexBuffer;
+      std::shared_ptr<Pikzel::VertexBuffer> VertexBuffer;
+      std::shared_ptr<Pikzel::IndexBuffer> IndexBuffer;
       std::shared_ptr<Pikzel::Texture2D> DiffuseTexture;
       std::shared_ptr<Pikzel::Texture2D> SpecularTexture;
       uint32_t Index;

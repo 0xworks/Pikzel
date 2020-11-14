@@ -14,7 +14,7 @@
 
 namespace Pikzel {
 
-   struct IRenderCore {
+   struct PKZL_API IRenderCore {
       virtual ~IRenderCore() = default;
 
       virtual void UploadImGuiFonts() = 0;
@@ -39,7 +39,7 @@ namespace Pikzel {
    };
 
 
-   class RenderCore {
+   class PKZL_API RenderCore {
    public:
 
       enum class API {
@@ -48,6 +48,12 @@ namespace Pikzel {
          Vulkan
       };
 
+      // Set the back-end API that you want to use.
+      // This can only be done once, at application startup.
+      // If you do not do it, then OpenGL will be chosen by default.
+      // Throws a runtime_error if the specified API cannot be set,
+      // in which case you could try again with a different one.
+      static void SetAPI(API api);
       static API GetAPI();
 
       static void Init(const Window& window);
@@ -62,6 +68,7 @@ namespace Pikzel {
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size, const void* data);
 
       static std::unique_ptr<IndexBuffer> CreateIndexBuffer(const uint32_t count, const uint32_t* indices);
+      static void DestroyIndexBuffer(IndexBuffer*);
 
       static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size);
       static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data);
@@ -72,8 +79,11 @@ namespace Pikzel {
       static std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path);
 
    private:
-      static API s_API;
-      static std::unique_ptr<IRenderCore> s_RenderCore;
+      inline static API s_API = API::None;
+      inline static std::unique_ptr<IRenderCore> s_RenderCore;
+
+      using RENDERCORECREATEPROC = IRenderCore * (__cdecl*)(const Window*);
+      inline static RENDERCORECREATEPROC CreateRenderCore;
    };
 
 }
