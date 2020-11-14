@@ -2,8 +2,9 @@
 
 namespace Pikzel {
 
-   std::unique_ptr<MeshRenderer> MeshRenderer::Create(GraphicsContext& gc, const Model& model) {
-      return std::make_unique<MeshRenderer>(gc, model);
+   extern "C" __declspec(dllexport) MeshRenderer* CreateMeshRenderer(GraphicsContext* gc, const Model* model) {
+      PKZL_CORE_ASSERT(gc, "GraphicsContext was null in call to CreateMeshRenderer!");
+      return new MeshRenderer {*gc};
    }
 
 }

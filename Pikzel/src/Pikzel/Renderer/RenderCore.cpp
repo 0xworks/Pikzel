@@ -1,27 +1,67 @@
 #include "RenderCore.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "MeshRenderer.h"
 
 namespace Pikzel {
 
-   // TODO: remove:
-   extern std::unique_ptr<IRenderCore> CreateRenderCore(const Window& window);
-
-   std::unique_ptr<IRenderCore> RenderCore::s_RenderCore;
+   void RenderCore::SetAPI(API api) {
+      if (s_API != API::None) {
+         throw std::logic_error {"RenderCore::SetAPI() can only be called once!"};
+      }
+      if (api == API::None) {
+         throw std::invalid_argument {"RenderCore::SetAPI() cannot be called with API::None!"};
+      }
+      s_API = api;
+      switch (s_API) {
+         case API::OpenGL: {
+#ifdef PKZL_PLATFORM_WINDOWS
+            HINSTANCE lib = LoadLibrary("PlatformOpenGL.dll");
+            if (lib) {
+               CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(lib, "CreateRenderCore");
+               MeshRenderer::CreateMeshRenderer = (MeshRenderer::MESHRENDERERCREATEPROC)GetProcAddress(lib, "CreateMeshRenderer");
+            }
+#else
+            PKZL_CORE_ASSERT(false, "You havent written non-windows shared library loading code, yet");
+#endif
+            break;
+         }
+         case API::Vulkan: {
+#ifdef PKZL_PLATFORM_WINDOWS
+            HINSTANCE lib = LoadLibrary("PlatformVulkan.dll");
+            if (lib) {
+               CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(lib, "CreateRenderCore");
+               MeshRenderer::CreateMeshRenderer = (MeshRenderer::MESHRENDERERCREATEPROC)GetProcAddress(lib, "CreateMeshRenderer");
+            }
+#else
+            PKZL_CORE_ASSERT(false, "You havent written non-windows shared library loading code, yet");
+#endif
+            break;
+         }
+         default:
+            PKZL_CORE_ASSERT(false, "Unknown RenderCore::API"); // you added an API and forgot to write the loading code!
+      }
+      if (!CreateRenderCore) {
+         throw std::runtime_error {"RenderCore api could not be loaded: failed to locate CreateRenderCore proc!"};
+      }
+      if (!MeshRenderer::CreateMeshRenderer) {
+         throw std::runtime_error {"RenderCore api could not be loaded: failed to locate CreateMeshRenderer proc!"};
+      }
+   }
 
 
    RenderCore::API RenderCore::GetAPI() {
+      if (s_API == API::None) {
+         SetAPI(API::OpenGL);
+      }
       return s_API;
    }
 
 
    void RenderCore::Init(const Window& window) {
-      // this is not a switch on s_API with call to corresponding XXXRenderCore constructor
-      // because this file should not have to know about XXXRenderCore
-      // All it needs to know is that _somewhere_ there is a function (Create()) that can
-      // be called to to get back an object that implements IRenderCore
-      s_RenderCore = CreateRenderCore(window);
+      // Not having a CreateRenderCore proc here is fatal.
+      // It's too late to get one by just calling SetAPI(OpenGL) - because by the time you get here, other stuff (like glfw) needs to
+      // have already been set up with the correct API.
+      PKZL_CORE_ASSERT(CreateRenderCore, "CreateRenderCore is null in call to Init().  Did you call RenderCore::SetAPI()?");
+      s_RenderCore.reset(CreateRenderCore(&window));
    }
 
 

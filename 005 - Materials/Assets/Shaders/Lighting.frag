@@ -15,8 +15,8 @@ layout(set = 0, binding = 0) uniform Materials {
     vec3 diffuse;
     vec3 specular;
     float shininess;
-} material; 
-  
+} material;
+
 layout(set = 0, binding = 1) uniform Lights {
    vec3 position;
    vec3 ambient;

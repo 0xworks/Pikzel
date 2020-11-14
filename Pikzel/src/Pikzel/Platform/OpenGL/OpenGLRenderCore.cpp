@@ -6,10 +6,9 @@
 
 namespace Pikzel {
 
-   RenderCore::API RenderCore::s_API = RenderCore::API::OpenGL;
-
-   std::unique_ptr<IRenderCore> CreateRenderCore(const Window& window) {
-      return std::make_unique<OpenGLRenderCore>(window);
+   extern "C" __declspec(dllexport) IRenderCore* _cdecl CreateRenderCore(const Window* window) {
+      PKZL_CORE_ASSERT(window, "Window is null in call to CreateRenderCore!");
+      return new OpenGLRenderCore {*window};
    }
 
 

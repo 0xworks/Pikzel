@@ -1,4 +1,5 @@
 #include "Pikzel/Core/Application.h"
+#include "Pikzel/Core/EntryPoint.h"
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
@@ -12,7 +13,6 @@ class LightCasters final : public Pikzel::Application {
 public:
    LightCasters(int argc, const char* argv[])
    : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}, .IsVSync = false}}
-   , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    , m_Light {
       .Position = m_CameraPos,
@@ -26,7 +26,6 @@ public:
       .Quadratic = 0.032f
    }
    {
-      m_bindir.remove_filename();
       CreateVertexBuffer();
       CreateIndexBuffer();
       CreateTextures();
@@ -186,8 +185,8 @@ private:
 
 
    void CreateTextures() {
-      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture2D(m_bindir / "Assets/Textures/Diffuse.png");
-      m_SpecularTexture = Pikzel::RenderCore::CreateTexture2D(m_bindir / "Assets/Textures/Specular.png");
+      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Diffuse.png");
+      m_SpecularTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Specular.png");
    }
 
 
@@ -223,8 +222,8 @@ private:
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
          m_VertexBuffer->GetLayout(),
          {
-            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Lighting.vert.spv" },
-            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Lighting.frag.spv" }
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Lighting.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Lighting.frag.spv" }
          }
       });
    }
@@ -246,7 +245,6 @@ private:
    };
 
    Pikzel::Input m_Input;
-   std::filesystem::path m_bindir;
 
    glm::vec3 m_CameraPos {0.0f, 0.0f, 3.0f};
    glm::vec3 m_CameraDirection = {0.0f, 0.0f, -1.0f};
@@ -270,7 +268,7 @@ private:
 };
 
 
-std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const char* argv[]) {
+std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
    PKZL_LOG_INFO(APP_DESCRIPTION);
    PKZL_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
 #ifdef PKZL_DEBUG

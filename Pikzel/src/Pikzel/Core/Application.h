@@ -4,15 +4,16 @@
 #include "Window.h"
 #include "Pikzel/Events/ApplicationEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
+#include "Pikzel/Renderer/RenderCore.h"
 
 #include <chrono>
 #include <memory>
 
 namespace Pikzel {
 
-   class Application {
+   class PKZL_API Application {
    public:
-      Application(const int argc, const char* argv[], const Window::Settings& settings = {});
+      Application(const int argc, const char* argv[], const Window::Settings& settings = {}, const RenderCore::API api = RenderCore::API::None);
 
       virtual ~Application();
 
@@ -50,9 +51,4 @@ namespace Pikzel {
 
       inline static Application* s_TheApplication = nullptr;
    };
-
-
-   // Must be defined in client
-   extern std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]);
-
 }

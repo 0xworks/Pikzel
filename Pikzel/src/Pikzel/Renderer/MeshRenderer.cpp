@@ -4,8 +4,7 @@
 
 namespace Pikzel {
 
-   MeshRenderer::MeshRenderer(GraphicsContext& gc, const Model&) {
-
+   MeshRenderer::MeshRenderer(GraphicsContext& gc) {
       BufferLayout layout {
          { "inPos",    Pikzel::DataType::Vec3 },
          { "inNormal", Pikzel::DataType::Vec3 },
@@ -53,6 +52,14 @@ namespace Pikzel {
       gc.Bind(*mesh.SpecularTexture, "specularMap"_hs);
       //gc.PushConstant("constants.shininess"_hs, mesh.Shininess);
       gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
+   }
+
+
+   std::unique_ptr<MeshRenderer> MeshRenderer::Create(GraphicsContext& gc, const Model& model) {
+      PKZL_CORE_ASSERT(CreateMeshRenderer, "CreateMeshRenderer procedure has not been set!");
+      std::unique_ptr<MeshRenderer> meshRenderer;
+      meshRenderer.reset(CreateMeshRenderer(&gc, &model));
+      return meshRenderer;
    }
 
 }

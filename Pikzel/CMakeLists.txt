@@ -19,13 +19,12 @@ set(
    "src/Pikzel/Core/Application.h"
    "src/Pikzel/Core/Application.cpp"
    "src/Pikzel/Core/Core.h"
+   "src/Pikzel/Core/EntryPoint.h"
    "src/Pikzel/Core/Instrumentor.h"
-   "src/Pikzel/Core/main.cpp"
    "src/Pikzel/Core/Log.h"
    "src/Pikzel/Core/Log.cpp"
    "src/Pikzel/Core/PlatformUtility.h"
    "src/Pikzel/Core/Utility.h"
-   "src/Pikzel/Core/Utility.cpp"
    "src/Pikzel/Core/Window.h"
    "src/Pikzel/Events/ApplicationEvents.h"
    "src/Pikzel/Events/EventDispatcher.h"
@@ -38,6 +37,8 @@ set(
    "src/Pikzel/Input/MouseButtons.h"
    "src/Pikzel/Renderer/Buffer.h"
    "src/Pikzel/Renderer/Buffer.cpp"
+   "src/Pikzel/Renderer/Framebuffer.h"
+   "src/Pikzel/Renderer/Framebuffer.cpp"
    "src/Pikzel/Renderer/GraphicsContext.h"
    "src/Pikzel/Renderer/MeshRenderer.h"
    "src/Pikzel/Renderer/MeshRenderer.cpp"
@@ -109,13 +110,12 @@ set(
    "assimp"
    "glfw"
    "glm"
-   #"PlatformOpenGL"
-   "PlatformVulkan"
-   "spirv-cross-core"
-   "spirv-cross-glsl"
 )
 
-add_library(${PROJECT_NAME} STATIC ${ProjectSources})
+add_library(
+   ${PROJECT_NAME} SHARED
+   ${ProjectSources}
+)
 
 target_compile_features(
    ${PROJECT_NAME} PUBLIC
@@ -125,6 +125,11 @@ target_compile_features(
 target_compile_definitions(
    ${PROJECT_NAME} PUBLIC
    ${ProjectDefines}
+)
+
+target_compile_definitions(
+   ${PROJECT_NAME} PRIVATE
+   PKZL_BUILD_DLL
 )
 
 target_include_directories(
@@ -148,13 +153,13 @@ if(MSVC)
 endif()
 
 target_link_libraries(
-   ${PROJECT_NAME} PUBLIC
+   ${PROJECT_NAME} PRIVATE
    ${ProjectLibs}
 )
 
 if(MSVC)
    target_link_options(
-      ${PROJECT_NAME} PUBLIC
+      ${PROJECT_NAME} PRIVATE
       "$<$<CONFIG:Release>:/LTCG>"
       "$<$<CONFIG:Debug>:/ignore:4099>"
    )
@@ -183,8 +188,8 @@ set(
    SceneShaderHeaders
 )
 
-compile_shaders(RendererShaderSources RendererShaderHeaders Renderer CompiledRendererShaders)
-compile_shaders(SceneShaderSources SceneShaderHeaders Scene/Shaders CompiledSceneShaders)
+compile_shaders(RendererShaderSources RendererShaderHeaders ${CMAKE_CURRENT_BINARY_DIR}/Renderer CompiledRendererShaders)
+compile_shaders(SceneShaderSources SceneShaderHeaders ${CMAKE_CURRENT_BINARY_DIR}/Scene/Shaders CompiledSceneShaders)
 
 cmrc_add_resource_library(
    PikzelResources WHENCE ${CMAKE_CURRENT_BINARY_DIR}
@@ -192,6 +197,13 @@ cmrc_add_resource_library(
    ${CompiledSceneShaders}
 )
 
+##################################################################
+add_library(
+   "ImGui" STATIC
+   "vendor/imgui/imgui.cpp"
+   "vendor/imgui/imgui_draw.cpp"
+   "vendor/imgui/imgui_widgets.cpp"
+)
 ##################################################################
 
 # Platform - OpenGL
@@ -202,7 +214,7 @@ cmrc_add_resource_library(
 #   API: Version 4.6
 #   Profile: Core
 add_library(
-   "PlatformOpenGL" STATIC
+   "PlatformOpenGL" SHARED
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.h"
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLFramebuffer.h"
@@ -231,7 +243,7 @@ target_compile_features(
 )
 
 target_compile_definitions(
-   "PlatformOpenGL" PRIVATE
+   "PlatformOpenGL" PUBLIC
    ${ProjectDefines}
 )
 
@@ -239,6 +251,18 @@ target_include_directories(
    "PlatformOpenGL" PRIVATE
    ${ProjectIncludes}
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
+)
+
+
+target_link_libraries(
+   "PlatformOpenGL" PRIVATE
+   "PikzelResources"
+   "Pikzel"
+   "glfw"
+   "glm"
+   "ImGui"
+   "spirv-cross-core"
+   "spirv-cross-glsl"
 )
 
 target_precompile_headers(
@@ -266,7 +290,7 @@ if(${Vulkan_FOUND})
    # This requires that the Vulkan SDK is installed.
    # The imgui_impl_vulkan.h and .cpp files are the ones from vendor/imgui/backends, with https://github.com/ocornut/imgui/pull/914 merged in
    add_library(
-      "PlatformVulkan" STATIC
+      "PlatformVulkan" SHARED
       "src/Pikzel/Platform/Vulkan/DescriptorBinding.h"
       "src/Pikzel/Platform/Vulkan/QueueFamilyIndices.h"
       "src/Pikzel/Platform/Vulkan/SwapChainSupportDetails.h"
@@ -322,12 +346,19 @@ if(${Vulkan_FOUND})
    )
 
    target_link_directories(
-      "PlatformVulkan" PUBLIC
+      "PlatformVulkan" PRIVATE
       "$ENV{VULKAN_SDK}/lib"
    )
 
    target_link_libraries(
       "PlatformVulkan" PRIVATE
+      "PikzelResources"
+      "Pikzel"
+      "glfw"
+      "glm"
+      "ImGui"
+      "spirv-cross-core"
+      "spirv-cross-glsl"
       ${Vulkan_LIBRARIES}
    )
 
@@ -337,12 +368,26 @@ endif()
 
 ##################################################################
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries")
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library.")
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library.")
-set(ASSIMP_INSTALL OFF CACHE BOOL "Disable this if you want to use assimp as a submodule.")
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "Inject debug postfix in .a/.so/.dll lib names" FORCE)
+
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library." FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library." FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "Disable this if you want to use assimp as a submodule." FORCE)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+set(SPIRV_CROSS_SKIP_INSTALL ON CACHE BOOL "Skips installation targets." FORCE)
+set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "Enable SPIRV-Cross tests." FORCE)
+set(SPIRV_CROSS_CLI OFF CACHE BOOL "Build the CLI binary. Requires SPIRV_CROSS_STATIC." FORCE)
 
 add_subdirectory("vendor/assimp")
+
+set(BUILD_SHARED_LIBS ON)
 add_subdirectory("vendor/glfw")
+set(BUILD_SHARED_LIBS OFF)
+
 add_subdirectory("vendor/glm")
 add_subdirectory("vendor/SPIRV-Cross")

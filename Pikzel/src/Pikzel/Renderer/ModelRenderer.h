@@ -8,7 +8,7 @@
 
 namespace Pikzel {
 
-   class ModelRenderer {
+   class PKZL_API ModelRenderer {
    public:
       ModelRenderer(GraphicsContext& gc, std::shared_ptr<Model> model);
       virtual ~ModelRenderer() = default;

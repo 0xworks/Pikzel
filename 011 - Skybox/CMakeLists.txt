@@ -22,6 +22,7 @@ set(
 set(
    ProjectLibs
    "Pikzel"
+   "ImGui"
 )
 
 set(
@@ -37,13 +38,6 @@ set(
 )
 
 set(
-   Fonts
-   "Assets/Fonts/LICENSE.txt"
-   "Assets/Fonts/OpenSans-Bold.ttf"
-   "Assets/Fonts/OpenSans-Regular.ttf"
-)
-
-set(
    Textures
    "Assets/Textures/Container.jpg"
    "Assets/Textures/Floor.png"
@@ -51,19 +45,13 @@ set(
    "Assets/Textures/goegap.jpg"
 )
 
-compile_shaders(ShaderSources ShaderHeaders Assets/Shaders CompiledShaders)
-copy_assets(Fonts Assets/Fonts CopiedFonts)
-copy_assets(Textures Assets/Textures CopiedTextures)
-
 source_group("src" FILES ${ProjectSources})
-source_group("Assets/Fonts" FILES ${Fonts})
 source_group("Assets/Shaders" FILES ${ShaderSources} ${ShaderHeaders})
 source_group("Assets/Textures" FILES ${Textures})
 
 add_executable(
    ${PROJECT_NAME}
    ${ProjectSources}
-   ${Fonts}
    ${ShaderSources}
    ${ShaderHeaders}
    ${Textures}
@@ -76,6 +64,7 @@ target_compile_features(
 
 target_compile_definitions(
    ${PROJECT_NAME} PRIVATE
+   APP_NAME="${PROJECT_NAME}"
    APP_VERSION="${PROJECT_VERSION}"
    APP_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
    APP_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
@@ -92,6 +81,9 @@ target_link_libraries(
    ${ProjectLibs}
 )
 
+compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)
+copy_assets(Textures Assets/${PROJECT_NAME}/Textures CopiedTextures)
+
 # These arent really "source" files.
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)
 # The correct way to do this is to add_custom_target() and then add_dependencies() on the custom target.
@@ -101,6 +93,5 @@ set_source_files_properties(${CopiedTextures} PROPERTIES GENERATED TRUE)
 target_sources(
    ${PROJECT_NAME} PRIVATE
    ${CompiledShaders}
-   ${CopiedFonts}
    ${CopiedTextures}
 )

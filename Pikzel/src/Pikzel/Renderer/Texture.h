@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Pikzel/Core/Core.h"
+
 #include <filesystem>
 
 namespace Pikzel {
@@ -14,7 +16,7 @@ namespace Pikzel {
    };
 
 
-   class Texture {
+   class PKZL_API Texture {
    public:
       virtual ~Texture() = default;
 
@@ -30,7 +32,7 @@ namespace Pikzel {
    };
 
 
-   class Texture2D : public Texture {
+   class PKZL_API Texture2D : public Texture {
    public:
       virtual ~Texture2D() = default;
 
@@ -38,7 +40,7 @@ namespace Pikzel {
    };
 
 
-   class TextureCube : public Texture {
+   class PKZL_API TextureCube : public Texture {
    public:
       virtual ~TextureCube() = default;
 

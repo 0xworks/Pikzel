@@ -12,10 +12,18 @@
 #endif
 #endif
 
-// TODO: others platforms here...
+// TODO: other platforms here...
 
 #ifndef PKZL_PLATFORM_WINDOWS
 #error "Pikzel is not supported on non-windows platforms yet!"
+#endif
+
+#ifdef PKZL_PLATFORM_WINDOWS
+#ifdef PKZL_BUILD_DLL
+#define PKZL_API __declspec(dllexport)
+#else
+#define PKZL_API __declspec(dllimport)
+#endif
 #endif
 
 #ifdef PKZL_DEBUG
@@ -44,7 +52,7 @@
 #define PKZL_FUNCSIG __func__
 #endif
 
-#define PKZL_NOT_IMPLEMENTED throw std::logic_error(PKZL_FUNCSIG + std::string(" is not implemented"))
+#define PKZL_NOT_IMPLEMENTED throw std::logic_error {PKZL_FUNCSIG + std::string(" is not implemented")}
 
 #include <entt/core/hashed_string.hpp>
 

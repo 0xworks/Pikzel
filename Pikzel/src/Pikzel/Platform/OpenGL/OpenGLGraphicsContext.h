@@ -26,6 +26,7 @@ namespace Pikzel {
       const glm::vec4 GetClearColor() const;
 
       virtual void InitializeImGui() override;
+      virtual ImGuiContext* GetImGuiContext() override;
       virtual void BeginImGuiFrame() override;
       virtual void EndImGuiFrame() override;
 

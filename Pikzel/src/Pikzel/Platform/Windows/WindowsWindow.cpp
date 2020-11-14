@@ -110,11 +110,11 @@ namespace Pikzel {
       glfwSetMouseButtonCallback(m_Window, [] (GLFWwindow* window, const int button, const int action, const int mods) {
          switch (action) {
             case GLFW_PRESS: {
-               EventDispatcher::Send<MouseButtonPressedEvent>(window, button);
+               EventDispatcher::Send<MouseButtonPressedEvent>(window, static_cast<MouseButton>(button));
                break;
             }
             case GLFW_RELEASE: {
-               EventDispatcher::Send<MouseButtonReleasedEvent>(window, button);
+               EventDispatcher::Send<MouseButtonReleasedEvent>(window, static_cast<MouseButton>(button));
                break;
             }
          }

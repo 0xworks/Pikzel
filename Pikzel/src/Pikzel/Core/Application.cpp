@@ -1,13 +1,22 @@
 #include "Application.h"
 #include "Log.h"
 #include "Pikzel/Events/EventDispatcher.h"
-#include "Pikzel/Renderer/RenderCore.h"
 #include "Pikzel/Scene/ModelSerializer.h"
-
 
 namespace Pikzel {
 
-   Application::Application(const int argc, const char* argv[], const Window::Settings& settings)
+   static void ShowUsage(std::string name) {
+      std::filesystem::path argv0 {name};
+      PKZL_CORE_LOG_INFO("Usage: {0} [options]", argv0.filename().string());
+      PKZL_CORE_LOG_INFO("\tOptions:");
+      PKZL_CORE_LOG_INFO("\t\t-h,--help\t\tShow this help message");
+      PKZL_CORE_LOG_INFO("\t\t-api [vk | gl]\t\tSpecify OpenGL or Vulkan rendering API, respectively");
+      PKZL_CORE_LOG_INFO("\tThe rendering API is a hint only, and may be overridden by the application.");
+      PKZL_CORE_LOG_INFO("\tGenerally, if no api is specified, then OpenGL will be chosen.");
+   }
+
+
+   Application::Application(const int argc, const char* argv[], const Window::Settings& settings, const RenderCore::API api)
    : m_argc {argc}
    , m_argv {argv}
    {
@@ -15,6 +24,35 @@ namespace Pikzel {
          throw std::runtime_error {"Attempted to initialize application more than once"};
       }
       s_TheApplication = this;
+
+      if (api != RenderCore::API::None) {
+         RenderCore::SetAPI(api);
+      } else {
+         // parse command line for API
+         std::vector <std::string> sources;
+         std::string destination;
+         for (int i = 1; i < argc; ++i) {
+            std::string arg = argv[i];
+            if ((arg == "-h") || (arg == "--help")) {
+               ShowUsage(argv[0]);
+            } else if (arg == "-api") {
+               if (i + 1 >= argc) {
+                  PKZL_CORE_LOG_ERROR("Missing render api");
+                  ShowUsage(argv[0]);
+               } else {
+                  std::string api = argv[i + 1];
+                  if (api == "gl") {
+                     RenderCore::SetAPI(RenderCore::API::OpenGL);
+                  } else if (api == "vk") {
+                     RenderCore::SetAPI(RenderCore::API::Vulkan);
+                  } else {
+                     PKZL_CORE_LOG_ERROR("Unknown render api");
+                     ShowUsage(argv[0]);
+                  }
+               }
+            }
+         }
+      }
 
       // Every application has to have a window whether you like it or not.
       // You cannot, for example, initialize OpenGL rendering backend without a window.

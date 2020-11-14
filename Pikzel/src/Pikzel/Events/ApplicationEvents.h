@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Pikzel/Core/Core.h"
+
 #include <chrono>
 
 namespace Pikzel {
@@ -7,12 +9,12 @@ namespace Pikzel {
    using DeltaTime = std::chrono::duration<float, std::chrono::seconds::period>;
 
 
-   struct UpdateEvent {
+   struct PKZL_API UpdateEvent {
       Pikzel::DeltaTime deltaTime;
    };
 
 
-   struct FixedUpdateEvent {
+   struct PKZL_API FixedUpdateEvent {
    };
 
 }

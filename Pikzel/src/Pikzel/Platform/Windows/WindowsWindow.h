@@ -8,7 +8,7 @@ struct GLFWwindow;
 
 namespace Pikzel {
 
-   class WindowsWindow : public Window {
+   class PKZL_API WindowsWindow : public Window {
    public:
       WindowsWindow(const Settings& settings);
       virtual ~WindowsWindow();

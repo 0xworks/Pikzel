@@ -6,6 +6,6 @@
 
 namespace Pikzel {
 
-   DataType SPIRTypeToDataType(const spirv_cross::SPIRType type);
+   PKZL_API DataType SPIRTypeToDataType(const spirv_cross::SPIRType type);
 
 }

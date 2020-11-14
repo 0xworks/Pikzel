@@ -8,7 +8,7 @@
 
 namespace Pikzel {
 
-   class Window {
+   class PKZL_API Window {
    public:
 
       struct Settings {

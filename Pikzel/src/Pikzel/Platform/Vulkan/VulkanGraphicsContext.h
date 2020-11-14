@@ -22,6 +22,7 @@ namespace Pikzel {
 
    public:
       virtual void InitializeImGui() override;
+      virtual ImGuiContext* GetImGuiContext() override;
       virtual void BeginImGuiFrame() override;
       virtual void EndImGuiFrame() override;
 
@@ -100,7 +101,7 @@ namespace Pikzel {
       vk::RenderPass CreateRenderPass(const bool clearColorBuffer, const bool clearDepthBuffer, vk::ImageLayout finalLayout);
       void DestroyRenderPass(vk::RenderPass renderPass);
 
-      vk::DescriptorPool CreateDescriptorPool(const vk::ArrayProxy<DescriptorBinding>& descriptorBindings, size_t maxSets);
+      vk::DescriptorPool CreateDescriptorPool(const vk::ArrayProxy<const DescriptorBinding>& descriptorBindings, size_t maxSets);
       void DestroyDescriptorPool(vk::DescriptorPool descriptorPool);
 
       void CreateCommandPool();

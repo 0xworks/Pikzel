@@ -1,4 +1,5 @@
 #include "Pikzel/Core/Application.h"
+#include "Pikzel/Core/EntryPoint.h"
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
@@ -11,10 +12,8 @@ class Textured final : public Pikzel::Application {
 public:
    Textured(int argc, const char* argv[])
    : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
-   , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
-      m_bindir.remove_filename();
       CreateVertexBuffer();
       CreateIndexBuffer();
       CreateTextures();
@@ -74,7 +73,7 @@ private:
 
 
    void CreateTextures() {
-      m_Texture = Pikzel::RenderCore::CreateTexture2D(m_bindir / "Assets/Textures/Container.jpg");
+      m_Texture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Container.jpg");
    }
 
 
@@ -82,8 +81,8 @@ private:
       Pikzel::PipelineSettings settings {
          m_VertexBuffer->GetLayout(),
          {
-            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Textured.vert.spv" },
-            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Textured.frag.spv" }
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Textured.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Textured.frag.spv" }
          }
       };
       m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
@@ -92,7 +91,6 @@ private:
 
 private:
    Pikzel::Input m_Input;
-   std::filesystem::path m_bindir;
    glm::mat4 m_Transform = glm::identity<glm::mat4>();
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
@@ -102,7 +100,7 @@ private:
 };
 
 
-std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const char* argv[]) {
+std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
    PKZL_LOG_INFO(APP_DESCRIPTION);
    PKZL_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
 #ifdef PKZL_DEBUG

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Pikzel/Core/Core.h"
+
 namespace Pikzel {
 
    enum class DataType {
@@ -45,11 +47,11 @@ namespace Pikzel {
    };
 
 
-   std::string DataTypeToString(DataType type);
-   uint32_t DataTypeSize(DataType type);
+   std::string PKZL_API DataTypeToString(DataType type);
+   uint32_t PKZL_API DataTypeSize(DataType type);
 
 
-   struct BufferElement {
+   struct PKZL_API BufferElement {
       std::string Name;
       DataType Type;
       uint32_t Size;
@@ -62,7 +64,7 @@ namespace Pikzel {
    };
 
 
-   class BufferLayout {
+   class PKZL_API BufferLayout {
    public:
       BufferLayout() = default;
       BufferLayout(const std::initializer_list<BufferElement>& elements);
@@ -84,7 +86,7 @@ namespace Pikzel {
    };
 
 
-   class Buffer {
+   class PKZL_API Buffer {
    public:
       virtual ~Buffer() = default;
 
@@ -93,7 +95,7 @@ namespace Pikzel {
    };
 
 
-   class VertexBuffer : public Buffer {
+   class PKZL_API VertexBuffer : public Buffer {
    public:
       virtual ~VertexBuffer() = default;
 
@@ -102,7 +104,7 @@ namespace Pikzel {
    };
 
 
-   class IndexBuffer : public Buffer {
+   class PKZL_API IndexBuffer : public Buffer {
    public:
       virtual ~IndexBuffer() = default;
 
@@ -110,7 +112,7 @@ namespace Pikzel {
    };
 
 
-   class UniformBuffer : public Buffer {
+   class PKZL_API UniformBuffer : public Buffer {
    public:
       virtual ~UniformBuffer() = default;
    };

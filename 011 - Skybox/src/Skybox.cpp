@@ -2,6 +2,7 @@
 #include "ImGuiEx.h"
 
 #include "Pikzel/Core/Application.h"
+#include "Pikzel/Core/EntryPoint.h"
 #include "Pikzel/Core/PlatformUtility.h"
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
@@ -14,15 +15,12 @@
 #include <filesystem>
 #include <optional>
 
-class Framebuffers final : public Pikzel::Application {
+class Skybox final : public Pikzel::Application {
 public:
-   Framebuffers(int argc, const char* argv[])
+   Skybox(int argc, const char* argv[])
    : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.2f, 1.0f}, .IsVSync = true}}
-   , m_bindir {argv[0]}
    , m_Input {GetWindow()}
    {
-      m_bindir.remove_filename();
-
       CreateVertexBuffer();
       CreateTextures();
       CreatePipelines();
@@ -32,6 +30,7 @@ public:
       GetWindow().GetGraphicsContext().InitializeImGui();
 
       // Optional tweaking of ImGui style
+      ImGui::SetCurrentContext(GetWindow().GetGraphicsContext().GetImGuiContext());
       ImGuiIO& io = ImGui::GetIO();
       ImGui::StyleColorsDark();
       ImGuiStyle& style = ImGui::GetStyle();
@@ -237,9 +236,9 @@ private:
 
 
    void CreateTextures() {
-      m_TextureContainer = Pikzel::RenderCore::CreateTexture2D(m_bindir / "Assets/Textures/Container.jpg");
-      m_TextureFloor = Pikzel::RenderCore::CreateTexture2D(m_bindir / "Assets/Textures/Floor.png");
-      m_NewSkyboxPath = m_bindir / "Assets/Textures/Skybox.jpg";
+      m_TextureContainer = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Container.jpg");
+      m_TextureFloor = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Floor.png");
+      m_NewSkyboxPath = "Assets/" APP_NAME "/Textures/Skybox.jpg";
    }
 
 
@@ -252,16 +251,16 @@ private:
       m_ScenePipeline = GetWindow().GetGraphicsContext().CreatePipeline({
          m_VertexBuffer->GetLayout(),
          {
-            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/TexturedModel.vert.spv" },
-            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/TexturedModel.frag.spv" }
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/TexturedModel.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/TexturedModel.frag.spv" }
          }
       });
 
       m_SkyboxPipeline = GetWindow().GetGraphicsContext().CreatePipeline({
          m_VertexBuffer->GetLayout(),
          {
-            { Pikzel::ShaderType::Vertex, m_bindir / "Assets/Shaders/Skybox.vert.spv" },
-            { Pikzel::ShaderType::Fragment, m_bindir / "Assets/Shaders/Skybox.frag.spv" }
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Skybox.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Skybox.frag.spv" }
          }
       });
    }
@@ -270,7 +269,6 @@ private:
 private:
 
    Pikzel::Input m_Input;
-   std::filesystem::path m_bindir;
    std::optional<std::filesystem::path> m_NewSkyboxPath;
 
 
@@ -292,12 +290,12 @@ private:
 };
 
 
-std::unique_ptr<Pikzel::Application> Pikzel::CreateApplication(int argc, const char* argv[]) {
+std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
    PKZL_LOG_INFO(APP_DESCRIPTION);
    PKZL_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
 #ifdef PKZL_DEBUG
    PKZL_LOG_INFO("DEBUG build");
 #endif
 
-   return std::make_unique<Framebuffers>(argc, argv);
+   return std::make_unique<Skybox>(argc, argv);
 }

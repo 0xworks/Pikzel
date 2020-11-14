@@ -4,6 +4,7 @@
 #include "Pipeline.h"
 #include "Texture.h"
 
+#include <imgui.h>
 #include <memory>
 
 namespace Pikzel {
@@ -11,7 +12,7 @@ namespace Pikzel {
    struct FramebufferSettings;
    class Framebuffer;
 
-   class GraphicsContext {
+   class PKZL_API GraphicsContext {
    public:
       virtual ~GraphicsContext() = default;
 
@@ -19,7 +20,13 @@ namespace Pikzel {
       virtual void EndFrame() = 0;
 
       // These don't belong here - what if client doesn't want ImGui baggage?  TODO: move somewhere else.
-      virtual void InitializeImGui() = 0;
+      virtual void InitializeImGui() {
+         // This is a bit nasty.
+         // The thing is, ImGui is initialised by the back-end renderer's graphics context.  That's in a different shared library, which effectively has its own copy of ImGui.
+         // We need to make sure Pikzel's copy of ImGui shares the same context
+         ImGui::SetCurrentContext(GetImGuiContext());
+      }
+      virtual ImGuiContext* GetImGuiContext() = 0;
       virtual void BeginImGuiFrame() = 0;
       virtual void EndImGuiFrame() = 0;
 
