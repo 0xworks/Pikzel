@@ -3,6 +3,10 @@
 
 namespace Pikzel {
 
+#ifdef PKZL_PLATFORM_WINDOWS
+   HINSTANCE gAPILib;
+#endif
+
    void RenderCore::SetAPI(API api) {
       if (s_API != API::None) {
          throw std::logic_error {"RenderCore::SetAPI() can only be called once!"};
@@ -14,10 +18,10 @@ namespace Pikzel {
       switch (s_API) {
          case API::OpenGL: {
 #ifdef PKZL_PLATFORM_WINDOWS
-            HINSTANCE lib = LoadLibrary("PlatformOpenGL.dll");
-            if (lib) {
-               CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(lib, "CreateRenderCore");
-               MeshRenderer::CreateMeshRenderer = (MeshRenderer::MESHRENDERERCREATEPROC)GetProcAddress(lib, "CreateMeshRenderer");
+            gAPILib = LoadLibrary("PlatformOpenGL.dll");
+            if (gAPILib) {
+               CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(gAPILib, "CreateRenderCore");
+               MeshRenderer::CreateMeshRenderer = (MeshRenderer::MESHRENDERERCREATEPROC)GetProcAddress(gAPILib, "CreateMeshRenderer");
             }
 #else
             PKZL_CORE_ASSERT(false, "You havent written non-windows shared library loading code, yet");
@@ -26,10 +30,10 @@ namespace Pikzel {
          }
          case API::Vulkan: {
 #ifdef PKZL_PLATFORM_WINDOWS
-            HINSTANCE lib = LoadLibrary("PlatformVulkan.dll");
-            if (lib) {
-               CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(lib, "CreateRenderCore");
-               MeshRenderer::CreateMeshRenderer = (MeshRenderer::MESHRENDERERCREATEPROC)GetProcAddress(lib, "CreateMeshRenderer");
+            gAPILib = LoadLibrary("PlatformVulkan.dll");
+            if (gAPILib) {
+               CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(gAPILib, "CreateRenderCore");
+               MeshRenderer::CreateMeshRenderer = (MeshRenderer::MESHRENDERERCREATEPROC)GetProcAddress(gAPILib, "CreateMeshRenderer");
             }
 #else
             PKZL_CORE_ASSERT(false, "You havent written non-windows shared library loading code, yet");
@@ -62,6 +66,14 @@ namespace Pikzel {
       // have already been set up with the correct API.
       PKZL_CORE_ASSERT(CreateRenderCore, "CreateRenderCore is null in call to Init().  Did you call RenderCore::SetAPI()?");
       s_RenderCore.reset(CreateRenderCore(&window));
+   }
+
+
+   void RenderCore::DeInit() {
+      s_RenderCore.reset(nullptr);
+#ifdef PKZL_PLATFORM_WINDOWS
+      FreeLibrary(gAPILib);
+#endif
    }
 
 

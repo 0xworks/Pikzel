@@ -706,6 +706,10 @@ namespace Pikzel {
 
 
    VulkanWindowGC::~VulkanWindowGC() {
+
+      EventDispatcher::Disconnect<WindowVSyncChangedEvent, &VulkanWindowGC::OnWindowVSyncChanged>(*this);
+      EventDispatcher::Disconnect<WindowResizeEvent, &VulkanWindowGC::OnWindowResize>(*this);
+
       if (m_Device) {
          m_Device->GetVkDevice().waitIdle();
          if (ImGui::GetCurrentContext()) {

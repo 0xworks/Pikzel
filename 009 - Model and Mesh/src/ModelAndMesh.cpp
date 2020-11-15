@@ -21,7 +21,7 @@
 class ModelAndMesh final : public Pikzel::Application {
 public:
    ModelAndMesh(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.2f, 1.0f}, .IsVSync = true}, Pikzel::RenderCore::API::Vulkan}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.2f, 1.0f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
 

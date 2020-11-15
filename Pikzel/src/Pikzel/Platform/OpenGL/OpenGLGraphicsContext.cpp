@@ -363,6 +363,7 @@ namespace Pikzel {
 
 
    OpenGLWindowGC::~OpenGLWindowGC() {
+      EventDispatcher::Disconnect<WindowVSyncChangedEvent, &OpenGLWindowGC::OnWindowVSyncChanged>(*this);
       if (ImGui::GetCurrentContext()) {
          ImGui_ImplOpenGL3_Shutdown();
          ImGui_ImplGlfw_Shutdown();

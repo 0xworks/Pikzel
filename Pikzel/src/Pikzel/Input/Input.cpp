@@ -44,6 +44,14 @@ namespace Pikzel {
    }
 
 
+   Input::~Input() {
+      EventDispatcher::Disconnect<MouseScrolledEvent, &Input::OnMouseScrolled>(*this);
+      EventDispatcher::Disconnect<KeyReleasedEvent, &Input::OnKeyReleased>(*this);
+      EventDispatcher::Disconnect<KeyPressedEvent, &Input::OnKeyPressed>(*this);
+      EventDispatcher::Disconnect<UpdateEvent, &Input::OnUpdate>(*this);
+   }
+
+
    float Input::GetAxis(entt::id_type id) const {
       return m_Axes.at(id);
    }

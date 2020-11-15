@@ -26,6 +26,7 @@ namespace Pikzel {
       };
 
       Input(const Window& window, const Input::Settings& settings = {});
+      virtual ~Input();
 
       float GetAxis(entt::id_type id) const;
 
