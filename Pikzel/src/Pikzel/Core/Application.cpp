@@ -65,6 +65,8 @@ namespace Pikzel {
 
 
    Application::~Application() {
+      EventDispatcher::Disconnect<WindowCloseEvent, &Application::OnWindowClose>(*this);
+      EventDispatcher::Disconnect<WindowResizeEvent, &Application::OnWindowResize>(*this);
       ModelSerializer::ClearTextureCache();
    }
 

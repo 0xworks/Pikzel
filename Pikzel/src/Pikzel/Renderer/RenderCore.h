@@ -57,6 +57,7 @@ namespace Pikzel {
       static API GetAPI();
 
       static void Init(const Window& window);
+      static void DeInit();
 
       static void UploadImGuiFonts();
 
@@ -68,7 +69,6 @@ namespace Pikzel {
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size, const void* data);
 
       static std::unique_ptr<IndexBuffer> CreateIndexBuffer(const uint32_t count, const uint32_t* indices);
-      static void DestroyIndexBuffer(IndexBuffer*);
 
       static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size);
       static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data);
