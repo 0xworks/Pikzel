@@ -7,7 +7,7 @@
 
 namespace Pikzel {
 
-   static GLenum TextureFormatToInternalFormat(const TextureFormat format) {
+   GLenum TextureFormatToInternalFormat(const TextureFormat format) {
       switch (format) {
          case TextureFormat::RGB8: return GL_RGB8;
          case TextureFormat::RGBA8: return GL_RGBA8;
@@ -20,7 +20,7 @@ namespace Pikzel {
    }
 
 
-   static GLenum TextureFormatToDataFormat(const TextureFormat format) {
+   GLenum TextureFormatToDataFormat(const TextureFormat format) {
       switch (format) {
          case TextureFormat::RGB8: return GL_RGB;
          case TextureFormat::RGBA8: return GL_RGBA;
@@ -33,7 +33,7 @@ namespace Pikzel {
    }
 
 
-   static GLenum TextureFormatToDataType(const TextureFormat format) {
+   GLenum TextureFormatToDataType(const TextureFormat format) {
       switch (format) {
          case TextureFormat::RGB8: return GL_UNSIGNED_BYTE;
          case TextureFormat::RGBA8: return GL_UNSIGNED_BYTE;

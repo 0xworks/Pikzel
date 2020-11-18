@@ -508,12 +508,11 @@ namespace Pikzel {
       pipelineCI.pDepthStencilState = &depthStencilState;
 
       // Multi sampling state
-      // This pipeline does not make use of multi sampling (for anti-aliasing), the state must still be set and passed to the pipeline
       vk::PipelineMultisampleStateCreateInfo multisampleState = {
          {}                          /*flags*/,
-         vk::SampleCountFlagBits::e1 /*rasterizationSamples*/,
-         false                       /*sampleShadingEnable*/,
-         1.0f                        /*minSampleShading*/,
+         gc.GetNumSamples()          /*rasterizationSamples*/,
+         false                       /*sampleShadingEnable*/,   // TODO: enable  (requires device features: sampleRateShading)
+         0.2f                        /*minSampleShading*/,
          nullptr                     /*pSampleMask*/,
          false                       /*alphaToCoverageEnable*/,
          false                       /*alphaToOneEnable*/

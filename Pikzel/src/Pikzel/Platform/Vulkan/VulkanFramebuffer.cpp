@@ -6,7 +6,7 @@
 
 namespace Pikzel {
 
-   VulkanFramebuffer::VulkanFramebuffer(std::shared_ptr<VulkanDevice> device, vk::RenderPass renderPass, const FramebufferSettings& settings)
+   VulkanFramebuffer::VulkanFramebuffer(std::shared_ptr<VulkanDevice> device, const FramebufferSettings& settings)
    : m_Device {device}
    , m_Settings {settings}
    {
@@ -17,18 +17,34 @@ namespace Pikzel {
          vk::ImageTiling::eOptimal,
          vk::FormatFeatureFlagBits::eDepthStencilAttachment
       );
-      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
+      vk::SampleCountFlagBits sampleCount = static_cast<vk::SampleCountFlagBits>(GetMSAANumSamples());
+      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
       m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
 
       m_Texture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, TextureFormat::BGRA8, 1);
 
-      std::array<vk::ImageView, 2> attachments = {
-         m_Texture->GetVkImageView(),
-         m_DepthImage->GetVkImageView()
-      };
+      std::vector<vk::ImageView> attachments;
+
+      if (sampleCount == vk::SampleCountFlagBits::e1) {
+         attachments = {
+            m_Texture->GetVkImageView(),
+            m_DepthImage->GetVkImageView()
+         };
+      } else {
+         m_ColorImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, vk::Format::eB8G8R8A8Unorm, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
+         m_ColorImage->CreateImageView(vk::Format::eB8G8R8A8Unorm, vk::ImageAspectFlagBits::eColor);
+         attachments = {
+            m_ColorImage->GetVkImageView(),
+            m_DepthImage->GetVkImageView(),
+            m_Texture->GetVkImageView()
+         };
+      }
+
+      m_Context = std::make_unique<VulkanFramebufferGC>(m_Device, this);
+
       vk::FramebufferCreateInfo ci = {
          {}                                        /*flags*/,
-         renderPass                                /*renderPass*/,
+         static_cast<VulkanFramebufferGC&>(*m_Context).GetVkRenderPass()              /*renderPass*/,
          static_cast<uint32_t>(attachments.size()) /*attachmentCount*/,
          attachments.data()                        /*pAttachments*/,
          m_Settings.Width                          /*width*/,
@@ -37,7 +53,6 @@ namespace Pikzel {
       };
 
       m_Framebuffer = m_Device->GetVkDevice().createFramebuffer(ci);
-      m_Context = std::make_unique<VulkanFramebufferGC>(m_Device, this);
    }
 
 
@@ -62,11 +77,6 @@ namespace Pikzel {
    GraphicsContext& VulkanFramebuffer::GetGraphicsContext() {
       PKZL_CORE_ASSERT(m_Context, "Accessing null graphics context!");
       return *m_Context;
-   }
-
-
-   const glm::vec4& VulkanFramebuffer::GetClearColor() const {
-      return m_Settings.ClearColor;
    }
 
 
@@ -119,6 +129,16 @@ namespace Pikzel {
       };
 
       m_Framebuffer = m_Device->GetVkDevice().createFramebuffer(ci);
+   }
+
+
+   uint32_t VulkanFramebuffer::GetMSAANumSamples() const {
+      return m_Settings.MSAANumSamples;
+   }
+
+
+   const glm::vec4& VulkanFramebuffer::GetClearColor() const {
+      return m_Settings.ClearColor;
    }
 
 

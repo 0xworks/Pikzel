@@ -8,11 +8,11 @@ namespace Pikzel {
 #endif
 
    void RenderCore::SetAPI(API api) {
-      if (s_API != API::None) {
+      if (s_API != API::Undefined) {
          throw std::logic_error {"RenderCore::SetAPI() can only be called once!"};
       }
-      if (api == API::None) {
-         throw std::invalid_argument {"RenderCore::SetAPI() cannot be called with API::None!"};
+      if (api == API::Undefined) {
+         throw std::invalid_argument {"RenderCore::SetAPI() cannot be called with API::Undefined!"};
       }
       s_API = api;
       switch (s_API) {
@@ -53,7 +53,7 @@ namespace Pikzel {
 
 
    RenderCore::API RenderCore::GetAPI() {
-      if (s_API == API::None) {
+      if (s_API == API::Undefined) {
          SetAPI(API::OpenGL);
       }
       return s_API;
@@ -116,6 +116,10 @@ namespace Pikzel {
       return s_RenderCore->CreateUniformBuffer(size, data);
    }
 
+
+   std::unique_ptr<Pikzel::Framebuffer> RenderCore::CreateFramebuffer(const FramebufferSettings& settings) {
+      return s_RenderCore->CreateFramebuffer(settings);
+   }
 
    std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) {
       return s_RenderCore->CreateTexture2D(width, height, format, mipLevels);

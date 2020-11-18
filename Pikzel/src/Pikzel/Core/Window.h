@@ -24,6 +24,7 @@ namespace Pikzel {
          uint32_t MinHeight = 0;
          uint32_t MaxWidth = 0;
          uint32_t MaxHeight = 0;
+         uint32_t MSAANumSamples = 1;
       };
 
       virtual ~Window() = default;
@@ -32,6 +33,8 @@ namespace Pikzel {
 
       virtual uint32_t GetWidth() const = 0;
       virtual uint32_t GetHeight() const = 0;
+
+      virtual uint32_t GetMSAANumSamples() const = 0;
 
       virtual glm::vec4 GetClearColor() const = 0;
 

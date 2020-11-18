@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Buffer.h"
+#include "Framebuffer.h"
 #include "GraphicsContext.h"
 #include "Pipeline.h"
 #include "Texture.h"
@@ -31,6 +32,8 @@ namespace Pikzel {
       virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size) = 0;
       virtual std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data) = 0;
 
+      virtual std::unique_ptr<Framebuffer> CreateFramebuffer(const FramebufferSettings& settings) = 0;
+
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) = 0;
       virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path) = 0;
 
@@ -43,7 +46,7 @@ namespace Pikzel {
    public:
 
       enum class API {
-         None,
+         Undefined,
          OpenGL,
          Vulkan
       };
@@ -73,13 +76,15 @@ namespace Pikzel {
       static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size);
       static std::unique_ptr<UniformBuffer> CreateUniformBuffer(const uint32_t size, const void* data);
 
+      static std::unique_ptr<Framebuffer> CreateFramebuffer(const FramebufferSettings& settings);
+
       static std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
       static std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path);
 
       static std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path);
 
    private:
-      inline static API s_API = API::None;
+      inline static API s_API = API::Undefined;
       inline static std::unique_ptr<IRenderCore> s_RenderCore;
 
       using RENDERCORECREATEPROC = IRenderCore * (__cdecl*)(const Window*);

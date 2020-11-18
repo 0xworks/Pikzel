@@ -13,7 +13,7 @@ namespace Pikzel {
 
    class PKZL_API Application {
    public:
-      Application(const int argc, const char* argv[], const Window::Settings& settings = {}, const RenderCore::API api = RenderCore::API::None);
+      Application(const int argc, const char* argv[], const Window::Settings& settings = {}, const RenderCore::API api = RenderCore::API::Undefined);
 
       virtual ~Application();
 

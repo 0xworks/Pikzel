@@ -100,11 +100,6 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Framebuffer> OpenGLGraphicsContext::CreateFramebuffer(const FramebufferSettings& settings) {
-      return std::make_unique<OpenGLFramebuffer>(settings);
-   }
-
-
    std::unique_ptr<Pikzel::Pipeline> OpenGLGraphicsContext::CreatePipeline(const PipelineSettings& settings) {
       return std::make_unique<OpenGLPipeline>(settings);
    }
@@ -455,8 +450,9 @@ namespace Pikzel {
 
    void OpenGLFramebufferGC::SwapBuffers() {
       PKZL_PROFILE_FUNCTION();
-      // "swap" back to the default framebuffer.
-      // OpenGL will block until the gpu has finished rendering to our framebuffer
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Framebuffer->GetRendererId());
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Framebuffer->GetResolveRendererId());
+      glBlitFramebuffer(0, 0, m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(), 0, 0, m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
    }
 

@@ -25,7 +25,7 @@ namespace Pikzel {
       }
       s_TheApplication = this;
 
-      if (api != RenderCore::API::None) {
+      if (api != RenderCore::API::Undefined) {
          RenderCore::SetAPI(api);
       } else {
          // parse command line for API

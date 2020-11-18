@@ -18,6 +18,8 @@ namespace Pikzel {
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
 
+      virtual uint32_t GetMSAANumSamples() const override;
+
       virtual glm::vec4 GetClearColor() const override;
 
       virtual void SetVSync(bool enabled) override;

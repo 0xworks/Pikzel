@@ -107,6 +107,11 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<Framebuffer> VulkanRenderCore::CreateFramebuffer(const FramebufferSettings& settings) {
+      return std::make_unique<VulkanFramebuffer>(m_Device, settings);
+   }
+
+
    std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) {
       return std::make_unique<VulkanTexture2D>(m_Device, width, height, format, mipLevels);
    }

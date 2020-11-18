@@ -23,6 +23,8 @@ namespace Pikzel {
       vk::Queue GetComputeQueue() const;
       vk::Queue GetTransferQueue() const;
 
+      uint32_t GetMSAAMaxSamples() const;
+
       void SubmitSingleTimeCommands(vk::Queue queue, const std::function<void(vk::CommandBuffer)>& action);
 
    private:

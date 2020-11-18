@@ -41,7 +41,6 @@ namespace Pikzel {
       virtual void Bind(const TextureCube& texture, const entt::id_type resourceId) override;
       virtual void Unbind(const TextureCube& texture) override;
 
-      virtual std::unique_ptr<Framebuffer> CreateFramebuffer(const FramebufferSettings& settings) override;
       virtual std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) override;
 
       virtual void PushConstant(const entt::id_type id, bool value) override;
@@ -93,7 +92,11 @@ namespace Pikzel {
       virtual vk::CommandBuffer GetVkCommandBuffer() = 0;
       virtual vk::Fence GetVkFence() = 0;
 
+      vk::SampleCountFlagBits GetNumSamples() const;
+
    protected:
+      void CreateColorImage();
+      void DestroyColorImage();
 
       void CreateDepthStencil();
       void DestroyDepthStencil();
@@ -118,6 +121,9 @@ namespace Pikzel {
 
       vk::Format m_Format = vk::Format::eUndefined;
       vk::Extent2D m_Extent;
+
+      vk::SampleCountFlagBits m_SampleCount = vk::SampleCountFlagBits::e1;
+      std::unique_ptr<VulkanImage> m_ColorImage;
 
       vk::Format m_DepthFormat;
       std::unique_ptr<VulkanImage> m_DepthImage;

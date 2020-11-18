@@ -134,11 +134,6 @@ namespace Pikzel {
    void VulkanGraphicsContext::Unbind(const TextureCube&) {}
 
 
-   std::unique_ptr<Framebuffer> VulkanGraphicsContext::CreateFramebuffer(const FramebufferSettings& settings) {
-      return std::make_unique<VulkanFramebuffer>(m_Device, m_RenderPass, settings);
-   }
-
-
    std::unique_ptr<Pikzel::Pipeline> VulkanGraphicsContext::CreatePipeline(const PipelineSettings& settings) {
       return std::make_unique<VulkanPipeline>(m_Device, *this, settings);
    }
@@ -475,15 +470,32 @@ namespace Pikzel {
    }
 
 
+   vk::SampleCountFlagBits VulkanGraphicsContext::GetNumSamples() const {
+      return m_SampleCount;
+   }
+
+
+   void VulkanGraphicsContext::CreateColorImage() {
+      if (m_SampleCount != vk::SampleCountFlagBits::e1) {
+         m_ColorImage = std::make_unique<VulkanImage>(m_Device, m_Extent.width, m_Extent.height, 1, m_SampleCount, m_Format, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
+         m_ColorImage->CreateImageView(m_Format, vk::ImageAspectFlagBits::eColor);
+      }
+   }
+
+
+   void VulkanGraphicsContext::DestroyColorImage() {
+      m_ColorImage = nullptr;
+   }
+
+
    void VulkanGraphicsContext::CreateDepthStencil() {
-      // TODO anti-aliasing
       m_DepthFormat = FindSupportedFormat(
          m_Device->GetVkPhysicalDevice(),
          {vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat, vk::Format::eD24UnormS8Uint, vk::Format::eD16UnormS8Uint, vk::Format::eD16Unorm},
          vk::ImageTiling::eOptimal,
          vk::FormatFeatureFlagBits::eDepthStencilAttachment
       );
-      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Extent.width, m_Extent.height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
+      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Extent.width, m_Extent.height, 1, m_SampleCount, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
       m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
    }
 
@@ -494,41 +506,69 @@ namespace Pikzel {
 
 
    vk::RenderPass VulkanGraphicsContext::CreateRenderPass(const bool clearColorBuffer, const bool clearDepthBuffer, vk::ImageLayout finalLayout) {
-      std::vector<vk::AttachmentDescription> attachments = {
-         {
-            {}                                                                                /*flags*/,
-            m_Format                                                                          /*format*/,
-            vk::SampleCountFlagBits::e1                                                       /*samples*/,   // TODO: anti-aliasing
-            clearColorBuffer? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare  /*loadOp*/,
-            vk::AttachmentStoreOp::eStore                                                     /*storeOp*/,
-            vk::AttachmentLoadOp::eDontCare                                                   /*stencilLoadOp*/,
-            vk::AttachmentStoreOp::eDontCare                                                  /*stencilStoreOp*/,
-            vk::ImageLayout::eUndefined                                                       /*initialLayout*/,
-            finalLayout                                                                       /*finalLayout*/     // anti-aliasing = vk::ImageLayout::eColorAttachmentOptimal here
-         },
-         {
-            {}                                                                                /*flags*/,
-            m_DepthFormat                                                                     /*format*/,
-            vk::SampleCountFlagBits::e1                                                       /*samples*/,   // TODO: anti-aliasing
-            clearDepthBuffer? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare  /*loadOp*/,
-            vk::AttachmentStoreOp::eDontCare                                                  /*storeOp*/,
-            vk::AttachmentLoadOp::eDontCare                                                   /*stencilLoadOp*/,
-            vk::AttachmentStoreOp::eDontCare                                                  /*stencilStoreOp*/,
-            vk::ImageLayout::eUndefined                                                       /*initialLayout*/,
-            vk::ImageLayout::eDepthStencilAttachmentOptimal                                   /*finalLayout*/
-         }
-         //{
-         //    {}                                              /*flags*/,
-         //    format                                          /*format*/,
-         //    vk::SampleCountFlagBits::e1                     /*samples*/,
-         //    vk::AttachmentLoadOp::eDontCare                 /*loadOp*/,
-         //    vk::AttachmentStoreOp::eStore                   /*storeOp*/,
-         //    vk::AttachmentLoadOp::eDontCare                 /*stencilLoadOp*/,
-         //    vk::AttachmentStoreOp::eDontCare                /*stencilStoreOp*/,
-         //    vk::ImageLayout::eUndefined                     /*initialLayout*/,
-         //    vk::ImageLayout::ePresentSrcKHR                 /*finalLayout*/
-         //}
-      };
+      std::vector<vk::AttachmentDescription> attachments;
+      if (m_SampleCount == vk::SampleCountFlagBits::e1) {
+         attachments = {
+            {
+               {}                                                                                  /*flags*/,
+               m_Format                                                                            /*format*/,
+               m_SampleCount                                                                       /*samples*/,
+               clearColorBuffer ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare   /*loadOp*/,
+               vk::AttachmentStoreOp::eStore                                                       /*storeOp*/,
+               vk::AttachmentLoadOp::eDontCare                                                     /*stencilLoadOp*/,
+               vk::AttachmentStoreOp::eDontCare                                                    /*stencilStoreOp*/,
+               vk::ImageLayout::eUndefined                                                         /*initialLayout*/,
+               finalLayout                                                                         /*finalLayout*/
+            },
+            {
+               {}                                                                                     /*flags*/,
+               m_DepthFormat                                                                          /*format*/,
+               m_SampleCount                                                                          /*samples*/,
+               clearDepthBuffer ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare      /*loadOp*/,
+               vk::AttachmentStoreOp::eDontCare                                                       /*storeOp*/,
+               vk::AttachmentLoadOp::eDontCare                                                        /*stencilLoadOp*/,
+               vk::AttachmentStoreOp::eDontCare                                                       /*stencilStoreOp*/,
+               vk::ImageLayout::eUndefined                                                            /*initialLayout*/,
+               vk::ImageLayout::eDepthStencilAttachmentOptimal                                        /*finalLayout*/
+            }
+         };
+      } else {
+         attachments = {
+            {
+               {}                                                                                  /*flags*/,
+               m_Format                                                                            /*format*/,
+               m_SampleCount                                                                       /*samples*/,
+               clearColorBuffer ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare   /*loadOp*/,
+               vk::AttachmentStoreOp::eStore                                                       /*storeOp*/,
+               vk::AttachmentLoadOp::eDontCare                                                     /*stencilLoadOp*/,
+               vk::AttachmentStoreOp::eDontCare                                                    /*stencilStoreOp*/,
+               vk::ImageLayout::eUndefined                                                         /*initialLayout*/,
+               vk::ImageLayout::eColorAttachmentOptimal                                            /*finalLayout*/
+            },
+            {
+               {}                                                                                  /*flags*/,
+               m_DepthFormat                                                                       /*format*/,
+               m_SampleCount                                                                       /*samples*/,
+               clearDepthBuffer ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare   /*loadOp*/,
+               vk::AttachmentStoreOp::eDontCare                                                    /*storeOp*/,
+               vk::AttachmentLoadOp::eDontCare                                                     /*stencilLoadOp*/,
+               vk::AttachmentStoreOp::eDontCare                                                    /*stencilStoreOp*/,
+               vk::ImageLayout::eUndefined                                                         /*initialLayout*/,
+               vk::ImageLayout::eDepthStencilAttachmentOptimal                                     /*finalLayout*/
+            },
+            {
+               vk::AttachmentDescriptionFlags {}                                                   /*flags*/,
+               m_Format                                                                            /*format*/,
+               vk::SampleCountFlagBits::e1                                                         /*samples*/,
+               vk::AttachmentLoadOp::eDontCare                                                     /*loadOp*/,
+               vk::AttachmentStoreOp::eStore                                                       /*storeOp*/,
+               vk::AttachmentLoadOp::eDontCare                                                     /*stencilLoadOp*/,
+               vk::AttachmentStoreOp::eDontCare                                                    /*stencilStoreOp*/,
+               vk::ImageLayout::eUndefined                                                         /*initialLayout*/,
+               finalLayout                                                                         /*finalLayout*/
+            }
+         };
+      }
 
       vk::AttachmentReference colorAttachmentRef = {
          0,
@@ -540,22 +580,22 @@ namespace Pikzel {
          vk::ImageLayout::eDepthStencilAttachmentOptimal
       };
 
-      //    vk::AttachmentReference resolveAttachmentRef = {
-      //       2,
-      //       vk::ImageLayout::eColorAttachmentOptimal
-      //    };
+      vk::AttachmentReference resolveAttachmentRef = {
+         2,
+         vk::ImageLayout::eColorAttachmentOptimal
+      };
 
       vk::SubpassDescription subpass = {
-         {}                               /*flags*/,
-         vk::PipelineBindPoint::eGraphics /*pipelineBindPoint*/,
-         0                                /*inputAttachmentCount*/,
-         nullptr                          /*pInputAttachments*/,
-         1                                /*colorAttachmentCount*/,
-         &colorAttachmentRef              /*pColorAttachments*/,
-         nullptr, //&resolveAttachmentRef /*pResolveAttachments*/,
-         &depthAttachmentRef              /*pDepthStencilAttachment*/,
-         0                                /*preserveAttachmentCount*/,
-         nullptr                          /*pPreserveAttachments*/
+         {}                                                                             /*flags*/,
+         vk::PipelineBindPoint::eGraphics                                               /*pipelineBindPoint*/,
+         0                                                                              /*inputAttachmentCount*/,
+         nullptr                                                                        /*pInputAttachments*/,
+         1                                                                              /*colorAttachmentCount*/,
+         &colorAttachmentRef                                                            /*pColorAttachments*/,
+         m_SampleCount == vk::SampleCountFlagBits::e1? nullptr : &resolveAttachmentRef  /*pResolveAttachments*/,
+         &depthAttachmentRef                                                            /*pDepthStencilAttachment*/,
+         0                                                                              /*preserveAttachmentCount*/,
+         nullptr                                                                        /*pPreserveAttachments*/
       };
 
       std::vector<vk::SubpassDependency> dependencies = {
@@ -567,16 +607,7 @@ namespace Pikzel {
             vk::AccessFlags {}                                                                     /*srcAccessMask*/,
             vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite   /*dstAccessMask*/,
             vk::DependencyFlagBits::eByRegion                                                      /*dependencyFlags*/
-         }//,
-//          {
-//             0                                                                                      /*srcSubpass*/,
-//             VK_SUBPASS_EXTERNAL                                                                    /*dstSubpass*/,
-//             vk::PipelineStageFlagBits::eColorAttachmentOutput                                      /*srcStageMask*/,
-//             vk::PipelineStageFlagBits::eBottomOfPipe                                               /*dstStageMask*/,
-//             vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite   /*srcAccessMask*/,
-//             vk::AccessFlagBits::eMemoryRead                                                        /*dstAccessMask*/,
-//             vk::DependencyFlagBits::eByRegion                                                      /*dependencyFlags*/
-//          }
+         }
       };
 
       return m_Device->GetVkDevice().createRenderPass({
@@ -679,9 +710,11 @@ namespace Pikzel {
    , m_Window {static_cast<GLFWwindow*>(window.GetNativeWindow())}
    , m_IsVSync(window.IsVSync())
    {
+      m_SampleCount = static_cast<vk::SampleCountFlagBits>(window.GetMSAANumSamples());
       CreateSurface();
       CreateSwapChain();
       CreateImageViews();
+      CreateColorImage();
       CreateDepthStencil();
       m_RenderPass = CreateRenderPass(true, true, vk::ImageLayout::ePresentSrcKHR);
       CreateFramebuffers();
@@ -866,6 +899,7 @@ namespace Pikzel {
       init_info.Allocator = nullptr; // TODO: proper allocator...
       init_info.MinImageCount = static_cast<uint32_t>(m_SwapChainImages.size());
       init_info.ImageCount = static_cast<uint32_t>(m_SwapChainImages.size());
+      init_info.MSAASamples = static_cast<VkSampleCountFlagBits>(GetNumSamples());
       init_info.CheckVkResultFn = [] (const VkResult err) {
          if (err != VK_SUCCESS) {
             throw std::runtime_error {"ImGui Vulkan error!"};
@@ -1106,10 +1140,19 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::CreateFramebuffers() {
-      std::array<vk::ImageView, 2> attachments = {
-         nullptr,
-         m_DepthImage->GetVkImageView()
-      };
+      std::vector<vk::ImageView> attachments;
+      if (m_SampleCount == vk::SampleCountFlagBits::e1) {
+         attachments = {
+            nullptr,
+            m_DepthImage->GetVkImageView()
+         };
+      } else {
+         attachments = {
+            m_ColorImage->GetVkImageView(),
+            m_DepthImage->GetVkImageView(),
+            nullptr
+         };
+      }
       vk::FramebufferCreateInfo ci = {
          {}                                        /*flags*/,
          m_RenderPass                              /*renderPass*/,
@@ -1122,7 +1165,11 @@ namespace Pikzel {
 
       m_SwapChainFramebuffers.reserve(m_SwapChainImages.size());
       for (const auto& swapChainImage : m_SwapChainImages) {
-         attachments[0] = swapChainImage.GetVkImageView();
+         if (m_SampleCount == vk::SampleCountFlagBits::e1) {
+            attachments[0] = swapChainImage.GetVkImageView();
+         } else {
+            attachments[2] = swapChainImage.GetVkImageView();
+         }
          m_SwapChainFramebuffers.push_back(m_Device->GetVkDevice().createFramebuffer(ci));
       }
    }
@@ -1181,6 +1228,9 @@ namespace Pikzel {
       CreateSwapChain();
       CreateImageViews();
 
+      DestroyColorImage();
+      CreateColorImage();
+
       DestroyDepthStencil();
       CreateDepthStencil();
 
@@ -1218,6 +1268,7 @@ namespace Pikzel {
          vk::ClearDepthStencilValue {1.0f, 0}
       };
       m_Format = m_Framebuffer->GetVkFormat();
+      m_SampleCount = static_cast<vk::SampleCountFlagBits>(m_Framebuffer->GetMSAANumSamples());
       m_DepthFormat = m_Framebuffer->GetVkDepthFormat();
       m_Extent = vk::Extent2D{m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight()};
       m_RenderPass = CreateRenderPass(true, true, vk::ImageLayout::eShaderReadOnlyOptimal);
