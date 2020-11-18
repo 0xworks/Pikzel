@@ -9,9 +9,6 @@
 
 namespace Pikzel {
 
-   struct FramebufferSettings;
-   class Framebuffer;
-
    class PKZL_API GraphicsContext {
    public:
       virtual ~GraphicsContext() = default;
@@ -50,7 +47,6 @@ namespace Pikzel {
       virtual void Bind(const Pipeline& pipeline) = 0;
       virtual void Unbind(const Pipeline& pipeline) = 0;
 
-      virtual std::unique_ptr<Framebuffer> CreateFramebuffer(const FramebufferSettings& settings) = 0;
       virtual std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) = 0;
 
       // Methods dealing with arrays of 3-element vectors are not implemented.

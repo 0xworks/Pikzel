@@ -14,6 +14,11 @@
 #include <filesystem>
 
 
+// For debugging, this can be set to 1 to render directly to window,
+// bypassing all of the framebuffer stuff
+#define RENDER_DIRECTLY_TO_WINDOW 0
+
+
 class Framebuffers final : public Pikzel::Application {
 public:
    Framebuffers(int argc, const char* argv[])
@@ -77,15 +82,13 @@ protected:
       // Although in practice, OpenGL only has one "context", and if you try and mix rendering commands between different GraphicsContext instances it wont work
       // You have to do one at a time.
 
-#define RENDER_TO_FRAMEBUFFER 1
-
-#if RENDER_TO_FRAMEBUFFER
+#if RENDER_DIRECTLY_TO_WINDOW
+      GetWindow().BeginFrame();
+      Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
+#else
       // Render to framebuffer
       Pikzel::GraphicsContext& gc = m_Framebuffer->GetGraphicsContext();
       gc.BeginFrame();  // this will "bind" the frame buffer object.
-#else
-      GetWindow().BeginFrame();
-      Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
 #endif
       // Everything else is same as if you're rendering to a window graphics context
       gc.Bind(*m_ScenePipeline);
@@ -104,7 +107,8 @@ protected:
       gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
       gc.DrawTriangles(*m_VertexBuffer, 6, 36);
 
-#if RENDER_TO_FRAMEBUFFER
+#if RENDER_DIRECTLY_TO_WINDOW
+#else
       gc.EndFrame();    // This submits the rendering tasks to the graphics queue, and returns immediately.  Rendering is not necessarily complete.
       gc.SwapBuffers(); // This "swaps buffers" for framebuffer. A framebuffer doesn't have anything to swap, so all this does is waits for rendering to that buffer to complete.
                         // You could swapbuffers here, or you could do other stuff on the CPU here (while GPU is rendering), and then swapbuffers later...
@@ -237,7 +241,7 @@ private:
 
 
    void CreateFramebuffer() {
-      m_Framebuffer = GetWindow().GetGraphicsContext().CreateFramebuffer({GetWindow().GetWidth(), GetWindow().GetHeight(), GetWindow().GetClearColor()});
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
    }
 
 
@@ -249,7 +253,11 @@ private:
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/PostProcess.frag.spv" }
          }
       });
+#if RENDER_DIRECTLY_TO_WINDOW
       m_ScenePipeline = GetWindow().GetGraphicsContext().CreatePipeline({
+#else
+      m_ScenePipeline = m_Framebuffer->GetGraphicsContext().CreatePipeline({
+#endif
          m_VertexBuffer->GetLayout(),
          {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/TexturedModel.vert.spv" },

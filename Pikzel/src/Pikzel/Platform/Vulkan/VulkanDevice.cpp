@@ -230,6 +230,18 @@ namespace Pikzel {
    }
 
 
+   uint32_t VulkanDevice::GetMSAAMaxSamples() const {
+      vk::SampleCountFlags counts = m_PhysicalDeviceProperties.limits.framebufferColorSampleCounts & m_PhysicalDeviceProperties.limits.framebufferDepthSampleCounts;
+      if (counts & vk::SampleCountFlagBits::e64) return 64;
+      if (counts & vk::SampleCountFlagBits::e32) return 32;
+      if (counts & vk::SampleCountFlagBits::e16) return 16;
+      if (counts & vk::SampleCountFlagBits::e8)  return 8;
+      if (counts & vk::SampleCountFlagBits::e4)  return 4;
+      if (counts & vk::SampleCountFlagBits::e2)  return 2;
+      return 1;
+   }
+
+
    void VulkanDevice::SubmitSingleTimeCommands(vk::Queue queue, const std::function<void(vk::CommandBuffer)>& action) {
       std::vector<vk::CommandBuffer> commandBuffers = m_Device.allocateCommandBuffers({
          m_CommandPool                    /*commandPool*/,

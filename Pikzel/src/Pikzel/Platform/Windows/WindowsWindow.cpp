@@ -51,6 +51,11 @@ namespace Pikzel {
          }
          glfwWindowHint(GLFW_CLIENT_API, clientAPI);
          glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
+
+         if ((m_Settings.MSAANumSamples <= 0) || (m_Settings.MSAANumSamples > 64) || (m_Settings.MSAANumSamples & (m_Settings.MSAANumSamples - 1))) {
+            throw std::logic_error {"WindowSettings AANumSamples is invalid.  Must be a power of 2, up to 64"};
+         }
+         glfwWindowHint(GLFW_SAMPLES, m_Settings.MSAANumSamples);
          m_Window = glfwCreateWindow((int)m_Settings.Width, (int)m_Settings.Height, m_Settings.Title, monitor, nullptr);
          if (!m_Window) {
             throw std::runtime_error {"failed to create window"};
@@ -154,6 +159,11 @@ namespace Pikzel {
       int height;
       glfwGetWindowSize(m_Window, &width, &height);
       return static_cast<uint32_t>(height);
+   }
+
+
+   uint32_t WindowsWindow::GetMSAANumSamples() const {
+      return m_Settings.MSAANumSamples;
    }
 
 

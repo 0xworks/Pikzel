@@ -76,6 +76,8 @@ namespace Pikzel {
       glDepthFunc(GL_LEQUAL);
 
       glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+      glEnable(GL_MULTISAMPLE);
    }
 
 
@@ -118,6 +120,11 @@ namespace Pikzel {
 
    std::unique_ptr<UniformBuffer> OpenGLRenderCore::CreateUniformBuffer(const uint32_t size, const void* data) {
       return std::make_unique<OpenGLUniformBuffer>(size, data);
+   }
+
+
+   std::unique_ptr<Framebuffer> OpenGLRenderCore::CreateFramebuffer(const FramebufferSettings& settings) {
+      return std::make_unique<OpenGLFramebuffer>(settings);
    }
 
 

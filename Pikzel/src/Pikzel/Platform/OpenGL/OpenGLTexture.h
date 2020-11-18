@@ -6,6 +6,10 @@
 
 namespace Pikzel {
 
+   GLenum TextureFormatToInternalFormat(const TextureFormat format);
+   GLenum TextureFormatToDataFormat(const TextureFormat format);
+   GLenum TextureFormatToDataType(const TextureFormat format);
+
    class OpenGLTexture2D : public Texture2D {
    public:
       OpenGLTexture2D(uint32_t width, uint32_t height, const TextureFormat format, const uint32_t mipLevels);

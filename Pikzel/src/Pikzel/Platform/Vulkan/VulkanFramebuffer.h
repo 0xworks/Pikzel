@@ -10,15 +10,17 @@ namespace Pikzel {
 
    class VulkanFramebuffer : public Framebuffer {
    public:
-      VulkanFramebuffer(std::shared_ptr<VulkanDevice> device, vk::RenderPass renderPass, const FramebufferSettings& settings);
+      VulkanFramebuffer(std::shared_ptr<VulkanDevice> device, const FramebufferSettings& settings);
       ~VulkanFramebuffer();
 
       virtual GraphicsContext& GetGraphicsContext() override;
-      virtual const glm::vec4& GetClearColor() const override;
 
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
       virtual void Resize(const uint32_t width, const uint32_t height) override;
+
+      virtual uint32_t GetMSAANumSamples() const override;
+      virtual const glm::vec4& GetClearColor() const override;
 
       virtual const Texture2D& GetColorTexture() const override;
       virtual ImTextureID GetImGuiTextureId() override;
@@ -33,6 +35,7 @@ namespace Pikzel {
       std::shared_ptr<VulkanDevice> m_Device;
 
       std::unique_ptr<VulkanTexture2D> m_Texture;
+      std::unique_ptr<VulkanImage> m_ColorImage;
       std::unique_ptr<VulkanImage> m_DepthImage;
       std::unique_ptr<GraphicsContext> m_Context;
 
