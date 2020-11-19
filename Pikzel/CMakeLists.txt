@@ -298,6 +298,7 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanBuffer.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanDevice.h"
       "src/Pikzel/Platform/Vulkan/VulkanDevice.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanFence.h"
       "src/Pikzel/Platform/Vulkan/VulkanFramebuffer.h"
       "src/Pikzel/Platform/Vulkan/VulkanFramebuffer.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanGraphicsContext.h"

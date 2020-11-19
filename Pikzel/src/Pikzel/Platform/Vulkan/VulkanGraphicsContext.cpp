@@ -445,7 +445,7 @@ namespace Pikzel {
 
 
    void VulkanGraphicsContext::DrawTriangles(const VertexBuffer& vertexBuffer, const uint32_t vertexCount, const uint32_t vertexOffset/*= 0*/) {
-      m_Pipeline->BindDescriptorSets(GetVkCommandBuffer(), GetVkFence());
+      BindDescriptorSets();
       Bind(vertexBuffer);
       GetVkCommandBuffer().draw(vertexCount, 1, vertexOffset, 0);
    }
@@ -453,7 +453,7 @@ namespace Pikzel {
 
    void VulkanGraphicsContext::DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount, const uint32_t vertexOffset/*= 0*/) {
       uint32_t count = indexCount ? indexCount : indexBuffer.GetCount();
-      m_Pipeline->BindDescriptorSets(GetVkCommandBuffer(), GetVkFence());
+      BindDescriptorSets();
       Bind(vertexBuffer);
       Bind(indexBuffer);
       GetVkCommandBuffer().drawIndexed(count, 1, 0, vertexOffset, 0);
@@ -705,6 +705,16 @@ namespace Pikzel {
    }
 
 
+   void VulkanGraphicsContext::BindDescriptorSets() {
+      m_Pipeline->BindDescriptorSets(GetVkCommandBuffer(), GetFence());
+   }
+
+
+   void VulkanGraphicsContext::UnbindDescriptorSets() {
+      m_Pipeline->UnbindDescriptorSets();
+   }
+
+
    VulkanWindowGC::VulkanWindowGC(std::shared_ptr<VulkanDevice> device, const Window& window)
    : VulkanGraphicsContext {device}
    , m_Window {static_cast<GLFWwindow*>(window.GetNativeWindow())}
@@ -786,7 +796,7 @@ namespace Pikzel {
       // Wait until we know GPU has finished with the command buffer we are about to use...
       // Note that m_CurrentFrame and m_CurrentImage are not necessarily equal (particularly if we have, say, 3 swap chain images, and 2 frames-in-flight)
       // However, we know that the GPU has finished with m_CurrentImage'th command buffer so long as the m_CurrentFrame'th fence is signaled
-      vk::Result result = m_Device->GetVkDevice().waitForFences(m_InFlightFences[m_CurrentFrame], true, UINT64_MAX);
+      vk::Result result = m_Device->GetVkDevice().waitForFences(m_InFlightFences[m_CurrentFrame]->GetVkFence(), true, UINT64_MAX);
 
       vk::CommandBufferBeginInfo commandBufferBI = {
          vk::CommandBufferUsageFlagBits::eSimultaneousUse
@@ -861,8 +871,8 @@ namespace Pikzel {
          &m_RenderFinishedSemaphores[m_CurrentFrame]   /*pSignalSemaphores*/
       };
 
-      m_Device->GetVkDevice().resetFences(m_InFlightFences[m_CurrentFrame]);
-      m_Device->GetGraphicsQueue().submit(si, m_InFlightFences[m_CurrentFrame]);
+      m_Device->GetVkDevice().resetFences(m_InFlightFences[m_CurrentFrame]->GetVkFence());
+      m_Device->GetGraphicsQueue().submit(si, m_InFlightFences[m_CurrentFrame]->GetVkFence());
 
       if (m_ImGuiFrameStarted) {
          if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
@@ -969,7 +979,7 @@ namespace Pikzel {
    }
 
 
-   vk::Fence VulkanWindowGC::GetVkFence() {
+   std::shared_ptr<VulkanFence> VulkanWindowGC::GetFence() {
       return m_InFlightFences[m_CurrentFrame];
    }
 
@@ -1190,14 +1200,10 @@ namespace Pikzel {
       m_RenderFinishedSemaphores.reserve(m_MaxFramesInFlight);
       m_InFlightFences.reserve(m_MaxFramesInFlight);
 
-      vk::FenceCreateInfo ci = {
-         {vk::FenceCreateFlagBits::eSignaled}
-      };
-
       for (uint32_t i = 0; i < m_MaxFramesInFlight; ++i) {
          m_ImageAvailableSemaphores.emplace_back(m_Device->GetVkDevice().createSemaphore({}));
          m_RenderFinishedSemaphores.emplace_back(m_Device->GetVkDevice().createSemaphore({}));
-         m_InFlightFences.emplace_back(m_Device->GetVkDevice().createFence(ci));
+         m_InFlightFences.emplace_back(std::make_shared<VulkanFence>(m_Device->GetVkDevice()));
       }
    }
 
@@ -1213,10 +1219,6 @@ namespace Pikzel {
             m_Device->GetVkDevice().destroy(semaphore);
          }
          m_RenderFinishedSemaphores.clear();
-
-         for (auto fence : m_InFlightFences) {
-            m_Device->GetVkDevice().destroy(fence);
-         }
          m_InFlightFences.clear();
       }
    }
@@ -1357,8 +1359,8 @@ namespace Pikzel {
          nullptr          /*pSignalSemaphores*/
       };
 
-      m_Device->GetVkDevice().resetFences(m_InFlightFence);
-      m_Device->GetGraphicsQueue().submit(si, m_InFlightFence);
+      m_Device->GetVkDevice().resetFences(m_InFlightFence->GetVkFence());
+      m_Device->GetGraphicsQueue().submit(si, m_InFlightFence->GetVkFence());
    }
 
 
@@ -1371,13 +1373,12 @@ namespace Pikzel {
 
 
    void VulkanFramebufferGC::Unbind(const Pipeline&) {
-      m_Pipeline->UnbindDescriptorSets();
       m_Pipeline = nullptr;
    }
 
 
    void VulkanFramebufferGC::SwapBuffers() {
-      vk::Result result = m_Device->GetVkDevice().waitForFences(m_InFlightFence, true, UINT64_MAX);
+      vk::Result result = m_Device->GetVkDevice().waitForFences(m_InFlightFence->GetVkFence(), true, UINT64_MAX);
    }
 
 
@@ -1386,22 +1387,18 @@ namespace Pikzel {
    }
 
 
-   vk::Fence VulkanFramebufferGC::GetVkFence() {
+   std::shared_ptr<VulkanFence> VulkanFramebufferGC::GetFence() {
       return m_InFlightFence;
-
    }
 
 
    void VulkanFramebufferGC::CreateSyncObjects() {
-      m_InFlightFence = m_Device->GetVkDevice().createFence({
-         {vk::FenceCreateFlagBits::eSignaled}
-      });
+      m_InFlightFence = std::make_shared<VulkanFence>(m_Device->GetVkDevice());
    }
 
 
    void VulkanFramebufferGC::DestroySyncObjects() {
       if (m_Device && m_InFlightFence) {
-         m_Device->GetVkDevice().destroy(m_InFlightFence);
          m_InFlightFence = nullptr;
       }
    }

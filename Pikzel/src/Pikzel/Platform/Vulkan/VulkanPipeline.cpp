@@ -651,7 +651,7 @@ namespace Pikzel {
       }
       uint32_t i = m_DescriptorSetIndices[set];
       do {
-         if (!m_DescriptorSetBound[set][i] && (!m_DescriptorSetFences[set][i] || (m_Device->GetVkDevice().getFenceStatus(m_DescriptorSetFences[set][i]) == vk::Result::eSuccess))) {
+         if (!m_DescriptorSetBound[set][i] && (!m_DescriptorSetFences[set][i] || (m_Device->GetVkDevice().getFenceStatus(m_DescriptorSetFences[set][i]->GetVkFence()) == vk::Result::eSuccess))) {
             m_DescriptorSetIndices[set] = i;
             m_DescriptorSetPending[set] = true;
             m_DescriptorSetFences[set][i] = nullptr;
@@ -665,7 +665,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanPipeline::BindDescriptorSets(vk::CommandBuffer commandBuffer, vk::Fence fence) {
+   void VulkanPipeline::BindDescriptorSets(vk::CommandBuffer commandBuffer, std::shared_ptr<VulkanFence> fence) {
       for (uint32_t i = 0; i < m_DescriptorSetInstances.size(); ++i) {
          if (m_DescriptorSetPending[i]) {
             commandBuffer.bindDescriptorSets(m_PipelineBindPoint, GetVkPipelineLayout(), i, m_DescriptorSetInstances[i][m_DescriptorSetIndices[i]], nullptr);
