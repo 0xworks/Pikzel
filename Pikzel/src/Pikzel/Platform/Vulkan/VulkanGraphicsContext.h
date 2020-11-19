@@ -2,6 +2,7 @@
 
 #include "DescriptorBinding.h"
 #include "VulkanDevice.h"
+#include "VulkanFence.h"
 #include "VulkanFramebuffer.h"
 #include "VulkanImage.h"
 
@@ -90,7 +91,7 @@ namespace Pikzel {
       vk::PipelineCache GetVkPipelineCache() const;
 
       virtual vk::CommandBuffer GetVkCommandBuffer() = 0;
-      virtual vk::Fence GetVkFence() = 0;
+      virtual std::shared_ptr<VulkanFence> GetFence() = 0;
 
       vk::SampleCountFlagBits GetNumSamples() const;
 
@@ -115,6 +116,9 @@ namespace Pikzel {
 
       void CreatePipelineCache();
       void DestroyPipelineCache();
+
+      void BindDescriptorSets();
+      void UnbindDescriptorSets();
 
    protected:
       std::shared_ptr<VulkanDevice> m_Device;
@@ -157,7 +161,7 @@ namespace Pikzel {
 
    public:
       virtual vk::CommandBuffer GetVkCommandBuffer() override;
-      virtual vk::Fence GetVkFence() override;
+      virtual std::shared_ptr<VulkanFence> GetFence() override;
 
    private:
       void CreateSurface();
@@ -205,7 +209,7 @@ namespace Pikzel {
       uint32_t m_CurrentImage = 0; // which swap chain image are we currently rendering to
       std::vector<vk::Semaphore> m_ImageAvailableSemaphores;
       std::vector<vk::Semaphore> m_RenderFinishedSemaphores;
-      std::vector<vk::Fence> m_InFlightFences;
+      std::vector<std::shared_ptr<VulkanFence>> m_InFlightFences;
 
       bool m_IsVSync = false;
       bool m_WantResize = false;
@@ -228,7 +232,7 @@ namespace Pikzel {
 
    public:
       virtual vk::CommandBuffer GetVkCommandBuffer() override;
-      virtual vk::Fence GetVkFence() override;
+      virtual std::shared_ptr<VulkanFence> GetFence() override;
 
    private:
       void CreateSyncObjects();
@@ -238,7 +242,7 @@ namespace Pikzel {
       std::array<vk::ClearValue, 2> m_ClearValues;
       vk::Extent2D m_Extent;
       VulkanFramebuffer* m_Framebuffer;
-      vk::Fence m_InFlightFence;
+      std::shared_ptr<VulkanFence> m_InFlightFence;
    };
 
 }

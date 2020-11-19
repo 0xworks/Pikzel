@@ -47,7 +47,12 @@ namespace Pikzel {
 
       const std::vector<vk::DescriptorSetLayout>& GetVkDescriptorSetLayouts() const;
       vk::DescriptorSet GetVkDescriptorSet(const uint32_t set);
-      void BindDescriptorSets(vk::CommandBuffer commandBuffer, vk::Fence fence);
+
+      // Bind the descriptors into the specified commandbuffer.  They should be considered "in use" (i.e. do not change them)
+      // until the specified fence is signaled.
+      void BindDescriptorSets(vk::CommandBuffer commandBuffer, std::shared_ptr<VulkanFence> fence);
+
+      // mark descriptors as not-bound (they might still be in use in some previously submitted frame (check fences)
       void UnbindDescriptorSets();
 
       // TODO: tidy this. It would be better to have just one GetVkPipeline()
@@ -92,11 +97,11 @@ namespace Pikzel {
       vk::Pipeline m_PipelineFrontFaceCW;  // }  If/when VK_EXT_extended_dynamic_state becomes more widely available (e.g. in the nvidia general release drivers)
                                            // }  then the front face winding order can be a dynamic state
       vk::DescriptorPool m_DescriptorPool;
-      std::vector<std::vector<vk::DescriptorSet>> m_DescriptorSetInstances; // m_DescriptorSets[i] = collection of descriptor sets that have been allocated for set i
-      std::vector<std::vector<bool>> m_DescriptorSetBound;                  // m_DescriptorSetBound[i] = collection of booleans indicating which elements from m_DescriptorSets[i] are currently bound to the pipeline
-      std::vector<std::vector<vk::Fence>> m_DescriptorSetFences;            // m_DescriptorSetFences[i] = collection of fences synchronizing access to m_DescriptorSets for set i
-      std::vector<uint32_t> m_DescriptorSetIndices;                         // m_DescriptorSetIndices[i] = which element (of m_DescriptorSets) is currently available for writing for set i
-      std::vector<bool> m_DescriptorSetPending;                             // m_DescriptorSetPending[i] = true <=> set i needs to be bound for next draw call
+      std::vector<std::vector<vk::DescriptorSet>> m_DescriptorSetInstances;         // m_DescriptorSets[i] = collection of descriptor sets that have been allocated for set i
+      std::vector<std::vector<bool>> m_DescriptorSetBound;                          // m_DescriptorSetBound[i] = collection of booleans indicating which elements from m_DescriptorSets[i] are currently bound to the pipeline
+      std::vector<std::vector<std::shared_ptr<VulkanFence>>> m_DescriptorSetFences;   // m_DescriptorSetFences[i] = collection of fences synchronizing access to m_DescriptorSets for set i
+      std::vector<uint32_t> m_DescriptorSetIndices;                                 // m_DescriptorSetIndices[i] = which element (of m_DescriptorSets) is currently available for writing for set i
+      std::vector<bool> m_DescriptorSetPending;                                     // m_DescriptorSetPending[i] = true <=> set i needs to be bound for next draw call
 
       std::vector<std::pair<ShaderType, std::vector<uint32_t>>> m_ShaderSrcs;
       std::unordered_map<entt::id_type, VulkanPushConstant> m_PushConstants;

@@ -325,7 +325,7 @@ namespace Pikzel {
 
       m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this, &pipeline, &tex2d, tonemap, gamma] (vk::CommandBuffer cmd) {
          cmd.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline->GetVkPipelineCompute());
-         pipeline->BindDescriptorSets(cmd, vk::Fence {});
+         pipeline->BindDescriptorSets(cmd, nullptr);
 
          const VulkanPushConstant& tonemapC = pipeline->GetPushConstant("constants.tonemap"_hs);
          PKZL_CORE_ASSERT(tonemapC.Type == DataType::Int, "Push constant '{0}' type mismatch.  Was {1}, expected int!", tonemapC.Name, DataTypeToString(tonemapC.Type));
