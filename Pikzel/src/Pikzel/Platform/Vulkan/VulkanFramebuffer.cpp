@@ -10,7 +10,6 @@ namespace Pikzel {
    : m_Device {device}
    , m_Settings {settings}
    {
-      // TODO anti-aliasing
       m_DepthFormat = FindSupportedFormat(
          m_Device->GetVkPhysicalDevice(),
          {vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat, vk::Format::eD24UnormS8Uint, vk::Format::eD16UnormS8Uint, vk::Format::eD16Unorm},
