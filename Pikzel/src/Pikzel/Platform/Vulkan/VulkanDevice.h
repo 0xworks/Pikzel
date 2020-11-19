@@ -25,6 +25,8 @@ namespace Pikzel {
 
       uint32_t GetMSAAMaxSamples() const;
 
+      vk::PhysicalDeviceFeatures GetEnabledPhysicalDeviceFeatures() const;
+
       void SubmitSingleTimeCommands(vk::Queue queue, const std::function<void(vk::CommandBuffer)>& action);
 
    private:

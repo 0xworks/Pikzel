@@ -50,9 +50,9 @@ namespace Pikzel {
       vk::PhysicalDeviceFeatures features;
       if (availableFeatures.samplerAnisotropy) {
          features.setSamplerAnisotropy(true);
-      } else {
-         // TODO: just don't use this feature if it isn't available, rather than fatal error
-         throw std::runtime_error {"Sampler Anisotropy is not supported on this device!"};
+      }
+      if (availableFeatures.sampleRateShading) {
+         features.setSampleRateShading(true);
       }
       return features;
    }
@@ -239,6 +239,11 @@ namespace Pikzel {
       if (counts & vk::SampleCountFlagBits::e4)  return 4;
       if (counts & vk::SampleCountFlagBits::e2)  return 2;
       return 1;
+   }
+
+
+   vk::PhysicalDeviceFeatures VulkanDevice::GetEnabledPhysicalDeviceFeatures() const {
+      return m_EnabledPhysicalDeviceFeatures;
    }
 
 

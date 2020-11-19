@@ -509,13 +509,13 @@ namespace Pikzel {
 
       // Multi sampling state
       vk::PipelineMultisampleStateCreateInfo multisampleState = {
-         {}                          /*flags*/,
-         gc.GetNumSamples()          /*rasterizationSamples*/,
-         false                       /*sampleShadingEnable*/,   // TODO: enable  (requires device features: sampleRateShading)
-         0.2f                        /*minSampleShading*/,
-         nullptr                     /*pSampleMask*/,
-         false                       /*alphaToCoverageEnable*/,
-         false                       /*alphaToOneEnable*/
+         {}                                                              /*flags*/,
+         gc.GetNumSamples()                                              /*rasterizationSamples*/,
+         m_Device->GetEnabledPhysicalDeviceFeatures().sampleRateShading  /*sampleShadingEnable*/,
+         1.0f                                                            /*minSampleShading*/,
+         nullptr                                                         /*pSampleMask*/,
+         false                                                           /*alphaToCoverageEnable*/,
+         false                                                           /*alphaToOneEnable*/
       };
       pipelineCI.pMultisampleState = &multisampleState;
 

@@ -118,6 +118,14 @@ namespace Pikzel {
 
 
    std::unique_ptr<Pikzel::Framebuffer> RenderCore::CreateFramebuffer(const FramebufferSettings& settings) {
+      if(!(
+         (settings.MSAANumSamples == 1) ||
+         (settings.MSAANumSamples == 2) ||
+         (settings.MSAANumSamples == 4) ||
+         (settings.MSAANumSamples == 8)
+      )) {
+         throw std::runtime_error {"Invalid MSAA sample count.  Must be 1, 2, 4, or 8"};
+      }
       return s_RenderCore->CreateFramebuffer(settings);
    }
 

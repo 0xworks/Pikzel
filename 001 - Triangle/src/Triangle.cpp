@@ -15,7 +15,6 @@ public:
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
-      CreateIndexBuffer();
       CreatePipeline();
    }
 
@@ -31,7 +30,7 @@ public:
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       Pikzel::GCBinder bind {gc, *m_Pipeline};
       gc.PushConstant("constants.mvp"_hs, m_Transform);
-      gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+      gc.DrawTriangles(*m_VertexBuffer, 3);
    }
 
 
@@ -57,15 +56,6 @@ private:
    }
 
 
-   void CreateIndexBuffer() {
-      uint32_t indices[] = {
-          0, 1, 2
-      };
-
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
-   }
-
-
    void CreatePipeline() {
       Pikzel::PipelineSettings settings {
          m_VertexBuffer->GetLayout(),
@@ -82,7 +72,6 @@ private:
    Pikzel::Input m_Input;
    glm::mat4 m_Transform = glm::identity<glm::mat4>();
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
 };
 
