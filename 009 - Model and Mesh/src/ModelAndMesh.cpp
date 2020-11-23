@@ -1,33 +1,31 @@
 #include "Camera.h"
-#include "ImGuiEx.h"
 
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/EntryPoint.h"
 #include "Pikzel/Core/Utility.h"
+#include "Pikzel/ImGui/ImGuiEx.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/ModelRenderer.h"
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Renderer/sRGB.h"
 #include "Pikzel/Scene/Light.h"
 #include "Pikzel/Scene/ModelSerializer.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-//#include <imgui.h>
-//#include <imgui/imgui_internal.h>
 #include <filesystem>
 
 
 class ModelAndMesh final : public Pikzel::Application {
 public:
    ModelAndMesh(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.2f, 1.0f}, .IsVSync = true}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.2f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
 
       // for rendering point lights as cubes
       CreateVertexBuffer();
-      CreateIndexBuffer();
       CreatePipelines();
 
       // renders the actual scene
@@ -37,26 +35,7 @@ public:
 
       // In order to render ImGui widgets, you need to initialize ImGui integration.
       // Clients that do not wish to use ImGui simply don't call this (and so "pay" nothing)
-      GetWindow().InitializeImGui();
-
-      // Optional tweaking of ImGui style
-      ImGui::SetCurrentContext(GetWindow().GetGraphicsContext().GetImGuiContext());
-      ImGuiIO& io = ImGui::GetIO();
-      ImGui::StyleColorsDark();
-      ImGuiStyle& style = ImGui::GetStyle();
-      if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-         style.WindowRounding = 0.0f;
-         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-      }
-      float scaleFactor = GetWindow().ContentScale();
-      style.ScaleAllSizes(scaleFactor);
-
-      io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Bold.ttf", 16 * scaleFactor);
-      io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Regular.ttf", 16 * scaleFactor);
-
-      // This is required (even if you do not override default font) to upload ImGui font texture to the ImGui backend
-      // We cannot do it as part of InitialiseImGui() in case client _does_ want to override default fonts
-      Pikzel::RenderCore::UploadImGuiFonts();
+      Pikzel::ImGuiEx::Init(GetWindow());
    }
 
 
@@ -89,7 +68,7 @@ public:
             glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), pointLight.Position);
             gc.PushConstant("constants.mvp"_hs, projView * model);
             gc.PushConstant("constants.lightColor"_hs, pointLight.Color);
-            gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+            gc.DrawTriangles(*m_VertexBuffer, 36);
          }
       }
 
@@ -168,26 +147,6 @@ private:
    }
 
 
-   void CreateIndexBuffer() {
-      uint32_t indices[] = {
-         0,1,2,
-         3,4,5,
-         6,7,8,
-         9,10,11,
-         12,13,14,
-         15,16,17,
-         18,19,20,
-         21,22,23,
-         24,25,26,
-         27,28,29,
-         30,31,32,
-         33,34,35
-      };
-
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
-   }
-
-
    void CreatePipelines() {
       m_PipelineLight = GetWindow().GetGraphicsContext().CreatePipeline({
          m_VertexBuffer->GetLayout(),
@@ -207,8 +166,8 @@ private:
    static void ImGuiDrawPointLight(const char* label, Pikzel::PointLight& pointLight) {
       ImGui::PushID(label);
       if (ImGui::TreeNode(label)) {
-         ImGuiEx::EditVec3("Position", pointLight.Position);
-         ImGuiEx::EditVec3Color("Color", pointLight.Color);
+         Pikzel::ImGuiEx::EditVec3("Position", pointLight.Position);
+         Pikzel::ImGuiEx::EditVec3Color("Color", pointLight.Color);
          ImGui::TreePop();
       }
       ImGui::PopID();
@@ -231,8 +190,8 @@ private:
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
          .Direction = {-0.0f, -1.0f, -2.0f},
-         .Color = {0.1f, 0.2f, 0.1f},
-         .Ambient = {0.1f, 0.1f, 0.1f}
+         .Color = Pikzel::sRGB{0.1f, 0.2f, 0.1f},
+         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f}
       }
    };
 
@@ -240,28 +199,28 @@ private:
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
          .Position = {-619.3f, 130.3f, -219.5f},
-         .Color = {1.0f, 0.0f, 0.0f},
+         .Color = Pikzel::sRGB{1.0f, 0.0f, 0.0f},
          .Constant = 1.0f,
          .Linear = 0.00009f,
          .Quadratic = 0.000032f
       },
       {
          .Position = {487.3f, 130.3f, -219.5f},
-         .Color = {0.0f, 1.0f, 0.0f},
+         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
          .Constant = 1.0f,
          .Linear = 0.0009f,
          .Quadratic = 0.00032f
       },
       {
          .Position = {487.3f, 130.3f, 141.1f},
-         .Color = {0.0f, 1.0f, 1.0f},
+         .Color = Pikzel::sRGB{0.0f, 1.0f, 1.0f},
          .Constant = 1.0f,
          .Linear = 0.00009f,
          .Quadratic = 0.000032f
       },
       {
          .Position = {-619.3f, 130.3f, 141.1f},
-         .Color = {1.0f, 1.0f, 0.0f},
+         .Color = Pikzel::sRGB{1.0f, 1.0f, 0.0f},
          .Constant = 1.0f,
          .Linear = 0.00009f,
          .Quadratic = 0.000032f
@@ -269,7 +228,6 @@ private:
    };
 
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLight;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLighting;
    std::unique_ptr<Pikzel::ModelRenderer> m_ModelRenderer;

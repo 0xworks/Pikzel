@@ -10,32 +10,35 @@ namespace Pikzel {
 
    static TextureFormat VkFormatToTextureFormat(const vk::Format format) {
       switch (format) {
-         case vk::Format::eR8G8B8Unorm: return TextureFormat::RGB8;
-         case vk::Format::eR8G8B8A8Unorm: return TextureFormat::RGBA8;
+         // case vk::Format::eR8G8B8Srgb: return TextureFormat::RGB8; // not supported.  need 32-bits per texel
+         case vk::Format::eR8G8B8A8Srgb: return TextureFormat::RGBA8;
          case vk::Format::eR32G32B32Sfloat: return TextureFormat::RGB32F;
          case vk::Format::eR32G32B32A32Sfloat: return TextureFormat::RGBA32F;
-         case vk::Format::eB8G8R8A8Unorm: return TextureFormat::BGRA8;
-
+         case vk::Format::eB10G11R11UfloatPack32: return TextureFormat::BGR8;
+         case vk::Format::eB8G8R8A8Srgb: return TextureFormat::BGRA8;
       }
-      PKZL_CORE_ASSERT(false, "Unknown TextureFormat!");
+      PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return TextureFormat::Undefined;
    }
 
 
    static vk::Format TextureFormatToVkFormat(const TextureFormat format) {
       switch (format) {
-         case TextureFormat::RGB8: return vk::Format::eR8G8B8Unorm;
+         // case TextureFormat::RGB8: return vk::Format::eR8G8B8Unorm; // not supported.  need 32-bits per texel
          case TextureFormat::RGBA8: return vk::Format::eR8G8B8A8Unorm;
+         // case TextureFormat::SRGB8: return vk::Format::eR8G8B8Srgb; // not supported.  need 32-bits per texel
+         case TextureFormat::SRGBA8: return vk::Format::eR8G8B8A8Srgb;
          case TextureFormat::RGB32F: return vk::Format::eR32G32B32Sfloat;
          case TextureFormat::RGBA32F: return vk::Format::eR32G32B32A32Sfloat;
-         case TextureFormat::BGRA8: return vk::Format::eB8G8R8A8Unorm;
+         case TextureFormat::BGR8: return vk::Format::eB10G11R11UfloatPack32; // the texels must still be 32-bits, so if no alpha channel then use more bits in other channels
+         case TextureFormat::BGRA8: return vk::Format::eB8G8R8A8Srgb;
       }
-      PKZL_CORE_ASSERT(false, "Unknown TextureFormat!");
+      PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return vk::Format::eUndefined;
    }
 
 
-   static stbi_uc* STBILoad(const std::filesystem::path& path, uint32_t& width, uint32_t& height, TextureFormat& format) {
+   static stbi_uc* STBILoad(const std::filesystem::path& path, const bool isSRGB, uint32_t* width, uint32_t* height, TextureFormat* format) {
       int iWidth;
       int iHeight;
       int channels;
@@ -50,13 +53,12 @@ namespace Pikzel {
       if (!data) {
          throw std::runtime_error {fmt::format("failed to load image '{0}'", path.string())};
       }
-      width = static_cast<uint32_t>(iWidth);
-      height = static_cast<uint32_t>(iHeight);
+      *width = static_cast<uint32_t>(iWidth);
+      *height = static_cast<uint32_t>(iHeight);
 
-      if (channels == 4) {
-         format = isHDR ? TextureFormat::RGBA32F : TextureFormat::RGBA8;
-      } else if (channels == 3) {
-         format = isHDR ? TextureFormat::RGBA32F : TextureFormat::RGBA8; // we forced in an alpha channel, above.
+      if ((channels == 3) || (channels == 4)) {
+         // we forced in an alpha channel in the load above (because we don't have 24-bit textures here)
+         *format = isHDR ? TextureFormat::RGBA32F : isSRGB ? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
       } else {
          throw std::runtime_error {fmt::format("'{0}': Image format not supported!", path.string())};
       }
@@ -73,17 +75,18 @@ namespace Pikzel {
    }
 
 
-   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path)
+   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB)
    : m_Path {path}
    , m_Device {device}
    {
       uint32_t width;
       uint32_t height;
       TextureFormat format;
-      stbi_uc* data = STBILoad(path, width, height, format);
+      stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &format);
 
       CreateImage(width, height, TextureFormatToVkFormat(format), CalculateMipMapLevels(width, height));
       CreateSampler();
+      PKZL_CORE_ASSERT(BPP(format) != 3, "VulkanTexture2D format cannot be 24-bits per texel");
       SetData(data, width * height * BPP(format));
 
       stbi_image_free(data);
@@ -199,13 +202,13 @@ namespace Pikzel {
    }
 
 
-   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path)
+   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB)
    : m_Path {path}
    , m_Device {device}
    {
       uint32_t width;
       uint32_t height;
-      stbi_uc* data = STBILoad(path, width, height, m_DataFormat);
+      stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &m_DataFormat);
 
       // guess whether the data is the 6-faces of a cube, or whether it's equirectangular
       // width is twice the height -> equirectangular (probably)
@@ -218,8 +221,8 @@ namespace Pikzel {
       }
       CreateImage(size, TextureFormatToVkFormat(TextureFormat::RGBA8), CalculateMipMapLevels(size, size));
       CreateSampler();
+      PKZL_CORE_ASSERT(BPP(m_DataFormat) != 3, "VulkanTextureCube format cannot be 24-bits per texel");
       SetData(data, width * height * BPP(m_DataFormat));
-
       stbi_image_free(data);
    }
 
@@ -263,13 +266,11 @@ namespace Pikzel {
       std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, width, height, m_DataFormat, 1);
       tex2d->SetData(data, size);
       int tonemap = 0;
-      float gamma = 1.0f;
       if (
          (tex2d->GetFormat() == TextureFormat::RGB32F) ||
          (tex2d->GetFormat() == TextureFormat::RGBA32F)
       ) {
          tonemap = 1;
-         gamma = 2.2;
       }
 
       m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
@@ -323,17 +324,13 @@ namespace Pikzel {
 
       m_Device->GetVkDevice().updateDescriptorSets(writeDescriptors, nullptr);
 
-      m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this, &pipeline, &tex2d, tonemap, gamma] (vk::CommandBuffer cmd) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this, &pipeline, &tex2d, tonemap] (vk::CommandBuffer cmd) {
          cmd.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline->GetVkPipelineCompute());
          pipeline->BindDescriptorSets(cmd, nullptr);
 
          const VulkanPushConstant& tonemapC = pipeline->GetPushConstant("constants.tonemap"_hs);
          PKZL_CORE_ASSERT(tonemapC.Type == DataType::Int, "Push constant '{0}' type mismatch.  Was {1}, expected int!", tonemapC.Name, DataTypeToString(tonemapC.Type));
          cmd.pushConstants<int>(pipeline->GetVkPipelineLayout(), tonemapC.ShaderStages, tonemapC.Offset, tonemap);
-
-         const VulkanPushConstant& gammaC = pipeline->GetPushConstant("constants.gamma"_hs);
-         PKZL_CORE_ASSERT(gammaC.Type == DataType::Float, "Push constant '{0}' type mismatch.  Was {1}, expected float!", gammaC.Name, DataTypeToString(gammaC.Type));
-         cmd.pushConstants<float>(pipeline->GetVkPipelineLayout(), gammaC.ShaderStages, gammaC.Offset, gamma);
 
          cmd.dispatch(GetWidth() / 32, GetHeight() / 32, 6);
       });

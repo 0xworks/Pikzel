@@ -20,11 +20,17 @@ namespace Pikzel {
             mat->GetTexture(type, i, &str);
             std::filesystem::path texturePath = modelDir / str.C_Str();
             if (g_TextureCache.find(texturePath.string()) == g_TextureCache.end()) {
-               g_TextureCache[texturePath.string()] = RenderCore::CreateTexture2D(texturePath);
+
+               // For now we are only loading DIFFUSE and SPECULAR texture types.
+               // Make an assumption that DIFFUSE is non-linear, and SPECULAR is linear
+               // TODO: when we come to needing other texture types (eg. Normals) then this needs to be revisited
+               bool isSRGB = (type == aiTextureType_DIFFUSE);
+               g_TextureCache[texturePath.string()] = RenderCore::CreateTexture2D(texturePath, isSRGB);
             }
             return g_TextureCache[texturePath.string()];
          }
 
+         // material did not have a texture of specified type => create one
          if (type == aiTextureType_SPECULAR) {
             if (g_TextureCache.find("**black**") == g_TextureCache.end()) {
                std::shared_ptr<Texture2D> blackTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::RGBA8, 1);
@@ -35,7 +41,7 @@ namespace Pikzel {
             return g_TextureCache["**black**"];
          }
          if (g_TextureCache.find("**white**") == g_TextureCache.end()) {
-            std::shared_ptr<Texture2D> whiteTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::RGBA8, 1);
+            std::shared_ptr<Texture2D> whiteTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::SRGBA8, 1);
             uint32_t white = 0xffffffff;
             whiteTexture->SetData(&white, sizeof(uint32_t));
             g_TextureCache["**white**"] = whiteTexture;

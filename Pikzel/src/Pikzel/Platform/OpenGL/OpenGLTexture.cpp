@@ -11,11 +11,12 @@ namespace Pikzel {
       switch (format) {
          case TextureFormat::RGB8: return GL_RGB8;
          case TextureFormat::RGBA8: return GL_RGBA8;
+         case TextureFormat::SRGB8: return GL_SRGB8;
+         case TextureFormat::SRGBA8: return GL_SRGB8_ALPHA8;
          case TextureFormat::RGB32F: return GL_RGB32F;
          case TextureFormat::RGBA32F: return GL_RGBA32F;
       }
-
-      PKZL_CORE_ASSERT(false, "Unknown TextureFormat!");
+      PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
    }
 
@@ -24,11 +25,12 @@ namespace Pikzel {
       switch (format) {
          case TextureFormat::RGB8: return GL_RGB;
          case TextureFormat::RGBA8: return GL_RGBA;
+         case TextureFormat::SRGB8: return GL_RGB;
+         case TextureFormat::SRGBA8: return GL_RGBA;
          case TextureFormat::RGB32F: return GL_RGB;
          case TextureFormat::RGBA32F: return GL_RGBA;
       }
-
-      PKZL_CORE_ASSERT(false, "Unknown TextureFormat!");
+      PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
    }
 
@@ -37,16 +39,17 @@ namespace Pikzel {
       switch (format) {
          case TextureFormat::RGB8: return GL_UNSIGNED_BYTE;
          case TextureFormat::RGBA8: return GL_UNSIGNED_BYTE;
+         case TextureFormat::SRGB8: return GL_UNSIGNED_BYTE;
+         case TextureFormat::SRGBA8: return GL_UNSIGNED_BYTE;
          case TextureFormat::RGB32F: return GL_FLOAT;
          case TextureFormat::RGBA32F: return GL_FLOAT;
       }
-
-      PKZL_CORE_ASSERT(false, "Unknown TextureFormat!");
+      PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
    }
 
 
-   static stbi_uc* STBILoad(const std::filesystem::path& path, uint32_t& width, uint32_t& height, TextureFormat& format) {
+   static stbi_uc* STBILoad(const std::filesystem::path& path, const bool isSRGB, uint32_t* width, uint32_t* height, TextureFormat* format) {
       int iWidth;
       int iHeight;
       int channels;
@@ -61,13 +64,13 @@ namespace Pikzel {
       if (!data) {
          throw std::runtime_error {fmt::format("failed to load image '{0}'", path.string())};
       }
-      width = static_cast<uint32_t>(iWidth);
-      height = static_cast<uint32_t>(iHeight);
+      *width = static_cast<uint32_t>(iWidth);
+      *height = static_cast<uint32_t>(iHeight);
 
       if (channels == 4) {
-         format = isHDR ? TextureFormat::RGBA32F : TextureFormat::RGBA8;
+         *format = isHDR ? TextureFormat::RGBA32F : isSRGB? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
       } else if (channels == 3) {
-         format = isHDR ? TextureFormat::RGB32F : TextureFormat::RGB8;
+         *format = isHDR ? TextureFormat::RGB32F : isSRGB? TextureFormat::SRGB8 : TextureFormat::RGB8;
       } else {
          throw std::runtime_error {fmt::format("'{0}': Image format not supported!", path.string())};
       }
@@ -92,11 +95,11 @@ namespace Pikzel {
    }
 
 
-   OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path)
+   OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path, const bool isSRGB)
    : m_Format {TextureFormat::Undefined}
    , m_Path {path}
    {
-      stbi_uc* data = STBILoad(path, m_Width, m_Height, m_Format);
+      stbi_uc* data = STBILoad(path, isSRGB, &m_Width, &m_Height, &m_Format);
       uint32_t levels = CalculateMipMapLevels(m_Width, m_Height);
       glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
       glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
@@ -159,14 +162,14 @@ namespace Pikzel {
    }
 
 
-   OpenGLTextureCube::OpenGLTextureCube(const std::filesystem::path& path)
+   OpenGLTextureCube::OpenGLTextureCube(const std::filesystem::path& path, const bool isSRGB)
    : m_Path {path}
-   , m_Format {TextureFormat::RGBA8}
+   , m_Format {TextureFormat::RGBA8}   // SRGB or not?
    , m_DataFormat {TextureFormat::Undefined}
    {
       uint32_t width;
       uint32_t height;
-      stbi_uc* data = STBILoad(path, width, height, m_DataFormat);
+      stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &m_DataFormat);
 
       // guess whether the data is the 6-faces of a cube, or whether it's equirectangular
       // width is twice the height -> equirectangular (probably)
@@ -220,13 +223,11 @@ namespace Pikzel {
       std::unique_ptr<OpenGLTexture2D> tex2d = std::make_unique<OpenGLTexture2D>(width, height, m_DataFormat, 1);
       tex2d->SetData(data, size);
       int tonemap = 0;
-      float gamma = 1.0f;
       if (
          (tex2d->GetFormat() == TextureFormat::RGB32F) ||
          (tex2d->GetFormat() == TextureFormat::RGBA32F)
       ) {
          tonemap = 1;
-         gamma = 2.2;
       }
 
       std::unique_ptr<OpenGLPipeline> pipeline = std::make_unique<OpenGLPipeline>(PipelineSettings {
@@ -238,7 +239,6 @@ namespace Pikzel {
 
       glUseProgram(pipeline->GetRendererId());
       glUniform1i(glGetUniformLocation(pipeline->GetRendererId(), "constants.tonemap"), tonemap);
-      glUniform1f(glGetUniformLocation(pipeline->GetRendererId(), "constants.gamma"), gamma);
       glBindTextureUnit(pipeline->GetSamplerBinding("uTexture"_hs), tex2d->GetRendererId());
       glBindImageTexture(pipeline->GetStorageImageBinding("outCubeMap"_hs), m_RendererId, 0, GL_TRUE, 0, GL_WRITE_ONLY, TextureFormatToInternalFormat(m_Format));
       glDispatchCompute(GetWidth() / 32, GetHeight() / 32, 6);
@@ -267,7 +267,7 @@ namespace Pikzel {
 
       uint32_t levels = CalculateMipMapLevels(m_Size, m_Size);
       glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererId);
-      glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(TextureFormat::RGBA8), m_Size, m_Size); // cubemap is always RGBA8 for now
+      glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Size, m_Size);
       glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
       glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

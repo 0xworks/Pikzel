@@ -10,8 +10,6 @@ set(
    ProjectSources
    "src/Camera.h"
    "src/Camera.cpp"
-   "src/ImGuiEx.h"
-   "src/ImGuiEx.cpp"
    "src/Skybox.cpp"
 )
 
@@ -88,7 +86,7 @@ copy_assets(Textures Assets/${PROJECT_NAME}/Textures CopiedTextures)
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)
 # The correct way to do this is to add_custom_target() and then add_dependencies() on the custom target.
 # I do not want to clutter up the project with a whole load of custom targets, however.
-set_source_files_properties(${CompiledAssets} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${CompiledShaders} PROPERTIES GENERATED TRUE)
 set_source_files_properties(${CopiedTextures} PROPERTIES GENERATED TRUE)
 target_sources(
    ${PROJECT_NAME} PRIVATE

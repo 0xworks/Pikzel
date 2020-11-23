@@ -2,14 +2,13 @@
 
 // Converts equirectangular projection texture into a cubemap
 //
-// Tonemapping and gamma correction is done here and baked into the cubemap
+// Tonemapping is done here and baked into the cubemap
 // (as opposed to doing this calculation at frame-render time)
 
 const float PI = 3.141592;
 
 layout(push_constant) uniform PC {
    int tonemap; // 0 = none, 1 = Reinhard
-   float gamma;
 } constants;
 
 layout(set = 0, binding = 0) uniform sampler2D uTexture;
@@ -61,9 +60,6 @@ void main() {
    if(constants.tonemap == 1) {
       color = vec4(vec3(color.rgb / (1.0 + color.rgb)), color.a);
    }
-
-   // Gamma correction
-   color = vec4(pow(color.rgb, vec3(1.0 / constants.gamma)), color.a);
 
    imageStore(outCubeMap, ivec3(gl_GlobalInvocationID), color);
 }

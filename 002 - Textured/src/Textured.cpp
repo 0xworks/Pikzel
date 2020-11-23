@@ -3,6 +3,7 @@
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Renderer/sRGB.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -11,11 +12,10 @@
 class Textured final : public Pikzel::Application {
 public:
    Textured(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.2f, 0.3f, 0.3f}}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
-      CreateIndexBuffer();
       CreateTextures();
       CreatePipeline();
    }
@@ -35,7 +35,7 @@ public:
 
       //Pikzel::GCBinder bindUniformBuffer {gc, *m_UBO, "ubo"_hs};    // Ditto uniform buffer objects
       gc.PushConstant("constants.mvp"_hs, glm::identity<glm::mat4>());
-      gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+      gc.DrawTriangles(*m_VertexBuffer, 3);
    }
 
 
@@ -49,9 +49,9 @@ private:
 
    void CreateVertexBuffer() {
       Vertex vertices[] = {
-         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{1.0f, 0.0f, 0.0f}, .TexCoord{0.0f, 0.0f}},
-         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{0.0f, 1.0f, 0.0f}, .TexCoord{1.0f, 0.0f}},
-         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{0.0f, 0.0f, 1.0f}, .TexCoord{0.5f, 1.0f}}
+         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{1.0f, 0.0f, 0.0f}}, .TexCoord{0.0f, 0.0f}},
+         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 1.0f, 0.0f}}, .TexCoord{1.0f, 0.0f}},
+         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 0.0f, 1.0f}}, .TexCoord{0.5f, 1.0f}}
       };
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
@@ -60,15 +60,6 @@ private:
          { "inColor",    Pikzel::DataType::Vec3 },
          { "inTexCoord", Pikzel::DataType::Vec2 }
       });
-   }
-
-
-   void CreateIndexBuffer() {
-      uint32_t indices[] = {
-          0, 1, 2
-      };
-
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
    }
 
 
@@ -93,7 +84,6 @@ private:
    Pikzel::Input m_Input;
    glm::mat4 m_Transform = glm::identity<glm::mat4>();
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Texture2D> m_Texture;
    std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
 

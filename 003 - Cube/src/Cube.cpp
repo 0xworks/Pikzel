@@ -3,6 +3,7 @@
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Renderer/sRGB.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -12,11 +13,10 @@
 class Cube final : public Pikzel::Application {
 public:
    Cube(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.2f, 0.3f, 0.3f, 1.0f}}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.2f, 0.3f, 0.3f}}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
-      CreateIndexBuffer();
       CreateTextures();
       CreatePipeline();
 
@@ -65,7 +65,7 @@ public:
          model = glm::rotate(model, glm::radians(20.0f * i), {1.0f, 0.3f, 0.5f});
 
          gc.PushConstant("constants.mvp"_hs, projView * model);
-         gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+         gc.DrawTriangles(*m_VertexBuffer, 36);
       }
    }
 
@@ -130,26 +130,6 @@ private:
    }
 
 
-   void CreateIndexBuffer() {
-      uint32_t indices[] = {
-         0,1,2,
-         3,4,5,
-         6,7,8,
-         9,10,11,
-         12,13,14,
-         15,16,17,
-         18,19,20,
-         21,22,23,
-         24,25,26,
-         27,28,29,
-         30,31,32,
-         33,34,35
-      };
-
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
-   }
-
-
    void CreateTextures() {
       m_Texture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Container.jpg");
    }
@@ -193,7 +173,6 @@ private:
    };
 
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Texture2D> m_Texture;
    std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
 

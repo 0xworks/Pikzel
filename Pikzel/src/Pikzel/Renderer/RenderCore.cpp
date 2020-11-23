@@ -134,13 +134,13 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const std::filesystem::path& path) {
-      return s_RenderCore->CreateTexture2D(path);
+   std::unique_ptr<Texture2D> RenderCore::CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) {
+      return s_RenderCore->CreateTexture2D(path, isSRGB);
    }
 
 
-   std::unique_ptr<TextureCube> RenderCore::CreateTextureCube(const std::filesystem::path& path) {
-      return s_RenderCore->CreateTextureCube(path);
+   std::unique_ptr<TextureCube> RenderCore::CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) {
+      return s_RenderCore->CreateTextureCube(path, isSRGB);
    }
 
 }

@@ -3,6 +3,7 @@
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Renderer/sRGB.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -12,22 +13,21 @@
 class LightCasters final : public Pikzel::Application {
 public:
    LightCasters(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}, .IsVSync = false}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}, .IsVSync = false}}
    , m_Input {GetWindow()}
    , m_Light {
       .Position = m_CameraPos,
       .Direction = m_CameraDirection,
       .CutOff = glm::cos(glm::radians(12.5f)),
-      .Ambient = {0.1f, 0.1f, 0.1f},
-      .Diffuse = {1.0f, 1.0f, 1.0f},
-      .Specular = {1.0f, 1.0f, 1.0f},
+      .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
+      .Diffuse = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+      .Specular = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
       .Constant = 1.0f,
       .Linear = 0.09f,
       .Quadratic = 0.032f
    }
    {
       CreateVertexBuffer();
-      CreateIndexBuffer();
       CreateTextures();
       CreateUniformBuffers();
       CreatePipelines();
@@ -96,7 +96,7 @@ public:
             glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
             gc.PushConstant("constants.model"_hs, model);
             gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
-            gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+            gc.DrawTriangles(*m_VertexBuffer, 36);
          }
       }
    }
@@ -164,29 +164,9 @@ private:
    }
 
 
-   void CreateIndexBuffer() {
-      uint32_t indices[] = {
-         0,1,2,
-         3,4,5,
-         6,7,8,
-         9,10,11,
-         12,13,14,
-         15,16,17,
-         18,19,20,
-         21,22,23,
-         24,25,26,
-         27,28,29,
-         30,31,32,
-         33,34,35
-      };
-
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
-   }
-
-
    void CreateTextures() {
       m_DiffuseTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Diffuse.png");
-      m_SpecularTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Specular.png");
+      m_SpecularTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Specular.png", false);
    }
 
 
@@ -258,7 +238,6 @@ private:
    Light m_Light;
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::unique_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Texture2D> m_DiffuseTexture;
    std::unique_ptr<Pikzel::Texture2D> m_SpecularTexture;
    std::unique_ptr<Pikzel::UniformBuffer> m_MaterialBuffer;

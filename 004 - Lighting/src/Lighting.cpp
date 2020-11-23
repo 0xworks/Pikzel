@@ -3,6 +3,7 @@
 #include "Pikzel/Core/Utility.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Renderer/sRGB.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -12,11 +13,10 @@
 class Lighting final : public Pikzel::Application {
 public:
    Lighting(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.1f, 1.0f}}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
-      CreateIndexBuffer();
       CreatePipelines();
 
       m_Projection = glm::perspective(glm::radians(45.0f), static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 100.0f);
@@ -54,9 +54,9 @@ public:
 
 
    virtual void Render() override {
-      constexpr glm::vec3 lightColor = {1.0f, 1.0f, 1.0f};
-      constexpr glm::vec3 lightPos = {1.2f, 1.0f, 2.0f};
-      constexpr glm::vec3 objectColor = {1.0f, 0.5f, 0.31f};
+      static glm::vec3 lightColor = Pikzel::sRGB{1.0f, 1.0f, 1.0f};
+      static glm::vec3 lightPos = {1.2f, 1.0f, 2.0f};
+      static glm::vec3 objectColor = Pikzel::sRGB{1.0f, 0.5f, 0.31f};
 
       glm::mat4 projView = m_Projection * glm::lookAt(m_CameraPos, m_CameraPos + m_CameraDirection, m_CameraUp);
 
@@ -66,7 +66,7 @@ public:
          glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), glm::vec3 {lightPos}), {0.2f, 0.2f, 0.2f});
          gc.PushConstant("constants.mvp"_hs, projView * model);
          gc.PushConstant("constants.lightColor"_hs, lightColor);
-         gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+         gc.DrawTriangles(*m_VertexBuffer, 36);
       }
       {
          Pikzel::GCBinder bindPipeline {gc, *m_PipelineLighting};
@@ -79,7 +79,7 @@ public:
          gc.PushConstant("constants.lightPos"_hs, lightPos);
          gc.PushConstant("constants.objectColor"_hs, objectColor);
          gc.PushConstant("constants.viewPos"_hs, m_CameraPos);
-         gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+         gc.DrawTriangles(*m_VertexBuffer, 36);
       }
    }
 
@@ -144,26 +144,6 @@ private:
    }
 
 
-   void CreateIndexBuffer() {
-      uint32_t indices[] = {
-         0,1,2,
-         3,4,5,
-         6,7,8,
-         9,10,11,
-         12,13,14,
-         15,16,17,
-         18,19,20,
-         21,22,23,
-         24,25,26,
-         27,28,29,
-         30,31,32,
-         33,34,35
-      };
-
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
-   }
-
-
    void CreatePipelines() {
       m_PipelineLight = GetWindow().GetGraphicsContext().CreatePipeline({
          m_VertexBuffer->GetLayout(),
@@ -195,7 +175,6 @@ private:
    glm::mat4 m_Projection = glm::identity<glm::mat4>();
 
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::shared_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLight;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLighting;
 

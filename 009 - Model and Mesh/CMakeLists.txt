@@ -10,8 +10,6 @@ set(
    ProjectSources
    "src/Camera.h"
    "src/Camera.cpp"
-   "src/ImGuiEx.h"
-   "src/ImGuiEx.cpp"
    "src/ModelAndMesh.cpp"
 )
 

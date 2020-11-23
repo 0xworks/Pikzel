@@ -10,7 +10,7 @@ namespace Pikzel {
       glBindFramebuffer(GL_FRAMEBUFFER, m_RendererId);
 
       // Resolved texture...
-      m_Texture = std::make_unique<OpenGLTexture2D>(settings.Width, settings.Height, TextureFormat::RGBA8, 1);
+      m_Texture = std::make_unique<OpenGLTexture2D>(settings.Width, settings.Height, TextureFormat::SRGB8, 1);
 
       // MSAA color attachment
       glGenTextures(1, &m_MSAAColorAttachmentRendererId);

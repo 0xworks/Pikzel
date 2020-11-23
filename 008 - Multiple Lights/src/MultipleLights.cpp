@@ -6,17 +6,17 @@
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/RenderCore.h"
 #include "Pikzel/Scene/Light.h"
+#include "Pikzel/Renderer/sRGB.h"
 
 #include <filesystem>
 
 class MultipleLights final : public Pikzel::Application {
 public:
    MultipleLights(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.05f, 0.05f, 0.05f, 1.0f}, .IsVSync = true}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.05f, 0.05f, 0.05f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
-      CreateIndexBuffer();
       CreateTextures();
       CreateUniformBuffers();
       CreatePipelines();
@@ -46,7 +46,7 @@ public:
             glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), pointLight.Position), {0.2f, 0.2f, 0.2f});
             gc.PushConstant("constants.mvp"_hs, projView * model);
             gc.PushConstant("constants.lightColor"_hs, pointLight.Color);
-            gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+            gc.DrawTriangles(*m_VertexBuffer, 36);
          }
       }
       {
@@ -65,7 +65,7 @@ public:
             glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
             gc.PushConstant("constants.model"_hs, model);
             gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
-            gc.DrawIndexed(*m_VertexBuffer, *m_IndexBuffer);
+            gc.DrawTriangles(*m_VertexBuffer, 36);
          }
       }
    }
@@ -133,29 +133,9 @@ private:
    }
 
 
-   void CreateIndexBuffer() {
-      uint32_t indices[] = {
-         0,1,2,
-         3,4,5,
-         6,7,8,
-         9,10,11,
-         12,13,14,
-         15,16,17,
-         18,19,20,
-         21,22,23,
-         24,25,26,
-         27,28,29,
-         30,31,32,
-         33,34,35
-      };
-
-      m_IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(sizeof(indices) / sizeof(uint32_t), indices);
-   }
-
-
    void CreateTextures() {
       m_DiffuseTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Diffuse.png");
-      m_SpecularTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Specular.png");
+      m_SpecularTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Specular.png", false);
    }
 
 
@@ -173,8 +153,8 @@ private:
       Pikzel::DirectionalLight directionalLights[] = {
          {
             .Direction = {-0.2f, -1.0f, -0.3f},
-            .Color = {0.0f, 0.0f, 0.0f},
-            .Ambient = {0.01f, 0.01f, 0.01f}
+            .Color = Pikzel::sRGB{0.0f, 0.0f, 0.0f},
+            .Ambient = Pikzel::sRGB{0.01f, 0.01f, 0.01f}
          }
       };
 
@@ -221,28 +201,28 @@ private:
    Pikzel::PointLight m_PointLights[4] = {
       {
          .Position = {0.7f, 0.2f, 2.0f},
-         .Color = {0.0f, 0.0f, 1.0f},
+         .Color = Pikzel::sRGB{0.0f, 0.0f, 1.0f},
          .Constant = 1.0f,
          .Linear = 0.09f,
          .Quadratic = 0.032f
       },
       {
          .Position = {2.3f, -3.3f, -4.0f},
-         .Color = {0.0f, 1.0f, 0.0f},
+         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
          .Constant = 1.0f,
          .Linear = 0.09f,
          .Quadratic = 0.032f
       },
       {
          .Position = {-4.0f, 2.0f, -12.0f},
-         .Color = {1.0f, 0.0f, 0.0f},
+         .Color = Pikzel::sRGB{1.0f, 0.0f, 0.0f},
          .Constant = 1.0f,
          .Linear = 0.09f,
          .Quadratic = 0.032f
       },
       {
          .Position = {0.0f, 0.0f, -3.0f},
-         .Color = {1.0f, 1.0f, 0.0f},
+         .Color = Pikzel::sRGB{1.0f, 1.0f, 0.0f},
          .Constant = 1.0f,
          .Linear = 0.09f,
          .Quadratic = 0.032f
@@ -256,7 +236,6 @@ private:
    };
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::unique_ptr<Pikzel::IndexBuffer> m_IndexBuffer;
    std::unique_ptr<Pikzel::Texture2D> m_DiffuseTexture;
    std::unique_ptr<Pikzel::Texture2D> m_SpecularTexture;
    std::unique_ptr<Pikzel::UniformBuffer> m_MaterialBuffer;

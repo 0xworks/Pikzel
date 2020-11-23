@@ -49,6 +49,8 @@ set(
    "src/Pikzel/Renderer/RenderCore.cpp"
    "src/Pikzel/Renderer/ShaderUtil.h"
    "src/Pikzel/Renderer/ShaderUtil.cpp"
+   "src/Pikzel/Renderer/sRGB.h"
+   "src/Pikzel/Renderer/sRGB.cpp"
    "src/Pikzel/Renderer/Texture.h"
    "src/Pikzel/Scene/Light.h"
    "src/Pikzel/Scene/Mesh.h"
@@ -106,7 +108,6 @@ endif()
 
 set(
    ProjectLibs
-   "PikzelResources"
    "assimp"
    "glfw"
    "glm"
@@ -200,10 +201,23 @@ cmrc_add_resource_library(
 ##################################################################
 add_library(
    "ImGui" STATIC
+   "src/Pikzel/ImGui/ImGuiEx.h"
+   "src/Pikzel/ImGui/ImGuiEx.cpp"
    "vendor/imgui/imgui.cpp"
    "vendor/imgui/imgui_draw.cpp"
    "vendor/imgui/imgui_widgets.cpp"
 )
+
+target_compile_features(
+   "ImGui" PRIVATE
+   cxx_std_20
+)
+
+target_include_directories(
+   "ImGui" PRIVATE
+   ${ProjectIncludes}
+)
+
 ##################################################################
 
 # Platform - OpenGL
@@ -213,6 +227,10 @@ add_library(
 #   Specification: OpenGL
 #   API: Version 4.6
 #   Profile: Core
+#
+# The imgui_impl_opengl.h and .cpp files are the ones from vendor/imgui/backends, with:
+#    * change to make viewports use sRBG framebuffer
+
 add_library(
    "PlatformOpenGL" SHARED
    "src/Pikzel/Platform/OpenGL/OpenGLBuffer.h"
@@ -231,10 +249,10 @@ add_library(
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/glad/glad.h"
    "src/Pikzel/Platform/OpenGL/vendor/glad/include/KHR/khrplatform.h"
    "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
+   "src/Pikzel/Platform/OpenGL/imgui_impl_opengl3.h"
+   "src/Pikzel/Platform/OpenGL/imgui_impl_opengl3.cpp"
    "vendor/imgui/backends/imgui_impl_glfw.h"
    "vendor/imgui/backends/imgui_impl_glfw.cpp"
-   "vendor/imgui/backends/imgui_impl_opengl3.h"
-   "vendor/imgui/backends/imgui_impl_opengl3.cpp"
 )
 
 target_compile_features(
@@ -288,7 +306,10 @@ if(${Vulkan_FOUND})
 
    # Platform - Vulkan
    # This requires that the Vulkan SDK is installed.
-   # The imgui_impl_vulkan.h and .cpp files are the ones from vendor/imgui/backends, with https://github.com/ocornut/imgui/pull/914 merged in
+   # The imgui_impl_vulkan.h and .cpp files are the ones from vendor/imgui/backends, with:
+   #    * https://github.com/ocornut/imgui/pull/914 merged in
+   #    * some extensions of my own to PR#914
+   #    * change to make viewports use sRBG framebuffer
    add_library(
       "PlatformVulkan" SHARED
       "src/Pikzel/Platform/Vulkan/DescriptorBinding.h"
