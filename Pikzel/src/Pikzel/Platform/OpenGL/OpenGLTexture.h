@@ -13,7 +13,7 @@ namespace Pikzel {
    class OpenGLTexture2D : public Texture2D {
    public:
       OpenGLTexture2D(uint32_t width, uint32_t height, const TextureFormat format, const uint32_t mipLevels);
-      OpenGLTexture2D(const std::filesystem::path& path);
+      OpenGLTexture2D(const std::filesystem::path& path, const bool isSRGB);
       virtual ~OpenGLTexture2D();
 
       virtual TextureFormat GetFormat() const override;
@@ -29,10 +29,10 @@ namespace Pikzel {
 
    private:
       std::filesystem::path m_Path;
-      TextureFormat m_Format;
-      uint32_t m_Width;
-      uint32_t m_Height;
-      uint32_t m_RendererId;
+      TextureFormat m_Format = {};
+      uint32_t m_Width = {};
+      uint32_t m_Height = {};
+      uint32_t m_RendererId = {};
    };
 
 
@@ -40,7 +40,7 @@ namespace Pikzel {
    public:
 
       OpenGLTextureCube(uint32_t size, TextureFormat format);
-      OpenGLTextureCube(const std::filesystem::path& path);
+      OpenGLTextureCube(const std::filesystem::path& path, const bool isSRGB);
       virtual ~OpenGLTextureCube();
 
       virtual TextureFormat GetFormat() const override;
@@ -59,9 +59,9 @@ namespace Pikzel {
 
    private:
       std::filesystem::path m_Path;
-      TextureFormat m_Format;     // format of the cubemap texture (currently always RGBA8)
-      TextureFormat m_DataFormat; // format of underlying data that was used to create the cubemap
-      uint32_t m_Size;
-      uint32_t m_RendererId;
+      TextureFormat m_Format = {};     // format of the cubemap texture (currently always RGBA8)
+      TextureFormat m_DataFormat = {}; // format of the data texture was originally loaded from
+      uint32_t m_Size = {};
+      uint32_t m_RendererId = {};
    };
 }

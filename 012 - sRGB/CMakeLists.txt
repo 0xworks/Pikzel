@@ -1,16 +1,14 @@
 cmake_minimum_required (VERSION 3.16)
 
 project (
-   "010Framebuffers"
+   "012sRGB"
    VERSION 0.1
-   DESCRIPTION "Pikzel Demo 010 - Framebuffers"
+   DESCRIPTION "Pikzel Demo 012 - sRGB"
 )
 
 set(
    ProjectSources
-   "src/Camera.h"
-   "src/Camera.cpp"
-   "src/Framebuffers.cpp"
+   "src/sRGBdemo.cpp"
 )
 
 set(
@@ -27,8 +25,8 @@ set(
    ShaderSources
    "Assets/Shaders/PostProcess.vert"
    "Assets/Shaders/PostProcess.frag"
-   "Assets/Shaders/TexturedModel.vert"
-   "Assets/Shaders/TexturedModel.frag"
+   "Assets/Shaders/sRGB.vert"
+   "Assets/Shaders/sRGB.frag"
 )
 
 set(
@@ -37,8 +35,6 @@ set(
 
 set(
    Textures
-   "Assets/Textures/Container.jpg"
-   "Assets/Textures/Floor.png"
 )
 
 source_group("src" FILES ${ProjectSources})

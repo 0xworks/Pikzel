@@ -11,7 +11,7 @@ namespace Pikzel {
    class VulkanTexture2D : public Texture2D {
    public:
       VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
-      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path);
+      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB);
       virtual ~VulkanTexture2D();
 
       virtual TextureFormat GetFormat() const override;
@@ -46,7 +46,7 @@ namespace Pikzel {
    public:
 
       VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels);
-      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path);
+      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB);
       virtual ~VulkanTextureCube();
 
       virtual TextureFormat GetFormat() const override;

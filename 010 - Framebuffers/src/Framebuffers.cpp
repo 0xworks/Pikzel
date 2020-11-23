@@ -1,12 +1,13 @@
 #include "Camera.h"
-#include "ImGuiEx.h"
 
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/EntryPoint.h"
 #include "Pikzel/Core/Utility.h"
+#include "Pikzel/ImGui/ImGuiEx.h"
 #include "Pikzel/Input/Input.h"
 #include "Pikzel/Renderer/Framebuffer.h"
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Renderer/sRGB.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -22,7 +23,7 @@
 class Framebuffers final : public Pikzel::Application {
 public:
    Framebuffers(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = {0.1f, 0.1f, 0.2f, 1.0f}, .IsVSync = true}}
+   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.5f, 0.5f, 0.5f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
@@ -32,26 +33,7 @@ public:
 
       m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 1000.0f);
 
-      GetWindow().GetGraphicsContext().InitializeImGui();
-
-      // Optional tweaking of ImGui style
-      ImGui::SetCurrentContext(GetWindow().GetGraphicsContext().GetImGuiContext());
-      ImGuiIO& io = ImGui::GetIO();
-      ImGui::StyleColorsDark();
-      ImGuiStyle& style = ImGui::GetStyle();
-      if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-         style.WindowRounding = 0.0f;
-         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-      }
-      float scaleFactor = GetWindow().ContentScale();
-      style.ScaleAllSizes(scaleFactor);
-
-      io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Bold.ttf", 15 * scaleFactor);
-      io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Regular.ttf", 15 * scaleFactor);
-
-      // This is required (even if you do not override default font) to upload ImGui font texture to the ImGui backend
-      // We cannot do it as part of InitialiseImGui() in case client _does_ want to override default fonts
-      Pikzel::RenderCore::UploadImGuiFonts();
+      Pikzel::ImGuiEx::Init(GetWindow());
    }
 
 
