@@ -50,7 +50,7 @@ namespace Pikzel {
    void MeshRenderer::Draw(GraphicsContext& gc, const Mesh& mesh) const {
       gc.Bind(*mesh.DiffuseTexture, "diffuseMap"_hs);
       gc.Bind(*mesh.SpecularTexture, "specularMap"_hs);
-      //gc.PushConstant("constants.shininess"_hs, mesh.Shininess);
+      gc.PushConstant("constants.shininess"_hs, 32.0f /*mesh.Shininess*/);
       gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
    }
 
