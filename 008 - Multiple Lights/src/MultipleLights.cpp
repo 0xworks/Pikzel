@@ -53,12 +53,12 @@ public:
          gc.Bind(*m_PipelineLighting);
          gc.Bind(*m_DiffuseTexture, "diffuseMap"_hs);
          gc.Bind(*m_SpecularTexture, "specularMap"_hs);
-         gc.Bind(*m_MaterialBuffer, "UBOMaterials"_hs);
          gc.Bind(*m_DirectionalLightBuffer, "UBODirectionalLight"_hs);
          gc.Bind(*m_PointLightBuffer, "UBOPointLights"_hs);
 
          gc.PushConstant("constants.vp"_hs, projView);
          gc.PushConstant("constants.viewPos"_hs, m_Camera.Position);
+         gc.PushConstant("constants.shininess"_hs, 32.0f);
 
          for (int i = 0; i < 10; ++i) {
             glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
@@ -139,16 +139,7 @@ private:
    }
 
 
-   struct Material {
-      alignas(4)  float Shininess;
-   };
-
-
    void CreateUniformBuffers() {
-      Material materials[] = {
-         {.Shininess{32.0f}}
-      };
-
       // note: shader expects exactly 1
       Pikzel::DirectionalLight directionalLights[] = {
          {
@@ -158,7 +149,6 @@ private:
          }
       };
 
-      m_MaterialBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(materials), materials);
       m_DirectionalLightBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(directionalLights), directionalLights);
       m_PointLightBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(m_PointLights), m_PointLights);
    }
@@ -202,30 +192,22 @@ private:
       {
          .Position = {0.7f, 0.2f, 2.0f},
          .Color = Pikzel::sRGB{0.0f, 0.0f, 1.0f},
-         .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
+         .Power = 30.0f
       },
       {
          .Position = {2.3f, -3.3f, -4.0f},
          .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
-         .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
+         .Power = 30.0f
       },
       {
          .Position = {-4.0f, 2.0f, -12.0f},
          .Color = Pikzel::sRGB{1.0f, 0.0f, 0.0f},
-         .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
+         .Power = 30.0f
       },
       {
          .Position = {0.0f, 0.0f, -3.0f},
          .Color = Pikzel::sRGB{1.0f, 1.0f, 0.0f},
-         .Constant = 1.0f,
-         .Linear = 0.09f,
-         .Quadratic = 0.032f
+         .Power = 30.0f
       }
    };
 
@@ -238,7 +220,6 @@ private:
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::Texture2D> m_DiffuseTexture;
    std::unique_ptr<Pikzel::Texture2D> m_SpecularTexture;
-   std::unique_ptr<Pikzel::UniformBuffer> m_MaterialBuffer;
    std::unique_ptr<Pikzel::UniformBuffer> m_DirectionalLightBuffer;
    std::unique_ptr<Pikzel::UniformBuffer> m_PointLightBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLight;

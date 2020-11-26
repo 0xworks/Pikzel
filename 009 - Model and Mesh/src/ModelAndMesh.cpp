@@ -166,8 +166,9 @@ private:
    static void ImGuiDrawPointLight(const char* label, Pikzel::PointLight& pointLight) {
       ImGui::PushID(label);
       if (ImGui::TreeNode(label)) {
-         Pikzel::ImGuiEx::EditVec3("Position", pointLight.Position);
-         Pikzel::ImGuiEx::EditVec3Color("Color", pointLight.Color);
+         Pikzel::ImGuiEx::EditVec3("Position", &pointLight.Position);
+         Pikzel::ImGuiEx::EditVec3Color("Color", &pointLight.Color); 
+         Pikzel::ImGuiEx::EditFloat("Power", &pointLight.Power);
          ImGui::TreePop();
       }
       ImGui::PopID();
@@ -190,8 +191,8 @@ private:
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
          .Direction = {-0.0f, -1.0f, -2.0f},
-         .Color = Pikzel::sRGB{0.1f, 0.2f, 0.1f},
-         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f}
+         .Color = Pikzel::sRGB{0.1f, 0.1f, 0.2f},
+         .Ambient = Pikzel::sRGB{0.01f, 0.01f, 0.02f}
       }
    };
 
@@ -199,31 +200,23 @@ private:
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
          .Position = {-619.3f, 130.3f, -219.5f},
-         .Color = Pikzel::sRGB{1.0f, 0.0f, 0.0f},
-         .Constant = 1.0f,
-         .Linear = 0.00009f,
-         .Quadratic = 0.000032f
+         .Color = Pikzel::sRGB{0.8f, 0.8f, 0.0f},
+         .Power = 6000.0f
       },
       {
          .Position = {487.3f, 130.3f, -219.5f},
-         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
-         .Constant = 1.0f,
-         .Linear = 0.0009f,
-         .Quadratic = 0.00032f
+         .Color = Pikzel::sRGB{0.8f, 0.8f, 0.0f},
+         .Power = 6000.0f
       },
       {
          .Position = {487.3f, 130.3f, 141.1f},
-         .Color = Pikzel::sRGB{0.0f, 1.0f, 1.0f},
-         .Constant = 1.0f,
-         .Linear = 0.00009f,
-         .Quadratic = 0.000032f
+         .Color = Pikzel::sRGB{0.8f, 0.8f, 1.0f},
+         .Power = 6000.0f
       },
       {
          .Position = {-619.3f, 130.3f, 141.1f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 0.0f},
-         .Constant = 1.0f,
-         .Linear = 0.00009f,
-         .Quadratic = 0.000032f
+         .Color = Pikzel::sRGB{0.8f, 0.8f, 0.0f},
+         .Power = 6000.0f
       }
    };
 

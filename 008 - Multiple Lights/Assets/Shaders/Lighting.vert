@@ -8,6 +8,7 @@ layout(push_constant) uniform PC {
    mat4 model;
    mat4 modelInvTrans;
    vec3 viewPos;
+   float shininess;
 } constants;
 
 layout(location = 0) out vec4 outNormal;

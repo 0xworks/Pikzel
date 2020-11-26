@@ -29,7 +29,7 @@ namespace Pikzel {
       }
 
 
-      void EditVec3(const char* label, glm::vec3& value, const float resetValue, const float labelWidth) {
+      void EditVec3(const char* label, glm::vec3* value, const float resetValue, const float labelWidth) {
          //
          // ImGui UI for glm::vec3 based on code from TheCherno Game Engine Series episode 91  https://www.youtube.com/watch?v=IEiOP7Y-Mbc&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT&index=91
          //
@@ -58,14 +58,14 @@ namespace Pikzel {
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 {0.8f, 0.1f, 0.15f, 1.0f});
             ImGui::PushFont(boldFont);
             if (ImGui::Button("X")) {
-               value.x = resetValue;
+               value->x = resetValue;
             }
             ImGui::PopFont();
             ImGui::PopStyleColor(3);
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
             ImGui::SameLine();
-            ImGui::DragFloat("##X", &value.x, 0.1f, 0.0f, 0.0f, "%.2f");
+            ImGui::DragFloat("##X", &value->x, 0.1f, 0.0f, 0.0f, "%.2f");
             ImGui::PopStyleVar();
          }
          ImGui::PopItemWidth();
@@ -77,14 +77,14 @@ namespace Pikzel {
             ImGui::SameLine();
             ImGui::PushFont(boldFont);
             if (ImGui::Button("Y")) {
-               value.y = resetValue;
+               value->y = resetValue;
             }
             ImGui::PopFont();
             ImGui::PopStyleColor(3);
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
             ImGui::SameLine();
-            ImGui::DragFloat("##Y", &value.y, 0.1f, 0.0f, 0.0f, "%.2f");
+            ImGui::DragFloat("##Y", &value->y, 0.1f, 0.0f, 0.0f, "%.2f");
             ImGui::PopStyleVar();
          }
          ImGui::PopItemWidth();
@@ -96,14 +96,14 @@ namespace Pikzel {
             ImGui::SameLine();
             ImGui::PushFont(boldFont);
             if (ImGui::Button("Z")) {
-               value.y = resetValue;
+               value->z = resetValue;
             }
             ImGui::PopFont();
             ImGui::PopStyleColor(3);
 
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
             ImGui::SameLine();
-            ImGui::DragFloat("##Z", &value.z, 0.1f, 0.0f, 0.0f, "%.2f");
+            ImGui::DragFloat("##Z", &value->z, 0.1f, 0.0f, 0.0f, "%.2f");
             ImGui::PopStyleVar();
          }
          ImGui::PopItemWidth();
@@ -115,7 +115,7 @@ namespace Pikzel {
       }
 
 
-      void EditVec3Color(const char* label, glm::vec3& value, const float labelWidth) {
+      void EditVec3Color(const char* label, glm::vec3* value, const float labelWidth) {
          ImGui::PushID(label);
 
          ImGui::Columns(2, nullptr, false);
@@ -128,9 +128,29 @@ namespace Pikzel {
 
          ImGui::NextColumn();
 
-         float color[3] = {value.r, value.g, value.b};
+         float color[3] = {value->r, value->g, value->b};
          ImGui::ColorEdit3("##Color", color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder);
-         value = {color[0], color[1], color[2]};
+         *value = {color[0], color[1], color[2]};
+
+         ImGui::PopStyleVar();
+         ImGui::Columns(1);
+         ImGui::PopID();
+      }
+
+      void EditFloat(const char* label, float* value, const float labelWidth, const char* format, ImGuiInputTextFlags flags) {
+         ImGui::PushID(label);
+
+         ImGui::Columns(2, nullptr, false);
+         ImGui::SetColumnWidth(0, labelWidth);
+         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {10, 10});
+
+         ImGui::AlignTextToFramePadding();
+         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(label).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
+         ImGui::Text(label);
+
+         ImGui::NextColumn();
+
+         ImGui::InputFloat("##Float", value, 0.0, 0.0, format, flags);
 
          ImGui::PopStyleVar();
          ImGui::Columns(1);

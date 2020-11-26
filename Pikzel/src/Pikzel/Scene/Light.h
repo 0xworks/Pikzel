@@ -14,9 +14,7 @@ namespace Pikzel {
    struct PKZL_API PointLight {
       alignas(16) glm::vec3 Position;
       alignas(16) glm::vec3 Color;
-      alignas(4) float Constant;
-      alignas(4) float Linear;
-      alignas(4) float Quadratic;
+      alignas(4) float Power;
    };
 
 }
