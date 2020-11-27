@@ -1,49 +1,87 @@
 # Pikzel
 
-Yet another "engine" for creating applications to render something.
-There are hundreds of these already out there, so why create another one?
+A simple graphics rendering engine.  To be clear, this is not a "game engine" - it does only graphics.  You can render a scene, move the camera around with keyboard/mouse, and tweak settings (via ImGui).  There is no audio, no physics, no route finding, no networking, etc. There will be a scene "editor" at some point.
 
-Because I want to, and that's it.
+This project is mainly a learning exercise for me, and I hope that the code is clear and simple enough to be accessible to other developers out there that are just starting on a graphics programing journey.
 
-## Intended Features
-- [x] Provide endless hours of coding fun for me.  I might even learn something.
-- [ ] Engine should allow for both "online" (interactive rendering to a window) and "offline" (render to a file, no windows involved).
-- [x] Engine should facilitate writing client-side code that is rendering-backend-agnostic.  It should be possible to switch the rendering-backend without any changes to the client code.  e.g. if you want to render a scene using Vulkan instead of OpenGL, or using ray-tracing instead of rasterization.
-- [ ] Facilitate client "tooling" apps via ImGui (in particular, it should be possible to use the engine to render to an ImGUI framebuffer (regardless of renderer backend))
-- [ ] Provide some rendering backends
-  - [x] Open GL (rasterization)
-  - [x] Vulkan (rasterization)
-  - [ ] Vulkan (path tracing)
-  - [ ] Optix (path tracing)
-  - [ ] CPU (offline render only) (unlikely, as I'd only resort to this if there is some complicated path-tracing algorithm that I cannot figure out how to do using the GPU)
-  - [ ] DirectX (unlikely, as I am not really interested in learning this)
+## Goals
+- Provide a simple abstraction layer over different rendering APIs (such as OpenGL, Vulkan, etc.)
+- Application developer is free to interact with the engine at a low level (e.g. write your own shaders, issue your own draw calls), or can use higher level "renderers" provided by the engine.  These will render a scene for you.
+- Be accessible to beginners. To this end, a series of demo applications are included that pretty much follow along the [learnopengl.com](https://learnopengl.com) tutorials.
+
+## Features
+- [ ] Supported platforms
+  - [x] Windows 10
+  - [ ] Linux
+  - [ ] Mac
+  - [ ] Mobile
+
+- [ ] Rendering APIs
+  - [x] OpenGL
+  - [x] Vulkan
+  - [ ] DirectX
+  - [ ] Metal
+
+- [ ] "Renderers"
+  - [ ] Rasterization
+    - [x] Simple shaders
+    - [x] Textures
+    - [x] Lighting (directional/point lights)
+    - [x] Very simple material (specular/roughness)
+    - [x] "Mesh" renderer
+    - [x] Render to offscreen framebuffer
+    - [x] Skyboxes
+    - [ ] Shadow mapping
+      - [ ] Cascades
+      - [ ] Percent closer soft shadows (PCSS)
+    - [ ] Normal maps
+    - [ ] Bloom
+    - [ ] Deferred rendering
+    - [ ] Screen space ambient occulsion
+    - [ ] Screen space reflection
+    - [ ] Physically based rendering (PBR)
+
+  - [ ] Ray traced
+    - [ ] Vulkan (VK_KHR_ray_tracing)
+    - [ ] Nvidia Optix
+    - [ ] other (e.g. non-nvidia specific)
+
+  - [ ] Application Framework
+    - [x] Entry point
+    - [x] Logging
+    - [x] Tracy integration (performance profiling)
+    - [x] Runtime load of selected rendering API
+    - [x] Main window management
+    - [x] Main loop
+    - [x] Event system
+    - [x] Basic ImGui integration
+
+  - [ ] Scene editor
 
 ## Building
-This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2019 on Windows.  Others are untested, but may work (with hopefully only minor changes).
+This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2019 on Win10.  Others are untested, but may work (with hopefully only minor changes).
 
 ### Prerequisites
-* Vulkan SDK  (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).
-* All other dependencies are brought in via submodules.  The other dependencies are:
-  * assimp  (asset (aka 3d models) importing)
-  * cmrc    (for embedding resources (such as shader binaries) into the compiled application)
-  * entt    (Entity Component System, plus this is also used for the event system, and compile time string hashing)
-  * glfw    (Window management)
-  * glm     (maths)
-  * imgui   (gui components)
-  * spdlog  (logging)
-  * stb     (image file loading)
-  * tracy   (performance profiling)
+- Vulkan SDK  (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).
+- All other dependencies are brought in via git submodules, so there is no need to pre-install anything.  The other dependencies are:
+  - assimp  (asset (aka 3d models) importing)
+  - cmrc    (for embedding resources (such as shader binaries) into the compiled application)
+  - entt    (Entity Component System, plus this is also used for the event system, and compile time string hashing)
+  - glfw    (Window management)
+  - glm     (maths)
+  - imgui   (gui components)
+  - spdlog  (logging)
+  - stb     (image file loading)
+  - tracy   (performance profiling)
 
 ### Build
-* git clone --recursive https://github.com/freeman40/Pikzel.git
-* open folder in Visual Studio
-* generate cmake cache (using Visual Studio built-in cmake support)
-* build
+- ```git clone --recursive https://github.com/freeman40/Pikzel.git```
+- Open cloned folder in Visual Studio
+- Build (using Visual Studio built-in cmake support)
 
-Be aware that the first time you build, it will take a little longer than usual (a couple of minutes maybe) as it builds the dependencies also (in particular, assimp).
+Be aware that the first time you build, it will take a little longer than usual (a couple of minutes maybe) as it builds all of the dependencies.
 
 ## Acknowledgements
-* some of the code in this project is based on The Cherno's [Game Engine Series](https://thecherno.com/engine) youtube channel
-* the demos are mostly lifted directly from Joey de Vries' [learnopengl.com](https://learnopengl.com)
-* the Vulkan renderer backend is inspired by Alexander Overvoorde's [Vulkan Tutorial](https://vulkan-tutorial.com)
-* and, of course, my thanks to all the contributors of the dependent libraries used here
+- Some of the code in this project is based on The Cherno's [Game Engine Series](https://thecherno.com/engine) youtube channel
+- The demos are mostly lifted directly from Joey de Vries' [learnopengl.com](https://learnopengl.com)
+- The Vulkan renderer backend is inspired by Alexander Overvoorde's [Vulkan Tutorial](https://vulkan-tutorial.com)
