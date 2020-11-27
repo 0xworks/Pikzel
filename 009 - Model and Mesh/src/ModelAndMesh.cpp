@@ -1,26 +1,12 @@
 #include "Camera.h"
 
-#include "Pikzel/Core/Application.h"
+#include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
-#include "Pikzel/Core/Utility.h"
-#include "Pikzel/ImGui/ImGuiEx.h"
-#include "Pikzel/Input/Input.h"
-#include "Pikzel/Renderer/ModelRenderer.h"
-#include "Pikzel/Renderer/RenderCore.h"
-#include "Pikzel/Renderer/sRGB.h"
-#include "Pikzel/Scene/Light.h"
-#include "Pikzel/Scene/ModelSerializer.h"
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
-
-#include <filesystem>
-
 
 class ModelAndMesh final : public Pikzel::Application {
 public:
-   ModelAndMesh(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.2f}, .IsVSync = true}}
+   ModelAndMesh()
+   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.2f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
 
@@ -229,11 +215,5 @@ private:
 
 
 std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
-   PKZL_LOG_INFO(APP_DESCRIPTION);
-   PKZL_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
-#ifdef PKZL_DEBUG
-   PKZL_LOG_INFO("DEBUG build");
-#endif
-
-   return std::make_unique<ModelAndMesh>(argc, argv);
+   return std::make_unique<ModelAndMesh>();
 }

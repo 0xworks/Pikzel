@@ -7,13 +7,14 @@
 #include "Pikzel/Renderer/RenderCore.h"
 
 #include <chrono>
+#include <filesystem>
 #include <memory>
 
 namespace Pikzel {
 
    class PKZL_API Application {
    public:
-      Application(const int argc, const char* argv[], const Window::Settings& settings = {}, const RenderCore::API api = RenderCore::API::Undefined);
+      Application(const Window::Settings& settings = {}, const RenderCore::API api = RenderCore::API::Undefined);
 
       virtual ~Application();
 
@@ -23,9 +24,8 @@ namespace Pikzel {
 
       std::chrono::steady_clock::time_point GetTime();
 
-      int GetArgC() const;
-
-      const char** GetArgV() const;
+      const std::filesystem::path& GetRootDir() const;
+      void SetRootDir(const std::filesystem::path& root);
 
       Window& GetWindow();
 
@@ -43,9 +43,8 @@ namespace Pikzel {
       virtual void OnWindowResize(const WindowResizeEvent& event);
 
    private:
+      std::filesystem::path m_root;
       std::chrono::steady_clock::time_point m_AppTime = {};
-      const int m_argc;
-      const char** m_argv;
       std::unique_ptr<Window> m_Window;
       bool m_Running = false;
 

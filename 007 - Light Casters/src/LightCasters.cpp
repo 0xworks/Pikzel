@@ -1,19 +1,10 @@
-#include "Pikzel/Core/Application.h"
+#include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
-#include "Pikzel/Core/Utility.h"
-#include "Pikzel/Input/Input.h"
-#include "Pikzel/Renderer/RenderCore.h"
-#include "Pikzel/Renderer/sRGB.h"
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/rotate_vector.hpp>
-
-#include <filesystem>
 
 class LightCasters final : public Pikzel::Application {
 public:
-   LightCasters(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}, .IsVSync = false}}
+   LightCasters()
+   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}, .IsVSync = false}}
    , m_Input {GetWindow()}
    , m_Light {
       .Position = m_CameraPos,
@@ -248,11 +239,5 @@ private:
 
 
 std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
-   PKZL_LOG_INFO(APP_DESCRIPTION);
-   PKZL_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
-#ifdef PKZL_DEBUG
-   PKZL_LOG_INFO("DEBUG build");
-#endif
-
-   return std::make_unique<LightCasters>(argc, argv);
+   return std::make_unique<LightCasters>();
 }

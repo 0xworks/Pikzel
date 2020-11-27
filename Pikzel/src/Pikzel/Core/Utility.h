@@ -46,10 +46,9 @@ namespace Pikzel {
       std::ifstream file(path, std::ios::ate | std::ios::binary);
       if (!file.is_open()) {
          
-         // 2) try application binary directory
-         std::filesystem::path bindir = Application::Get().GetArgV()[0];
-         bindir.remove_filename();
-         file.open(bindir / path, std::ios::ate | std::ios::binary);
+         // 2) try application "root" directory
+         std::filesystem::path root = Application::Get().GetRootDir();
+         file.open(root / path, std::ios::ate | std::ios::binary);
          if (!file.is_open()) {
 
             // 3) try Pikzel embedded CMRC filesystem

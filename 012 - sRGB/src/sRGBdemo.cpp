@@ -1,14 +1,5 @@
-#include "Pikzel/Core/Application.h"
+#include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
-#include "Pikzel/Core/Utility.h"
-#include "Pikzel/ImGui/ImGuiEx.h"
-#include "Pikzel/Input/Input.h"
-#include "Pikzel/Renderer/RenderCore.h"
-#include "Pikzel/Renderer/sRGB.h"
-
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <filesystem>
 
 // For debugging, this can be set to 1 to render directly to window,
 // bypassing all of the framebuffer stuff
@@ -16,8 +7,8 @@
 
 class SRGBDemo final : public Pikzel::Application {
 public:
-   SRGBDemo(int argc, const char* argv[])
-   : Pikzel::Application {argc, argv, {.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{1.0f, 1.0f, 1.0f}}}
+   SRGBDemo()
+   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{1.0f, 1.0f, 1.0f}}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
@@ -202,11 +193,5 @@ private:
 
 
 std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
-   PKZL_LOG_INFO(APP_DESCRIPTION);
-   PKZL_LOG_INFO("Linked against {0} {1}", PKZL_DESCRIPTION, PKZL_VERSION);
-#ifdef PKZL_DEBUG
-   PKZL_LOG_INFO("DEBUG build");
-#endif
-
-   return std::make_unique<SRGBDemo>(argc, argv);
+   return std::make_unique<SRGBDemo>();
 }
