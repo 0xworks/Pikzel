@@ -14,6 +14,8 @@ namespace Pikzel {
 
       virtual void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) override;
 
+      virtual const glm::mat4& ClipSpace() override;
+
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) override;
 
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size) override;

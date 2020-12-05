@@ -17,7 +17,7 @@ public:
       // renders the actual scene
       CreateModelRenderer();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 1.0f, 10000.0f);
+      m_Camera.Projection = Pikzel::RenderCore::ClipSpace() * glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 1.0f, 10000.0f);
 
       // In order to render ImGui widgets, you need to initialize ImGui integration.
       // Clients that do not wish to use ImGui simply don't call this (and so "pay" nothing)

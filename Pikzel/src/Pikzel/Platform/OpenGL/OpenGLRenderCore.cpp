@@ -4,6 +4,8 @@
 #include "OpenGLPipeline.h"
 #include "OpenGLTexture.h"
 
+#include <glm/ext/matrix_transform.hpp>
+
 namespace Pikzel {
 
    extern "C" __declspec(dllexport) IRenderCore* _cdecl CreateRenderCore(const Window* window) {
@@ -91,6 +93,12 @@ namespace Pikzel {
 
    void OpenGLRenderCore::SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) {
       glViewport(x, y, width, height);
+   }
+
+
+   const glm::mat4& OpenGLRenderCore::ClipSpace() {
+      static const glm::mat4 clipSpace = glm::identity<glm::mat4>();
+      return clipSpace;
    }
 
 
