@@ -10,7 +10,7 @@ public:
       CreateVertexBuffer();
       CreatePipelines();
 
-      m_Projection = glm::perspective(glm::radians(45.0f), static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 100.0f);
+      m_Projection = Pikzel::RenderCore::ClipSpace() * glm::perspective(glm::radians(45.0f), static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 100.0f);
       
    }
 

@@ -87,6 +87,11 @@ namespace Pikzel {
    }
 
 
+   const glm::mat4& RenderCore::ClipSpace() {
+      return s_RenderCore->ClipSpace();
+   }
+
+
    std::unique_ptr<GraphicsContext> RenderCore::CreateGraphicsContext(const Window& window) {
       return s_RenderCore->CreateGraphicsContext(window);
    }

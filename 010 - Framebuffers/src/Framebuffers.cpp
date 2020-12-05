@@ -19,7 +19,7 @@ public:
       CreateFramebuffer();
       CreatePipelines();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 1000.0f);
+      m_Camera.Projection = Pikzel::RenderCore::ClipSpace() * glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 1000.0f);
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
@@ -89,7 +89,7 @@ protected:
       Pikzel::GraphicsContext& wgc = GetWindow().GetGraphicsContext();
       wgc.Bind(*m_PostProcessingPipeline);
 
-      wgc.Bind(m_Framebuffer->GetColorTexture(), "uTexture"_hs);
+      wgc.Bind(m_Framebuffer->GetColorTexture(0), "uTexture"_hs);
       wgc.PushConstant("constants.postprocess"_hs, postProcess);
       wgc.PushConstant("constants.offset"_hs, offset);
       wgc.DrawTriangles(*m_VertexBuffer, 6, 42);
@@ -105,7 +105,7 @@ protected:
       ImGui::RadioButton("Blur", &postProcess, 4);
       ImGui::Text("Original framebuffer:");
       ImVec2 size = ImGui::GetContentRegionAvail();
-      ImGui::Image(m_Framebuffer->GetImGuiTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
+      ImGui::Image(m_Framebuffer->GetImGuiColorTextureId(0), size, ImVec2 {0, 1}, ImVec2 {1, 0});
       ImGui::End();
       GetWindow().EndImGuiFrame();
 #endif
