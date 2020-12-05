@@ -5,7 +5,6 @@ class Textured final : public Pikzel::Application {
 public:
    Textured()
    : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.2f, 0.3f, 0.3f}}}
-   , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
       CreateTextures();
@@ -13,19 +12,10 @@ public:
    }
 
 
-   virtual void Update(const Pikzel::DeltaTime deltaTime) override {
-      float dx = m_Input.GetAxis("X"_hs) * deltaTime.count();
-      float dy = m_Input.GetAxis("Z"_hs) * deltaTime.count();
-      m_Transform = glm::translate(m_Transform, {dx, dy, 0.0f});
-   }
-
-
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
-      Pikzel::GCBinder bindPipeline {gc, *m_Pipeline};
-      Pikzel::GCBinder bindTexture {gc, *m_Texture, "uTexture"_hs};   // Technically, we don't have to bind the texture every frame (once it's bound, it stays bound).  However, it makes things much easier if we do it this way, and so that's how it is for now.
-
-      //Pikzel::GCBinder bindUniformBuffer {gc, *m_UBO, "ubo"_hs};    // Ditto uniform buffer objects
+      gc.Bind(*m_Pipeline);
+      gc.Bind(*m_Texture, "uTexture"_hs);   // Technically, we don't have to bind the texture every frame (once it's bound, it stays bound).
       gc.PushConstant("constants.mvp"_hs, glm::identity<glm::mat4>());
       gc.DrawTriangles(*m_VertexBuffer, 3);
    }
@@ -73,7 +63,6 @@ private:
 
 
 private:
-   Pikzel::Input m_Input;
    glm::mat4 m_Transform = glm::identity<glm::mat4>();
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::Texture2D> m_Texture;

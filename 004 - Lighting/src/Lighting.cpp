@@ -53,14 +53,14 @@ public:
 
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       {
-         Pikzel::GCBinder bindPipeline {gc, *m_PipelineLight};
+         gc.Bind(*m_PipelineLight);
          glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), glm::vec3 {lightPos}), {0.2f, 0.2f, 0.2f});
          gc.PushConstant("constants.mvp"_hs, projView * model);
          gc.PushConstant("constants.lightColor"_hs, lightColor);
          gc.DrawTriangles(*m_VertexBuffer, 36);
       }
       {
-         Pikzel::GCBinder bindPipeline {gc, *m_PipelineLighting};
+         gc.Bind(*m_PipelineLighting);
          glm::mat4 model = glm::identity<glm::mat4>();
          glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
          gc.PushConstant("constants.vp"_hs, projView);
