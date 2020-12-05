@@ -139,6 +139,21 @@ namespace Pikzel {
             }                                   /*subresourceRange*/
          };
 
+         if (
+            (m_Format == vk::Format::eD32Sfloat) ||
+            (m_Format == vk::Format::eD16Unorm)
+         ) {
+            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+         } else if(
+            (m_Format == vk::Format::eD32SfloatS8Uint) ||
+            (m_Format == vk::Format::eD24UnormS8Uint) ||
+            (m_Format == vk::Format::eD16UnormS8Uint)
+         ) {
+            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+         } else if (m_Format == vk::Format::eS8Uint) {
+            barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eStencil;
+         }
+
          vk::PipelineStageFlags sourceStage;
          vk::PipelineStageFlags destinationStage;
 
@@ -161,6 +176,16 @@ namespace Pikzel {
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
             sourceStage = vk::PipelineStageFlagBits::eTransfer;
+            destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+         } else if ((oldLayout == vk::ImageLayout::eUndefined) && (newLayout == vk::ImageLayout::eDepthAttachmentOptimal)) {
+            barrier.srcAccessMask = {};
+            barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+            destinationStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+         } else if ((oldLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) && (newLayout == vk::ImageLayout::eShaderReadOnlyOptimal)) {
+            barrier.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+            sourceStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
             destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
          } else {
             throw std::invalid_argument("unsupported layout transition!");

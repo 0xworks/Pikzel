@@ -97,7 +97,7 @@ public:
       GetWindow().BeginFrame();
       Pikzel::GraphicsContext& wgc = GetWindow().GetGraphicsContext();
       wgc.Bind(*m_PostProcessingPipeline);
-      wgc.Bind(m_Framebuffer->GetColorTexture(), "uTexture"_hs);
+      wgc.Bind(m_Framebuffer->GetColorTexture(0), "uTexture"_hs);
       wgc.DrawTriangles(*m_VertexBuffer, 6);
 
       GetWindow().BeginImGuiFrame();
@@ -106,7 +106,7 @@ public:
       ImGui::ColorEdit4("Color:", rgba);
       pickedColor = {rgba[0], rgba[1], rgba[2], rgba[3]};
       ImVec2 size = ImGui::GetContentRegionAvail();
-      ImGui::Image(m_Framebuffer->GetImGuiTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
+      ImGui::Image(m_Framebuffer->GetImGuiColorTextureId(0), size, ImVec2 {0, 1}, ImVec2 {1, 0});
       ImGui::End();
       GetWindow().EndImGuiFrame();
 #endif

@@ -15,8 +15,53 @@ namespace Pikzel {
       RGB32F           /* linear RGB, 32-bit floating point components */,
       RGBA32F          /* linear RGBA, 32-bit floating point components */,
       BGR8             /* BGR in sRGB color space, 8 bits per component (except: on Vulkan this one is B10 G11 R11, for 32-bit texels)*/,
-      BGRA8            /* BGRA in sRGB color space. 8 bits per component */
+      BGRA8            /* BGRA in sRGB color space. 8 bits per component */,
+      R8               /* linear single channel, 8 bits */,
+      R32F             /* linear single channel, 32-bit floating point */,
+      D32F             /* linear depth component, 32-bit floating point */,
+      D24S8            /* 24-bit depth component packed with 8-bit stencil component */,
+      D32S8            /* 32-bit depth component, 8-bit stencil component */
    };
+
+
+   inline bool IsColorFormat(const TextureFormat format) {
+      switch (format) {
+         case TextureFormat::RGB8:    return true;
+         case TextureFormat::RGBA8:   return true;
+         case TextureFormat::SRGB8:   return true;
+         case TextureFormat::SRGBA8:  return true;
+         case TextureFormat::RGB32F:  return true;
+         case TextureFormat::RGBA32F: return true;
+         case TextureFormat::BGR8:    return true;
+         case TextureFormat::BGRA8:   return true;
+         case TextureFormat::R8:      return true;
+         case TextureFormat::R32F:    return true;
+         case TextureFormat::D32F:    return false;
+         case TextureFormat::D24S8:   return false;
+         case TextureFormat::D32S8:   return false;
+      }
+      return false;
+   }
+
+
+   inline bool IsDepthFormat(const TextureFormat format) {
+      switch (format) {
+         case TextureFormat::RGB8:    return false;
+         case TextureFormat::RGBA8:   return false;
+         case TextureFormat::SRGB8:   return false;
+         case TextureFormat::SRGBA8:  return false;
+         case TextureFormat::RGB32F:  return false;
+         case TextureFormat::RGBA32F: return false;
+         case TextureFormat::BGR8:    return false;
+         case TextureFormat::BGRA8:   return false;
+         case TextureFormat::R8:      return false;
+         case TextureFormat::R32F:    return false;
+         case TextureFormat::D32F:    return true;
+         case TextureFormat::D24S8:   return true;
+         case TextureFormat::D32S8:   return true;
+      }
+      return false;
+   }
 
 
    class PKZL_API Texture {

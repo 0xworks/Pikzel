@@ -5,11 +5,26 @@
 
 namespace Pikzel {
 
+   enum class AttachmentType {
+      Color,
+      Depth,
+      DepthStencil,
+      // Stencil   // TODO
+   };
+
+
+   struct PKZL_API FramebufferAttachmentSettings {
+      AttachmentType Type = AttachmentType::Color;
+      TextureFormat Format = TextureFormat::SRGB8;
+   };
+
+
    struct PKZL_API FramebufferSettings {
       uint32_t Width = 1920;
       uint32_t Height = 1080;
       uint32_t MSAANumSamples = 1;
       glm::vec4 ClearColor = {};
+      std::vector<FramebufferAttachmentSettings> Attachments = {{AttachmentType::Color, TextureFormat::SRGB8}, {AttachmentType::Depth, TextureFormat::D32F}};
    };
 
 
@@ -27,10 +42,12 @@ namespace Pikzel {
 
       virtual const glm::vec4& GetClearColor() const = 0;
 
-      virtual const Texture2D& GetColorTexture() const = 0;
+      virtual const Texture2D& GetColorTexture(const int index) const = 0;
+      virtual const Texture2D& GetDepthTexture() const = 0;
 
       // for using the contents of the framebuffer in a call to ImGui::Image()
-      virtual ImTextureID GetImGuiTextureId() = 0;
+      virtual ImTextureID GetImGuiColorTextureId(const int index) const = 0;
+      virtual ImTextureID GetImGuiDepthTextureId() const = 0;
    };
 
 }

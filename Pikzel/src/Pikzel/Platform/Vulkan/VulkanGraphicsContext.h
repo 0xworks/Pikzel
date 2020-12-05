@@ -96,13 +96,7 @@ namespace Pikzel {
       vk::SampleCountFlagBits GetNumSamples() const;
 
    protected:
-      void CreateColorImage();
-      void DestroyColorImage();
-
-      void CreateDepthStencil();
-      void DestroyDepthStencil();
-
-      vk::RenderPass CreateRenderPass(const bool clearColorBuffer, const bool clearDepthBuffer, vk::ImageLayout finalLayout);
+      vk::RenderPass CreateRenderPass(const std::vector<vk::AttachmentDescription2>& attachments);
       void DestroyRenderPass(vk::RenderPass renderPass);
 
       vk::DescriptorPool CreateDescriptorPool(const vk::ArrayProxy<const DescriptorBinding>& descriptorBindings, size_t maxSets);
@@ -123,13 +117,11 @@ namespace Pikzel {
    protected:
       std::shared_ptr<VulkanDevice> m_Device;
 
-      vk::Format m_Format = vk::Format::eUndefined;
       vk::Extent2D m_Extent;
 
       vk::SampleCountFlagBits m_SampleCount = vk::SampleCountFlagBits::e1;
       std::unique_ptr<VulkanImage> m_ColorImage;
 
-      vk::Format m_DepthFormat;
       std::unique_ptr<VulkanImage> m_DepthImage;
 
       vk::RenderPass m_RenderPass;
@@ -173,6 +165,12 @@ namespace Pikzel {
       void CreateSwapChain();
       void DestroySwapChain(vk::SwapchainKHR& swapChain);
 
+      void CreateColorImage();
+      void DestroyColorImage();
+
+      void CreateDepthStencil();
+      void DestroyDepthStencil();
+
       void CreateImageViews();
       void DestroyImageViews();
 
@@ -193,6 +191,9 @@ namespace Pikzel {
    private:
       std::array<vk::ClearValue, 2> m_ClearValues;
       GLFWwindow* m_Window = nullptr;             // VulkanWindowGC does not own the window!
+
+      vk::Format m_Format = vk::Format::eUndefined;
+      vk::Format m_DepthFormat = vk::Format::eUndefined;
 
       vk::SurfaceKHR m_Surface;
 
@@ -239,7 +240,7 @@ namespace Pikzel {
       void DestroySyncObjects();
 
    private:
-      std::array<vk::ClearValue, 2> m_ClearValues;
+      std::vector<vk::ClearValue> m_ClearValues;
       vk::Extent2D m_Extent;
       VulkanFramebuffer* m_Framebuffer;
       std::shared_ptr<VulkanFence> m_InFlightFence;
