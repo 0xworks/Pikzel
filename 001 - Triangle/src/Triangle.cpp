@@ -5,24 +5,16 @@ class Triangle final : public Pikzel::Application {
 public:
    Triangle()
    : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.5f, 0.5f, 0.5f}}}
-   , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
       CreatePipeline();
    }
 
 
-   virtual void Update(const Pikzel::DeltaTime deltaTime) override {
-      float dx = m_Input.GetAxis("X"_hs) * deltaTime.count();
-      float dy = m_Input.GetAxis("Z"_hs) * deltaTime.count();
-      m_Transform = glm::translate(m_Transform, {dx, dy, 0.0f});
-   }
-
-
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
-      Pikzel::GCBinder bind {gc, *m_Pipeline};
-      gc.PushConstant("constants.mvp"_hs, m_Transform);
+      gc.Bind(*m_Pipeline);
+      gc.PushConstant("constants.mvp"_hs, m_Projection * m_View);
       gc.DrawTriangles(*m_VertexBuffer, 3);
    }
 
@@ -62,8 +54,8 @@ private:
 
 
 private:
-   Pikzel::Input m_Input;
-   glm::mat4 m_Transform = glm::identity<glm::mat4>();
+   glm::mat4 m_View = glm::identity<glm::mat4>();
+   glm::mat4 m_Projection = glm::identity<glm::mat4>();
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
 };

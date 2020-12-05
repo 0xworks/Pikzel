@@ -106,24 +106,4 @@ namespace Pikzel {
 
    };
 
-
-   template<class T, typename... Args>
-   class GCBinder {
-   public:
-      GCBinder(GraphicsContext& gc, T& bindee, Args... args)
-      : m_GC {gc}
-      , m_Bindee {bindee}
-      {
-         m_GC.Bind(m_Bindee, std::forward<Args>(args)...);
-      }
-
-      ~GCBinder() {
-         m_GC.Unbind(m_Bindee);
-      }
-
-   private:
-      GraphicsContext& m_GC;
-      T& m_Bindee;
-   };
-
 }

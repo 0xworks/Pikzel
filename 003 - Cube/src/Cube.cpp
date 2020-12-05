@@ -46,8 +46,8 @@ public:
 
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
-      Pikzel::GCBinder bindPipeline {gc, *m_Pipeline};
-      Pikzel::GCBinder bindTexture {gc, *m_Texture, "uTexture"_hs};
+      gc.Bind(*m_Pipeline);
+      gc.Bind(*m_Texture, "uTexture"_hs);
 
       glm::mat4 projView = m_Projection * glm::lookAt(m_CameraPos, m_CameraPos + m_CameraDirection, m_CameraUp);
 
