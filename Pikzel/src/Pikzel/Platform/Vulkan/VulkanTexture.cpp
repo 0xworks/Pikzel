@@ -8,30 +8,42 @@
 
 namespace Pikzel {
 
-   static TextureFormat VkFormatToTextureFormat(const vk::Format format) {
+   TextureFormat VkFormatToTextureFormat(const vk::Format format) {
       switch (format) {
-         // case vk::Format::eR8G8B8Srgb: return TextureFormat::RGB8; // not supported.  need 32-bits per texel
-         case vk::Format::eR8G8B8A8Srgb: return TextureFormat::RGBA8;
-         case vk::Format::eR32G32B32Sfloat: return TextureFormat::RGB32F;
-         case vk::Format::eR32G32B32A32Sfloat: return TextureFormat::RGBA32F;
+         // case vk::Format::eR8G8B8Unorm: return TextureFormat::RGB8; // not supported.  need 32-bits per texel
+         case vk::Format::eR8G8B8A8Unorm:         return TextureFormat::RGBA8;
+         // case vk::Format::eR8G8B8Srgb: return TextureFormat::SRGB8; // not supported.  need 32-bits per texel
+         case vk::Format::eR8G8B8A8Srgb:          return TextureFormat::SRGB8;
+         case vk::Format::eR32G32B32Sfloat:       return TextureFormat::RGB32F;
+         case vk::Format::eR32G32B32A32Sfloat:    return TextureFormat::RGBA32F;
          case vk::Format::eB10G11R11UfloatPack32: return TextureFormat::BGR8;
-         case vk::Format::eB8G8R8A8Srgb: return TextureFormat::BGRA8;
+         case vk::Format::eB8G8R8A8Srgb:          return TextureFormat::BGRA8;
+         case vk::Format::eR8Unorm:               return TextureFormat::R8;
+         case vk::Format::eR32Sfloat:             return TextureFormat::R32F;
+         case vk::Format::eD32Sfloat:             return TextureFormat::D32F;
+         case vk::Format::eD24UnormS8Uint:        return TextureFormat::D24S8;
+         case vk::Format::eD32SfloatS8Uint:       return TextureFormat::D32S8;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return TextureFormat::Undefined;
    }
 
 
-   static vk::Format TextureFormatToVkFormat(const TextureFormat format) {
+   vk::Format TextureFormatToVkFormat(const TextureFormat format) {
       switch (format) {
-         // case TextureFormat::RGB8: return vk::Format::eR8G8B8Unorm; // not supported.  need 32-bits per texel
-         case TextureFormat::RGBA8: return vk::Format::eR8G8B8A8Unorm;
+         // case TextureFormat::RGB8:  return vk::Format::eR8G8B8Unorm; // not supported.  need 32-bits per texel
+         case TextureFormat::RGBA8:    return vk::Format::eR8G8B8A8Unorm;
          // case TextureFormat::SRGB8: return vk::Format::eR8G8B8Srgb; // not supported.  need 32-bits per texel
-         case TextureFormat::SRGBA8: return vk::Format::eR8G8B8A8Srgb;
-         case TextureFormat::RGB32F: return vk::Format::eR32G32B32Sfloat;
-         case TextureFormat::RGBA32F: return vk::Format::eR32G32B32A32Sfloat;
-         case TextureFormat::BGR8: return vk::Format::eB10G11R11UfloatPack32; // the texels must still be 32-bits, so if no alpha channel then use more bits in other channels
-         case TextureFormat::BGRA8: return vk::Format::eB8G8R8A8Srgb;
+         case TextureFormat::SRGBA8:   return vk::Format::eR8G8B8A8Srgb;
+         case TextureFormat::RGB32F:   return vk::Format::eR32G32B32Sfloat;
+         case TextureFormat::RGBA32F:  return vk::Format::eR32G32B32A32Sfloat;
+         case TextureFormat::BGR8:     return vk::Format::eB10G11R11UfloatPack32; // the texels must still be 32-bits, so if no alpha channel then use more bits in other channels
+         case TextureFormat::BGRA8:    return vk::Format::eB8G8R8A8Srgb;
+         case TextureFormat::R8:       return vk::Format::eR8Unorm;
+         case TextureFormat::R32F:     return vk::Format::eR32Sfloat;
+         case TextureFormat::D32F:     return vk::Format::eD32Sfloat;
+         case TextureFormat::D24S8:    return vk::Format::eD24UnormS8Uint;
+         case TextureFormat::D32S8:    return vk::Format::eD32SfloatS8Uint;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return vk::Format::eUndefined;
@@ -47,9 +59,22 @@ namespace Pikzel {
       bool isHDR = stbi_is_hdr(path.string().c_str());
       if (isHDR) {
          data = reinterpret_cast<stbi_uc*>(stbi_loadf(path.string().c_str(), &iWidth, &iHeight, &channels, STBI_rgb_alpha));
+         if ((channels == 1) || (channels == 2)) {
+            // if it was a 1 or 2 channel texture, then we should reload it with the actual number of channels
+            // instead of forcing 4
+            // (unfortunately no way to determine channels before loading the whole thing!)
+            data = reinterpret_cast<stbi_uc*>(stbi_loadf(path.string().c_str(), &iWidth, &iHeight, &channels, 0));
+         }
       } else {
          data = stbi_load(path.string().c_str(), &iWidth, &iHeight, &channels, STBI_rgb_alpha);
+         if ((channels == 1) || (channels == 2)) {
+            // if it was a 1 or 2 channel texture, then we should reload it with the actual number of channels
+            // instead of forcing 4
+            // (unfortunately no way to determine channels before loading the whole thing!)
+            data = stbi_load(path.string().c_str(), &iWidth, &iHeight, &channels, 0);
+         }
       }
+
       if (!data) {
          throw std::runtime_error {fmt::format("failed to load image '{0}'", path.string())};
       }
@@ -59,7 +84,10 @@ namespace Pikzel {
       if ((channels == 3) || (channels == 4)) {
          // we forced in an alpha channel in the load above (because we don't have 24-bit textures here)
          *format = isHDR ? TextureFormat::RGBA32F : isSRGB ? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
-      } else {
+      } else if(channels == 1) {
+         *format = isHDR ? TextureFormat::R32F : TextureFormat::R8;
+      }
+      else {
          throw std::runtime_error {fmt::format("'{0}': Image format not supported!", path.string())};
       }
 
@@ -67,10 +95,10 @@ namespace Pikzel {
    }
 
 
-   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels)
+   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect)
    : m_Device {device} 
    {
-      CreateImage(width, height, TextureFormatToVkFormat(format), mipLevels);
+      CreateImage(width, height, TextureFormatToVkFormat(format), mipLevels, usage, aspect);
       CreateSampler();
    }
 
@@ -84,7 +112,7 @@ namespace Pikzel {
       TextureFormat format;
       stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &format);
 
-      CreateImage(width, height, TextureFormatToVkFormat(format), CalculateMipMapLevels(width, height));
+      CreateImage(width, height, TextureFormatToVkFormat(format), CalculateMipMapLevels(width, height), vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlagBits::eColor);
       CreateSampler();
       PKZL_CORE_ASSERT(BPP(format) != 3, "VulkanTexture2D format cannot be 24-bits per texel");
       SetData(data, width * height * BPP(format));
@@ -143,7 +171,12 @@ namespace Pikzel {
    }
 
 
-   void VulkanTexture2D::CreateImage(const uint32_t width, const uint32_t height, const vk::Format format, const uint32_t mipLevels) {
+   void VulkanTexture2D::TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
+      m_Image->TransitionImageLayout(oldLayout, newLayout);
+   }
+
+
+   void VulkanTexture2D::CreateImage(const uint32_t width, const uint32_t height, const vk::Format format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
       m_Image = std::make_unique<VulkanImage>(
          m_Device,
          width,
@@ -152,11 +185,11 @@ namespace Pikzel {
          vk::SampleCountFlagBits::e1,
          format,
          vk::ImageTiling::eOptimal,
-         vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment,
+         usage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
          vk::MemoryPropertyFlagBits::eDeviceLocal,
          vk::ImageCreateFlags {}
       );
-      m_Image->CreateImageView(format, vk::ImageAspectFlagBits::eColor);
+      m_Image->CreateImageView(format, aspect);
    }
 
 

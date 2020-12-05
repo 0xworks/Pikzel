@@ -10,65 +10,17 @@ namespace Pikzel {
    : m_Device {device}
    , m_Settings {settings}
    {
-      m_DepthFormat = FindSupportedFormat(
-         m_Device->GetVkPhysicalDevice(),
-         {vk::Format::eD32SfloatS8Uint, vk::Format::eD32Sfloat, vk::Format::eD24UnormS8Uint, vk::Format::eD16UnormS8Uint, vk::Format::eD16Unorm},
-         vk::ImageTiling::eOptimal,
-         vk::FormatFeatureFlagBits::eDepthStencilAttachment
-      );
-      vk::SampleCountFlagBits sampleCount = static_cast<vk::SampleCountFlagBits>(GetMSAANumSamples());
-      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
-      m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
-
-      m_Texture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, TextureFormat::BGR8, 1);
-
-      std::vector<vk::ImageView> attachments;
-
-      if (sampleCount == vk::SampleCountFlagBits::e1) {
-         attachments = {
-            m_Texture->GetVkImageView(),
-            m_DepthImage->GetVkImageView()
-         };
-      } else {
-         m_ColorImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, vk::Format::eB10G11R11UfloatPack32, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
-         m_ColorImage->CreateImageView(vk::Format::eB10G11R11UfloatPack32, vk::ImageAspectFlagBits::eColor);
-         attachments = {
-            m_ColorImage->GetVkImageView(),
-            m_DepthImage->GetVkImageView(),
-            m_Texture->GetVkImageView()
-         };
-      }
-
+      CreateAttachments();
       m_Context = std::make_unique<VulkanFramebufferGC>(m_Device, this);
-
-      vk::FramebufferCreateInfo ci = {
-         {}                                        /*flags*/,
-         static_cast<VulkanFramebufferGC&>(*m_Context).GetVkRenderPass()              /*renderPass*/,
-         static_cast<uint32_t>(attachments.size()) /*attachmentCount*/,
-         attachments.data()                        /*pAttachments*/,
-         m_Settings.Width                          /*width*/,
-         m_Settings.Height                         /*height*/,
-         1                                         /*layers*/
-      };
-
-      m_Framebuffer = m_Device->GetVkDevice().createFramebuffer(ci);
+      CreateFramebuffer();
    }
 
 
    VulkanFramebuffer::~VulkanFramebuffer() {
       if (m_Device) {
          m_Device->GetVkDevice().waitIdle();
-         if (m_DescriptorSet) {
-            ImGui_ImplVulkan_DestroyTexture(reinterpret_cast<ImTextureID>(m_DescriptorSet));
-            m_DescriptorSet = VK_NULL_HANDLE;
-         }
-         if (m_Framebuffer) {
-            m_Device->GetVkDevice().destroy(m_Framebuffer);
-            m_Framebuffer = nullptr;
-         }
-         m_Context.reset();
-         m_DepthImage.reset();
-         m_Texture.reset();
+         DestroyAttachments();
+         DestroyFramebuffer();
       }
    }
 
@@ -92,42 +44,14 @@ namespace Pikzel {
    void VulkanFramebuffer::Resize(const uint32_t width, const uint32_t height) {
       m_Context->SwapBuffers();   // The idea here is to make sure the GPU isnt still rendering to the attachments we are about to destroy
                                   // but is "swapbuffers" on the graphics context sufficient to ensure that?
-
-      if (m_DescriptorSet) {
-         ImGui_ImplVulkan_DestroyTexture(reinterpret_cast<ImTextureID>(m_DescriptorSet));
-         m_DescriptorSet = VK_NULL_HANDLE;
-      }
-      m_Device->GetVkDevice().destroy(m_Framebuffer);
-      m_Framebuffer = nullptr;
-
-      m_Texture.reset();
-      m_DepthImage.reset();
+      DestroyAttachments();
+      DestroyFramebuffer();
 
       m_Settings.Width = width;
       m_Settings.Height = height;
 
-      m_DepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, vk::SampleCountFlagBits::e1, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
-      m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
-
-      m_Texture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, TextureFormat::RGBA8, 1);
-
-      std::array<vk::ImageView, 2> attachments = {
-         m_Texture->GetVkImageView(),
-         m_DepthImage->GetVkImageView()
-      };
-
-      vk::RenderPass renderPass = static_cast<VulkanFramebufferGC*>(m_Context.get())->GetVkRenderPass();
-      vk::FramebufferCreateInfo ci = {
-         {}                                        /*flags*/,
-         renderPass                                /*renderPass*/,
-         static_cast<uint32_t>(attachments.size()) /*attachmentCount*/,
-         attachments.data()                        /*pAttachments*/,
-         m_Settings.Width                          /*width*/,
-         m_Settings.Height                         /*height*/,
-         1                                         /*layers*/
-      };
-
-      m_Framebuffer = m_Device->GetVkDevice().createFramebuffer(ci);
+      CreateAttachments();
+      CreateFramebuffer();
    }
 
 
@@ -141,17 +65,35 @@ namespace Pikzel {
    }
 
 
-   const Texture2D& VulkanFramebuffer::GetColorTexture() const {
-      return *m_Texture;
+   const Texture2D& VulkanFramebuffer::GetColorTexture(const int index) const {
+      return *m_ColorTextures[index];
    }
 
 
-   ImTextureID VulkanFramebuffer::GetImGuiTextureId() {
-      if (!m_DescriptorSet) {
-         PKZL_CORE_ASSERT(ImGui::GetIO().BackendRendererName, "Called GetImGuiTextureId, but ImGui has not been initialized.  Please call GraphicsContext::InitalizeImGui() first");
-         m_DescriptorSet = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(m_Texture->GetVkSampler(), m_Texture->GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+   ImTextureID VulkanFramebuffer::GetImGuiColorTextureId(const int index) const {
+      PKZL_CORE_ASSERT((index >= 0) && (index < m_ColorTextures.size()), "index out of range in VulkanFramebuffer::GetImColorTextureId()!");
+      if (m_ColorDescriptorSets.size() < m_ColorTextures.size()) {
+         m_ColorDescriptorSets.resize(m_ColorTextures.size());
       }
-      return reinterpret_cast<ImTextureID>(m_DescriptorSet);
+      if(!m_ColorDescriptorSets[index]) {
+         PKZL_CORE_ASSERT(ImGui::GetIO().BackendRendererName, "Called GetImGuiTextureId, but ImGui has not been initialized.  Please call GraphicsContext::InitalizeImGui() first");
+         m_ColorDescriptorSets[index] = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(m_ColorTextures[index]->GetVkSampler(), m_ColorTextures[index]->GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+      }
+      return reinterpret_cast<ImTextureID>(m_ColorDescriptorSets[index]);
+   }
+
+
+   const Texture2D& VulkanFramebuffer::GetDepthTexture() const {
+      return *m_DepthTexture;
+   }
+
+
+   ImTextureID VulkanFramebuffer::GetImGuiDepthTextureId() const {
+      if (!m_DepthDescriptorSet) {
+         PKZL_CORE_ASSERT(ImGui::GetIO().BackendRendererName, "Called GetImGuiTextureId, but ImGui has not been initialized.  Please call GraphicsContext::InitalizeImGui() first");
+         m_DepthDescriptorSet = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(m_DepthTexture->GetVkSampler(), m_DepthTexture->GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+      }
+      return reinterpret_cast<ImTextureID>(m_DepthDescriptorSet);
    }
 
 
@@ -160,13 +102,147 @@ namespace Pikzel {
    }
 
 
-   vk::Format VulkanFramebuffer::GetVkFormat() const {
-      return m_Texture->GetVkFormat();
+   const std::vector<vk::AttachmentDescription2>& VulkanFramebuffer::GetVkAttachments() const {
+      return m_Attachments;
    }
 
 
-   vk::Format VulkanFramebuffer::GetVkDepthFormat() const {
-      return m_DepthFormat;
+   bool VulkanFramebuffer::HasDepthTexture() const {
+      return m_HasDepthTexture;
    }
 
+
+   void VulkanFramebuffer::TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout) {
+      m_DepthTexture->TransitionImageLayout(oldLayout, newLayout);
+   }
+
+
+   void VulkanFramebuffer::CreateAttachments() {
+      bool isMultiSampled = m_Settings.MSAANumSamples > 1;
+      vk::SampleCountFlagBits sampleCount = static_cast<vk::SampleCountFlagBits>(GetMSAANumSamples());
+
+      m_ImageViews.clear();
+      m_ImageViews.reserve(m_Settings.Attachments.size() * (isMultiSampled? 2 : 1));
+      int numColorAttachments = 0;
+      int numDepthAttachments = 0;
+      for (const auto attachment : m_Settings.Attachments) {
+         switch (attachment.Type) {
+            case AttachmentType::Color: {
+               PKZL_CORE_ASSERT(numColorAttachments < 4, "Framebuffer can have a maximum of four color attachments!");
+               ++numColorAttachments;
+               TextureFormat format = attachment.Format;
+               if ((format == TextureFormat::RGB8) || (format == TextureFormat::SRGB8)) {
+                  // cant do 24 bit formats.
+                  // map to something else instead (might be better to just crash 'n burn (and get the user to specify "BRG8" in the first place).  The reason I chose this secret mapping was so that "client" code that says e.g. SRGB8 will work without changes on both the OpenGL and the Vulkan backend
+                  format = TextureFormat::BGR8;
+               }
+               if (isMultiSampled) {
+                  m_MSAAColorImages.emplace_back(std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, TextureFormatToVkFormat(format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {}));
+                  m_MSAAColorImages.back()->CreateImageView(TextureFormatToVkFormat(format), vk::ImageAspectFlagBits::eColor);
+                  m_ImageViews.push_back(m_MSAAColorImages.back()->GetVkImageView());
+                  m_Attachments.push_back({
+                     {}                                               /*flags*/,
+                     TextureFormatToVkFormat(format)                  /*format*/,
+                     sampleCount                                      /*samples*/,
+                     vk::AttachmentLoadOp::eClear                     /*loadOp*/,
+                     vk::AttachmentStoreOp::eDontCare                 /*storeOp*/,
+                     vk::AttachmentLoadOp::eDontCare                  /*stencilLoadOp*/,
+                     vk::AttachmentStoreOp::eDontCare                 /*stencilStoreOp*/,
+                     vk::ImageLayout::eUndefined                      /*initialLayout*/,
+                     vk::ImageLayout::eColorAttachmentOptimal         /*finalLayout*/
+                  });
+               }
+               m_ColorTextures.emplace_back(make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, format, 1));
+               m_ImageViews.push_back(m_ColorTextures.back()->GetVkImageView());
+               m_Attachments.push_back({
+                  {}                                                                              /*flags*/,
+                  TextureFormatToVkFormat(format)                                                 /*format*/,
+                  vk::SampleCountFlagBits::e1                                                     /*samples*/,
+                  isMultiSampled? vk::AttachmentLoadOp::eDontCare : vk::AttachmentLoadOp::eClear  /*loadOp*/,
+                  vk::AttachmentStoreOp::eStore                                                   /*storeOp*/,
+                  vk::AttachmentLoadOp::eDontCare                                                 /*stencilLoadOp*/,
+                  vk::AttachmentStoreOp::eDontCare                                                /*stencilStoreOp*/,
+                  vk::ImageLayout::eUndefined                                                     /*initialLayout*/,
+                  vk::ImageLayout::eShaderReadOnlyOptimal                                         /*finalLayout*/
+               });
+               break;
+            }
+            case AttachmentType::Depth:
+            case AttachmentType::DepthStencil: {
+               PKZL_CORE_ASSERT(numDepthAttachments < 1, "Framebuffer can only have one depth attachment!");
+               ++numDepthAttachments;
+               m_DepthTexture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled, vk::ImageAspectFlagBits::eDepth);
+               if (isMultiSampled) {
+                  m_MSAADepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
+                  m_MSAADepthImage->CreateImageView(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eDepth);
+                  m_ImageViews.push_back(m_MSAADepthImage->GetVkImageView());
+                  m_Attachments.push_back({
+                     {}                                               /*flags*/,
+                     TextureFormatToVkFormat(attachment.Format)       /*format*/,
+                     sampleCount                                      /*samples*/,
+                     vk::AttachmentLoadOp::eClear                     /*loadOp*/,
+                     vk::AttachmentStoreOp::eDontCare                 /*storeOp*/,
+                     vk::AttachmentLoadOp::eClear                     /*stencilLoadOp*/,
+                     vk::AttachmentStoreOp::eDontCare                 /*stencilStoreOp*/,
+                     vk::ImageLayout::eUndefined                      /*initialLayout*/,
+                     vk::ImageLayout::eDepthStencilAttachmentOptimal  /*finalLayout*/
+                  });
+               }
+               m_ImageViews.push_back(m_DepthTexture->GetVkImageView());
+               m_Attachments.push_back({
+                  {}                                                                              /*flags*/,
+                  TextureFormatToVkFormat(attachment.Format)                                      /*format*/,
+                  vk::SampleCountFlagBits::e1                                                     /*samples*/,
+                  isMultiSampled? vk::AttachmentLoadOp::eDontCare : vk::AttachmentLoadOp::eClear  /*loadOp*/,
+                  vk::AttachmentStoreOp::eStore                                                   /*storeOp*/,
+                  isMultiSampled? vk::AttachmentLoadOp::eDontCare : vk::AttachmentLoadOp::eClear  /*stencilLoadOp*/,
+                  vk::AttachmentStoreOp::eStore                                                   /*stencilStoreOp*/,
+                  vk::ImageLayout::eUndefined                                                     /*initialLayout*/,
+                  vk::ImageLayout::eDepthStencilAttachmentOptimal                                 /*finalLayout*/
+               });
+               break;
+            }
+         }
+      }
+      m_HasDepthTexture = numDepthAttachments > 0;
+   }
+
+
+   void VulkanFramebuffer::DestroyAttachments() {
+      for (auto& descriptorSet : m_ColorDescriptorSets) {
+         ImGui_ImplVulkan_DestroyTexture(reinterpret_cast<ImTextureID>(descriptorSet));
+      }
+      m_ColorDescriptorSets.clear();
+      if (m_DepthDescriptorSet) {
+         ImGui_ImplVulkan_DestroyTexture(reinterpret_cast<ImTextureID>(m_DepthDescriptorSet));
+         m_DepthDescriptorSet = VK_NULL_HANDLE;
+      }
+      m_Context.reset();
+      m_MSAADepthImage.reset();
+      m_DepthTexture.reset();
+      m_MSAAColorImages.clear();
+      m_ColorTextures.clear();
+   }
+
+
+   void VulkanFramebuffer::CreateFramebuffer() {
+      vk::FramebufferCreateInfo ci = {
+         {}                                                               /*flags*/,
+         static_cast<VulkanFramebufferGC&>(*m_Context).GetVkRenderPass()  /*renderPass*/,
+         static_cast<uint32_t>(m_ImageViews.size())                       /*attachmentCount*/,
+         m_ImageViews.data()                                              /*pAttachments*/,
+         m_Settings.Width                                                 /*width*/,
+         m_Settings.Height                                                /*height*/,
+         1                                                                /*layers*/
+      };
+      m_Framebuffer = m_Device->GetVkDevice().createFramebuffer(ci);
+   }
+
+
+   void VulkanFramebuffer::DestroyFramebuffer() {
+      if (m_Framebuffer) {
+         m_Device->GetVkDevice().destroy(m_Framebuffer);
+         m_Framebuffer = nullptr;
+      }
+   }
 }

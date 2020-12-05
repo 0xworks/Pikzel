@@ -22,25 +22,43 @@ namespace Pikzel {
       virtual uint32_t GetMSAANumSamples() const override;
       virtual const glm::vec4& GetClearColor() const override;
 
-      virtual const Texture2D& GetColorTexture() const override;
-      virtual ImTextureID GetImGuiTextureId() override;
+      virtual const Texture2D& GetColorTexture(const int index) const override;
+      virtual const Texture2D& GetDepthTexture() const override;
+
+      virtual ImTextureID GetImGuiColorTextureId(const int index) const override;
+      virtual ImTextureID GetImGuiDepthTextureId() const override;
 
    public:
       vk::Framebuffer GetVkFramebuffer() const;
-      vk::Format GetVkFormat() const;
-      vk::Format GetVkDepthFormat() const;
+      const std::vector<vk::AttachmentDescription2>& GetVkAttachments() const;
+
+      bool HasDepthTexture() const;
+      void TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout);
+
+   private:
+      void CreateAttachments();
+      void DestroyAttachments();
+
+      void CreateFramebuffer();
+      void DestroyFramebuffer();
 
    private:
       FramebufferSettings m_Settings;
       std::shared_ptr<VulkanDevice> m_Device;
 
-      std::unique_ptr<VulkanTexture2D> m_Texture;
-      std::unique_ptr<VulkanImage> m_ColorImage;
-      std::unique_ptr<VulkanImage> m_DepthImage;
+      std::vector<std::unique_ptr<VulkanTexture2D>> m_ColorTextures;
+      std::vector < std::unique_ptr<VulkanImage>> m_MSAAColorImages;
+      std::unique_ptr<VulkanTexture2D> m_DepthTexture;
+      std::unique_ptr<VulkanImage> m_MSAADepthImage;
       std::unique_ptr<GraphicsContext> m_Context;
 
+      std::vector<vk::ImageView> m_ImageViews;
+      std::vector<vk::AttachmentDescription2> m_Attachments;
+
+
       vk::Framebuffer m_Framebuffer;
-      VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
-      vk::Format m_DepthFormat = vk::Format::eUndefined;
+      mutable std::vector<VkDescriptorSet> m_ColorDescriptorSets;
+      mutable VkDescriptorSet m_DepthDescriptorSet = VK_NULL_HANDLE;
+      bool m_HasDepthTexture = false;
    };
 }

@@ -15,6 +15,12 @@ namespace Pikzel {
          case TextureFormat::SRGBA8: return GL_SRGB8_ALPHA8;
          case TextureFormat::RGB32F: return GL_RGB32F;
          case TextureFormat::RGBA32F: return GL_RGBA32F;
+         case TextureFormat::R8: return GL_R8;
+         case TextureFormat::R32F: return GL_R32F;
+         case TextureFormat::D32F: return GL_DEPTH_COMPONENT32F;
+         case TextureFormat::D24S8: return GL_DEPTH24_STENCIL8;
+         case TextureFormat::D32S8: return GL_DEPTH32F_STENCIL8;
+
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
@@ -29,6 +35,9 @@ namespace Pikzel {
          case TextureFormat::SRGBA8: return GL_RGBA;
          case TextureFormat::RGB32F: return GL_RGB;
          case TextureFormat::RGBA32F: return GL_RGBA;
+         case TextureFormat::R8: return GL_R;
+         case TextureFormat::R32F: return GL_R;
+         // no need to set depth data yourself, so no depth formats here
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
@@ -43,6 +52,9 @@ namespace Pikzel {
          case TextureFormat::SRGBA8: return GL_UNSIGNED_BYTE;
          case TextureFormat::RGB32F: return GL_FLOAT;
          case TextureFormat::RGBA32F: return GL_FLOAT;
+         case TextureFormat::R8: return GL_UNSIGNED_BYTE;
+         case TextureFormat::R32F: return GL_FLOAT;
+         // no need to set depth data yourself, so no depth formats here
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
@@ -71,6 +83,8 @@ namespace Pikzel {
          *format = isHDR ? TextureFormat::RGBA32F : isSRGB? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
       } else if (channels == 3) {
          *format = isHDR ? TextureFormat::RGB32F : isSRGB? TextureFormat::SRGB8 : TextureFormat::RGB8;
+      } else if (channels == 1) {
+         *format = isHDR ? TextureFormat::R32F : TextureFormat::R8;
       } else {
          throw std::runtime_error {fmt::format("'{0}': Image format not supported!", path.string())};
       }

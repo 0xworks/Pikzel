@@ -8,7 +8,7 @@ namespace Pikzel {
    class OpenGLFramebuffer : public Framebuffer {
    public:
       OpenGLFramebuffer(const FramebufferSettings& settings);
-      ~OpenGLFramebuffer() = default;
+      ~OpenGLFramebuffer();
 
       virtual GraphicsContext& GetGraphicsContext() override;
 
@@ -20,22 +20,28 @@ namespace Pikzel {
 
       virtual const glm::vec4& GetClearColor() const override;
 
-      virtual const Texture2D& GetColorTexture() const override;
-      virtual ImTextureID GetImGuiTextureId() override;
+      virtual const Texture2D& GetColorTexture(const int index) const override;
+      virtual const Texture2D& GetDepthTexture() const override;
+
+      virtual ImTextureID GetImGuiColorTextureId(const int index) const override;
+      virtual ImTextureID GetImGuiDepthTextureId() const override;
 
    public:
       uint32_t GetRendererId() const;
       uint32_t GetResolveRendererId() const;
 
    private:
+      void CreateAttachments();
+   
+   private:
       FramebufferSettings m_Settings;
-      std::unique_ptr<OpenGLTexture2D> m_Texture;
+      std::vector<std::unique_ptr<OpenGLTexture2D>> m_ColorTextures;
+      std::unique_ptr<OpenGLTexture2D> m_DepthTexture;
       std::unique_ptr<GraphicsContext> m_Context;
-      uint32_t m_RendererId;
-      uint32_t m_ResolveRendererId;
-      uint32_t m_MSAAColorAttachmentRendererId;
-      uint32_t m_MSAADepthStencilAttachmentRendererId;
-
+      uint32_t m_RendererId = {};
+      uint32_t m_ResolveRendererId = {};
+      std::vector<uint32_t> m_MSAAColorAttachmentRendererIds;
+      uint32_t m_MSAADepthStencilAttachmentRendererId = {};
    };
 
 }

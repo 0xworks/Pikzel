@@ -334,15 +334,15 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::DrawTriangles(const VertexBuffer& vertexBuffer, const uint32_t vertexCount, const uint32_t vertexOffset/*= 0*/) {
-      GCBinder bindVB {*this, vertexBuffer};
+      Bind(vertexBuffer);
       glDrawArrays(GL_TRIANGLES, vertexOffset, vertexCount);
    }
 
 
    void OpenGLGraphicsContext::DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount/*= 0*/, const uint32_t vertexOffset/*= 0*/) {
       uint32_t count = indexCount ? indexCount : indexBuffer.GetCount();
-      GCBinder bindVB {*this, vertexBuffer};
-      GCBinder bindIB {*this, indexBuffer};
+      Bind(vertexBuffer);
+      Bind(indexBuffer);
       glDrawElementsBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr, vertexOffset);
    }
 
@@ -403,10 +403,6 @@ namespace Pikzel {
       PKZL_PROFILE_FUNCTION();
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
       glfwMakeContextCurrent(m_WindowHandle);
-      int width;
-      int height;
-      glfwGetWindowSize(m_WindowHandle, &width, &height);
-      //glViewport(0, 0, width, height);
       glm::vec4 clearColor = GetClearColor();
       glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -450,9 +446,18 @@ namespace Pikzel {
 
    void OpenGLFramebufferGC::SwapBuffers() {
       PKZL_PROFILE_FUNCTION();
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Framebuffer->GetRendererId());
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Framebuffer->GetResolveRendererId());
-      glBlitFramebuffer(0, 0, m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(), 0, 0, m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      if (m_Framebuffer->GetResolveRendererId()) {
+         glBlitNamedFramebuffer(
+            m_Framebuffer->GetRendererId(),
+            m_Framebuffer->GetResolveRendererId(),
+            0, 0,
+            m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+            0, 0,
+            m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+            GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
+            GL_NEAREST
+         );
+      }
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
    }
 

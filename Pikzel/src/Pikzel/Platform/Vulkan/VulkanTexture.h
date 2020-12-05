@@ -8,9 +8,12 @@
 
 namespace Pikzel {
 
+   TextureFormat VkFormatToTextureFormat(const vk::Format format);
+   vk::Format TextureFormatToVkFormat(const TextureFormat format);
+
    class VulkanTexture2D : public Texture2D {
    public:
-      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
+      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
       VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB);
       virtual ~VulkanTexture2D();
 
@@ -27,8 +30,10 @@ namespace Pikzel {
       vk::ImageView GetVkImageView() const;
       vk::Format GetVkFormat() const;
 
+      void TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+
    private:
-      void CreateImage(const uint32_t width, const uint32_t height, const vk::Format format, const uint32_t mipLevels);
+      void CreateImage(const uint32_t width, const uint32_t height, const vk::Format format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect);
       void DestroyImage();
 
       void CreateSampler();
