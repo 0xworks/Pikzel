@@ -130,19 +130,13 @@ namespace Pikzel {
             case AttachmentType::Color: {
                PKZL_CORE_ASSERT(numColorAttachments < 4, "Framebuffer can have a maximum of four color attachments!");
                ++numColorAttachments;
-               TextureFormat format = attachment.Format;
-               if ((format == TextureFormat::RGB8) || (format == TextureFormat::SRGB8)) {
-                  // cant do 24 bit formats.
-                  // map to something else instead (might be better to just crash 'n burn (and get the user to specify "BRG8" in the first place).  The reason I chose this secret mapping was so that "client" code that says e.g. SRGB8 will work without changes on both the OpenGL and the Vulkan backend
-                  format = TextureFormat::BGR8;
-               }
                if (isMultiSampled) {
-                  m_MSAAColorImages.emplace_back(std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, TextureFormatToVkFormat(format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {}));
-                  m_MSAAColorImages.back()->CreateImageView(TextureFormatToVkFormat(format), vk::ImageAspectFlagBits::eColor);
+                  m_MSAAColorImages.emplace_back(std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {}));
+                  m_MSAAColorImages.back()->CreateImageView(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eColor);
                   m_ImageViews.push_back(m_MSAAColorImages.back()->GetVkImageView());
                   m_Attachments.push_back({
                      {}                                               /*flags*/,
-                     TextureFormatToVkFormat(format)                  /*format*/,
+                     TextureFormatToVkFormat(attachment.Format)       /*format*/,
                      sampleCount                                      /*samples*/,
                      vk::AttachmentLoadOp::eClear                     /*loadOp*/,
                      vk::AttachmentStoreOp::eDontCare                 /*storeOp*/,
@@ -152,11 +146,11 @@ namespace Pikzel {
                      vk::ImageLayout::eColorAttachmentOptimal         /*finalLayout*/
                   });
                }
-               m_ColorTextures.emplace_back(make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, format, 1));
+               m_ColorTextures.emplace_back(make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1));
                m_ImageViews.push_back(m_ColorTextures.back()->GetVkImageView());
                m_Attachments.push_back({
                   {}                                                                              /*flags*/,
-                  TextureFormatToVkFormat(format)                                                 /*format*/,
+                  TextureFormatToVkFormat(attachment.Format)                                      /*format*/,
                   vk::SampleCountFlagBits::e1                                                     /*samples*/,
                   isMultiSampled? vk::AttachmentLoadOp::eDontCare : vk::AttachmentLoadOp::eClear  /*loadOp*/,
                   vk::AttachmentStoreOp::eStore                                                   /*storeOp*/,

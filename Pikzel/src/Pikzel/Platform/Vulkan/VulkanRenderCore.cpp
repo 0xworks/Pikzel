@@ -77,17 +77,6 @@ namespace Pikzel {
    }
 
 
-   const glm::mat4& VulkanRenderCore::ClipSpace() {
-      static const glm::mat4 clipSpace = {
-         {1.0f,  0.0f,  0.0f,  0.0f},
-         {0.0f,  1.0f,  0.0f,  0.0f},
-         {0.0f,  0.0f,  0.5f,  0.0f},
-         {0.0f,  0.0f,  0.5f,  1.0f}
-      };
-      return clipSpace;
-   }
-
-
    std::unique_ptr<GraphicsContext> VulkanRenderCore::CreateGraphicsContext(const Window& window) {
       return std::make_unique<VulkanWindowGC>(m_Device, window);
    }

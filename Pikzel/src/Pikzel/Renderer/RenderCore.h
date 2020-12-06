@@ -22,8 +22,6 @@ namespace Pikzel {
 
       virtual void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) = 0;
 
-      virtual const glm::mat4& ClipSpace() = 0;
-
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) = 0;
 
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size) = 0;
@@ -67,13 +65,6 @@ namespace Pikzel {
       static void UploadImGuiFonts();
 
       static void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height);
-
-      // Pikzel "normalized device coordinates" are -1 to 1 in all axes, and Y points up.
-      // ClipSpace() returns a matrix transform from Pizkel's definition of ndc to the Render APIs definition.
-      // For OpenGL this is the identity matrix
-      // For Vulkan, it flips Y, and halves z (from -1 to 1, to 0 to 1)
-      // When creating a projection matrix you should use e.g. ClipSpace() * glm::perspective(fov, aspect, near, far);
-      static const glm::mat4& ClipSpace();
 
       static std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window);
 

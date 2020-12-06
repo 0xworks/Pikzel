@@ -403,6 +403,10 @@ namespace Pikzel {
       PKZL_PROFILE_FUNCTION();
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
       glfwMakeContextCurrent(m_WindowHandle);
+      int width;
+      int height;
+      glfwGetWindowSize(m_WindowHandle, &width, &height);
+      glViewport(0, 0, width, height);
       glm::vec4 clearColor = GetClearColor();
       glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

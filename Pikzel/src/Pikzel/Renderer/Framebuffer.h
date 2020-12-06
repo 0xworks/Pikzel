@@ -15,7 +15,7 @@ namespace Pikzel {
 
    struct PKZL_API FramebufferAttachmentSettings {
       AttachmentType Type = AttachmentType::Color;
-      TextureFormat Format = TextureFormat::SRGB8;
+      TextureFormat Format = TextureFormat::SRGBA8;
    };
 
 
@@ -24,7 +24,7 @@ namespace Pikzel {
       uint32_t Height = 1080;
       uint32_t MSAANumSamples = 1;
       glm::vec4 ClearColor = {};
-      std::vector<FramebufferAttachmentSettings> Attachments = {{AttachmentType::Color, TextureFormat::SRGB8}, {AttachmentType::Depth, TextureFormat::D32F}};
+      std::vector<FramebufferAttachmentSettings> Attachments = {{AttachmentType::Color, TextureFormat::SRGBA8}, {AttachmentType::Depth, TextureFormat::D32F}};
    };
 
 
