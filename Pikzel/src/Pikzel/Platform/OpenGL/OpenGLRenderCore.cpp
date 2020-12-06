@@ -68,6 +68,8 @@ namespace Pikzel {
       glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
 #endif
 
+      glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -93,12 +95,6 @@ namespace Pikzel {
 
    void OpenGLRenderCore::SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) {
       glViewport(x, y, width, height);
-   }
-
-
-   const glm::mat4& OpenGLRenderCore::ClipSpace() {
-      static const glm::mat4 clipSpace = glm::identity<glm::mat4>();
-      return clipSpace;
    }
 
 

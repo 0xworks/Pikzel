@@ -106,6 +106,11 @@ public:
       ImGui::ColorEdit4("Color:", rgba);
       pickedColor = {rgba[0], rgba[1], rgba[2], rgba[3]};
       ImVec2 size = ImGui::GetContentRegionAvail();
+
+      // Note: when displayed in the ImGui image, the partly transparent red bar will look darker than it should.
+      // This is because the final texture referenced by GetImGuiColorTextureId is has an alpha component,
+      // and that partly transparent red bar has alpha 0.75.
+      // So the black background of the ImGui window will show through a little bit, hence darkening the color.
       ImGui::Image(m_Framebuffer->GetImGuiColorTextureId(0), size, ImVec2 {0, 1}, ImVec2 {1, 0});
       ImGui::End();
       GetWindow().EndImGuiFrame();

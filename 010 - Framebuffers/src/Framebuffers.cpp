@@ -19,7 +19,7 @@ public:
       CreateFramebuffer();
       CreatePipelines();
 
-      m_Camera.Projection = Pikzel::RenderCore::ClipSpace() * glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 1000.0f);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 1000.0f);
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
