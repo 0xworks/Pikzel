@@ -32,6 +32,8 @@ This project is mainly a learning exercise for me, and I hope that the code is c
     - [x] Render to offscreen framebuffer
     - [x] Skyboxes
     - [ ] Shadow mapping
+      - [x] Directional light shadows
+      - [x] Point light shadows
       - [ ] Cascades
       - [ ] Percent closer soft shadows (PCSS)
     - [ ] Normal maps
