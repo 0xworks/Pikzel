@@ -3,6 +3,12 @@ layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec2 inTexCoords;
 
+layout(push_constant) uniform PC {
+   mat4 model;
+   mat4 modelInvTrans;
+   float farPlane;
+} constants;
+
 struct Matrices {
    mat4 vp;
    mat4 lightSpace;
@@ -12,11 +18,6 @@ struct Matrices {
 layout(set = 0, binding = 0) uniform UBOMatrices {
    Matrices matrices;
 } uboMatrices;
-
-layout(push_constant) uniform PC {
-   mat4 model;
-   mat4 modelInvTrans;
-} constants;
 
 layout(location = 0) out vec4 outNormal;
 layout(location = 1) out vec4 outFragPos;

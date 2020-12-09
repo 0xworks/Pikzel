@@ -18,6 +18,8 @@ namespace Pikzel {
       virtual ~VulkanTexture2D();
 
       virtual TextureFormat GetFormat() const override;
+      virtual TextureType GetType() const override;
+
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
 
@@ -50,11 +52,13 @@ namespace Pikzel {
    class VulkanTextureCube : public TextureCube {
    public:
 
-      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels);
+      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
       VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB);
       virtual ~VulkanTextureCube();
 
       virtual TextureFormat GetFormat() const override;
+      virtual TextureType GetType() const override;
+
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
 
@@ -67,8 +71,10 @@ namespace Pikzel {
       vk::ImageView GetVkImageView() const;
       vk::Format GetVkFormat() const;
 
+      void TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+
    private:
-      void CreateImage(const uint32_t size, const vk::Format format, const uint32_t mipLevels);
+      void CreateImage(const uint32_t size, const vk::Format format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect);
       void DestroyImage();
 
       void CreateSampler();

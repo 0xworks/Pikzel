@@ -12,6 +12,7 @@ namespace Pikzel {
 
    enum class ShaderType {
       Vertex,
+      Geometry,
       Fragment,
       Compute
    };

@@ -132,6 +132,11 @@ namespace Pikzel {
    }
 
 
+   TextureType VulkanTexture2D::GetType() const {
+      return TextureType::TextureCube;
+   }
+
+
    uint32_t VulkanTexture2D::GetWidth() const {
       return m_Image->GetVkExtent().width;
    }
@@ -228,9 +233,9 @@ namespace Pikzel {
    }
 
 
-   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels)
+   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect)
    : m_Device {device} {
-      CreateImage(size, TextureFormatToVkFormat(format), mipLevels);
+      CreateImage(size, TextureFormatToVkFormat(format), mipLevels, usage, aspect);
       CreateSampler();
    }
 
@@ -252,7 +257,7 @@ namespace Pikzel {
       } else {
          size = width / 4;
       }
-      CreateImage(size, TextureFormatToVkFormat(TextureFormat::RGBA8), CalculateMipMapLevels(size, size));
+      CreateImage(size, TextureFormatToVkFormat(TextureFormat::RGBA8), CalculateMipMapLevels(size, size), vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage, vk::ImageAspectFlagBits::eColor);
       CreateSampler();
       PKZL_CORE_ASSERT(BPP(m_DataFormat) != 3, "VulkanTextureCube format cannot be 24-bits per texel");
       SetData(data, width * height * BPP(m_DataFormat));
@@ -268,6 +273,11 @@ namespace Pikzel {
 
    TextureFormat VulkanTextureCube::GetFormat() const {
       return VkFormatToTextureFormat(m_Image->GetVkFormat());
+   }
+
+
+   TextureType VulkanTextureCube::GetType() const {
+      return TextureType::TextureCube;
    }
 
 
@@ -389,7 +399,12 @@ namespace Pikzel {
    }
 
 
-   void VulkanTextureCube::CreateImage(const uint32_t size, const vk::Format format, const uint32_t mipLevels) {
+   void VulkanTextureCube::TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
+      m_Image->TransitionImageLayout(oldLayout, newLayout);
+   }
+
+
+   void VulkanTextureCube::CreateImage(const uint32_t size, const vk::Format format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
       m_Image = std::make_unique<VulkanImage>(
          m_Device,
          size,
@@ -398,11 +413,11 @@ namespace Pikzel {
          vk::SampleCountFlagBits::e1,
          format,
          vk::ImageTiling::eOptimal,
-         vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment,
+         usage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
          vk::MemoryPropertyFlagBits::eDeviceLocal,
          vk::ImageCreateFlagBits::eCubeCompatible
       );
-      m_Image->CreateImageView(format, vk::ImageAspectFlagBits::eColor);
+      m_Image->CreateImageView(format, aspect);
    }
 
 

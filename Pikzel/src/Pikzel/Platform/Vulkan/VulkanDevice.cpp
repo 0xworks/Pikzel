@@ -51,8 +51,8 @@ namespace Pikzel {
       if (availableFeatures.samplerAnisotropy) {
          features.setSamplerAnisotropy(true);
       }
-      if (availableFeatures.sampleRateShading) {
-         features.setSampleRateShading(true);
+      if (availableFeatures.geometryShader) {
+         features.setGeometryShader(true);
       }
       return features;
    }

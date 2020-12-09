@@ -42,6 +42,7 @@ namespace Pikzel {
    static vk::ShaderStageFlagBits ShaderTypeToVulkanShaderStage(ShaderType type) {
       switch (type) {
          case ShaderType::Vertex: return vk::ShaderStageFlagBits::eVertex;
+         case ShaderType::Geometry: return vk::ShaderStageFlagBits::eGeometry;
          case ShaderType::Fragment: return vk::ShaderStageFlagBits::eFragment;
          case ShaderType::Compute: return vk::ShaderStageFlagBits::eCompute;
       }
@@ -67,7 +68,7 @@ namespace Pikzel {
 
 
    VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, const PipelineSettings& settings)
-   : m_Device(device) {
+   : m_Device {device} {
       CreateDescriptorSetLayouts(settings);
       CreatePipelineLayout();
       CreateComputePipeline(settings);
@@ -76,7 +77,7 @@ namespace Pikzel {
 
 
    VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings)
-   : m_Device(device)
+   : m_Device {device}
    {
       CreateDescriptorSetLayouts(settings);
       CreatePipelineLayout();
