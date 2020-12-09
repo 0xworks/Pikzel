@@ -141,6 +141,11 @@ namespace Pikzel {
    }
 
 
+   TextureType OpenGLTexture2D::GetType() const {
+      return TextureType::Texture2D;
+   }
+
+
    uint32_t OpenGLTexture2D::GetWidth() const {
       return m_Width;
    }
@@ -168,11 +173,11 @@ namespace Pikzel {
 
 
 
-   OpenGLTextureCube::OpenGLTextureCube(uint32_t size, TextureFormat format)
+   OpenGLTextureCube::OpenGLTextureCube(uint32_t size, TextureFormat format, const uint32_t mipLevels)
    : m_Format {format}
    , m_Size {size}
    {
-      AllocateStorage();
+      AllocateStorage(mipLevels);
    }
 
 
@@ -193,7 +198,7 @@ namespace Pikzel {
       } else {
          m_Size = width / 4;
       }
-      AllocateStorage();
+      AllocateStorage(CalculateMipMapLevels(m_Size, m_Size));
       SetData(data, width * height * BPP(m_DataFormat));
       stbi_image_free(data);
    }
@@ -206,6 +211,11 @@ namespace Pikzel {
 
    TextureFormat OpenGLTextureCube::GetFormat() const {
       return m_Format;
+   }
+
+
+   TextureType OpenGLTextureCube::GetType() const {
+      return TextureType::TextureCube;
    }
 
 
@@ -270,19 +280,14 @@ namespace Pikzel {
    }
 
 
-   void OpenGLTextureCube::AllocateStorage() {
+   void OpenGLTextureCube::AllocateStorage(const uint32_t mipLevels) {
       if ((GetWidth() % 32)) {
          throw std::runtime_error {"Cube texture size must be a multiple of 32!"};
       }
 
-      if ((GetWidth() != GetHeight())) {
-         throw std::runtime_error {"Cube texture size must be square (width == height)!"};
-      }
-
-      uint32_t levels = CalculateMipMapLevels(m_Size, m_Size);
       glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererId);
-      glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Size, m_Size);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+      glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Size, m_Size);
+      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
       glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
       glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

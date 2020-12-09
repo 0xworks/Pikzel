@@ -24,6 +24,12 @@ namespace Pikzel {
    };
 
 
+   enum class TextureType {
+      Texture2D,
+      TextureCube
+   };
+
+
    inline bool IsColorFormat(const TextureFormat format) {
       switch (format) {
          case TextureFormat::RGB8:    return true;
@@ -69,6 +75,9 @@ namespace Pikzel {
       virtual ~Texture() = default;
 
       virtual TextureFormat GetFormat() const = 0;
+
+      virtual TextureType GetType() const = 0;
+
       virtual uint32_t GetWidth() const = 0;
       virtual uint32_t GetHeight() const = 0;
 

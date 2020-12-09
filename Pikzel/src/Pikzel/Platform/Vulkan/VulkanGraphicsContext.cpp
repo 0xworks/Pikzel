@@ -80,13 +80,23 @@ namespace Pikzel {
    void VulkanGraphicsContext::Unbind(const UniformBuffer&) {}
 
 
-   void VulkanGraphicsContext::Bind(const Texture2D& texture, const entt::id_type resourceId) {
+   void VulkanGraphicsContext::Bind(const Texture& texture, const entt::id_type resourceId) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
+      vk::Sampler sampler = nullptr;
+      vk::ImageView imageView = nullptr;
+
+      if (texture.GetType() == TextureType::Texture2D) {
+         sampler = static_cast<const VulkanTexture2D&>(texture).GetVkSampler();
+         imageView = static_cast<const VulkanTexture2D&>(texture).GetVkImageView();
+      } else {
+         sampler = static_cast<const VulkanTextureCube&>(texture).GetVkSampler();
+         imageView = static_cast<const VulkanTextureCube&>(texture).GetVkImageView();
+      }
       vk::DescriptorImageInfo textureImageDescriptor = {
-         static_cast<const VulkanTexture2D&>(texture).GetVkSampler()   /*sampler*/,
-         static_cast<const VulkanTexture2D&>(texture).GetVkImageView() /*imageView*/,
-         vk::ImageLayout::eShaderReadOnlyOptimal                       /*imageLayout*/
+         sampler,
+         imageView,
+         vk::ImageLayout::eShaderReadOnlyOptimal
       };
 
       vk::WriteDescriptorSet textureSamplersWrite = {
@@ -104,34 +114,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanGraphicsContext::Unbind(const Texture2D&) {}
-
-
-   void VulkanGraphicsContext::Bind(const TextureCube& texture, const entt::id_type resourceId) {
-      const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
-
-      vk::DescriptorImageInfo textureImageDescriptor = {
-         static_cast<const VulkanTextureCube&>(texture).GetVkSampler()   /*sampler*/,
-         static_cast<const VulkanTextureCube&>(texture).GetVkImageView() /*imageView*/,
-         vk::ImageLayout::eShaderReadOnlyOptimal                         /*imageLayout*/
-      };
-
-      vk::WriteDescriptorSet textureSamplersWrite = {
-         m_Pipeline->GetVkDescriptorSet(resource.DescriptorSet)  /*dstSet*/,
-         resource.Binding                                        /*dstBinding*/,
-         0                                                       /*dstArrayElement*/,
-         resource.Count                                          /*descriptorCount*/,
-         resource.Type                                           /*descriptorType*/,
-         &textureImageDescriptor                                 /*pImageInfo*/,
-         nullptr                                                 /*pBufferInfo*/,
-         nullptr                                                 /*pTexelBufferView*/
-      };
-
-      m_Device->GetVkDevice().updateDescriptorSets(textureSamplersWrite, nullptr);
-   }
-
-
-   void VulkanGraphicsContext::Unbind(const TextureCube&) {}
+   void VulkanGraphicsContext::Unbind(const Texture&) {}
 
 
    std::unique_ptr<Pikzel::Pipeline> VulkanGraphicsContext::CreatePipeline(const PipelineSettings& settings) {

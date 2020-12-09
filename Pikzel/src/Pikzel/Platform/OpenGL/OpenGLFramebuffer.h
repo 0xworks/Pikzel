@@ -20,8 +20,8 @@ namespace Pikzel {
 
       virtual const glm::vec4& GetClearColor() const override;
 
-      virtual const Texture2D& GetColorTexture(const int index) const override;
-      virtual const Texture2D& GetDepthTexture() const override;
+      virtual const Texture& GetColorTexture(const int index) const override;
+      virtual const Texture& GetDepthTexture() const override;
 
       virtual ImTextureID GetImGuiColorTextureId(const int index) const override;
       virtual ImTextureID GetImGuiDepthTextureId() const override;
@@ -35,8 +35,8 @@ namespace Pikzel {
    
    private:
       FramebufferSettings m_Settings;
-      std::vector<std::unique_ptr<OpenGLTexture2D>> m_ColorTextures;
-      std::unique_ptr<OpenGLTexture2D> m_DepthTexture;
+      std::vector<std::unique_ptr<Texture>> m_ColorTextures;
+      std::unique_ptr<Texture> m_DepthTexture;
       std::unique_ptr<GraphicsContext> m_Context;
       uint32_t m_RendererId = {};
       uint32_t m_ResolveRendererId = {};

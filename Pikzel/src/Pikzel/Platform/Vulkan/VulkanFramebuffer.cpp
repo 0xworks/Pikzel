@@ -65,7 +65,7 @@ namespace Pikzel {
    }
 
 
-   const Texture2D& VulkanFramebuffer::GetColorTexture(const int index) const {
+   const Texture& VulkanFramebuffer::GetColorTexture(const int index) const {
       return *m_ColorTextures[index];
    }
 
@@ -77,13 +77,20 @@ namespace Pikzel {
       }
       if(!m_ColorDescriptorSets[index]) {
          PKZL_CORE_ASSERT(ImGui::GetIO().BackendRendererName, "Called GetImGuiTextureId, but ImGui has not been initialized.  Please call GraphicsContext::InitalizeImGui() first");
-         m_ColorDescriptorSets[index] = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(m_ColorTextures[index]->GetVkSampler(), m_ColorTextures[index]->GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+         auto& texture = *m_ColorTextures[index];
+         if (texture.GetType() == TextureType::Texture2D) {
+            auto& vkTexture = static_cast<VulkanTexture2D&>(texture);
+            m_ColorDescriptorSets[index] = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(vkTexture.GetVkSampler(), vkTexture.GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+         } else {
+            auto& vkTexture = static_cast<VulkanTextureCube&>(texture);
+            m_ColorDescriptorSets[index] = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(vkTexture.GetVkSampler(), vkTexture.GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+         }
       }
       return reinterpret_cast<ImTextureID>(m_ColorDescriptorSets[index]);
    }
 
 
-   const Texture2D& VulkanFramebuffer::GetDepthTexture() const {
+   const Texture& VulkanFramebuffer::GetDepthTexture() const {
       return *m_DepthTexture;
    }
 
@@ -91,7 +98,14 @@ namespace Pikzel {
    ImTextureID VulkanFramebuffer::GetImGuiDepthTextureId() const {
       if (!m_DepthDescriptorSet) {
          PKZL_CORE_ASSERT(ImGui::GetIO().BackendRendererName, "Called GetImGuiTextureId, but ImGui has not been initialized.  Please call GraphicsContext::InitalizeImGui() first");
-         m_DepthDescriptorSet = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(m_DepthTexture->GetVkSampler(), m_DepthTexture->GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+         auto& texture = *m_DepthTexture;
+         if (texture.GetType() == TextureType::Texture2D) {
+            auto& vkTexture = static_cast<VulkanTexture2D&>(texture);
+            m_DepthDescriptorSet = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(vkTexture.GetVkSampler(), vkTexture.GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+         } else {
+            auto& vkTexture = static_cast<VulkanTextureCube&>(texture);
+            m_DepthDescriptorSet = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(vkTexture.GetVkSampler(), vkTexture.GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+         }
       }
       return reinterpret_cast<ImTextureID>(m_DepthDescriptorSet);
    }
@@ -113,7 +127,14 @@ namespace Pikzel {
 
 
    void VulkanFramebuffer::TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout) {
-      m_DepthTexture->TransitionImageLayout(oldLayout, newLayout);
+      auto& texture = *m_DepthTexture;
+      if (texture.GetType() == TextureType::Texture2D) {
+         auto& vkTexture = static_cast<VulkanTexture2D&>(texture);
+         vkTexture.TransitionImageLayout(oldLayout, newLayout);
+      } else {
+         auto& vkTexture = static_cast<VulkanTextureCube&>(texture);
+         vkTexture.TransitionImageLayout(oldLayout, newLayout);
+      }
    }
 
 
@@ -125,13 +146,17 @@ namespace Pikzel {
       m_ImageViews.reserve(m_Settings.Attachments.size() * (isMultiSampled? 2 : 1));
       int numColorAttachments = 0;
       int numDepthAttachments = 0;
+      m_LayerCount = 1;
       for (const auto attachment : m_Settings.Attachments) {
-         switch (attachment.Type) {
+         switch (attachment.AttachmentType) {
             case AttachmentType::Color: {
                PKZL_CORE_ASSERT(numColorAttachments < 4, "Framebuffer can have a maximum of four color attachments!");
-               ++numColorAttachments;
                if (isMultiSampled) {
-                  m_MSAAColorImages.emplace_back(std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {}));
+                  vk::ImageCreateFlags flags;
+                  if (attachment.TextureType == TextureType::TextureCube) {
+                     flags = vk::ImageCreateFlagBits::eCubeCompatible;
+                  }
+                  m_MSAAColorImages.emplace_back(std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, flags));
                   m_MSAAColorImages.back()->CreateImageView(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eColor);
                   m_ImageViews.push_back(m_MSAAColorImages.back()->GetVkImageView());
                   m_Attachments.push_back({
@@ -146,8 +171,14 @@ namespace Pikzel {
                      vk::ImageLayout::eColorAttachmentOptimal         /*finalLayout*/
                   });
                }
-               m_ColorTextures.emplace_back(make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1));
-               m_ImageViews.push_back(m_ColorTextures.back()->GetVkImageView());
+               if (attachment.TextureType == TextureType::Texture2D) {
+                  m_ColorTextures.emplace_back(make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1));
+                  m_ImageViews.push_back(static_cast<VulkanTexture2D&>(*m_ColorTextures.back()).GetVkImageView());
+               } else {
+                  m_ColorTextures.emplace_back(make_unique<VulkanTextureCube>(m_Device, m_Settings.Width, attachment.Format, 1));
+                  m_ImageViews.push_back(static_cast<VulkanTextureCube&>(*m_ColorTextures.back()).GetVkImageView());
+                  m_LayerCount = 6;
+               }
                m_Attachments.push_back({
                   {}                                                                              /*flags*/,
                   TextureFormatToVkFormat(attachment.Format)                                      /*format*/,
@@ -159,15 +190,18 @@ namespace Pikzel {
                   vk::ImageLayout::eUndefined                                                     /*initialLayout*/,
                   vk::ImageLayout::eShaderReadOnlyOptimal                                         /*finalLayout*/
                });
+               ++numColorAttachments;
                break;
             }
             case AttachmentType::Depth:
             case AttachmentType::DepthStencil: {
                PKZL_CORE_ASSERT(numDepthAttachments < 1, "Framebuffer can only have one depth attachment!");
-               ++numDepthAttachments;
-               m_DepthTexture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled, vk::ImageAspectFlagBits::eDepth);
                if (isMultiSampled) {
-                  m_MSAADepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageCreateFlags {});
+                  vk::ImageCreateFlags flags;
+                  if (attachment.TextureType == TextureType::TextureCube) {
+                     flags = vk::ImageCreateFlagBits::eCubeCompatible;
+                  }
+                  m_MSAADepthImage = std::make_unique<VulkanImage>(m_Device, m_Settings.Width, m_Settings.Height, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, flags);
                   m_MSAADepthImage->CreateImageView(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eDepth);
                   m_ImageViews.push_back(m_MSAADepthImage->GetVkImageView());
                   m_Attachments.push_back({
@@ -182,7 +216,14 @@ namespace Pikzel {
                      vk::ImageLayout::eDepthStencilAttachmentOptimal  /*finalLayout*/
                   });
                }
-               m_ImageViews.push_back(m_DepthTexture->GetVkImageView());
+               if (attachment.TextureType == TextureType::Texture2D) {
+                  m_DepthTexture = make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled, vk::ImageAspectFlagBits::eDepth);
+                  m_ImageViews.push_back(static_cast<VulkanTextureCube&>(*m_DepthTexture).GetVkImageView());
+               } else {
+                  m_DepthTexture = make_unique<VulkanTextureCube>(m_Device, m_Settings.Width, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled, vk::ImageAspectFlagBits::eDepth);
+                  m_ImageViews.push_back(static_cast<VulkanTextureCube&>(*m_DepthTexture).GetVkImageView());
+                  m_LayerCount = 6;
+               }
                m_Attachments.push_back({
                   {}                                                                              /*flags*/,
                   TextureFormatToVkFormat(attachment.Format)                                      /*format*/,
@@ -194,6 +235,7 @@ namespace Pikzel {
                   vk::ImageLayout::eUndefined                                                     /*initialLayout*/,
                   vk::ImageLayout::eDepthStencilAttachmentOptimal                                 /*finalLayout*/
                });
+               ++numDepthAttachments;
                break;
             }
          }
@@ -227,7 +269,7 @@ namespace Pikzel {
          m_ImageViews.data()                                              /*pAttachments*/,
          m_Settings.Width                                                 /*width*/,
          m_Settings.Height                                                /*height*/,
-         1                                                                /*layers*/
+         m_LayerCount                                                     /*layers*/
       };
       m_Framebuffer = m_Device->GetVkDevice().createFramebuffer(ci);
    }

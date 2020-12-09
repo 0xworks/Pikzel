@@ -17,6 +17,8 @@ namespace Pikzel {
       virtual ~OpenGLTexture2D();
 
       virtual TextureFormat GetFormat() const override;
+      virtual TextureType GetType() const override;
+
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
 
@@ -39,11 +41,12 @@ namespace Pikzel {
    class OpenGLTextureCube : public TextureCube {
    public:
 
-      OpenGLTextureCube(uint32_t size, TextureFormat format);
+      OpenGLTextureCube(uint32_t size, TextureFormat format, const uint32_t mipLevels);
       OpenGLTextureCube(const std::filesystem::path& path, const bool isSRGB);
       virtual ~OpenGLTextureCube();
 
       virtual TextureFormat GetFormat() const override;
+      virtual TextureType GetType() const override;
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
 
@@ -55,7 +58,7 @@ namespace Pikzel {
       uint32_t GetRendererId() const;
 
    private:
-      void AllocateStorage();
+      void AllocateStorage(const uint32_t mipLevels);
 
    private:
       std::filesystem::path m_Path;

@@ -22,8 +22,8 @@ namespace Pikzel {
       virtual uint32_t GetMSAANumSamples() const override;
       virtual const glm::vec4& GetClearColor() const override;
 
-      virtual const Texture2D& GetColorTexture(const int index) const override;
-      virtual const Texture2D& GetDepthTexture() const override;
+      virtual const Texture& GetColorTexture(const int index) const override;
+      virtual const Texture& GetDepthTexture() const override;
 
       virtual ImTextureID GetImGuiColorTextureId(const int index) const override;
       virtual ImTextureID GetImGuiDepthTextureId() const override;
@@ -46,9 +46,9 @@ namespace Pikzel {
       FramebufferSettings m_Settings;
       std::shared_ptr<VulkanDevice> m_Device;
 
-      std::vector<std::unique_ptr<VulkanTexture2D>> m_ColorTextures;
+      std::vector<std::unique_ptr<Texture>> m_ColorTextures;
       std::vector < std::unique_ptr<VulkanImage>> m_MSAAColorImages;
-      std::unique_ptr<VulkanTexture2D> m_DepthTexture;
+      std::unique_ptr<Texture> m_DepthTexture;
       std::unique_ptr<VulkanImage> m_MSAADepthImage;
       std::unique_ptr<GraphicsContext> m_Context;
 
@@ -59,6 +59,7 @@ namespace Pikzel {
       vk::Framebuffer m_Framebuffer;
       mutable std::vector<VkDescriptorSet> m_ColorDescriptorSets;
       mutable VkDescriptorSet m_DepthDescriptorSet = VK_NULL_HANDLE;
+      uint32_t m_LayerCount = 0;
       bool m_HasDepthTexture = false;
    };
 }

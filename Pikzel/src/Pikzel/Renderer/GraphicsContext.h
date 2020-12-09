@@ -38,11 +38,8 @@ namespace Pikzel {
       virtual void Bind(const UniformBuffer& buffer, const entt::id_type resourceId) = 0;
       virtual void Unbind(const UniformBuffer& buffer) = 0;
 
-      virtual void Bind(const Texture2D& texture, const entt::id_type resourceId) = 0;
-      virtual void Unbind(const Texture2D& texture) = 0;
-
-      virtual void Bind(const TextureCube& texture, const entt::id_type resourceId) = 0;
-      virtual void Unbind(const TextureCube& texture) = 0;
+      virtual void Bind(const Texture& texture, const entt::id_type resourceId) = 0;
+      virtual void Unbind(const Texture& texture) = 0;
 
       virtual void Bind(const Pipeline& pipeline) = 0;
       virtual void Unbind(const Pipeline& pipeline) = 0;

@@ -98,25 +98,34 @@ namespace Pikzel {
    }
 
 
-   const Texture2D& OpenGLFramebuffer::GetColorTexture(const int index) const {
+   const Texture& OpenGLFramebuffer::GetColorTexture(const int index) const {
       return *m_ColorTextures[index];
    }
 
 
-   const Texture2D& OpenGLFramebuffer::GetDepthTexture() const {
+   const Texture& OpenGLFramebuffer::GetDepthTexture() const {
       PKZL_CORE_ASSERT(m_DepthTexture, "Accessing null depth texture!  Did you create the frame buffer with a depth texture attachment?");
       return *m_DepthTexture;
    }
 
 
    ImTextureID OpenGLFramebuffer::GetImGuiColorTextureId(const int index) const {
-      return (ImTextureID)(intptr_t)m_ColorTextures[index]->GetRendererId();
+      Texture& texture = *m_ColorTextures[index];
+      if (texture.GetType() == TextureType::Texture2D) {
+         return (ImTextureID)(intptr_t)static_cast<OpenGLTexture2D&>(texture).GetRendererId();
+      } else {
+         return (ImTextureID)(intptr_t)static_cast<OpenGLTextureCube&>(texture).GetRendererId();
+      }
    }
 
 
    ImTextureID OpenGLFramebuffer::GetImGuiDepthTextureId() const {
       PKZL_CORE_ASSERT(m_DepthTexture, "Accessing null depth texture!  Did you create the frame buffer with a depth texture attachment?");
-      return (ImTextureID)(intptr_t)m_DepthTexture->GetRendererId();
+      if (m_DepthTexture->GetType() == TextureType::Texture2D) {
+         return (ImTextureID)(intptr_t)static_cast<OpenGLTexture2D&>(*m_DepthTexture).GetRendererId();
+      } else {
+         return (ImTextureID)(intptr_t)static_cast<OpenGLTextureCube&>(*m_DepthTexture).GetRendererId();
+      }
    }
 
 
@@ -138,17 +147,22 @@ namespace Pikzel {
       int numDepthAttachments = 0;
       GLenum depthAttachmentType = GL_DEPTH_STENCIL_ATTACHMENT;
       for (const auto attachment : m_Settings.Attachments) {
-         switch(attachment.Type) {
+         switch(attachment.AttachmentType) {
             case AttachmentType::Color:
                PKZL_CORE_ASSERT(numColorAttachments < 4, "Framebuffer can have a maximum of four color attachments!");
-               m_ColorTextures.emplace_back(std::make_unique<OpenGLTexture2D>(m_Settings.Width, m_Settings.Height, attachment.Format, 1));
                if (isMultiSampled) {
+                  PKZL_CORE_ASSERT(attachment.TextureType == TextureType::Texture2D, "Framebuffer MSAA not supported for cube map texture color attachment");
                   m_MSAAColorAttachmentRendererIds.emplace_back(0);
                   glGenTextures(1, &m_MSAAColorAttachmentRendererIds.back());
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_MSAAColorAttachmentRendererIds.back());
                   glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Settings.MSAANumSamples, TextureFormatToInternalFormat(attachment.Format), m_Settings.Width, m_Settings.Height, GL_TRUE);
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-                  glFramebufferTexture2D(GL_FRAMEBUFFER, OpenGLAttachmentType(attachment.Type, numColorAttachments), GL_TEXTURE_2D_MULTISAMPLE, m_MSAAColorAttachmentRendererIds.back(), 0);
+                  glFramebufferTexture2D(GL_FRAMEBUFFER, OpenGLAttachmentType(attachment.AttachmentType, numColorAttachments), GL_TEXTURE_2D_MULTISAMPLE, m_MSAAColorAttachmentRendererIds.back(), 0);
+               }
+               if (attachment.TextureType == TextureType::Texture2D) {
+                  m_ColorTextures.emplace_back(std::make_unique<OpenGLTexture2D>(m_Settings.Width, m_Settings.Height, attachment.Format, 1));
+               } else {
+                  m_ColorTextures.emplace_back(std::make_unique<OpenGLTextureCube>(m_Settings.Width, attachment.Format, 1));
                }
                ++numColorAttachments;
                break;
@@ -156,16 +170,21 @@ namespace Pikzel {
             case AttachmentType::Depth:
             case AttachmentType::DepthStencil:
                PKZL_CORE_ASSERT(numDepthAttachments == 0, "Framebuffer can have a maximum of one depth attachment!");
-               m_DepthTexture = std::make_unique<OpenGLTexture2D>(m_Settings.Width, m_Settings.Height, attachment.Format, 1);
-               depthAttachmentType = OpenGLAttachmentType(attachment.Type, numDepthAttachments);
+               depthAttachmentType = OpenGLAttachmentType(attachment.AttachmentType, numDepthAttachments);
                if(isMultiSampled) {
+                  PKZL_CORE_ASSERT(attachment.TextureType == TextureType::Texture2D, "Framebuffer MSAA not supported for cube map texture depth attachment");
                   glGenTextures(1, &m_MSAADepthStencilAttachmentRendererId);
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_MSAADepthStencilAttachmentRendererId);
                   glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Settings.MSAANumSamples, TextureFormatToInternalFormat(attachment.Format), m_Settings.Width, m_Settings.Height, GL_TRUE);
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
                   glFramebufferTexture2D(GL_FRAMEBUFFER, depthAttachmentType, GL_TEXTURE_2D_MULTISAMPLE, m_MSAADepthStencilAttachmentRendererId, 0);
-                  ++numDepthAttachments;
                }
+               if (attachment.TextureType == TextureType::Texture2D) {
+                  m_DepthTexture = std::make_unique<OpenGLTexture2D>(m_Settings.Width, m_Settings.Height, attachment.Format, 1);
+               } else {
+                  m_DepthTexture = std::make_unique<OpenGLTextureCube>(m_Settings.Width, attachment.Format, 1);
+               }
+               ++numDepthAttachments;
                break;
          }
       }
@@ -181,11 +200,19 @@ namespace Pikzel {
 
       int i = 0;
       for(const auto& colorTexture : m_ColorTextures) {
-         glFramebufferTexture2D(GL_FRAMEBUFFER, OpenGLAttachmentType(AttachmentType::Color, i), GL_TEXTURE_2D, colorTexture->GetRendererId(), 0);
+         if (colorTexture->GetType() == TextureType::Texture2D) {
+            glFramebufferTexture(GL_FRAMEBUFFER, OpenGLAttachmentType(AttachmentType::Color, i), static_cast<OpenGLTexture2D&>(*colorTexture).GetRendererId(), 0);
+         } else {
+            glFramebufferTexture(GL_FRAMEBUFFER, OpenGLAttachmentType(AttachmentType::Color, i), static_cast<OpenGLTextureCube&>(*colorTexture).GetRendererId(), 0);
+         }
          ++i;
       }
       if (m_DepthTexture) {
-         glFramebufferTexture2D(GL_FRAMEBUFFER, depthAttachmentType, GL_TEXTURE_2D, m_DepthTexture->GetRendererId(), 0);
+         if (m_DepthTexture->GetType() == TextureType::Texture2D) {
+            glFramebufferTexture(GL_FRAMEBUFFER, depthAttachmentType, static_cast<OpenGLTexture2D&>(*m_DepthTexture).GetRendererId(), 0);
+         } else {
+            glFramebufferTexture(GL_FRAMEBUFFER, depthAttachmentType, static_cast<OpenGLTextureCube&>(*m_DepthTexture).GetRendererId(), 0);
+         }
       }
       glDrawBuffers(numColorAttachments, buffers);
       if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
