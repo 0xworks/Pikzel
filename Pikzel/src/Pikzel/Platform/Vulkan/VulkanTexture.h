@@ -11,7 +11,7 @@ namespace Pikzel {
    TextureFormat VkFormatToTextureFormat(const vk::Format format);
    vk::Format TextureFormatToVkFormat(const TextureFormat format);
 
-   class VulkanTexture2D : public Texture2D {
+   class VulkanTexture2D : public Texture {
    public:
       VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
       VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB);
@@ -25,7 +25,7 @@ namespace Pikzel {
 
       virtual void SetData(void* data, const uint32_t size) override;
 
-      virtual bool operator==(const Texture2D& that) override;
+      virtual bool operator==(const Texture& that) override;
 
    public:
       vk::Sampler GetVkSampler() const;
@@ -49,7 +49,7 @@ namespace Pikzel {
    };
 
 
-   class VulkanTextureCube : public TextureCube {
+   class VulkanTextureCube : public Texture {
    public:
 
       VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
@@ -64,7 +64,7 @@ namespace Pikzel {
 
       virtual void SetData(void* data, const uint32_t size) override;
 
-      bool operator==(const TextureCube& that) override;
+      bool operator==(const Texture& that) override;
 
    public:
       vk::Sampler GetVkSampler() const;

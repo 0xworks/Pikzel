@@ -112,17 +112,17 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) {
+   std::unique_ptr<Pikzel::Texture> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) {
       return std::make_unique<VulkanTexture2D>(m_Device, width, height, format, mipLevels);
    }
 
 
-   std::unique_ptr<Pikzel::Texture2D> VulkanRenderCore::CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) {
+   std::unique_ptr<Pikzel::Texture> VulkanRenderCore::CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) {
       return std::make_unique<VulkanTexture2D>(m_Device, path, isSRGB);
    }
 
 
-   std::unique_ptr<Pikzel::TextureCube> VulkanRenderCore::CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) {
+   std::unique_ptr<Pikzel::Texture> VulkanRenderCore::CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) {
       return std::make_unique<VulkanTextureCube>(m_Device, path, isSRGB);
    }
 

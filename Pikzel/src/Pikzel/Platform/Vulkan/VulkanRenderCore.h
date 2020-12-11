@@ -26,10 +26,10 @@ namespace Pikzel {
 
       virtual std::unique_ptr<Framebuffer> CreateFramebuffer(const FramebufferSettings& settings) override;
 
-      virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) override;
-      virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) override;
+      virtual std::unique_ptr<Texture> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) override;
+      virtual std::unique_ptr<Texture> CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) override;
 
-      virtual std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) override;
+      virtual std::unique_ptr<Texture> CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) override;
 
    private:
       std::vector<const char*> GetRequiredInstanceExtensions();

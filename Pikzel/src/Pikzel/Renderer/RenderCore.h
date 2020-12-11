@@ -34,10 +34,10 @@ namespace Pikzel {
 
       virtual std::unique_ptr<Framebuffer> CreateFramebuffer(const FramebufferSettings& settings) = 0;
 
-      virtual std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) = 0;
-      virtual std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) = 0;
+      virtual std::unique_ptr<Texture> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) = 0;
+      virtual std::unique_ptr<Texture> CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) = 0;
 
-      virtual std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) = 0;
+      virtual std::unique_ptr<Texture> CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) = 0;
 
    };
 
@@ -78,10 +78,10 @@ namespace Pikzel {
 
       static std::unique_ptr<Framebuffer> CreateFramebuffer(const FramebufferSettings& settings);
 
-      static std::unique_ptr<Texture2D> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
-      static std::unique_ptr<Texture2D> CreateTexture2D(const std::filesystem::path& path, const bool isSRGB = true);
+      static std::unique_ptr<Texture> CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
+      static std::unique_ptr<Texture> CreateTexture2D(const std::filesystem::path& path, const bool isSRGB = true);
 
-      static std::unique_ptr<TextureCube> CreateTextureCube(const std::filesystem::path& path, const bool isSRGB = true);
+      static std::unique_ptr<Texture> CreateTextureCube(const std::filesystem::path& path, const bool isSRGB = true);
 
    private:
       inline static API s_API = API::Undefined;

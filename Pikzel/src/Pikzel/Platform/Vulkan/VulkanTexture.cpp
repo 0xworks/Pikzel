@@ -156,7 +156,7 @@ namespace Pikzel {
    }
 
 
-   bool VulkanTexture2D::operator==(const Texture2D& that) {
+   bool VulkanTexture2D::operator==(const Texture& that) {
       return m_Image->GetVkImage() == static_cast<const VulkanTexture2D&>(that).m_Image->GetVkImage();
    }
 
@@ -456,7 +456,7 @@ namespace Pikzel {
    }
 
 
-   bool VulkanTextureCube::operator==(const TextureCube& that) {
+   bool VulkanTextureCube::operator==(const Texture& that) {
       return m_Image->GetVkImage() == static_cast<const VulkanTextureCube&>(that).m_Image->GetVkImage();
    }
 

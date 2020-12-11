@@ -99,7 +99,7 @@ namespace Pikzel {
       vk::DescriptorPool m_DescriptorPool;
       std::vector<std::vector<vk::DescriptorSet>> m_DescriptorSetInstances;         // m_DescriptorSets[i] = collection of descriptor sets that have been allocated for set i
       std::vector<std::vector<bool>> m_DescriptorSetBound;                          // m_DescriptorSetBound[i] = collection of booleans indicating which elements from m_DescriptorSets[i] are currently bound to the pipeline
-      std::vector<std::vector<std::shared_ptr<VulkanFence>>> m_DescriptorSetFences;   // m_DescriptorSetFences[i] = collection of fences synchronizing access to m_DescriptorSets for set i
+      std::vector<std::vector<std::shared_ptr<VulkanFence>>> m_DescriptorSetFences; // m_DescriptorSetFences[i] = collection of fences synchronizing access to m_DescriptorSets for set i
       std::vector<uint32_t> m_DescriptorSetIndices;                                 // m_DescriptorSetIndices[i] = which element (of m_DescriptorSets) is currently available for writing for set i
       std::vector<bool> m_DescriptorSetPending;                                     // m_DescriptorSetPending[i] = true <=> set i needs to be bound for next draw call
 

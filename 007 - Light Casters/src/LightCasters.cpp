@@ -229,8 +229,8 @@ private:
    Light m_Light;
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::unique_ptr<Pikzel::Texture2D> m_DiffuseTexture;
-   std::unique_ptr<Pikzel::Texture2D> m_SpecularTexture;
+   std::unique_ptr<Pikzel::Texture> m_DiffuseTexture;
+   std::unique_ptr<Pikzel::Texture> m_SpecularTexture;
    std::unique_ptr<Pikzel::UniformBuffer> m_MaterialBuffer;
    std::unique_ptr<Pikzel::UniformBuffer> m_LightBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLighting;
