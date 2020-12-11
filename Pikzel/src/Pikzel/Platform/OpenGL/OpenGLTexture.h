@@ -10,7 +10,7 @@ namespace Pikzel {
    GLenum TextureFormatToDataFormat(const TextureFormat format);
    GLenum TextureFormatToDataType(const TextureFormat format);
 
-   class OpenGLTexture2D : public Texture2D {
+   class OpenGLTexture2D : public Texture {
    public:
       OpenGLTexture2D(uint32_t width, uint32_t height, const TextureFormat format, const uint32_t mipLevels);
       OpenGLTexture2D(const std::filesystem::path& path, const bool isSRGB);
@@ -24,7 +24,7 @@ namespace Pikzel {
 
       virtual void SetData(void* data, const uint32_t size) override;
 
-      bool operator==(const Texture2D& that) override;
+      bool operator==(const Texture& that) override;
 
    public:
       uint32_t GetRendererId() const;
@@ -38,7 +38,7 @@ namespace Pikzel {
    };
 
 
-   class OpenGLTextureCube : public TextureCube {
+   class OpenGLTextureCube : public Texture {
    public:
 
       OpenGLTextureCube(uint32_t size, TextureFormat format, const uint32_t mipLevels);
@@ -52,7 +52,7 @@ namespace Pikzel {
 
       virtual void SetData(void* data, const uint32_t size) override;
 
-      bool operator==(const TextureCube& that) override;
+      bool operator==(const Texture& that) override;
 
    public:
       uint32_t GetRendererId() const;

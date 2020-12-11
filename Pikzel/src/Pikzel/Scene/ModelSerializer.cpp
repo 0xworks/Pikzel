@@ -10,9 +10,9 @@ namespace Pikzel {
 
    namespace ModelSerializer {
 
-      std::unordered_map<std::string, std::shared_ptr<Texture2D>> g_TextureCache;
+      std::unordered_map<std::string, std::shared_ptr<Texture>> g_TextureCache;
 
-      std::shared_ptr<Texture2D> LoadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::filesystem::path& modelDir) {
+      std::shared_ptr<Texture> LoadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::filesystem::path& modelDir) {
 
          // for now we support only 0 or 1 texture  TODO: make better
          for (unsigned int i = 0; i < mat->GetTextureCount(type); ++i) {
@@ -33,7 +33,7 @@ namespace Pikzel {
          // material did not have a texture of specified type => create one
          if (type == aiTextureType_SPECULAR) {
             if (g_TextureCache.find("**black**") == g_TextureCache.end()) {
-               std::shared_ptr<Texture2D> blackTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::RGBA8, 1);
+               std::shared_ptr<Texture> blackTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::RGBA8, 1);
                uint32_t black = 0;
                blackTexture->SetData(&black, sizeof(uint32_t));
                g_TextureCache["**black**"] = blackTexture;
@@ -41,7 +41,7 @@ namespace Pikzel {
             return g_TextureCache["**black**"];
          }
          if (g_TextureCache.find("**white**") == g_TextureCache.end()) {
-            std::shared_ptr<Texture2D> whiteTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::SRGBA8, 1);
+            std::shared_ptr<Texture> whiteTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::SRGBA8, 1);
             uint32_t white = 0xffffffff;
             whiteTexture->SetData(&white, sizeof(uint32_t));
             g_TextureCache["**white**"] = whiteTexture;
@@ -53,7 +53,7 @@ namespace Pikzel {
       Mesh ProcessMesh(aiMesh* pmesh, const aiScene* pscene, const std::filesystem::path& modelDir) {
          std::vector<Mesh::Vertex> vertices;
          std::vector<uint32_t> indices;
-         std::vector<Texture2D> textures;
+         std::vector<Texture> textures;
 
          glm::vec3 aabbMin = glm::vec3 {FLT_MAX};
          glm::vec3 aabbMax = glm::vec3 {-FLT_MAX};

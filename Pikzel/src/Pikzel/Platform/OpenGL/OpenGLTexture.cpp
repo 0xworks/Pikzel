@@ -162,7 +162,7 @@ namespace Pikzel {
    }
 
 
-   bool OpenGLTexture2D::operator==(const Texture2D& that) {
+   bool OpenGLTexture2D::operator==(const Texture& that) {
       return m_RendererId == static_cast<const OpenGLTexture2D&>(that).m_RendererId;
    }
 
@@ -270,7 +270,7 @@ namespace Pikzel {
    }
 
 
-   bool OpenGLTextureCube::operator==(const TextureCube& that) {
+   bool OpenGLTextureCube::operator==(const Texture& that) {
       return m_RendererId == static_cast<const OpenGLTextureCube&>(that).m_RendererId;
    }
 

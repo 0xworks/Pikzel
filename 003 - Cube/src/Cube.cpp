@@ -164,7 +164,7 @@ private:
    };
 
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::unique_ptr<Pikzel::Texture2D> m_Texture;
+   std::unique_ptr<Pikzel::Texture> m_Texture;
    std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
 
 };

@@ -21,8 +21,8 @@ namespace Pikzel {
       std::pair<glm::vec3, glm::vec3> AABB = {glm::vec3{FLT_MAX}, glm::vec3{-FLT_MAX}};
       std::shared_ptr<Pikzel::VertexBuffer> VertexBuffer;
       std::shared_ptr<Pikzel::IndexBuffer> IndexBuffer;
-      std::shared_ptr<Pikzel::Texture2D> DiffuseTexture;
-      std::shared_ptr<Pikzel::Texture2D> SpecularTexture;
+      std::shared_ptr<Pikzel::Texture> DiffuseTexture;
+      std::shared_ptr<Pikzel::Texture> SpecularTexture;
       uint32_t Index;
    };
 

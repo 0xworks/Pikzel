@@ -253,9 +253,9 @@ private:
    };
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::unique_ptr<Pikzel::Texture2D> m_TextureContainer;
-   std::unique_ptr<Pikzel::Texture2D> m_TextureFloor;
-   std::unique_ptr<Pikzel::TextureCube> m_Skybox;
+   std::unique_ptr<Pikzel::Texture> m_TextureContainer;
+   std::unique_ptr<Pikzel::Texture> m_TextureFloor;
+   std::unique_ptr<Pikzel::Texture> m_Skybox;
    std::unique_ptr<Pikzel::Pipeline> m_ScenePipeline;
    std::unique_ptr<Pikzel::Pipeline> m_SkyboxPipeline;
 };

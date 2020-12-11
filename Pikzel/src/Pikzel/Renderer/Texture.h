@@ -83,26 +83,28 @@ namespace Pikzel {
 
       virtual void SetData(void* data, const uint32_t size) = 0;
 
+      virtual bool operator==(const Texture& that) = 0;
+
    public:
       static uint32_t CalculateMipMapLevels(const uint32_t width, const uint32_t height);
       static uint32_t BPP(const TextureFormat format);
    };
 
 
-   class PKZL_API Texture2D : public Texture {
-   public:
-      virtual ~Texture2D() = default;
+   //class PKZL_API Texture2D : public Texture {
+   //public:
+   //   virtual ~Texture2D() = default;
+   //
+   //   virtual bool operator==(const Texture2D& that) = 0;
+   //};
 
-      virtual bool operator==(const Texture2D& that) = 0;
-   };
 
-
-   class PKZL_API TextureCube : public Texture {
-   public:
-      virtual ~TextureCube() = default;
-
-      virtual bool operator==(const TextureCube& that) = 0;
-   };
+   //class PKZL_API TextureCube : public Texture {
+   //public:
+   //   virtual ~TextureCube() = default;
+   //
+   //   virtual bool operator==(const TextureCube& that) = 0;
+   //};
 
 
    inline uint32_t Texture::BPP(const TextureFormat format) {

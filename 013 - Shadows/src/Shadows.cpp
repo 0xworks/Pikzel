@@ -434,10 +434,10 @@ private:
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferLightViews;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferDirectionalLight;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferPointLight;
-   std::unique_ptr<Pikzel::Texture2D> m_TextureContainer;
-   std::unique_ptr<Pikzel::Texture2D> m_TextureContainerSpecular;
-   std::unique_ptr<Pikzel::Texture2D> m_TextureFloor;
-   std::unique_ptr<Pikzel::Texture2D> m_TextureFloorSpecular;
+   std::unique_ptr<Pikzel::Texture> m_TextureContainer;
+   std::unique_ptr<Pikzel::Texture> m_TextureContainerSpecular;
+   std::unique_ptr<Pikzel::Texture> m_TextureFloor;
+   std::unique_ptr<Pikzel::Texture> m_TextureFloorSpecular;
    std::unique_ptr<Pikzel::Framebuffer> m_FramebufferDirShadow;
    std::unique_ptr<Pikzel::Framebuffer> m_FramebufferPtShadow;
    std::unique_ptr<Pikzel::Framebuffer> m_FramebufferScene;

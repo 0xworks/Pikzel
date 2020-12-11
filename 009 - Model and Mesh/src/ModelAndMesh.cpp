@@ -1,6 +1,7 @@
 #include "Camera.h"
 
 #include "Pikzel/Pikzel.h"
+
 #include "Pikzel/Core/EntryPoint.h"
 
 class ModelAndMesh final : public Pikzel::Application {
@@ -10,14 +11,14 @@ public:
    , m_Input {GetWindow()}
    {
 
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 1.0f, 10000.0f);
+
       // for rendering point lights as cubes
       CreateVertexBuffer();
       CreatePipelines();
 
       // renders the actual scene
       CreateModelRenderer();
-
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 1.0f, 10000.0f);
 
       // In order to render ImGui widgets, you need to initialize ImGui integration.
       // Clients that do not wish to use ImGui simply don't call this (and so "pay" nothing)
@@ -160,6 +161,14 @@ private:
       ImGui::PopID();
    }
 
+
+   virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
+      __super::OnWindowResize(event);
+
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(event.Width) / static_cast<float>(event.Height), 1.0f, 10000.0f);
+   }
+
+
 private:
 
    Pikzel::Input m_Input;
@@ -168,7 +177,7 @@ private:
       .Position = {-900.0f, 100.0f, 0.0f},
       .Direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
       .UpVector = {0.0f, 1.0f, 0.0f},
-      .FoVRadians = glm::radians(80.f),
+      .FoVRadians = glm::radians(45.f),
       .MoveSpeed = 200.0f,
       .RotateSpeed = 20.0f
    };
@@ -176,9 +185,9 @@ private:
    // note: currently shader expects exactly 1 directional light
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
-         .Direction = {-0.0f, -1.0f, -2.0f},
-         .Color = Pikzel::sRGB{0.1f, 0.1f, 0.2f},
-         .Ambient = Pikzel::sRGB{0.01f, 0.01f, 0.02f}
+         .Direction = {-1.0f, -1.0f, 0.0f},
+         .Color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
+         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f}
       }
    };
 

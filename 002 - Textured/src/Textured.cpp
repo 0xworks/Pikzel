@@ -65,7 +65,7 @@ private:
 private:
    glm::mat4 m_Transform = glm::identity<glm::mat4>();
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::unique_ptr<Pikzel::Texture2D> m_Texture;
+   std::unique_ptr<Pikzel::Texture> m_Texture;
    std::unique_ptr<Pikzel::Pipeline> m_Pipeline;
 
 };
