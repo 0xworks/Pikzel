@@ -46,9 +46,9 @@ namespace Pikzel {
       FramebufferSettings m_Settings;
       std::shared_ptr<VulkanDevice> m_Device;
 
-      std::vector<std::unique_ptr<Texture>> m_ColorTextures;
+      std::vector<std::unique_ptr<VulkanTexture>> m_ColorTextures;
       std::vector < std::unique_ptr<VulkanImage>> m_MSAAColorImages;
-      std::unique_ptr<Texture> m_DepthTexture;
+      std::unique_ptr<VulkanTexture> m_DepthTexture;
       std::unique_ptr<VulkanImage> m_MSAADepthImage;
       std::unique_ptr<GraphicsContext> m_Context;
 

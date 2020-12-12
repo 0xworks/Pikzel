@@ -10,27 +10,22 @@ namespace Pikzel {
    GLenum TextureFormatToDataFormat(const TextureFormat format);
    GLenum TextureFormatToDataType(const TextureFormat format);
 
-   class OpenGLTexture2D : public Texture {
+
+   class OpenGLTexture : public Texture {
    public:
-      OpenGLTexture2D(uint32_t width, uint32_t height, const TextureFormat format, const uint32_t mipLevels);
-      OpenGLTexture2D(const std::filesystem::path& path, const bool isSRGB);
-      virtual ~OpenGLTexture2D();
+      virtual ~OpenGLTexture();
 
       virtual TextureFormat GetFormat() const override;
-      virtual TextureType GetType() const override;
 
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
-
-      virtual void SetData(void* data, const uint32_t size) override;
 
       bool operator==(const Texture& that) override;
 
    public:
       uint32_t GetRendererId() const;
 
-   private:
-      std::filesystem::path m_Path;
+   protected:
       TextureFormat m_Format = {};
       uint32_t m_Width = {};
       uint32_t m_Height = {};
@@ -38,33 +33,73 @@ namespace Pikzel {
    };
 
 
-   class OpenGLTextureCube : public Texture {
+   class OpenGLTexture2D : public OpenGLTexture {
    public:
+      OpenGLTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
+      OpenGLTexture2D(const std::filesystem::path& path, const bool isSRGB);
 
-      OpenGLTextureCube(uint32_t size, TextureFormat format, const uint32_t mipLevels);
-      OpenGLTextureCube(const std::filesystem::path& path, const bool isSRGB);
-      virtual ~OpenGLTextureCube();
-
-      virtual TextureFormat GetFormat() const override;
       virtual TextureType GetType() const override;
-      virtual uint32_t GetWidth() const override;
-      virtual uint32_t GetHeight() const override;
+
+      virtual uint32_t GetLayers() const override;
 
       virtual void SetData(void* data, const uint32_t size) override;
 
-      bool operator==(const Texture& that) override;
+   private:
+      std::filesystem::path m_Path;
+   };
 
+
+   class OpenGLTexture2DArray : public OpenGLTexture {
    public:
-      uint32_t GetRendererId() const;
+      OpenGLTexture2DArray(const uint32_t width, const uint32_t height, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels);
+
+      virtual TextureType GetType() const override;
+
+      virtual uint32_t GetLayers() const override;
+
+      virtual void SetData(void* data, const uint32_t size) override;
+
+   private:
+      uint32_t m_Layers = {};
+   };
+
+
+   class OpenGLTextureCube : public OpenGLTexture {
+   public:
+
+      OpenGLTextureCube(const uint32_t size, TextureFormat format, const uint32_t mipLevels);
+      OpenGLTextureCube(const std::filesystem::path& path, const bool isSRGB);
+
+      virtual TextureType GetType() const override;
+
+      virtual uint32_t GetLayers() const override;
+
+      virtual void SetData(void* data, const uint32_t size) override;
 
    private:
       void AllocateStorage(const uint32_t mipLevels);
 
    private:
       std::filesystem::path m_Path;
-      TextureFormat m_Format = {};     // format of the cubemap texture (currently always RGBA8)
       TextureFormat m_DataFormat = {}; // format of the data texture was originally loaded from
-      uint32_t m_Size = {};
-      uint32_t m_RendererId = {};
    };
+
+
+   class OpenGLTextureCubeArray : public OpenGLTexture {
+   public:
+      OpenGLTextureCubeArray(const uint32_t size, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels);
+
+      virtual TextureType GetType() const override;
+
+      virtual uint32_t GetLayers() const override;
+
+      virtual void SetData(void* data, const uint32_t size) override;
+
+   private:
+      void AllocateStorage(const uint32_t mipLevels);
+
+   private:
+      uint32_t m_Layers = {};
+   };
+
 }

@@ -40,6 +40,7 @@ set(
 
 set(
    ShaderHeaders
+   "Assets/Shaders/PointLight.glsl"
 )
 
 set(

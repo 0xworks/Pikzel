@@ -23,6 +23,7 @@ namespace Pikzel {
    struct PKZL_API FramebufferSettings {
       uint32_t Width = 1920;
       uint32_t Height = 1080;
+      uint32_t Layers = 1;
       uint32_t MSAANumSamples = 1;
       glm::vec4 ClearColor = {};
       std::vector<FramebufferAttachmentSettings> Attachments = {

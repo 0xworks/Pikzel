@@ -3,8 +3,8 @@ layout (location = 0) in vec3 inPos;
 
 layout(push_constant) uniform PC {
    mat4 model;
-   vec3 lightPos;
    float farPlane;
+   uint numPointLights;
 } constants;
 
 void main() {

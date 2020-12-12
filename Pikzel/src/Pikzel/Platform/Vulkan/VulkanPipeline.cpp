@@ -173,21 +173,18 @@ namespace Pikzel {
          for (const auto& resource : resources.uniform_buffers) {
             const auto& name = resource.name;
             const auto& type = compiler.get_type(resource.type_id);
+            std::vector<uint32_t> shape;
             if (type.array.size() > 0) {
-               //
-               // arrays are not currently supported.
-               // but if you're interested, you can find out array dimensions as follows:
-               // const auto& type = compiler.get_type(resource.type);
-               // const auto dimensions = type.array.size();  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
-               // for(auto dim=0; dim<dimensions; ++dim) {
-               //    const auto len = type.array[dim];  // size of [dim]th dimension of the array
-               // }
-               throw std::runtime_error {fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name)};
+               PKZL_CORE_LOG_ERROR(fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+               shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
+               for (auto dim = 0; dim < shape.size(); ++dim) {
+                  shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
+               }
             }
 
             uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            PKZL_CORE_LOG_TRACE("Found uniform buffer at set {0}, binding {1} with name '{2}'", set, binding, name);
+            PKZL_CORE_LOG_TRACE("Found uniform buffer at set {0}, binding {1} with name '{2}', R  rank is {3}", set, binding, name, shape.size());
 
             bool found = false;
             for (auto& [id, res] : m_Resources) {
@@ -205,16 +202,26 @@ namespace Pikzel {
                if (m_Resources.find(id) != m_Resources.end()) {
                   throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};
                } else {
-                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eUniformBuffer, 1, ShaderTypeToVulkanShaderStage(shaderType)});
+                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eUniformBuffer, shape, ShaderTypeToVulkanShaderStage(shaderType)});
                }
             }
          }
 
          for (const auto& resource : resources.sampled_images) {
             const auto& name = resource.name;
+            const auto& type = compiler.get_type(resource.type_id);
+            std::vector<uint32_t> shape;
+            if (type.array.size() > 0) {
+               PKZL_CORE_LOG_ERROR(fmt::format("Sampler object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+               shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
+               for (auto dim = 0; dim < shape.size(); ++dim) {
+                  shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
+               }
+            }
+
             uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            PKZL_CORE_LOG_TRACE("Found texture sampler at set {0}, binding {1} with name '{2}'", set, binding, name);
+            PKZL_CORE_LOG_TRACE("Found texture sampler at set {0}, binding {1} with name '{2}', rank is {3}", set, binding, name, shape.size());
 
             bool found = false;
             for (auto& [id, res] : m_Resources) {
@@ -232,16 +239,25 @@ namespace Pikzel {
                if (m_Resources.find(id) != m_Resources.end()) {
                   throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};
                } else {
-                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eCombinedImageSampler, 1, ShaderTypeToVulkanShaderStage(shaderType)});
+                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eCombinedImageSampler, shape, ShaderTypeToVulkanShaderStage(shaderType)});
                }
             }
          }
 
          for (const auto& resource : resources.storage_images) {
             const auto& name = resource.name;
+            const auto& type = compiler.get_type(resource.type_id);
+            std::vector<uint32_t> shape;
+            if (type.array.size() > 0) {
+               PKZL_CORE_LOG_ERROR(fmt::format("Stogate image object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+               shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
+               for (auto dim = 0; dim < shape.size(); ++dim) {
+                  shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
+               }
+            }
             uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            PKZL_CORE_LOG_TRACE("Found storage image at set {0}, binding {1} with name '{2}'", set, binding, name);
+            PKZL_CORE_LOG_TRACE("Found storage image at set {0}, binding {1} with name '{2}', rank is {3}", set, binding, name, shape.size());
 
             bool found = false;
             for (auto& [id, res] : m_Resources) {
@@ -259,7 +275,7 @@ namespace Pikzel {
                if (m_Resources.find(id) != m_Resources.end()) {
                   throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};
                } else {
-                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eStorageImage, 1, ShaderTypeToVulkanShaderStage(shaderType)});
+                  m_Resources.emplace(id, VulkanResource {name, set, binding, vk::DescriptorType::eStorageImage, shape, ShaderTypeToVulkanShaderStage(shaderType)});
                }
             }
          }
@@ -279,7 +295,7 @@ namespace Pikzel {
          if (layoutBindings.size() <= resource.DescriptorSet) {
             layoutBindings.resize(resource.DescriptorSet + 1);
          }
-         layoutBindings[resource.DescriptorSet].emplace_back(resource.Binding, resource.Type, resource.Count, resource.ShaderStages);
+         layoutBindings[resource.DescriptorSet].emplace_back(resource.Binding, resource.Type, resource.GetCount(), resource.ShaderStages);
       }
 
       for (const auto& layoutBinding : layoutBindings) {
