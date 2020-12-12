@@ -26,8 +26,16 @@ namespace Pikzel {
       uint32_t DescriptorSet = 0;
       uint32_t Binding = 0;
       vk::DescriptorType Type = {};
-      uint32_t Count = 0;
+      std::vector<uint32_t> Shape = {};
       vk::ShaderStageFlags ShaderStages = {};
+
+      uint32_t GetCount() const {
+         uint32_t count = 1;
+         for (const auto dimension : Shape) {
+            count *= dimension;
+         }
+         return count;
+      }
    };
 
 

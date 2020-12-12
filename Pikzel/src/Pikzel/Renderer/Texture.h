@@ -26,7 +26,9 @@ namespace Pikzel {
 
    enum class TextureType {
       Texture2D,
-      TextureCube
+      Texture2DArray,
+      TextureCube,
+      TextureCubeArray
    };
 
 
@@ -81,6 +83,8 @@ namespace Pikzel {
       virtual uint32_t GetWidth() const = 0;
       virtual uint32_t GetHeight() const = 0;
 
+      virtual uint32_t GetLayers() const = 0;
+
       virtual void SetData(void* data, const uint32_t size) = 0;
 
       virtual bool operator==(const Texture& that) = 0;
@@ -89,22 +93,6 @@ namespace Pikzel {
       static uint32_t CalculateMipMapLevels(const uint32_t width, const uint32_t height);
       static uint32_t BPP(const TextureFormat format);
    };
-
-
-   //class PKZL_API Texture2D : public Texture {
-   //public:
-   //   virtual ~Texture2D() = default;
-   //
-   //   virtual bool operator==(const Texture2D& that) = 0;
-   //};
-
-
-   //class PKZL_API TextureCube : public Texture {
-   //public:
-   //   virtual ~TextureCube() = default;
-   //
-   //   virtual bool operator==(const TextureCube& that) = 0;
-   //};
 
 
    inline uint32_t Texture::BPP(const TextureFormat format) {

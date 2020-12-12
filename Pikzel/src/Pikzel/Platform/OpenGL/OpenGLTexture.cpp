@@ -93,11 +93,40 @@ namespace Pikzel {
    }
 
 
-   OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, TextureFormat format, const uint32_t mipLevels)
-   : m_Format {format}
-   , m_Width {width}
-   , m_Height {height}
-   {
+   OpenGLTexture::~OpenGLTexture() {
+      glDeleteTextures(1, &m_RendererId);
+   }
+
+
+   TextureFormat OpenGLTexture::GetFormat() const {
+      return m_Format;
+   }
+
+
+   uint32_t OpenGLTexture::GetWidth() const {
+      return m_Width;
+   }
+
+
+   uint32_t OpenGLTexture::GetHeight() const {
+      return m_Height;
+   }
+
+
+   uint32_t OpenGLTexture::GetRendererId() const {
+      return m_RendererId;
+   }
+
+
+   bool OpenGLTexture::operator==(const Texture& that) {
+      return m_RendererId = static_cast<const OpenGLTexture&>(that).m_RendererId;
+   }
+
+
+   OpenGLTexture2D::OpenGLTexture2D(const uint32_t width, const uint32_t height, TextureFormat format, const uint32_t mipLevels) {
+      m_Width = width;
+      m_Height = height;
+      m_Format = format;
       glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
       glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
 
@@ -110,8 +139,7 @@ namespace Pikzel {
 
 
    OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path, const bool isSRGB)
-   : m_Format {TextureFormat::Undefined}
-   , m_Path {path}
+   : m_Path {path}
    {
       stbi_uc* data = STBILoad(path, isSRGB, &m_Width, &m_Height, &m_Format);
       uint32_t levels = CalculateMipMapLevels(m_Width, m_Height);
@@ -131,28 +159,13 @@ namespace Pikzel {
    }
 
 
-   OpenGLTexture2D::~OpenGLTexture2D() {
-      glDeleteTextures(1, &m_RendererId);
-   }
-
-
-   TextureFormat OpenGLTexture2D::GetFormat() const {
-      return m_Format;
-   }
-
-
    TextureType OpenGLTexture2D::GetType() const {
       return TextureType::Texture2D;
    }
 
 
-   uint32_t OpenGLTexture2D::GetWidth() const {
-      return m_Width;
-   }
-
-
-   uint32_t OpenGLTexture2D::GetHeight() const {
-      return m_Height;
+   uint32_t OpenGLTexture2D::GetLayers() const {
+      return 1;
    }
 
 
@@ -162,30 +175,53 @@ namespace Pikzel {
    }
 
 
-   bool OpenGLTexture2D::operator==(const Texture& that) {
-      return m_RendererId == static_cast<const OpenGLTexture2D&>(that).m_RendererId;
-   }
-
-
-   uint32_t OpenGLTexture2D::GetRendererId() const {
-      return m_RendererId;
-   }
-
-
-
-   OpenGLTextureCube::OpenGLTextureCube(uint32_t size, TextureFormat format, const uint32_t mipLevels)
-   : m_Format {format}
-   , m_Size {size}
+   OpenGLTexture2DArray::OpenGLTexture2DArray(const uint32_t width, const uint32_t height, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels)
+   : m_Layers {layers}
    {
+      m_Width = width;
+      m_Height = height;
+      m_Format = format;
+      glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_RendererId);
+      glTextureStorage3D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers);
+
+      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+   }
+
+
+   TextureType OpenGLTexture2DArray::GetType() const {
+      return TextureType::Texture2DArray;
+   }
+
+
+   uint32_t OpenGLTexture2DArray::GetLayers() const {
+      return m_Layers;
+   }
+
+
+   void OpenGLTexture2DArray::SetData(void* data, const uint32_t size) {
+      PKZL_CORE_ASSERT(size == m_Width * m_Height * m_Layers * BPP(m_Format), "Data must be entire texture!");
+      glTextureSubImage3D(m_RendererId, 0, 0, 0, 0, m_Width, m_Height, m_Layers, TextureFormatToDataFormat(m_Format), TextureFormatToDataType(m_Format), data);
+   }
+
+
+   OpenGLTextureCube::OpenGLTextureCube(const uint32_t size, TextureFormat format, const uint32_t mipLevels) {
+      m_Width = size;
+      m_Height = size;
+      m_Format = format;
       AllocateStorage(mipLevels);
    }
 
 
    OpenGLTextureCube::OpenGLTextureCube(const std::filesystem::path& path, const bool isSRGB)
    : m_Path {path}
-   , m_Format {TextureFormat::RGBA8}   // SRGB or not?
    , m_DataFormat {TextureFormat::Undefined}
    {
+      m_Format = TextureFormat::RGBA8;
+
       uint32_t width;
       uint32_t height;
       stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &m_DataFormat);
@@ -194,23 +230,15 @@ namespace Pikzel {
       // width is twice the height -> equirectangular (probably)
       // width is 4/3 the height -> 6 faces of a cube (probably)
       if (width / 2 == height) {
-         m_Size = height;
+         m_Width = height;
+         m_Height = m_Width;
       } else {
-         m_Size = width / 4;
+         m_Width = width / 4;
+         m_Height = m_Width;
       }
-      AllocateStorage(CalculateMipMapLevels(m_Size, m_Size));
+      AllocateStorage(CalculateMipMapLevels(m_Width, m_Height));
       SetData(data, width * height * BPP(m_DataFormat));
       stbi_image_free(data);
-   }
-
-
-   OpenGLTextureCube::~OpenGLTextureCube() {
-      glDeleteTextures(1, &m_RendererId);
-   }
-
-
-   TextureFormat OpenGLTextureCube::GetFormat() const {
-      return m_Format;
    }
 
 
@@ -219,19 +247,14 @@ namespace Pikzel {
    }
 
 
-   uint32_t OpenGLTextureCube::GetWidth() const {
-      return m_Size;
-   }
-
-
-   uint32_t OpenGLTextureCube::GetHeight() const {
-      return m_Size;
+   uint32_t OpenGLTextureCube::GetLayers() const {
+      return 6;
    }
 
 
    void OpenGLTextureCube::SetData(void* data, uint32_t size) {
-      uint32_t width = m_Size;
-      uint32_t height = m_Size;
+      uint32_t width = m_Width;
+      uint32_t height = m_Height;
       const char* shader = nullptr;
       if (size == (width * 2 * height * BPP(m_DataFormat))) {
          width *= 2;
@@ -270,23 +293,53 @@ namespace Pikzel {
    }
 
 
-   bool OpenGLTextureCube::operator==(const Texture& that) {
-      return m_RendererId == static_cast<const OpenGLTextureCube&>(that).m_RendererId;
-   }
-
-
-   uint32_t OpenGLTextureCube::GetRendererId() const {
-      return m_RendererId;
-   }
-
-
    void OpenGLTextureCube::AllocateStorage(const uint32_t mipLevels) {
       if ((GetWidth() % 32)) {
          throw std::runtime_error {"Cube texture size must be a multiple of 32!"};
       }
 
       glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererId);
-      glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Size, m_Size);
+      glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
+      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+      glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+   }
+
+
+   OpenGLTextureCubeArray::OpenGLTextureCubeArray(const uint32_t size, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels)
+   : m_Layers {layers}
+   {
+      m_Width = size;
+      m_Height = size;
+      m_Format = format;
+      AllocateStorage(mipLevels);
+   }
+
+
+   TextureType OpenGLTextureCubeArray::GetType() const {
+      return TextureType::TextureCubeArray;
+   }
+
+
+   uint32_t OpenGLTextureCubeArray::GetLayers() const {
+      return m_Layers * 6;
+   }
+
+
+   void OpenGLTextureCubeArray::SetData(void* data, const uint32_t size) {
+      PKZL_NOT_IMPLEMENTED;
+   }
+
+
+   void OpenGLTextureCubeArray::AllocateStorage(const uint32_t mipLevels) {
+      if ((GetWidth() % 32)) {
+         throw std::runtime_error {"Cube texture size must be a multiple of 32!"};
+      }
+
+      glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &m_RendererId);
+      glTextureStorage3D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers * 6);
       glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
       glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

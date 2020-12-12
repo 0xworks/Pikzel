@@ -23,7 +23,7 @@ namespace Pikzel {
    struct OpenGLResourceDeclaration {
       std::string Name;
       uint32_t Binding = 0;
-      uint32_t Count = 0;
+      std::vector<uint32_t> Shape = {};
    };
 
 

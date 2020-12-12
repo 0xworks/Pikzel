@@ -95,115 +95,81 @@ namespace Pikzel {
    }
 
 
-   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect)
-   : m_Device {device} 
-   {
-      CreateImage(width, height, TextureFormatToVkFormat(format), mipLevels, usage, aspect);
-      CreateSampler();
-   }
-
-
-   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB)
-   : m_Path {path}
-   , m_Device {device}
-   {
-      uint32_t width;
-      uint32_t height;
-      TextureFormat format;
-      stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &format);
-
-      CreateImage(width, height, TextureFormatToVkFormat(format), CalculateMipMapLevels(width, height), vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlagBits::eColor);
-      CreateSampler();
-      PKZL_CORE_ASSERT(BPP(format) != 3, "VulkanTexture2D format cannot be 24-bits per texel");
-      SetData(data, width * height * BPP(format));
-
-      stbi_image_free(data);
-   }
-
-
-   VulkanTexture2D::~VulkanTexture2D() {
+   VulkanTexture::~VulkanTexture() {
       DestroySampler();
       DestroyImage();
    }
 
 
-   TextureFormat VulkanTexture2D::GetFormat() const {
+   uint32_t VulkanTexture::GetWidth() const {
+      return m_Image->GetWidth();
+   }
+
+
+   uint32_t VulkanTexture::GetHeight() const {
+      return m_Image->GetHeight();
+   }
+
+
+   uint32_t VulkanTexture::GetLayers() const {
+      return m_Image->GetLayers();
+   }
+
+
+   TextureFormat VulkanTexture::GetFormat() const {
       return VkFormatToTextureFormat(m_Image->GetVkFormat());
    }
 
 
-   TextureType VulkanTexture2D::GetType() const {
-      return TextureType::TextureCube;
+   bool VulkanTexture::operator==(const Texture& that) {
+      return m_Image->GetVkImage() == static_cast<const VulkanTexture&>(that).m_Image->GetVkImage();
    }
 
 
-   uint32_t VulkanTexture2D::GetWidth() const {
-      return m_Image->GetVkExtent().width;
-   }
-
-
-   uint32_t VulkanTexture2D::GetHeight() const {
-      return m_Image->GetVkExtent().height;
-   }
-
-
-   void VulkanTexture2D::SetData(void* data, uint32_t size) {
-      VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-      stagingBuffer.CopyFromHost(0, size, data);
-      m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
-      m_Image->CopyFromBuffer(stagingBuffer.m_Buffer);
-      m_Image->GenerateMIPMaps();
-   }
-
-
-   bool VulkanTexture2D::operator==(const Texture& that) {
-      return m_Image->GetVkImage() == static_cast<const VulkanTexture2D&>(that).m_Image->GetVkImage();
-   }
-
-
-   vk::Sampler VulkanTexture2D::GetVkSampler() const {
+   vk::Sampler VulkanTexture::GetVkSampler() const {
       return m_TextureSampler;
    }
 
 
-   vk::ImageView VulkanTexture2D::GetVkImageView() const {
+   vk::ImageView VulkanTexture::GetVkImageView() const {
       return m_Image->GetVkImageView();
    }
 
 
-   vk::Format VulkanTexture2D::GetVkFormat() const {
+   vk::Format VulkanTexture::GetVkFormat() const {
       return m_Image->GetVkFormat();
    }
 
 
-   void VulkanTexture2D::TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
+   void VulkanTexture::TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
       m_Image->TransitionImageLayout(oldLayout, newLayout);
    }
 
 
-   void VulkanTexture2D::CreateImage(const uint32_t width, const uint32_t height, const vk::Format format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
+   void VulkanTexture::CreateImage(const vk::ImageViewType type, const uint32_t width, const uint32_t height, const uint32_t layers, const uint32_t mipLevels, const vk::Format format, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
       m_Image = std::make_unique<VulkanImage>(
          m_Device,
+         type,
          width,
          height,
+         layers,
          mipLevels,
          vk::SampleCountFlagBits::e1,
          format,
          vk::ImageTiling::eOptimal,
          usage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-         vk::MemoryPropertyFlagBits::eDeviceLocal,
-         vk::ImageCreateFlags {}
+         vk::MemoryPropertyFlagBits::eDeviceLocal
       );
       m_Image->CreateImageView(format, aspect);
    }
 
 
-   void VulkanTexture2D::DestroyImage() {
+   void VulkanTexture::DestroyImage() {
       m_Image.reset();
    }
 
 
-   void VulkanTexture2D::CreateSampler() {
+   void VulkanTexture::CreateSampler() {
       m_TextureSampler = m_Device->GetVkDevice().createSampler({
          {}                                                              /*flags*/,
          vk::Filter::eLinear                                             /*magFilter*/,
@@ -225,7 +191,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanTexture2D::DestroySampler() {
+   void VulkanTexture::DestroySampler() {
       if (m_Device && m_TextureSampler) {
          m_Device->GetVkDevice().destroy(m_TextureSampler);
          m_TextureSampler = nullptr;
@@ -233,16 +199,75 @@ namespace Pikzel {
    }
 
 
-   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect)
-   : m_Device {device} {
-      CreateImage(size, TextureFormatToVkFormat(format), mipLevels, usage, aspect);
+   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
+      m_Device = device;
+      CreateImage(vk::ImageViewType::e2D, width, height, 1, mipLevels, TextureFormatToVkFormat(format), usage, aspect);
+      CreateSampler();
+   }
+
+
+   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB)
+   : m_Path {path}
+   {
+      uint32_t width;
+      uint32_t height;
+      TextureFormat format;
+      stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &format);
+
+      m_Device = device;
+      CreateImage(vk::ImageViewType::e2D, width, height, 1, CalculateMipMapLevels(width, height), TextureFormatToVkFormat(format), vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlagBits::eColor);
+      CreateSampler();
+      PKZL_CORE_ASSERT(BPP(format) != 3, "VulkanTexture2D format cannot be 24-bits per texel");
+      SetData(data, width * height * BPP(format));
+
+      stbi_image_free(data);
+   }
+
+
+   TextureType VulkanTexture2D::GetType() const {
+      return TextureType::Texture2D;
+   }
+
+
+   void VulkanTexture2D::SetData(void* data, uint32_t size) {
+      VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+      stagingBuffer.CopyFromHost(0, size, data);
+      m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+      m_Image->CopyFromBuffer(stagingBuffer.m_Buffer);
+      m_Image->GenerateMIPMaps();
+   }
+
+
+   VulkanTexture2DArray::VulkanTexture2DArray(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage /*= vk::ImageUsageFlagBits::eColorAttachment*/, vk::ImageAspectFlags aspect /*= vk::ImageAspectFlagBits::eColor*/) {
+      m_Device = device;
+      CreateImage(vk::ImageViewType::e2DArray, width, height, layers, mipLevels, TextureFormatToVkFormat(format), usage, aspect);
+      CreateSampler();
+   }
+
+
+   TextureType VulkanTexture2DArray::GetType() const {
+      return TextureType::Texture2DArray;
+   }
+
+
+   void VulkanTexture2DArray::SetData(void* data, const uint32_t size) {
+      VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+      stagingBuffer.CopyFromHost(0, size, data);
+      m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+      m_Image->CopyFromBuffer(stagingBuffer.m_Buffer);
+      m_Image->GenerateMIPMaps();
+   }
+
+
+   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
+      m_Device = device;
+      CreateImage(vk::ImageViewType::eCube, size, size, 1, mipLevels, TextureFormatToVkFormat(format), usage, aspect);
       CreateSampler();
    }
 
 
    VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB)
    : m_Path {path}
-   , m_Device {device}
    {
       uint32_t width;
       uint32_t height;
@@ -257,7 +282,9 @@ namespace Pikzel {
       } else {
          size = width / 4;
       }
-      CreateImage(size, TextureFormatToVkFormat(TextureFormat::RGBA8), CalculateMipMapLevels(size, size), vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage, vk::ImageAspectFlagBits::eColor);
+
+      m_Device = device;
+      CreateImage(vk::ImageViewType::eCube, size, size, 1, CalculateMipMapLevels(size, size), TextureFormatToVkFormat(TextureFormat::RGBA8), vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage, vk::ImageAspectFlagBits::eColor);
       CreateSampler();
       PKZL_CORE_ASSERT(BPP(m_DataFormat) != 3, "VulkanTextureCube format cannot be 24-bits per texel");
       SetData(data, width * height * BPP(m_DataFormat));
@@ -265,29 +292,8 @@ namespace Pikzel {
    }
 
 
-   VulkanTextureCube::~VulkanTextureCube() {
-      DestroySampler();
-      DestroyImage();
-   }
-
-
-   TextureFormat VulkanTextureCube::GetFormat() const {
-      return VkFormatToTextureFormat(m_Image->GetVkFormat());
-   }
-
-
    TextureType VulkanTextureCube::GetType() const {
       return TextureType::TextureCube;
-   }
-
-
-   uint32_t VulkanTextureCube::GetWidth() const {
-      return m_Image->GetVkExtent().width;
-   }
-
-
-   uint32_t VulkanTextureCube::GetHeight() const {
-      return m_Image->GetVkExtent().height;
    }
 
 
@@ -347,7 +353,7 @@ namespace Pikzel {
             pipeline->GetVkDescriptorSet(texResource.DescriptorSet)  /*dstSet*/,
             texResource.Binding                                      /*dstBinding*/,
             0                                                        /*dstArrayElement*/,
-            texResource.Count                                        /*descriptorCount*/,
+            texResource.GetCount()                                   /*descriptorCount*/,
             texResource.Type                                         /*descriptorType*/,
             &texImageDescriptor                                      /*pImageInfo*/,
             nullptr                                                  /*pBufferInfo*/,
@@ -357,7 +363,7 @@ namespace Pikzel {
             pipeline->GetVkDescriptorSet(cubeResource.DescriptorSet)  /*dstSet*/,
             cubeResource.Binding                                      /*dstBinding*/,
             0                                                         /*dstArrayElement*/,
-            cubeResource.Count                                        /*descriptorCount*/,
+            cubeResource.GetCount()                                   /*descriptorCount*/,
             cubeResource.Type                                         /*descriptorType*/,
             &cubeImageDescriptor                                      /*pImageInfo*/,
             nullptr                                                   /*pBufferInfo*/,
@@ -384,80 +390,20 @@ namespace Pikzel {
    }
 
 
-   vk::Sampler VulkanTextureCube::GetVkSampler() const {
-      return m_TextureSampler;
+   VulkanTextureCubeArray::VulkanTextureCubeArray(std::shared_ptr<VulkanDevice> device, const uint32_t size, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage /*= vk::ImageUsageFlagBits::eColorAttachment*/, vk::ImageAspectFlags aspect /*= vk::ImageAspectFlagBits::eColor*/) {
+      m_Device = device;
+      CreateImage(vk::ImageViewType::eCubeArray, size, size, layers, mipLevels, TextureFormatToVkFormat(format), usage, aspect);
+      CreateSampler();
    }
 
 
-   vk::ImageView VulkanTextureCube::GetVkImageView() const {
-      return m_Image->GetVkImageView();
+   TextureType VulkanTextureCubeArray::GetType() const {
+      return TextureType::TextureCubeArray;
    }
 
 
-   vk::Format VulkanTextureCube::GetVkFormat() const {
-      return m_Image->GetVkFormat();
-   }
-
-
-   void VulkanTextureCube::TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
-      m_Image->TransitionImageLayout(oldLayout, newLayout);
-   }
-
-
-   void VulkanTextureCube::CreateImage(const uint32_t size, const vk::Format format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
-      m_Image = std::make_unique<VulkanImage>(
-         m_Device,
-         size,
-         size,
-         mipLevels,
-         vk::SampleCountFlagBits::e1,
-         format,
-         vk::ImageTiling::eOptimal,
-         usage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-         vk::MemoryPropertyFlagBits::eDeviceLocal,
-         vk::ImageCreateFlagBits::eCubeCompatible
-      );
-      m_Image->CreateImageView(format, aspect);
-   }
-
-
-   void VulkanTextureCube::DestroyImage() {
-      m_Image.reset();
-   }
-
-
-   void VulkanTextureCube::CreateSampler() {
-      m_TextureSampler = m_Device->GetVkDevice().createSampler({
-         {}                                           /*flags*/,
-         vk::Filter::eLinear                          /*magFilter*/,
-         vk::Filter::eLinear                          /*minFilter*/,
-         vk::SamplerMipmapMode::eLinear               /*mipmapMode*/,
-         vk::SamplerAddressMode::eClampToEdge         /*addressModeU*/,
-         vk::SamplerAddressMode::eClampToEdge         /*addressModeV*/,
-         vk::SamplerAddressMode::eClampToEdge         /*addressModeW*/,
-         0.0f                                         /*mipLodBias*/,
-         true                                         /*anisotropyEnable*/,
-         16                                           /*maxAnisotropy*/,
-         false                                        /*compareEnable*/,
-         vk::CompareOp::eNever                        /*compareOp*/,
-         0.0f                                         /*minLod*/,
-         static_cast<float>(m_Image->GetMIPLevels())  /*maxLod*/,
-         vk::BorderColor::eFloatOpaqueBlack           /*borderColor*/,
-         false                                        /*unnormalizedCoordinates*/
-      });
-   }
-
-
-   void VulkanTextureCube::DestroySampler() {
-      if (m_Device && m_TextureSampler) {
-         m_Device->GetVkDevice().destroy(m_TextureSampler);
-         m_TextureSampler = nullptr;
-      }
-   }
-
-
-   bool VulkanTextureCube::operator==(const Texture& that) {
-      return m_Image->GetVkImage() == static_cast<const VulkanTextureCube&>(that).m_Image->GetVkImage();
+   void VulkanTextureCubeArray::SetData(void* data, const uint32_t size) {
+      PKZL_NOT_IMPLEMENTED;
    }
 
 }

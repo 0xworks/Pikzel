@@ -71,22 +71,20 @@ namespace Pikzel {
       for (const auto& resource : resources.uniform_buffers) {
          const auto& name = resource.name;
          const auto& type = compiler.get_type(resource.type_id);
+         const auto& baseType = compiler.get_type(resource.base_type_id);
+         std::vector<uint32_t> shape;
          if (type.array.size() > 0) {
-            //
-            // arrays are not currently supported.
-            // but if you're interested, you can find out array dimensions as follows:
-            // const auto& type = compiler.get_type(resource.type);
-            // const auto dimensions = type.array.size();  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
-            // for(auto dim=0; dim<dimensions; ++dim) {
-            //    const auto len = type.array[dim];  // size of [dim]th dimension of the array
-            // }
-            throw std::runtime_error {fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name)};
+            PKZL_CORE_LOG_ERROR(fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+            shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
+            for (auto dim = 0; dim < shape.size(); ++dim) {
+               shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
+            }
          }
 
          uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
          uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 
-         PKZL_CORE_LOG_TRACE("Found uniform buffer at set {0}, binding {1} with name '{2}'", set, binding, name);
+         PKZL_CORE_LOG_TRACE("Found uniform buffer at set {0}, binding {1} with name '{2}', rank is {3}", set, binding, name, shape.size());
          m_UniformBufferBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_UniformBufferBindingMap.size()));
 
          uint32_t openGLBinding = m_UniformBufferBindingMap.at({set, binding});
@@ -104,7 +102,7 @@ namespace Pikzel {
          }
          const auto ubo = m_UniformBufferResources.find(id);
          if (ubo == m_UniformBufferResources.end()) {
-            m_UniformBufferResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, 1});
+            m_UniformBufferResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, shape});
          } else {
             // already seen this name, check that binding is the same
             if (ubo->second.Binding != openGLBinding) {
@@ -114,13 +112,21 @@ namespace Pikzel {
       }
 
       for (const auto& resource : resources.sampled_images) {
-         const auto& type = compiler.get_type(resource.base_type_id);
          const auto& name = resource.name;
+         const auto& type = compiler.get_type(resource.type_id);
+         const auto& baseType = compiler.get_type(resource.base_type_id);
+         std::vector<uint32_t> shape;
+         if (type.array.size() > 0) {
+            PKZL_CORE_LOG_ERROR(fmt::format("Sampler object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+            shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
+            for (auto dim = 0; dim < shape.size(); ++dim) {
+               shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
+            }
+         }
          uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
          uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-         uint32_t dimension = type.image.dim;
 
-         PKZL_CORE_LOG_TRACE("Found image sampler at set {0}, binding {1} with name '{2}', dimension is {3}", set, binding, name, dimension);
+         PKZL_CORE_LOG_TRACE("Found image sampler at set {0}, binding {1} with name '{2}', rank is {3}", set, binding, name, shape.size());
          m_SamplerBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_SamplerBindingMap.size()));
 
          uint32_t openGLBinding = m_SamplerBindingMap.at({set, binding});
@@ -138,7 +144,7 @@ namespace Pikzel {
          }
          const auto sampler = m_SamplerResources.find(id);
          if (sampler == m_SamplerResources.end()) {
-            m_SamplerResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, dimension});
+            m_SamplerResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, shape});
          } else {
             // already seen this name, check that binding is the same
             if (sampler->second.Binding != openGLBinding) {
@@ -148,13 +154,22 @@ namespace Pikzel {
       }
 
       for (const auto& resource : resources.storage_images) {
-         const auto& type = compiler.get_type(resource.base_type_id);
          const auto& name = resource.name;
+         const auto& type = compiler.get_type(resource.type_id);
+         const auto& baseType = compiler.get_type(resource.base_type_id);
+         std::vector<uint32_t> shape;
+         if (type.array.size() > 0) {
+            PKZL_CORE_LOG_ERROR(fmt::format("Storage image object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
+            shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
+            for (auto dim = 0; dim < shape.size(); ++dim) {
+               shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
+            }
+         }
+
          uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
          uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-         uint32_t dimension = type.image.dim;
 
-         PKZL_CORE_LOG_TRACE("Found storage image at set {0}, binding {1} with name '{2}', dimension is {3}", set, binding, name, dimension);
+         PKZL_CORE_LOG_TRACE("Found storage image at set {0}, binding {1} with name '{2}', rank is {3}", set, binding, name, shape.size());
          m_StorageImageBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_StorageImageBindingMap.size()));
 
          uint32_t openGLBinding = m_StorageImageBindingMap.at({set, binding});
@@ -172,7 +187,7 @@ namespace Pikzel {
          }
          const auto image = m_StorageImageResources.find(id);
          if (image == m_StorageImageResources.end()) {
-            m_StorageImageResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, dimension});
+            m_StorageImageResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, shape});
          } else {
             // already seen this name, check that binding is the same
             if (sampler->second.Binding != openGLBinding) {

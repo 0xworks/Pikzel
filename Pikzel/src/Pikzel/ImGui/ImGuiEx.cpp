@@ -150,7 +150,7 @@ namespace Pikzel {
 
          ImGui::NextColumn();
 
-         ImGui::InputFloat("##Float", value, 0.0, 0.0, format, flags);
+         ImGui::DragFloat("##Float", value, 1.0f, 0.0f, 100000.0f, format, ImGuiSliderFlags_Logarithmic);
 
          ImGui::PopStyleVar();
          ImGui::Columns(1);

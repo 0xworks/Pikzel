@@ -54,6 +54,9 @@ namespace Pikzel {
       if (availableFeatures.geometryShader) {
          features.setGeometryShader(true);
       }
+      if (availableFeatures.imageCubeArray) {
+         features.setImageCubeArray(true);
+      }
       return features;
    }
 

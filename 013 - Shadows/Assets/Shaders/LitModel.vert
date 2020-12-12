@@ -7,6 +7,7 @@ layout(push_constant) uniform PC {
    mat4 model;
    mat4 modelInvTrans;
    float farPlane;
+   uint numPointLights;
 } constants;
 
 struct Matrices {
