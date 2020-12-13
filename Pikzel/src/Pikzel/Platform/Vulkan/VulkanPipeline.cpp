@@ -402,7 +402,7 @@ namespace Pikzel {
 
       vk::GraphicsPipelineCreateInfo pipelineCI;
       pipelineCI.layout = m_PipelineLayout;
-      pipelineCI.renderPass = gc.GetVkRenderPass();
+      pipelineCI.renderPass = gc.GetVkRenderPass(BeginFrameOp::ClearAll);
 
       // Input assembly state describes how primitives are assembled
       // This pipeline will assemble vertex data as a triangle lists

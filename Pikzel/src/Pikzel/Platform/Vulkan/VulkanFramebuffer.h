@@ -30,7 +30,7 @@ namespace Pikzel {
 
    public:
       vk::Framebuffer GetVkFramebuffer() const;
-      const std::vector<vk::AttachmentDescription2>& GetVkAttachments() const;
+      std::vector<vk::AttachmentDescription2>& GetVkAttachments();
 
       bool HasDepthTexture() const;
       void TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout);

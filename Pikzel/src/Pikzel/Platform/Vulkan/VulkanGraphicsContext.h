@@ -84,7 +84,7 @@ namespace Pikzel {
       virtual void DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount = 0, const uint32_t vertexOffset = 0) override;
 
    public:
-      vk::RenderPass GetVkRenderPass() const;
+      vk::RenderPass GetVkRenderPass(BeginFrameOp operation) const;
       vk::PipelineCache GetVkPipelineCache() const;
 
       virtual vk::CommandBuffer GetVkCommandBuffer() = 0;
@@ -121,7 +121,9 @@ namespace Pikzel {
 
       std::unique_ptr<VulkanImage> m_DepthImage;
 
-      vk::RenderPass m_RenderPass;
+      // We need a different render pass for each possible "BeginFrameOp".
+      // This is less that ideal!
+      std::unordered_map<BeginFrameOp, vk::RenderPass> m_RenderPasses;
 
       vk::CommandPool m_CommandPool;
       std::vector<vk::CommandBuffer> m_CommandBuffers;
@@ -136,7 +138,7 @@ namespace Pikzel {
       VulkanWindowGC(std::shared_ptr<VulkanDevice> device, const Window& window);
       virtual ~VulkanWindowGC();
 
-      virtual void BeginFrame() override;
+      virtual void BeginFrame(const BeginFrameOp operation = BeginFrameOp::ClearAll) override;
       virtual void EndFrame() override;
 
       virtual void InitializeImGui() override;
@@ -220,7 +222,7 @@ namespace Pikzel {
       VulkanFramebufferGC(std::shared_ptr<VulkanDevice> device, VulkanFramebuffer* framebuffer); // raw pointer is fine here.  We know the VulkanFramebufferGC lifetime is nested inside the framebuffer's lifetime
       virtual ~VulkanFramebufferGC();
 
-      virtual void BeginFrame() override;
+      virtual void BeginFrame(const BeginFrameOp operation = BeginFrameOp::ClearAll) override;
       virtual void EndFrame() override;
 
       virtual void Bind(const Pipeline& pipeline) override;

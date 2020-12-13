@@ -104,7 +104,7 @@ namespace Pikzel {
    }
 
 
-   const std::vector<vk::AttachmentDescription2>& VulkanFramebuffer::GetVkAttachments() const {
+   std::vector<vk::AttachmentDescription2>& VulkanFramebuffer::GetVkAttachments() {
       return m_Attachments;
    }
 
@@ -231,16 +231,16 @@ namespace Pikzel {
                }
                switch (attachment.TextureType) {
                   case TextureType::Texture2D:
-                     m_DepthTexture = std::make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled, vk::ImageAspectFlagBits::eDepth);
+                     m_DepthTexture = std::make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
                      break;
                   case TextureType::Texture2DArray:
-                     m_DepthTexture = std::make_unique<VulkanTexture2DArray>(m_Device, m_Settings.Width, m_Settings.Height, m_Settings.Layers, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled, vk::ImageAspectFlagBits::eDepth);
+                     m_DepthTexture = std::make_unique<VulkanTexture2DArray>(m_Device, m_Settings.Width, m_Settings.Height, m_Settings.Layers, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
                      break;
                   case TextureType::TextureCube:
-                     m_DepthTexture = std::make_unique<VulkanTextureCube>(m_Device, m_Settings.Width, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled, vk::ImageAspectFlagBits::eDepth);
+                     m_DepthTexture = std::make_unique<VulkanTextureCube>(m_Device, m_Settings.Width, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
                      break;
                   case TextureType::TextureCubeArray:
-                     m_DepthTexture = std::make_unique<VulkanTextureCubeArray>(m_Device, m_Settings.Width, m_Settings.Layers, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled, vk::ImageAspectFlagBits::eDepth);
+                     m_DepthTexture = std::make_unique<VulkanTextureCubeArray>(m_Device, m_Settings.Width, m_Settings.Layers, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
                      break;
                   default:
                      PKZL_CORE_ASSERT(false, "unknown attachment texture type!");
@@ -289,13 +289,13 @@ namespace Pikzel {
 
    void VulkanFramebuffer::CreateFramebuffer() {
       vk::FramebufferCreateInfo ci = {
-         {}                                                               /*flags*/,
-         static_cast<VulkanFramebufferGC&>(*m_Context).GetVkRenderPass()  /*renderPass*/,
-         static_cast<uint32_t>(m_ImageViews.size())                       /*attachmentCount*/,
-         m_ImageViews.data()                                              /*pAttachments*/,
-         m_Settings.Width                                                 /*width*/,
-         m_Settings.Height                                                /*height*/,
-         m_LayerCount                                                     /*layers*/
+         {}                                                                                     /*flags*/,
+         static_cast<VulkanFramebufferGC&>(*m_Context).GetVkRenderPass(BeginFrameOp::ClearAll)  /*renderPass*/,
+         static_cast<uint32_t>(m_ImageViews.size())                                             /*attachmentCount*/,
+         m_ImageViews.data()                                                                    /*pAttachments*/,
+         m_Settings.Width                                                                       /*width*/,
+         m_Settings.Height                                                                      /*height*/,
+         m_LayerCount                                                                           /*layers*/
       };
       m_Framebuffer = m_Device->GetVkDevice().createFramebuffer(ci);
    }

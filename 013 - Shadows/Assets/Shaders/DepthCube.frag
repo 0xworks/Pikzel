@@ -8,7 +8,7 @@ layout(location = 0) in vec4 inFragPos;
 layout(push_constant) uniform PC {
    mat4 model;
    float farPlane;
-   uint numPointLights;
+   int lightIndex;
 } constants;
 
 layout(set = 1, binding = 0) uniform UBOPointLights {
@@ -16,6 +16,5 @@ layout(set = 1, binding = 0) uniform UBOPointLights {
 } pointLights;
 
 void main() {
-   const int i = gl_Layer / 6;
-   gl_FragDepth = length(inFragPos.xyz - pointLights.light[i].position) / constants.farPlane;
+   gl_FragDepth = length(inFragPos.xyz - pointLights.light[constants.lightIndex].position) / constants.farPlane;
 }

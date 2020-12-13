@@ -27,6 +27,11 @@ namespace Pikzel {
    };
 
 
+   using OpenGLUniformMap = std::unordered_map<entt::id_type, OpenGLUniform>;
+   using OpenGLBindingMap = std::unordered_map < std::pair<uint32_t, uint32_t>, std::pair<uint32_t, uint32_t>>; // maps(descriptor set, binding number) -> (open GL binding number, resource count)
+   using OpenGLResourceMap = std::unordered_map<entt::id_type, OpenGLResourceDeclaration>;
+
+
    class OpenGLPipeline : public Pipeline {
    public:
       OpenGLPipeline(const PipelineSettings& settings);
@@ -89,13 +94,13 @@ namespace Pikzel {
    private:
       std::vector<std::vector<uint32_t>> m_ShaderSrcs;
       std::vector<uint32_t> m_ShaderIds;
-      std::unordered_map<entt::id_type, OpenGLUniform> m_PushConstants;                      // push constants in the Vulkan glsl get turned into uniforms for OpenGL
-      std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t> m_UniformBufferBindingMap; // maps (set, binding) -> open GL binding for uniform buffers
-      std::unordered_map<entt::id_type, OpenGLResourceDeclaration> m_UniformBufferResources; // maps resource id (essentially the name of the resource) -> its opengl binding
-      std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t> m_SamplerBindingMap;       // maps (set, binding) -> open GL binding for texture samplers
-      std::unordered_map<entt::id_type, OpenGLResourceDeclaration> m_SamplerResources;       // maps resource id (essentially the name of the resource) -> its opengl binding
-      std::unordered_map<std::pair<uint32_t, uint32_t>, uint32_t> m_StorageImageBindingMap;  // maps (set, binding) -> open GL binding for storage images
-      std::unordered_map<entt::id_type, OpenGLResourceDeclaration> m_StorageImageResources;  // maps resource id (essentially the name of the resource) -> its opengl binding
+      OpenGLUniformMap m_PushConstants;            // push constants in the Vulkan glsl get turned into uniforms for OpenGL
+      OpenGLBindingMap m_UniformBufferBindingMap;
+      OpenGLResourceMap m_UniformBufferResources;  // maps resource id (essentially the name of the resource) -> its opengl binding
+      OpenGLBindingMap m_SamplerBindingMap;
+      OpenGLResourceMap m_SamplerResources;        // maps resource id (essentially the name of the resource) -> its opengl binding
+      OpenGLBindingMap m_StorageImageBindingMap;
+      OpenGLResourceMap m_StorageImageResources;   // maps resource id (essentially the name of the resource) -> its opengl binding
 
       uint32_t m_RendererId = 0;
       uint32_t m_VAORendererId = 0;

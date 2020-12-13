@@ -443,8 +443,8 @@ namespace Pikzel {
    }
 
 
-   vk::RenderPass VulkanGraphicsContext::GetVkRenderPass() const {
-      return m_RenderPass;
+   vk::RenderPass VulkanGraphicsContext::GetVkRenderPass(BeginFrameOp operation) const {
+      return m_RenderPasses.find(operation)->second;
    }
 
 
@@ -712,7 +712,24 @@ namespace Pikzel {
             }
          };
       }
-      m_RenderPass = CreateRenderPass(attachments);
+      // This is horrible.
+      // Create four different render passes, just in case user decides they don't want to clear this or that attachment
+      attachments[0].loadOp = vk::AttachmentLoadOp::eDontCare;
+      attachments[1].loadOp = vk::AttachmentLoadOp::eDontCare;
+      m_RenderPasses[BeginFrameOp::ClearNone] = CreateRenderPass(attachments);
+
+      attachments[0].loadOp = vk::AttachmentLoadOp::eClear;
+      attachments[1].loadOp = vk::AttachmentLoadOp::eDontCare;
+      m_RenderPasses[BeginFrameOp::ClearColor] = CreateRenderPass(attachments);
+
+      attachments[0].loadOp = vk::AttachmentLoadOp::eDontCare;
+      attachments[1].loadOp = vk::AttachmentLoadOp::eClear;
+      m_RenderPasses[BeginFrameOp::ClearDepth] = CreateRenderPass(attachments);
+
+      attachments[0].loadOp = vk::AttachmentLoadOp::eClear;
+      attachments[1].loadOp = vk::AttachmentLoadOp::eClear;
+      m_RenderPasses[BeginFrameOp::ClearAll] = CreateRenderPass(attachments);
+
       CreateFramebuffers();
 
       CreateCommandPool();
@@ -753,7 +770,10 @@ namespace Pikzel {
          DestroyCommandBuffers();
          DestroyCommandPool();
          DestroyFramebuffers();
-         DestroyRenderPass(m_RenderPass);
+         for (auto& [beginFrameOp, renderPass] : m_RenderPasses) {
+            DestroyRenderPass(renderPass);
+         }
+         m_RenderPasses.clear();
          DestroyDepthStencil();
          DestroyImageViews();
          DestroySwapChain(m_SwapChain);
@@ -762,7 +782,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanWindowGC::BeginFrame() {
+   void VulkanWindowGC::BeginFrame(const BeginFrameOp operation) {
       PKZL_PROFILE_FUNCTION();
       {
          PKZL_PROFILE_SCOPE("AquireNextImageKHR");
@@ -793,7 +813,7 @@ namespace Pikzel {
       //       What if you need/want multiple render passes?  How will the client control this?
 
       vk::RenderPassBeginInfo renderPassBI = {
-         m_RenderPass                                 /*renderPass*/,
+         m_RenderPasses[operation]                    /*renderPass*/,
          m_SwapChainFramebuffers[m_CurrentImage]      /*framebuffer*/,
          { {0,0}, m_Extent }                          /*renderArea*/,
          static_cast<uint32_t>(m_ClearValues.size())  /*clearValueCount*/,
@@ -1245,7 +1265,7 @@ namespace Pikzel {
       }
       vk::FramebufferCreateInfo ci = {
          {}                                        /*flags*/,
-         m_RenderPass                              /*renderPass*/,
+         m_RenderPasses[BeginFrameOp::ClearAll]    /*renderPass*/,
          static_cast<uint32_t>(attachments.size()) /*attachmentCount*/,
          attachments.data()                        /*pAttachments*/,
          m_Extent.width                            /*width*/,
@@ -1354,7 +1374,59 @@ namespace Pikzel {
       m_SampleCount = static_cast<vk::SampleCountFlagBits>(m_Framebuffer->GetMSAANumSamples());
       m_Extent = vk::Extent2D{m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight()};
 
-      m_RenderPass = CreateRenderPass(m_Framebuffer->GetVkAttachments());
+      for (auto& attachment : m_Framebuffer->GetVkAttachments()) {
+         attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+         attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+      }
+      m_RenderPasses[BeginFrameOp::ClearNone] = CreateRenderPass(m_Framebuffer->GetVkAttachments());
+
+      for (auto& attachment : m_Framebuffer->GetVkAttachments()) {
+         if ((m_Framebuffer->GetMSAANumSamples() == 1) || (attachment.samples != vk::SampleCountFlagBits::e1)) {
+            if (IsColorFormat(VkFormatToTextureFormat(attachment.format))) {
+               attachment.loadOp = vk::AttachmentLoadOp::eClear;
+               attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+            } else {
+               attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+               attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+            }
+         } else {
+            attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+            attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+         }
+      }
+      m_RenderPasses[BeginFrameOp::ClearColor] = CreateRenderPass(m_Framebuffer->GetVkAttachments());
+
+      for (auto& attachment : m_Framebuffer->GetVkAttachments()) {
+         if ((m_Framebuffer->GetMSAANumSamples() == 1) || (attachment.samples != vk::SampleCountFlagBits::e1)) {
+            if (IsColorFormat(VkFormatToTextureFormat(attachment.format))) {
+               attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+               attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+            } else {
+               attachment.loadOp = vk::AttachmentLoadOp::eClear;
+               attachment.stencilLoadOp = vk::AttachmentLoadOp::eClear;
+            }
+         } else {
+            attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+            attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+         }
+      }
+      m_RenderPasses[BeginFrameOp::ClearDepth] = CreateRenderPass(m_Framebuffer->GetVkAttachments());
+
+      for (auto& attachment : m_Framebuffer->GetVkAttachments()) {
+         if ((m_Framebuffer->GetMSAANumSamples() == 1) || (attachment.samples != vk::SampleCountFlagBits::e1)) {
+            if (IsColorFormat(VkFormatToTextureFormat(attachment.format))) {
+               attachment.loadOp = vk::AttachmentLoadOp::eClear;
+               attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+            } else {
+               attachment.loadOp = vk::AttachmentLoadOp::eClear;
+               attachment.stencilLoadOp = vk::AttachmentLoadOp::eClear;
+            }
+         } else {
+            attachment.loadOp = vk::AttachmentLoadOp::eDontCare;
+            attachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+         }
+      }
+      m_RenderPasses[BeginFrameOp::ClearAll] = CreateRenderPass(m_Framebuffer->GetVkAttachments());
       CreateCommandPool();
       CreateCommandBuffers(1);
       CreateSyncObjects();
@@ -1373,12 +1445,15 @@ namespace Pikzel {
          DestroySyncObjects();
          DestroyCommandBuffers();
          DestroyCommandPool();
-         DestroyRenderPass(m_RenderPass);
+         for (auto& [beginFrameOp, renderPass] : m_RenderPasses) {
+            DestroyRenderPass(renderPass);
+         }
+         m_RenderPasses.clear();
       }
    }
 
 
-   void VulkanFramebufferGC::BeginFrame() {
+   void VulkanFramebufferGC::BeginFrame(const BeginFrameOp operation) {
       PKZL_PROFILE_FUNCTION();
 
       m_CommandBuffers.front().begin({
@@ -1389,7 +1464,7 @@ namespace Pikzel {
       //       What if you need/want multiple render passes?  How will the client control this?
 
       vk::RenderPassBeginInfo renderPassBI = {
-         m_RenderPass                                 /*renderPass*/,
+         m_RenderPasses[operation]                    /*renderPass*/,
          m_Framebuffer->GetVkFramebuffer()            /*framebuffer*/,
          { {0,0}, m_Extent }                          /*renderArea*/,
          static_cast<uint32_t>(m_ClearValues.size())  /*clearValueCount*/,

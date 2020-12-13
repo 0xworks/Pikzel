@@ -21,16 +21,15 @@ struct Matrices {
    vec3 viewPos;
 };
 
-layout(set = 0, binding = 0) uniform UBOMatrices {
-   Matrices matrices;
-} uboMatrices;
-
-
 struct DirectionalLight {
    vec3 direction;
    vec3 color;
    vec3 ambient;
 };
+
+layout(set = 0, binding = 0) uniform UBOMatrices {
+   Matrices matrices;
+} uboMatrices;
 
 layout(set = 1, binding = 0) uniform UBODirectionalLight {
    DirectionalLight light;
