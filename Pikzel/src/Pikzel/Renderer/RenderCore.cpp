@@ -139,6 +139,11 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<Texture> RenderCore::CreateTextureCube(const uint32_t size, TextureFormat format, const uint32_t mipLevels) {
+      return s_RenderCore->CreateTextureCube(size, format, mipLevels);
+   }
+
+
    std::unique_ptr<Texture> RenderCore::CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) {
       return s_RenderCore->CreateTextureCube(path, isSRGB);
    }

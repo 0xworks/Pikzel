@@ -9,11 +9,18 @@
 
 namespace Pikzel {
 
+   enum BeginFrameOp {
+      ClearNone,
+      ClearColor,
+      ClearDepth,
+      ClearAll
+   };
+
    class PKZL_API GraphicsContext {
    public:
       virtual ~GraphicsContext() = default;
 
-      virtual void BeginFrame() = 0;
+      virtual void BeginFrame(const BeginFrameOp operation = BeginFrameOp::ClearAll) = 0;
       virtual void EndFrame() = 0;
 
       // These don't belong here - what if client doesn't want ImGui baggage?  TODO: move somewhere else.

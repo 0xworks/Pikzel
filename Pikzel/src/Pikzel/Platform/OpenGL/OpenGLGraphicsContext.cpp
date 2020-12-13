@@ -70,11 +70,7 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::Bind(const Texture& texture, const entt::id_type resourceId) {
-      if (texture.GetType() == TextureType::Texture2D) {
-         glBindTextureUnit(m_Pipeline->GetSamplerBinding(resourceId), static_cast<const OpenGLTexture2D&>(texture).GetRendererId());
-      } else {
-         glBindTextureUnit(m_Pipeline->GetSamplerBinding(resourceId), static_cast<const OpenGLTextureCube&>(texture).GetRendererId());
-      }
+      glBindTextureUnit(m_Pipeline->GetSamplerBinding(resourceId), static_cast<const OpenGLTexture&>(texture).GetRendererId());
    }
 
 
@@ -395,7 +391,7 @@ namespace Pikzel {
    }
 
 
-   void OpenGLWindowGC::BeginFrame() {
+   void OpenGLWindowGC::BeginFrame(const BeginFrameOp operation) {
       PKZL_PROFILE_FUNCTION();
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
       glfwMakeContextCurrent(m_WindowHandle);
@@ -403,9 +399,23 @@ namespace Pikzel {
       int height;
       glfwGetWindowSize(m_WindowHandle, &width, &height);
       glViewport(0, 0, width, height);
-      glm::vec4 clearColor = GetClearColor();
-      glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      if (operation != BeginFrameOp::ClearNone) {
+         glm::vec4 clearColor = GetClearColor();
+         glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+         switch (operation) {
+            case BeginFrameOp::ClearDepth:
+               glClear(GL_DEPTH_BUFFER_BIT);
+               break;
+            case BeginFrameOp::ClearColor:
+               glClear(GL_COLOR_BUFFER_BIT);
+               break;
+            case BeginFrameOp::ClearAll:
+               glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+               break;
+            default:
+               PKZL_CORE_ASSERT(false, "Unknown BeginFrameOp!");
+         }
+      }
    }
 
 
@@ -431,13 +441,28 @@ namespace Pikzel {
    {}
 
 
-   void OpenGLFramebufferGC::BeginFrame() {
+   void OpenGLFramebufferGC::BeginFrame(const BeginFrameOp operation) {
       PKZL_PROFILE_FUNCTION();
       glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer->GetRendererId());
       glViewport(0, 0, m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight());
       glm::vec4 clearColor = GetClearColor();
-      glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      if (operation != BeginFrameOp::ClearNone) {
+         glm::vec4 clearColor = GetClearColor();
+         glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+         switch (operation) {
+            case BeginFrameOp::ClearDepth:
+               glClear(GL_DEPTH_BUFFER_BIT);
+               break;
+            case BeginFrameOp::ClearColor:
+               glClear(GL_COLOR_BUFFER_BIT);
+               break;
+            case BeginFrameOp::ClearAll:
+               glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+               break;
+            default:
+               PKZL_CORE_ASSERT(false, "Unknown BeginFrameOp!");
+         }
+      }
    }
 
 

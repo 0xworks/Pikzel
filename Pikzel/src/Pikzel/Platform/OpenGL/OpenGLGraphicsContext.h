@@ -104,7 +104,7 @@ namespace Pikzel {
       virtual void BeginImGuiFrame() override;
       virtual void EndImGuiFrame() override;
 
-      virtual void BeginFrame() override;
+      virtual void BeginFrame(const BeginFrameOp operation = BeginFrameOp::ClearAll) override;
       virtual void EndFrame() override;
 
       virtual void SwapBuffers() override;
@@ -121,7 +121,7 @@ namespace Pikzel {
    public:
       OpenGLFramebufferGC(OpenGLFramebuffer* framebuffer); // raw pointer is fine here.  We know the OpenGLFramebufferGC lifetime is nested inside the framebuffer's lifetime
 
-      virtual void BeginFrame() override;
+      virtual void BeginFrame(const BeginFrameOp operation = BeginFrameOp::ClearAll) override;
       virtual void EndFrame() override;
 
       virtual void SwapBuffers() override;

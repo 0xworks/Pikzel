@@ -66,135 +66,63 @@ namespace Pikzel {
    }
 
 
+   static void ParseResourceBindings_Internal(const std::string_view& resourceType, spirv_cross::Compiler& compiler, OpenGLBindingMap& bindingMap, OpenGLResourceMap& resourceMap, const std::vector<const OpenGLResourceMap*>& otherResourceMaps, spirv_cross::SmallVector<spirv_cross::Resource>& resources) {
+      uint32_t numResources = 0;
+      for (const auto binding : bindingMap) {
+         numResources += binding.second.second;
+      }
+
+      for (const auto& resource : resources) {
+         const auto& name = resource.name;
+         const auto& type = compiler.get_type(resource.type_id);
+         const auto& baseType = compiler.get_type(resource.base_type_id);
+         std::vector<uint32_t> shape;
+         uint32_t count = 1;
+         if (type.array.size() > 0) {
+            shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
+            for (auto dim = 0; dim < shape.size(); ++dim) {
+               shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
+               count *= type.array[dim];
+            }
+         }
+
+         uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+         uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+
+         PKZL_CORE_LOG_TRACE("Found {0} at set {1}, binding {2} with name '{3}', count is {4}", resourceType, set, binding, name, count);
+         bindingMap.try_emplace(std::make_pair(set, binding), std::make_pair(numResources, count));
+
+         auto [openGLBinding, dummy] = bindingMap.at({set, binding});
+         compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
+         compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
+         numResources += count;
+
+         const entt::id_type id = entt::hashed_string(name.data());
+         for (const auto otherResourceMap : otherResourceMaps) {
+            const auto otherResource = otherResourceMap->find(id);
+            if (otherResource != otherResourceMap->end()) {
+               throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different types of resource!", name)};
+            }
+         }
+
+         const auto resource = resourceMap.find(id);
+         if (resource == resourceMap.end()) {
+            resourceMap.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, shape});
+         } else {
+            // already seen this name, check that binding is the same
+            if (resource->second.Binding != openGLBinding) {
+               throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different bindings!", name)};
+            }
+         }
+      }
+
+   }
+
    void OpenGLPipeline::ParseResourceBindings(spirv_cross::Compiler& compiler) {
       spirv_cross::ShaderResources resources = compiler.get_shader_resources();
-      for (const auto& resource : resources.uniform_buffers) {
-         const auto& name = resource.name;
-         const auto& type = compiler.get_type(resource.type_id);
-         const auto& baseType = compiler.get_type(resource.base_type_id);
-         std::vector<uint32_t> shape;
-         if (type.array.size() > 0) {
-            PKZL_CORE_LOG_ERROR(fmt::format("Uniform buffer object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
-            shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
-            for (auto dim = 0; dim < shape.size(); ++dim) {
-               shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
-            }
-         }
-
-         uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-         uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-
-         PKZL_CORE_LOG_TRACE("Found uniform buffer at set {0}, binding {1} with name '{2}', rank is {3}", set, binding, name, shape.size());
-         m_UniformBufferBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_UniformBufferBindingMap.size()));
-
-         uint32_t openGLBinding = m_UniformBufferBindingMap.at({set, binding});
-         compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
-         compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
-
-         const entt::id_type id = entt::hashed_string(name.data());
-         const auto sampler = m_SamplerResources.find(id);
-         if (sampler != m_SamplerResources.end()) {
-            throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Could be texture sampler, or uniform buffer!", name)};
-         }
-         const auto image = m_StorageImageResources.find(id);
-         if (image != m_StorageImageResources.end()) {
-            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be storage image, or uniform buffer!", name)};
-         }
-         const auto ubo = m_UniformBufferResources.find(id);
-         if (ubo == m_UniformBufferResources.end()) {
-            m_UniformBufferResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, shape});
-         } else {
-            // already seen this name, check that binding is the same
-            if (ubo->second.Binding != openGLBinding) {
-               throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};
-            }
-         }
-      }
-
-      for (const auto& resource : resources.sampled_images) {
-         const auto& name = resource.name;
-         const auto& type = compiler.get_type(resource.type_id);
-         const auto& baseType = compiler.get_type(resource.base_type_id);
-         std::vector<uint32_t> shape;
-         if (type.array.size() > 0) {
-            PKZL_CORE_LOG_ERROR(fmt::format("Sampler object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
-            shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
-            for (auto dim = 0; dim < shape.size(); ++dim) {
-               shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
-            }
-         }
-         uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-         uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-
-         PKZL_CORE_LOG_TRACE("Found image sampler at set {0}, binding {1} with name '{2}', rank is {3}", set, binding, name, shape.size());
-         m_SamplerBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_SamplerBindingMap.size()));
-
-         uint32_t openGLBinding = m_SamplerBindingMap.at({set, binding});
-         compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
-         compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
-
-         const entt::id_type id = entt::hashed_string(name.data());
-         const auto ubo = m_UniformBufferResources.find(id);
-         if (ubo != m_UniformBufferResources.end()) {
-            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be uniform buffer, or texture sampler!", name)};
-         }
-         const auto image = m_StorageImageResources.find(id);
-         if (image != m_StorageImageResources.end()) {
-            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be storage image, or texture sampler!", name)};
-         }
-         const auto sampler = m_SamplerResources.find(id);
-         if (sampler == m_SamplerResources.end()) {
-            m_SamplerResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, shape});
-         } else {
-            // already seen this name, check that binding is the same
-            if (sampler->second.Binding != openGLBinding) {
-               throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different texture samplers!", name)};
-            }
-         }
-      }
-
-      for (const auto& resource : resources.storage_images) {
-         const auto& name = resource.name;
-         const auto& type = compiler.get_type(resource.type_id);
-         const auto& baseType = compiler.get_type(resource.base_type_id);
-         std::vector<uint32_t> shape;
-         if (type.array.size() > 0) {
-            PKZL_CORE_LOG_ERROR(fmt::format("Storage image object with name '{0}' is an array.  This is not currently supported by Pikzel!", name));
-            shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
-            for (auto dim = 0; dim < shape.size(); ++dim) {
-               shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
-            }
-         }
-
-         uint32_t set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-         uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-
-         PKZL_CORE_LOG_TRACE("Found storage image at set {0}, binding {1} with name '{2}', rank is {3}", set, binding, name, shape.size());
-         m_StorageImageBindingMap.try_emplace({set, binding}, static_cast<uint32_t>(m_StorageImageBindingMap.size()));
-
-         uint32_t openGLBinding = m_StorageImageBindingMap.at({set, binding});
-         compiler.set_decoration(resource.id, spv::DecorationDescriptorSet, 0);
-         compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
-
-         const entt::id_type id = entt::hashed_string(name.data());
-         const auto ubo = m_UniformBufferResources.find(id);
-         if (ubo != m_UniformBufferResources.end()) {
-            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be uniform buffer, or storage image!", name)};
-         }
-         const auto sampler = m_SamplerResources.find(id);
-         if (sampler != m_SamplerResources.end()) {
-            throw std::runtime_error {fmt::format("Shader resource name '{0}'is ambiguous.  Could be texture sampler, or storage image!", name)};
-         }
-         const auto image = m_StorageImageResources.find(id);
-         if (image == m_StorageImageResources.end()) {
-            m_StorageImageResources.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, shape});
-         } else {
-            // already seen this name, check that binding is the same
-            if (sampler->second.Binding != openGLBinding) {
-               throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different storage images!", name)};
-            }
-         }
-      }
+      ParseResourceBindings_Internal("uniform buffer", compiler, m_UniformBufferBindingMap, m_UniformBufferResources, {&m_SamplerResources, &m_StorageImageResources}, resources.uniform_buffers);
+      ParseResourceBindings_Internal("sampler", compiler, m_SamplerBindingMap, m_SamplerResources, {&m_UniformBufferResources, &m_StorageImageResources}, resources.sampled_images);
+      ParseResourceBindings_Internal("storage image", compiler, m_StorageImageBindingMap, m_StorageImageResources, {&m_UniformBufferResources, &m_SamplerResources}, resources.storage_images);
    }
 
 

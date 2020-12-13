@@ -1,4 +1,4 @@
-#define MAX_POINT_LIGHTS 4
+#define MAX_POINT_LIGHTS 32
 
 struct PointLight {
    vec3 position;
