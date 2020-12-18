@@ -3,6 +3,12 @@
 
 #include "PointLight.glsl"
 
+const float pi = 3.14159265;
+const float maxShininess = 128.0f;
+const int numPCSSSamples = 64;
+const int numPCFSamples = 64;
+
+
 layout(location = 0) in vec4 inNormal;
 layout(location = 1) in vec4 inFragPos;
 layout(location = 2) in vec4 inFragPosLightSpace;
@@ -39,7 +45,6 @@ layout(set = 1, binding = 1) uniform UBOPointLights {
    PointLight light[MAX_POINT_LIGHTS];
 } pointLights;
 
-// TODO: try out samplerXXShadow here...
 layout(set = 1, binding = 2) uniform sampler2D dirShadowMap;
 layout(set = 1, binding = 3) uniform samplerCubeArray ptShadowMap;
 
@@ -48,9 +53,6 @@ layout(set = 2, binding = 1) uniform sampler2D specularMap;
 
 layout (location = 0) out vec4 outFragColor;
 
-const float pi = 3.14159265;
-const float maxShininess = 128.0f;
-
 
 float BlinnPhong(const vec4 lightDir, const vec4 viewDir, const vec4 normal, const float shininess) {
    const vec4 halfwayDir = normalize(lightDir + viewDir);
@@ -58,18 +60,116 @@ float BlinnPhong(const vec4 lightDir, const vec4 viewDir, const vec4 normal, con
 }
 
 
+const vec2 poissonDisk[64] = vec2[](
+   vec2(-0.535216938, 0.316231875),
+   vec2(-0.365512938, 0.219683875),
+   vec2(-0.399080938, 0.419665875),
+   vec2(-0.590744938, 0.435377875),
+   vec2(-0.636600938, 0.237277875),
+   vec2(-0.512502938, 0.055521875),
+   vec2(-0.533069938, 0.588651875),
+   vec2(-0.118073938, 0.206269875),
+   vec2(-0.209342938, 0.404405875),
+   vec2(-0.229582938, 0.095921875),
+   vec2(-0.391401938, 0.096112875),
+   vec2(-0.402816938, 0.664347875),
+   vec2(-0.204282938, -0.051433125),
+   vec2(-0.325897938, -0.138986125),
+   vec2(-0.053900937, 0.069656875),
+   vec2(0.029088063, -0.120422125),
+   vec2(-0.065058937, -0.248013125),
+   vec2(-0.630288938, -0.009501125),
+   vec2(-0.516714938, -0.096951125),
+   vec2(0.105160063, 0.005365875),
+   vec2(0.053944063, 0.135995875),
+   vec2(-0.255587938, -0.352507125),
+   vec2(-0.069191937, -0.395935125),
+   vec2(-0.200291938, -0.224133125),
+   vec2(0.110784063, -0.420017125),
+   vec2(0.081860063, -0.267958125),
+   vec2(0.248858063, -0.037372125),
+   vec2(0.246936063, -0.188638125),
+   vec2(-0.332602938, -0.509029125),
+   vec2(-0.414623938, -0.351642125),
+   vec2(-0.200165938, -0.559005125),
+   vec2(-0.460180938, -0.216994125),
+   vec2(-0.039269937, -0.581704125),
+   vec2(-0.080527937, -0.703148125),
+   vec2(0.217267063, 0.256801875),
+   vec2(0.073862063, 0.294665875),
+   vec2(0.242747063, 0.123416875),
+   vec2(0.054278063, -0.699771125),
+   vec2(-0.280553938, 0.571130875),
+   vec2(-0.058392937, 0.531491875),
+   vec2(0.420514063, -0.192540125),
+   vec2(0.370882063, -0.072049125),
+   vec2(0.352743063, 0.055670875),
+   vec2(0.211331063, -0.576100125),
+   vec2(0.297990063, -0.714324125),
+   vec2(0.462997063, 0.121690875),
+   vec2(0.512178063, -0.025487125),
+   vec2(0.248602063, -0.396248125),
+   vec2(0.343922063, 0.317111875),
+   vec2(0.384166063, -0.427566125),
+   vec2(0.544510063, -0.267278125),
+   vec2(0.652833063, -0.154618125),
+   vec2(-0.329253938, 0.876842875),
+   vec2(-0.279553938, 0.699721875),
+   vec2(-0.159608938, 0.650496875),
+   vec2(0.380998063, -0.590286125),
+   vec2(0.471459063, 0.472096875),
+   vec2(0.305221063, 0.503862875),
+   vec2(0.481857063, 0.276913875),
+   vec2(0.156758063, 0.477591875),
+   vec2(0.532485063, -0.521498125),
+   vec2(0.614084063, -0.404972125),
+   vec2(0.339236063, -0.291314125),
+   vec2(0.330348063, 0.627446875)
+);
+
+
+float BlockerDepth(const vec3 shadowCoords, const float bias, const float lightSize) {
+   float numBlockers = 0.0;
+   float sumBlockers = 0.0;
+   for (int i = 0; i < numPCSSSamples; ++i) {
+      const float z = texture(dirShadowMap, shadowCoords.xy + poissonDisk[i] * lightSize).r;
+      if(z < shadowCoords.z - bias) {
+         numBlockers += 1.0;
+         sumBlockers += z;
+      }
+   }
+   return numBlockers > 0.0 ? sumBlockers / numBlockers : -1.0;
+}
+
+
+float PCFDirectionalShadow(const vec3 shadowCoords, const float bias, const float radius) {
+   float sum = 0;
+   for (int i = 0; i < numPCFSamples; ++i) {
+      float z = texture(dirShadowMap, shadowCoords.xy + poissonDisk[i] * radius).r;
+      if(z < shadowCoords.z - bias) {
+         ++sum;
+      }
+   }
+   return sum / numPCFSamples;
+}
+
+
 float CalculateDirectionalShadow(const vec4 fragPosLightSpace, const vec4 normal, const vec4 lightDir) {
-   vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+   vec3 shadowCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
    // note: Pikzel uses the Vulkan convention where NDC is -1 to 1 for x and y, and 0 to 1 for z
-   projCoords = projCoords * vec3(0.5, 0.5, 1.0) + vec3(0.5, 0.5, 0.0);
+   //       Transform shadowCoords x and y to 0 to 1 here.  z is OK as is.
+   shadowCoords = shadowCoords * vec3(0.5, 0.5, 1.0) + vec3(0.5, 0.5, 0.0);
+   shadowCoords.z = shadowCoords.z > 1.0? 0.0 : shadowCoords.z;
 
-   const float lightDepth = texture(dirShadowMap, projCoords.xy).r;
-   const float fragDepth = projCoords.z > 1.0? 0.0 : projCoords.z;
-
-   const float bias = 0.003 * (1.0 - dot(normal, lightDir));
-   const float shadow = fragDepth - bias > lightDepth ? 1.0 : 0.0;
-   return shadow;
+   const float lightSize = 0.02;
+   const float bias = 0.001 * (1.0 - dot(-normal, lightDir));
+   const float blockerDepth = BlockerDepth(shadowCoords, bias, lightSize);
+   if (blockerDepth > 0.0) {
+      const float penumbraWidth = lightSize * (shadowCoords.z - blockerDepth) / blockerDepth;
+      return PCFDirectionalShadow(shadowCoords, bias, penumbraWidth);
+   }
+   return 0.0;
 }
 
 
@@ -77,15 +177,18 @@ vec4 CalculateDirectionalLight(const DirectionalLight light, const vec4 viewDir,
    const vec4 lightDir = normalize(vec4(-light.direction, 0.0));
 
    const float diffuse = max(dot(normal, lightDir), 0.0);
+   if(diffuse > 0.0) {
+      const float specular = BlinnPhong(lightDir, viewDir, normal, specularColor.g * maxShininess); // shininess in specularmap green channel
+      const float notShadowed = 1.0 - CalculateDirectionalShadow(inFragPosLightSpace, normal, lightDir);
 
-   float specular = BlinnPhong(lightDir, viewDir, normal, specularColor.g * maxShininess); // shininess in specularmap green channel
-   specular = diffuse == 0? 0.0 : specular;
-
-   float shadow = CalculateDirectionalShadow(inFragPosLightSpace, normal, lightDir);
-
+      return vec4(
+         diffuseColor * (light.ambient + (light.color * diffuse * notShadowed)) +
+         specularColor.r * (light.color * specular * notShadowed), // specularity in specularmap red channel
+         1.0
+      );
+   }
    return vec4(
-      diffuseColor * (light.ambient + (light.color * diffuse * (1.0 - shadow))) +
-      specularColor.r * (light.color * specular * (1.0 - shadow)), // specularity in specularmap red channel
+      diffuseColor * light.ambient,
       1.0
    );
 }
@@ -96,7 +199,7 @@ float CalculatePointShadow(const uint lightIndex, const vec4 fragPos, const vec4
    const float lightDepth = texture(ptShadowMap, vec4(fragToLight.xyz, lightIndex)).r * constants.farPlane;
    const float fragDepth = length(fragToLight);
    const float bias = 0.003;
-   return fragDepth - bias > lightDepth ? 1.0 : 0.0;
+   return fragDepth < lightDepth + bias ? 0.0 : 1.0;
 }
 
 
@@ -106,26 +209,26 @@ vec4 CalculatePointLight(const uint lightIndex, const vec4 viewDir, const vec4 n
 
    const float diffuse = max(dot(normal, lightDir), 0.0);   // diffuseIntensity
 
-   float specular = BlinnPhong(lightDir, viewDir, normal, specularColor.g * maxShininess); // shininess in specularmap green channel
-   specular = diffuse == 0? 0.0 : specular;
+   if(diffuse > 0.0) {
+      const float specular = BlinnPhong(lightDir, viewDir, normal, specularColor.g * maxShininess); // shininess in specularmap green channel
+      const float notShadowed = 1.0 - CalculatePointShadow(lightIndex, inFragPos, lightPos);
+      const float distance = max(length(lightPos - inFragPos), 0.01);
+      const float attenuation = pointLights.light[lightIndex].power / (distance * distance); 
 
-   const float distance = max(length(lightPos - inFragPos), 0.01);
-   const float attenuation = pointLights.light[lightIndex].power / (distance * distance); 
-
-   float shadow = CalculatePointShadow(lightIndex, inFragPos, lightPos);
-
-   return vec4(
-      ((diffuseColor * diffuse) + (specular * vec3(specularColor.r))) * pointLights.light[lightIndex].color * attenuation * (1.0 - shadow), // specularity in specularmap red channel
-      1.0
-   );
+      return vec4(
+         ((diffuseColor * diffuse) + (specular * vec3(specularColor.r))) * pointLights.light[lightIndex].color * attenuation * notShadowed, // specularity in specularmap red channel
+         1.0
+      );
+   }
+   return vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 
 void main() {
-   vec4 viewDir = normalize(vec4(uboMatrices.matrices.viewPos, 1.0) - inFragPos);
-   vec4 normal = normalize(inNormal);
-   vec3 diffuseColor = texture(diffuseMap, inTexCoords).rgb;
-   vec3 specularColor = texture(specularMap, inTexCoords).rgb;
+   const vec4 viewDir = normalize(vec4(uboMatrices.matrices.viewPos, 1.0) - inFragPos);
+   const vec4 normal = normalize(inNormal);
+   const vec3 diffuseColor = texture(diffuseMap, inTexCoords).rgb;
+   const vec3 specularColor = texture(specularMap, inTexCoords).rgb;
 
    outFragColor = CalculateDirectionalLight(directionalLight.light, viewDir, normal, diffuseColor, specularColor);
 

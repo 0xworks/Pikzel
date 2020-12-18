@@ -83,16 +83,8 @@ namespace Pikzel {
    void VulkanGraphicsContext::Bind(const Texture& texture, const entt::id_type resourceId) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
-      vk::Sampler sampler = nullptr;
-      vk::ImageView imageView = nullptr;
-
-      if (texture.GetType() == TextureType::Texture2D) {
-         sampler = static_cast<const VulkanTexture2D&>(texture).GetVkSampler();
-         imageView = static_cast<const VulkanTexture2D&>(texture).GetVkImageView();
-      } else {
-         sampler = static_cast<const VulkanTextureCube&>(texture).GetVkSampler();
-         imageView = static_cast<const VulkanTextureCube&>(texture).GetVkImageView();
-      }
+      vk::Sampler sampler = static_cast<const VulkanTexture&>(texture).GetVkSampler();
+      vk::ImageView imageView = static_cast<const VulkanTexture&>(texture).GetVkImageView();
       vk::DescriptorImageInfo textureImageDescriptor = {
          sampler,
          imageView,
