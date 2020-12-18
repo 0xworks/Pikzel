@@ -170,24 +170,45 @@ namespace Pikzel {
 
 
    void VulkanTexture::CreateSampler() {
-      m_TextureSampler = m_Device->GetVkDevice().createSampler({
-         {}                                                              /*flags*/,
-         vk::Filter::eLinear                                             /*magFilter*/,
-         vk::Filter::eLinear                                             /*minFilter*/,
-         vk::SamplerMipmapMode::eLinear                                  /*mipmapMode*/,
-         vk::SamplerAddressMode::eRepeat                                 /*addressModeU*/,
-         vk::SamplerAddressMode::eRepeat                                 /*addressModeV*/,
-         vk::SamplerAddressMode::eRepeat                                 /*addressModeW*/,
-         0.0f                                                            /*mipLodBias*/,
-         m_Device->GetEnabledPhysicalDeviceFeatures().samplerAnisotropy  /*anisotropyEnable*/,
-         16                                                              /*maxAnisotropy*/,
-         false                                                           /*compareEnable*/,
-         vk::CompareOp::eNever                                           /*compareOp*/,
-         0.0f                                                            /*minLod*/,
-         static_cast<float>(m_Image->GetMIPLevels())                     /*maxLod*/,
-         vk::BorderColor::eFloatOpaqueBlack                              /*borderColor*/,
-         false                                                           /*unnormalizedCoordinates*/
-      });
+      if (IsDepthFormat(GetFormat())) {
+         m_TextureSampler = m_Device->GetVkDevice().createSampler({
+            {}                                                              /*flags*/,
+            vk::Filter::eNearest                                            /*magFilter*/,
+            vk::Filter::eNearest                                            /*minFilter*/,
+            vk::SamplerMipmapMode::eNearest                                 /*mipmapMode*/,
+            vk::SamplerAddressMode::eClampToEdge                            /*addressModeU*/,
+            vk::SamplerAddressMode::eClampToEdge                            /*addressModeV*/,
+            vk::SamplerAddressMode::eClampToEdge                            /*addressModeW*/,
+            0.0f                                                            /*mipLodBias*/,
+            m_Device->GetEnabledPhysicalDeviceFeatures().samplerAnisotropy  /*anisotropyEnable*/,
+            16                                                              /*maxAnisotropy*/,
+            false                                                           /*compareEnable*/,
+            vk::CompareOp::eNever                                           /*compareOp*/,
+            0.0f                                                            /*minLod*/,
+            static_cast<float>(m_Image->GetMIPLevels())                     /*maxLod*/,
+            vk::BorderColor::eFloatOpaqueBlack                              /*borderColor*/,
+            false                                                           /*unnormalizedCoordinates*/
+         });
+      } else {
+         m_TextureSampler = m_Device->GetVkDevice().createSampler({
+            {}                                                              /*flags*/,
+            vk::Filter::eLinear                                             /*magFilter*/,
+            vk::Filter::eLinear                                             /*minFilter*/,
+            vk::SamplerMipmapMode::eLinear                                  /*mipmapMode*/,
+            vk::SamplerAddressMode::eRepeat                                 /*addressModeU*/,
+            vk::SamplerAddressMode::eRepeat                                 /*addressModeV*/,
+            vk::SamplerAddressMode::eRepeat                                 /*addressModeW*/,
+            0.0f                                                            /*mipLodBias*/,
+            m_Device->GetEnabledPhysicalDeviceFeatures().samplerAnisotropy  /*anisotropyEnable*/,
+            16                                                              /*maxAnisotropy*/,
+            false                                                           /*compareEnable*/,
+            vk::CompareOp::eNever                                           /*compareOp*/,
+            0.0f                                                            /*minLod*/,
+            static_cast<float>(m_Image->GetMIPLevels())                     /*maxLod*/,
+            vk::BorderColor::eFloatOpaqueBlack                              /*borderColor*/,
+            false                                                           /*unnormalizedCoordinates*/
+         });
+      }
    }
 
 

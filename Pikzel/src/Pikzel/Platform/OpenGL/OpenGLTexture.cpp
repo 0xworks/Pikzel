@@ -130,11 +130,17 @@ namespace Pikzel {
       glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
       glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
 
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      if (IsDepthFormat(format)) {
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      } else {
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_REPEAT);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      }
    }
 
 
@@ -184,11 +190,17 @@ namespace Pikzel {
       glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_RendererId);
       glTextureStorage3D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers);
 
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      if (IsDepthFormat(format)) {
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      } else {
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_REPEAT);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      }
    }
 
 
@@ -300,11 +312,19 @@ namespace Pikzel {
 
       glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererId);
       glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      if (IsDepthFormat(m_Format)) {
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      } else {
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      }
    }
 
 
@@ -340,11 +360,19 @@ namespace Pikzel {
 
       glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &m_RendererId);
       glTextureStorage3D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers * 6);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      if (IsDepthFormat(m_Format)) {
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      } else {
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      }
    }
 
 }

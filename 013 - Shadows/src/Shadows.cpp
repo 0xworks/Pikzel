@@ -297,22 +297,13 @@ private:
 
    void CreateUniformBuffers() {
 
-      // note: shader expects exactly 1
-      Pikzel::DirectionalLight directionalLights[] = {
-         {
-            .Direction = { -2.0f, -6.0f, 2.0f},
-            .Color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
-            .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f}
-         }
-      };
-
-      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 10.0f);  // TODO: how does one determine the parameters here?
-      glm::mat4 lightView = glm::lookAt(-directionalLights[0].Direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
+      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -5.0f, 10.0f);  // TODO: how does one determine the parameters here?
+      glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].Direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
       m_LightSpace = lightProjection * lightView;
 
       m_BufferMatrices = Pikzel::RenderCore::CreateUniformBuffer(sizeof(Matrices));
       m_BufferLightViews = Pikzel::RenderCore::CreateUniformBuffer(sizeof(glm::mat4) * m_PointLights.size() * 6);
-      m_BufferDirectionalLight = Pikzel::RenderCore::CreateUniformBuffer(sizeof(directionalLights), directionalLights);
+      m_BufferDirectionalLight = Pikzel::RenderCore::CreateUniformBuffer(sizeof(m_DirectionalLights), m_DirectionalLights);
       m_BufferPointLights = Pikzel::RenderCore::CreateUniformBuffer(m_PointLights.size() * sizeof(Pikzel::PointLight), m_PointLights.data());
    }
 
@@ -326,11 +317,13 @@ private:
 
 
    void CreateFramebuffers() {
+      uint32_t width = 4096;
+      uint32_t height = 4096;
       m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
-      m_FramebufferDirShadow = Pikzel::RenderCore::CreateFramebuffer({.Width = 1024, .Height = 1024, .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}}});
+      m_FramebufferDirShadow = Pikzel::RenderCore::CreateFramebuffer({.Width = width, .Height = height, .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}}});
       m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
-         .Width = 1024,
-         .Height = 1024,
+         .Width = width,
+         .Height = height,
          .Layers = static_cast<uint32_t>(m_PointLights.size()),
          .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F, Pikzel::TextureType::TextureCubeArray}}
       });
@@ -398,20 +391,30 @@ private:
       .Direction = glm::normalize(glm::vec3{1.0f, -0.5f, 0.0f}),
       .UpVector = {0.0f, 1.0f, 0.0f},
       .FoVRadians = glm::radians(45.f),
-      .MoveSpeed = 1.0f,
+      .MoveSpeed = 2.0f,
       .RotateSpeed = 10.0f
    };
 
+   // note: shader expects exactly 1
+   Pikzel::DirectionalLight m_DirectionalLights[1] = {
+      {
+         .Direction = { -2.0f, -4.0f, 2.0f},
+         .Color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
+         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f}
+      }
+   };
+
+   // note: shader expects 1 to 32
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
          .Position = {-2.8f, 2.8f, -1.7f},
          .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Power = 20.0f
+         .Power = 0.0f
       }
       ,{
          .Position = {2.3f, 3.3f, -4.0f},
          .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
-         .Power = 20.0f
+         .Power = 0.0f
       }
    };
 //       {
