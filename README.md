@@ -35,7 +35,7 @@ This project is mainly a learning exercise for me, and I hope that the code is c
       - [x] Directional light shadows
       - [x] Point light shadows
       - [ ] Cascades
-      - [ ] Percent closer soft shadows (PCSS)
+      - [x] Percent closer soft shadows (PCSS)
     - [ ] Normal maps
     - [ ] Bloom
     - [ ] Deferred rendering
