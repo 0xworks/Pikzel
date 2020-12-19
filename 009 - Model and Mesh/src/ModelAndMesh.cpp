@@ -1,8 +1,8 @@
 #include "Camera.h"
 
 #include "Pikzel/Pikzel.h"
-
 #include "Pikzel/Core/EntryPoint.h"
+
 
 class ModelAndMesh final : public Pikzel::Application {
 public:
@@ -40,11 +40,23 @@ public:
    }
 
 
+   virtual void RenderBegin() override {}
+
+
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
 
+      auto start = std::chrono::steady_clock::now();
+
       glm::mat4 transform = glm::identity<glm::mat4>();
       glm::mat4 view = glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
+
+      // Render the model, positioned according to given transform, with camera and lighting as given
+      m_ModelRenderer->Draw(
+         GetWindow().GetGraphicsContext(),
+         {m_Camera.Projection, view, m_Camera.Position, m_LightSpace, m_DirectionalLights, m_PointLights},
+         transform
+      );
 
       // Render point lights as little cubes
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
@@ -59,12 +71,8 @@ public:
          }
       }
 
-      // Render the model, positioned according to given transform, with camera and lighting as given
-      m_ModelRenderer->Draw(
-         GetWindow().GetGraphicsContext(),
-         {m_Camera.Projection, view, m_Camera.Position, m_DirectionalLights, m_PointLights},
-         transform
-      );
+      auto end = std::chrono::steady_clock::now();
+      std::chrono::duration<double, std::milli> ms = end - start;
 
       // If you want to render ImGui windows, do it between calls to BeginImGuiFrame() and EndImGuiFrame()
       GetWindow().BeginImGuiFrame();
@@ -74,11 +82,15 @@ public:
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
             ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
          }
+         ImGui::Text("Frame time: %f (%f)", ms.count(), 1000.0 / ms.count());
          ImGui::End();
       }
       GetWindow().EndImGuiFrame();
+      GetWindow().EndFrame();
    }
 
+
+   virtual void RenderEnd() override {}
 
 private:
 
@@ -146,6 +158,13 @@ private:
 
 
    void CreateModelRenderer() {
+      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -5.0f, 10.0f);  // TODO: how does one determine the parameters here?
+      glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].Direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
+      m_LightSpace = lightProjection * lightView;
+
+      //
+      // TODO: change this so that the model renderer does not need to take model pointer.
+      //       (and then can be used to render multiple different models)
       m_ModelRenderer = std::make_unique<Pikzel::ModelRenderer>(GetWindow().GetGraphicsContext(), Pikzel::ModelSerializer::Import("Assets/Models/Sponza/sponza.gltf"));
    }
 
@@ -164,7 +183,6 @@ private:
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
       __super::OnWindowResize(event);
-
       m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(event.Width) / static_cast<float>(event.Height), 1.0f, 10000.0f);
    }
 
@@ -186,38 +204,40 @@ private:
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
          .Direction = {-1.0f, -1.0f, 0.0f},
-         .Color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
+         .Color = Pikzel::sRGB{0.0f, 0.0f, 0.0f},
          .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f}
       }
    };
 
-   // note: currently shader expects exactly 4 point lights
+   glm::mat4 m_LightSpace;
+
+   // note: currently shader supports between 1 and 32 point lights
+   // for zero points lights, pass in one, with power set to 0
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
          .Position = {-619.3f, 130.3f, -219.5f},
-         .Color = Pikzel::sRGB{0.8f, 0.8f, 0.0f},
-         .Power = 6000.0f
+         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .Power = 30000.0f
       },
       {
          .Position = {487.3f, 130.3f, -219.5f},
-         .Color = Pikzel::sRGB{0.8f, 0.8f, 0.0f},
-         .Power = 6000.0f
+         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .Power = 30000.0f
       },
       {
          .Position = {487.3f, 130.3f, 141.1f},
-         .Color = Pikzel::sRGB{0.8f, 0.8f, 1.0f},
-         .Power = 6000.0f
+         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .Power = 30000.0f
       },
       {
          .Position = {-619.3f, 130.3f, 141.1f},
-         .Color = Pikzel::sRGB{0.8f, 0.8f, 0.0f},
-         .Power = 6000.0f
+         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .Power = 30000.0f
       }
    };
 
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLight;
-   std::unique_ptr<Pikzel::Pipeline> m_PipelineLighting;
    std::unique_ptr<Pikzel::ModelRenderer> m_ModelRenderer;
 
 };
