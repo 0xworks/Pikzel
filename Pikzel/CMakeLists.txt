@@ -181,12 +181,19 @@ set(
 
 set(
    SceneShaderSources
-   "src/Pikzel/Scene/Shaders/Mesh.vert"
-   "src/Pikzel/Scene/Shaders/Mesh.frag"
+   "src/Pikzel/Scene/Shaders/Depth.vert"
+   "src/Pikzel/Scene/Shaders/Depth.frag"
+   "src/Pikzel/Scene/Shaders/DepthCube.vert"
+   "src/Pikzel/Scene/Shaders/DepthCube.geom"
+   "src/Pikzel/Scene/Shaders/DepthCube.frag"
+   "src/Pikzel/Scene/Shaders/LitModel.vert"
+   "src/Pikzel/Scene/Shaders/LitModel.frag"
 )
 
 set(
    SceneShaderHeaders
+   "src/Pikzel/Scene/Shaders/Lights.glsl"
+   "src/Pikzel/Scene/Shaders/Matrices.glsl"
 )
 
 compile_shaders(RendererShaderSources RendererShaderHeaders ${CMAKE_CURRENT_BINARY_DIR}/Renderer CompiledRendererShaders)

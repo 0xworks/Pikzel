@@ -52,14 +52,14 @@ namespace Pikzel {
       VulkanPipeline& vkp = static_cast<VulkanPipeline&>(*m_Pipeline);
 
       const auto& descriptorSetLayouts = vkp.GetVkDescriptorSetLayouts();
-      if (descriptorSetLayouts.size() != 2) {
-         throw std::runtime_error {"VulkanMeshRenderer expects exactly 2 descriptor set: one for the lights, and one for the material textures - check which shaders you constructed the pipeline with."};
+      if (descriptorSetLayouts.size() != 3) {
+         throw std::runtime_error {"VulkanMeshRenderer expects exactly 3 descriptor sets: one each for matrices, lighting, and material textures - check which shaders you constructed the pipeline with."};
       }
 
       vk::DescriptorSetAllocateInfo allocInfo = {
          m_DescriptorPool,
          1,
-         &descriptorSetLayouts[1]
+         &descriptorSetLayouts[2] // material textures are the 3rd descriptor set
       };
 
       m_DescriptorSets.reserve(model.Meshes.size());
@@ -116,7 +116,7 @@ namespace Pikzel {
    void VulkanMeshRenderer::Draw(GraphicsContext& gc, const Mesh& mesh) const {
       const VulkanPipeline& vulkanPipeline = static_cast<const VulkanPipeline&>(*m_Pipeline);
       VulkanGraphicsContext& vgc = static_cast<VulkanGraphicsContext&>(gc);
-      vgc.GetVkCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipelineLayout(), 1, m_DescriptorSets[mesh.Index], nullptr);
+      vgc.GetVkCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, vulkanPipeline.GetVkPipelineLayout(), 2, m_DescriptorSets[mesh.Index], nullptr);
       gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
    }
 

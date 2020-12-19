@@ -1,7 +1,8 @@
 #version 450 core
 #extension GL_GOOGLE_include_directive: require
 
-#include "PointLight.glsl"
+#include "Lights.glsl"
+#include "Matrices.glsl"
 
 const float pi = 3.14159265;
 const float maxShininess = 128.0f;
@@ -17,21 +18,10 @@ layout(location = 3) in vec2 inTexCoords;
 layout(push_constant) uniform PC {
    mat4 model;
    mat4 modelInvTrans;
-   float farPlane;
+   float lightRadius;
    uint numPointLights;
 } constants;
 
-struct Matrices {
-   mat4 vp;
-   mat4 lightSpace;
-   vec3 viewPos;
-};
-
-struct DirectionalLight {
-   vec3 direction;
-   vec3 color;
-   vec3 ambient;
-};
 
 layout(set = 0, binding = 0) uniform UBOMatrices {
    Matrices matrices;
@@ -173,7 +163,7 @@ float CalculateDirectionalShadow(const vec4 fragPosLightSpace, const vec4 normal
 }
 
 
-vec4 CalculateDirectionalLight(const DirectionalLight light, const vec4 viewDir, const vec4 normal, const vec3 diffuseColor, const vec3 specularColor) {
+vec3 CalculateDirectionalLight(const DirectionalLight light, const vec4 viewDir, const vec4 normal, const vec3 diffuseColor, const vec3 specularColor) {
    const vec4 lightDir = normalize(vec4(-light.direction, 0.0));
 
    const float diffuse = max(dot(normal, lightDir), 0.0);
@@ -181,29 +171,24 @@ vec4 CalculateDirectionalLight(const DirectionalLight light, const vec4 viewDir,
       const float specular = BlinnPhong(lightDir, viewDir, normal, specularColor.g * maxShininess); // shininess in specularmap green channel
       const float notShadowed = 1.0 - CalculateDirectionalShadow(inFragPosLightSpace, normal, lightDir);
 
-      return vec4(
-         diffuseColor * (light.ambient + (light.color * diffuse * notShadowed)) +
-         specularColor.r * (light.color * specular * notShadowed), // specularity in specularmap red channel
-         1.0
-      );
+      return diffuseColor * (light.ambient + (light.color * diffuse * notShadowed)) +
+         specularColor.r * (light.color * specular * notShadowed)
+      ; // specularity in specularmap red channel
    }
-   return vec4(
-      diffuseColor * light.ambient,
-      1.0
-   );
+   return diffuseColor * light.ambient;
 }
 
 
 float CalculatePointShadow(const uint lightIndex, const vec4 fragPos, const vec4 lightPos) {
+   const float bias = 0.001;
    const vec4 fragToLight = fragPos - lightPos;
-   const float lightDepth = texture(ptShadowMap, vec4(fragToLight.xyz, lightIndex)).r * constants.farPlane;
-   const float fragDepth = length(fragToLight);
-   const float bias = 0.003;
-   return fragDepth < lightDepth + bias ? 0.0 : 1.0;
+   const float fragDepth = (length(fragToLight) / constants.lightRadius) - bias;
+   float closestDepth = texture(ptShadowMap, vec4(fragToLight.xyz, lightIndex)).r;
+   return (closestDepth < fragDepth) ? 1.0f : 0.0f;
 }
 
 
-vec4 CalculatePointLight(const uint lightIndex, const vec4 viewDir, const vec4 normal, const vec3 diffuseColor, const vec3 specularColor) {
+vec3 CalculatePointLight(const uint lightIndex, const vec4 viewDir, const vec4 normal, const vec3 diffuseColor, const vec3 specularColor) {
    const vec4 lightPos = vec4(pointLights.light[lightIndex].position, 1.0);
    const vec4 lightDir = normalize(lightPos - inFragPos);
 
@@ -215,24 +200,30 @@ vec4 CalculatePointLight(const uint lightIndex, const vec4 viewDir, const vec4 n
       const float distance = max(length(lightPos - inFragPos), 0.01);
       const float attenuation = pointLights.light[lightIndex].power / (distance * distance); 
 
-      return vec4(
-         ((diffuseColor * diffuse) + (specular * vec3(specularColor.r))) * pointLights.light[lightIndex].color * attenuation * notShadowed, // specularity in specularmap red channel
-         1.0
-      );
+      return (
+         (diffuseColor * diffuse) +
+         (specular * vec3(specularColor.r))
+      ) * pointLights.light[lightIndex].color * attenuation * notShadowed; // specularity in specularmap red channel
    }
-   return vec4(0.0, 0.0, 0.0, 1.0);
+   return vec3(0.0);
 }
 
 
 void main() {
-   const vec4 viewDir = normalize(vec4(uboMatrices.matrices.viewPos, 1.0) - inFragPos);
+   const vec4 viewDir = normalize(vec4(uboMatrices.matrices.eyePosition, 1.0) - inFragPos);
    const vec4 normal = normalize(inNormal);
-   const vec3 diffuseColor = texture(diffuseMap, inTexCoords).rgb;
+   const vec4 diffuseColor = texture(diffuseMap, inTexCoords);
+
+   if (diffuseColor.a < 0.1) {
+      discard;
+   }
+
    const vec3 specularColor = texture(specularMap, inTexCoords).rgb;
 
-   outFragColor = CalculateDirectionalLight(directionalLight.light, viewDir, normal, diffuseColor, specularColor);
+   vec3 color = CalculateDirectionalLight(directionalLight.light, viewDir, normal, diffuseColor.rgb, specularColor);
 
    for(uint i = 0; i < constants.numPointLights; ++i) {
-      outFragColor += CalculatePointLight(i, viewDir, normal, diffuseColor, specularColor);
+      color += CalculatePointLight(i, viewDir, normal, diffuseColor.rgb, specularColor);
    }
+   outFragColor = vec4(color, diffuseColor.a);
 }

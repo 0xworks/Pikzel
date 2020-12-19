@@ -1,4 +1,8 @@
 #version 450 core
+#extension GL_GOOGLE_include_directive: require
+
+#include "Matrices.glsl"
+
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec2 inTexCoords;
@@ -6,15 +10,9 @@ layout (location = 2) in vec2 inTexCoords;
 layout(push_constant) uniform PC {
    mat4 model;
    mat4 modelInvTrans;
-   float farPlane;
+   float lightRadius;
    uint numPointLights;
 } constants;
-
-struct Matrices {
-   mat4 vp;
-   mat4 lightSpace;
-   vec3 viewPos;
-};
 
 layout(set = 0, binding = 0) uniform UBOMatrices {
    Matrices matrices;
@@ -30,5 +28,5 @@ void main() {
    outFragPos = constants.model * vec4(inPos, 1.0);
    outFragPosLightSpace = uboMatrices.matrices.lightSpace * outFragPos;
    outTexCoords = inTexCoords;
-   gl_Position = uboMatrices.matrices.vp * outFragPos;
+   gl_Position = uboMatrices.matrices.viewProjection * outFragPos;
 }

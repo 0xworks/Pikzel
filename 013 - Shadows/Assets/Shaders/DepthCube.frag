@@ -1,13 +1,13 @@
 #version 450 core
 #extension GL_GOOGLE_include_directive: require
 
-#include "PointLight.glsl"
+#include "Lights.glsl"
 
 layout(location = 0) in vec4 inFragPos;
 
 layout(push_constant) uniform PC {
    mat4 model;
-   float farPlane;
+   float lightRadius;
    int lightIndex;
 } constants;
 
@@ -16,5 +16,5 @@ layout(set = 1, binding = 0) uniform UBOPointLights {
 } pointLights;
 
 void main() {
-   gl_FragDepth = length(inFragPos.xyz - pointLights.light[constants.lightIndex].position) / constants.farPlane;
+   gl_FragDepth = length(inFragPos.xyz - pointLights.light[constants.lightIndex].position) / constants.lightRadius;
 }

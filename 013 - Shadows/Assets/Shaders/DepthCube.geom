@@ -5,7 +5,7 @@ layout (triangle_strip, max_vertices = 18) out;
 
 layout(push_constant) uniform PC {
    mat4 model;
-   float farPlane;
+   float lightRadius;
    int lightIndex;
 } constants;
 

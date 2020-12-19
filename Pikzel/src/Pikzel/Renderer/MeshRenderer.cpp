@@ -14,13 +14,11 @@ namespace Pikzel {
       m_Pipeline = gc.CreatePipeline({
          layout,
          {
-            { Pikzel::ShaderType::Vertex, "Scene/Shaders/Mesh.vert.spv" },
-            { Pikzel::ShaderType::Fragment, "Scene/Shaders/Mesh.frag.spv" }
+            { Pikzel::ShaderType::Vertex, "Scene/Shaders/LitModel.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Scene/Shaders/LitModel.frag.spv" }
          }
       });
 
-      m_DirectionalLightBuffer = RenderCore::CreateUniformBuffer(sizeof(Pikzel::DirectionalLight));
-      m_PointLightBuffer = RenderCore::CreateUniformBuffer(sizeof(Pikzel::PointLight) * 4);
    }
 
 
@@ -29,28 +27,9 @@ namespace Pikzel {
    }
 
 
-   void MeshRenderer::SetTransforms(GraphicsContext& gc, const DrawData& drawData, const glm::mat4& transform) const {
-      gc.PushConstant("constants.vp"_hs, drawData.Projection * drawData.View);
-
-      glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(transform))));
-      gc.PushConstant("constants.model"_hs, transform);
-      gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
-      gc.PushConstant("constants.viewPos"_hs, drawData.ViewPosition);
-   }
-
-
-   void MeshRenderer::SetLighting(GraphicsContext& gc, const DrawData& drawData) const {
-      m_DirectionalLightBuffer->CopyFromHost(0, sizeof(DirectionalLight) * drawData.DirectionalLights.size(), drawData.DirectionalLights.data());
-      m_PointLightBuffer->CopyFromHost(0, sizeof(PointLight) * drawData.PointLights.size(), drawData.PointLights.data());
-      gc.Bind(*m_DirectionalLightBuffer, "UBODirectionalLight"_hs);
-      gc.Bind(*m_PointLightBuffer, "UBOPointLights"_hs);
-   }
-
-
    void MeshRenderer::Draw(GraphicsContext& gc, const Mesh& mesh) const {
       gc.Bind(*mesh.DiffuseTexture, "diffuseMap"_hs);
       gc.Bind(*mesh.SpecularTexture, "specularMap"_hs);
-      gc.PushConstant("constants.shininess"_hs, 32.0f /*mesh.Shininess*/);
       gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
    }
 

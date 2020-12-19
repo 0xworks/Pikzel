@@ -65,6 +65,10 @@ namespace Pikzel {
 
       static void UploadImGuiFonts();
 
+      static const uint32_t ShadowMapWidth = 4096;
+      static const uint32_t ShadowMapHeight = 4096;
+      static const uint32_t MaxPointLights = 32;
+
       static void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height);
 
       static std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window);
