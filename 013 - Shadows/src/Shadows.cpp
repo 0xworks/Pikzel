@@ -382,6 +382,7 @@ private:
       if (ImGui::TreeNode(label)) {
          Pikzel::ImGuiEx::EditVec3("Position", &pointLight.Position);
          Pikzel::ImGuiEx::EditVec3Color("Color", &pointLight.Color);
+         Pikzel::ImGuiEx::EditFloat("Size", &pointLight.Size);
          Pikzel::ImGuiEx::EditFloat("Power", &pointLight.Power);
          ImGui::TreePop();
       }
@@ -406,7 +407,8 @@ private:
       {
          .Direction = { -2.0f, -4.0f, 2.0f},
          .Color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
-         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f}
+         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
+         .Size = 0.02
       }
    };
 
@@ -415,12 +417,14 @@ private:
       {
          .Position = {-2.8f, 2.8f, -1.7f},
          .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Power = 0.0f
+         .Size = 0.02,
+         .Power = 20.0f
       }
       ,{
          .Position = {2.3f, 3.3f, -4.0f},
          .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
-         .Power = 0.0f
+         .Size = 0.02,
+         .Power = 20.0f
       }
    };
 //       {
