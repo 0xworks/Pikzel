@@ -60,16 +60,7 @@ set(
    "vendor/imgui/imgui.cpp"
    "vendor/imgui/imgui_draw.cpp"
    "vendor/imgui/imgui_widgets.cpp"
-   "vendor/tracy/TracyClient.cpp"
 )
-
-if(WIN32)
-   list(
-      APPEND ProjectSources
-      "src/Pikzel/Platform/Windows/WindowsPlatformUtility.cpp"
-      "src/Pikzel/Platform/Windows/WindowsWindow.cpp"
-   )
-endif()
 
 set(
    ProjectIncludes
@@ -96,7 +87,21 @@ set(
    GLFW_INCLUDE_NONE
    GLM_FORCE_DEPTH_ZERO_TO_ONE
    GLM_FORCE_RADIANS
+   TRACY_IMPORTS
 )
+
+if(WIN32)
+   list(
+      APPEND ProjectSources
+      "src/Pikzel/Platform/Windows/WindowsPlatformUtility.cpp"
+      "src/Pikzel/Platform/Windows/WindowsWindow.cpp"
+   )
+
+   list(
+      APPEND ProjectDefines
+      WIN32_LEAN_AND_MEAN
+   )
+endif()
 
 if(PKZL_PROFILE)
    list(
@@ -156,6 +161,11 @@ endif()
 target_link_libraries(
    ${PROJECT_NAME} PRIVATE
    ${ProjectLibs}
+)
+
+target_link_libraries(
+   ${PROJECT_NAME} PUBLIC
+   "TracyClient"
 )
 
 if(MSVC)
@@ -288,6 +298,7 @@ target_link_libraries(
    "ImGui"
    "spirv-cross-core"
    "spirv-cross-glsl"
+   "TracyClient"
 )
 
 target_precompile_headers(
@@ -388,6 +399,7 @@ if(${Vulkan_FOUND})
       "ImGui"
       "spirv-cross-core"
       "spirv-cross-glsl"
+      "TracyClient"
       ${Vulkan_LIBRARIES}
    )
 
@@ -397,6 +409,28 @@ endif()
 
 ##################################################################
 
+add_library(
+   "TracyClient" SHARED
+   "vendor/tracy/TracyClient.cpp"
+)
+
+target_compile_features(
+   "TracyClient" PRIVATE
+   cxx_std_20
+)
+
+target_compile_definitions(
+   "TracyClient" PRIVATE
+   TRACY_ENABLE
+   TRACY_EXPORTS
+)
+
+target_include_directories(
+   "TracyClient" PRIVATE
+   ${ProjectIncludes}
+)
+
+##################################################################
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
 set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "Inject debug postfix in .a/.so/.dll lib names" FORCE)
 
