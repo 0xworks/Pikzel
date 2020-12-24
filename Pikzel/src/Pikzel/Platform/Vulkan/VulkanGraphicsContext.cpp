@@ -119,7 +119,6 @@ namespace Pikzel {
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Bool, "Push constant '{0}' type mismatch.  Bool given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
       GetVkCommandBuffer().pushConstants<bool>(m_Pipeline->GetVkPipelineLayout(), constant.ShaderStages, constant.Offset, value);
-
    }
 
 
