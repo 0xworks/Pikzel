@@ -6,9 +6,10 @@ namespace Pikzel {
 
    MeshRenderer::MeshRenderer(GraphicsContext& gc) {
       BufferLayout layout {
-         { "inPos",    Pikzel::DataType::Vec3 },
-         { "inNormal", Pikzel::DataType::Vec3 },
-         { "inUV",     Pikzel::DataType::Vec2 },
+         { "inPos",     Pikzel::DataType::Vec3 },
+         { "inNormal",  Pikzel::DataType::Vec3 },
+         { "inTangent", Pikzel::DataType::Vec3 },
+         { "inUV",      Pikzel::DataType::Vec2 },
       };
 
       m_Pipeline = gc.CreatePipeline({
@@ -30,6 +31,7 @@ namespace Pikzel {
    void MeshRenderer::Draw(GraphicsContext& gc, const Mesh& mesh) const {
       gc.Bind(*mesh.DiffuseTexture, "diffuseMap"_hs);
       gc.Bind(*mesh.SpecularTexture, "specularMap"_hs);
+      gc.Bind(*mesh.NormalTexture, "normalMap"_hs);
       gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
    }
 

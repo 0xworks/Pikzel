@@ -30,6 +30,7 @@
 #include "Pikzel/Renderer/sRGB.h"
 #include "Pikzel/Renderer/Texture.h"
 
+#include "Pikzel/Scene/Camera.h"
 #include "Pikzel/Scene/Light.h"
 #include "Pikzel/Scene/Mesh.h"
 #include "Pikzel/Scene/Model.h"

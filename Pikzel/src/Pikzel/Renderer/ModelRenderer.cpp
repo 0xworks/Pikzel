@@ -86,9 +86,8 @@ namespace Pikzel {
       gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
       gc.Bind(m_FramebufferDirShadow->GetDepthTexture(), "dirShadowMap"_hs);
       gc.Bind(m_FramebufferPtShadow->GetDepthTexture(), "ptShadowMap"_hs);
-      gc.PushConstant("constants.model"_hs, transform);
-      gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
 
+      gc.PushConstant("constants.model"_hs, transform);
       for (const auto& mesh : m_Model->Meshes) {
          m_MeshRenderer->Draw(gc, mesh);
       }

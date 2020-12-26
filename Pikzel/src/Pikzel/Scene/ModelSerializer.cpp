@@ -39,6 +39,14 @@ namespace Pikzel {
                g_TextureCache["**black**"] = blackTexture;
             }
             return g_TextureCache["**black**"];
+         } else if (type == aiTextureType_NORMALS) {
+            if (g_TextureCache.find("**unit-z**") == g_TextureCache.end()) {
+               std::shared_ptr<Texture> unitVectorZ = RenderCore::CreateTexture2D(1, 1, TextureFormat::RGBA8, 1);
+               uint32_t normal = 0x8080ff00;
+               unitVectorZ->SetData(&normal, sizeof(uint32_t));
+               g_TextureCache["**unit-z**"] = unitVectorZ;
+            }
+            return g_TextureCache["**unit-z**"];
          }
          if (g_TextureCache.find("**white**") == g_TextureCache.end()) {
             std::shared_ptr<Texture> whiteTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::SRGBA8, 1);
@@ -62,7 +70,8 @@ namespace Pikzel {
          for (unsigned int i = 0; i < pmesh->mNumVertices; ++i) {
             vertices.emplace_back(
                glm::vec3 {pmesh->mVertices[i].x, pmesh->mVertices[i].y, pmesh->mVertices[i].z},
-               glm::vec3 {pmesh->mNormals[i].x, pmesh->mNormals[i].y, pmesh->mNormals[i].z},
+               glm::vec3 {pmesh->mNormals[i].x,  pmesh->mNormals[i].y,  pmesh->mNormals[i].z},
+               glm::vec3 {pmesh->mTangents[i].x, pmesh->mTangents[i].y, pmesh->mTangents[i].z},
                pmesh->mTextureCoords[0] ? glm::vec2 {pmesh->mTextureCoords[0][i].x, pmesh->mTextureCoords[0][i].y} : glm::vec2 {}
             );
             aabbMin = glm::min(aabbMin, vertices.back().Pos);
@@ -82,9 +91,10 @@ namespace Pikzel {
 
          // this is annoying. would be better if we didn't have to do this for every mesh...
          mesh.VertexBuffer->SetLayout({
-            { "inPos",    Pikzel::DataType::Vec3 },
-            { "inNormal", Pikzel::DataType::Vec3 },
-            { "inUV",     Pikzel::DataType::Vec2 },
+            { "inPos",     Pikzel::DataType::Vec3 },
+            { "inNormal",  Pikzel::DataType::Vec3 },
+            { "inTangent", Pikzel::DataType::Vec3 },
+            { "inUV",      Pikzel::DataType::Vec2 },
          });
 
          mesh.IndexBuffer = RenderCore::CreateIndexBuffer(indices.size(), indices.data());
@@ -93,6 +103,7 @@ namespace Pikzel {
             aiMaterial* material = pscene->mMaterials[pmesh->mMaterialIndex];
             mesh.DiffuseTexture = LoadMaterialTexture(material, aiTextureType_DIFFUSE, modelDir);
             mesh.SpecularTexture = LoadMaterialTexture(material, aiTextureType_SPECULAR, modelDir);
+            mesh.NormalTexture = LoadMaterialTexture(material, aiTextureType_NORMALS, modelDir);
          }
 
          mesh.AABB = {aabbMin, aabbMax};
@@ -118,7 +129,7 @@ namespace Pikzel {
          std::unique_ptr model = std::make_unique<Model>();
 
          Assimp::Importer importer;
-         const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
+         const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace);
 
          if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             throw std::runtime_error {fmt::format("Error when importing model '{0}': {1}", path.string(), importer.GetErrorString())};

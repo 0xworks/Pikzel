@@ -1,5 +1,3 @@
-#include "Camera.h"
-
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 

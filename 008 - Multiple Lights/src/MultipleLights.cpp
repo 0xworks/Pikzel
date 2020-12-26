@@ -1,4 +1,3 @@
-#include "Camera.h"
 
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
@@ -137,7 +136,7 @@ private:
       Pikzel::DirectionalLight directionalLights[] = {
          {
             .Direction = {-0.2f, -1.0f, -0.3f},
-            .Color = Pikzel::sRGB{0.0f, 0.0f, 0.0f},
+            .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
             .Ambient = Pikzel::sRGB{0.01f, 0.01f, 0.01f}
          }
       };

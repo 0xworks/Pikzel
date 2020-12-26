@@ -36,8 +36,10 @@ namespace Pikzel {
          case GL_DEBUG_SEVERITY_HIGH:
             PKZL_CORE_LOG_FATAL("OpenGL Debug: {0}", message);
             break;
+         default:
+            PKZL_CORE_LOG_ERROR("OpenGL Debug: The following message was received with severity level {0}.  This is not a known OpenGL callback severity level!", severity);
+            PKZL_CORE_LOG_ERROR("OpenGL Debug: {0}", message);
       }
-      PKZL_CORE_ASSERT(false, "Unknown OpenGL message callback severity level!");
    }
 
 

@@ -80,7 +80,14 @@ namespace Pikzel {
             vk::ImageLayout::eShaderReadOnlyOptimal    /*imageLayout*/
          };
 
-         std::array<vk::WriteDescriptorSet, 2> writeDescriptorSets = {
+         const auto& normalTexture = static_cast<const VulkanTexture2D&>(*mesh.NormalTexture);
+         vk::DescriptorImageInfo normalTextureImageDescriptor = {
+            normalTexture.GetVkSampler()               /*sampler*/,
+            normalTexture.GetVkImageView()             /*imageView*/,
+            vk::ImageLayout::eShaderReadOnlyOptimal    /*imageLayout*/
+         };
+
+         std::array<vk::WriteDescriptorSet, 3> writeDescriptorSets = {
             vk::WriteDescriptorSet {
                m_DescriptorSets.back()                                                     /*dstSet*/,
                0                                                                           /*dstBinding*/,
@@ -98,6 +105,16 @@ namespace Pikzel {
                1                                                                           /*descriptorCount*/,
                vk::DescriptorType::eCombinedImageSampler                                   /*descriptorType*/,
                &specularTextureImageDescriptor                                             /*pImageInfo*/,
+               nullptr                                                                     /*pBufferInfo*/,
+               nullptr                                                                     /*pTexelBufferView*/
+            },
+            vk::WriteDescriptorSet {
+               m_DescriptorSets.back()                                                     /*dstSet*/,
+               2                                                                           /*dstBinding*/,
+               0                                                                           /*dstArrayElement*/,
+               1                                                                           /*descriptorCount*/,
+               vk::DescriptorType::eCombinedImageSampler                                   /*descriptorType*/,
+               &normalTextureImageDescriptor                                               /*pImageInfo*/,
                nullptr                                                                     /*pBufferInfo*/,
                nullptr                                                                     /*pTexelBufferView*/
             }
