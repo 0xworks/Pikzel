@@ -1,8 +1,5 @@
-#include "Camera.h"
-
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
-
 
 class ModelAndMesh final : public Pikzel::Application {
 public:
@@ -78,7 +75,7 @@ public:
       GetWindow().BeginImGuiFrame();
       {
          // You can draw multiple ImGui windows in here, you do not need to call Begin/End ImGuiFrame() again.
-         ImGui::Begin("Point Lights");
+         ImGui::Begin("Lighting");
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
             ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
          }
@@ -245,7 +242,6 @@ private:
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLight;
    std::unique_ptr<Pikzel::ModelRenderer> m_ModelRenderer;
-
 };
 
 

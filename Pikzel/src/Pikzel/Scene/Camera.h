@@ -10,7 +10,7 @@
 // Quick and dirty camera class.
 // this is not the final product!
 
-struct Camera {
+struct PKZL_API Camera {
 
    glm::vec3 Position {0.0f, 0.0f, 0.0f};
    glm::vec3 Direction = {0.0f, 0.0f, -1.0f};

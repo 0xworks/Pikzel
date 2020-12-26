@@ -1,14 +1,12 @@
-#include "Camera.h"
-
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
-constexpr float nearPlane = 0.1f;
-constexpr float farPlane = 50.0f;
+const float nearPlane = 0.1f;
+const float farPlane = 50.0f;
 
-class Shadows final : public Pikzel::Application {
+class NormalMaps final : public Pikzel::Application {
 public:
-   Shadows()
+   NormalMaps()
    : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
@@ -498,5 +496,5 @@ private:
 
 
 std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
-   return std::make_unique<Shadows>();
+   return std::make_unique<NormalMaps>();
 }

@@ -52,6 +52,8 @@ set(
    "src/Pikzel/Renderer/sRGB.h"
    "src/Pikzel/Renderer/sRGB.cpp"
    "src/Pikzel/Renderer/Texture.h"
+   "src/Pikzel/Scene/Camera.h"
+   "src/Pikzel/Scene/Camera.cpp"
    "src/Pikzel/Scene/Light.h"
    "src/Pikzel/Scene/Mesh.h"
    "src/Pikzel/Scene/Model.h"

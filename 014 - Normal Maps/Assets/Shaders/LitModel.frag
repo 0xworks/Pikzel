@@ -301,7 +301,6 @@ vec3 CalculatePointLight(const uint lightIndex, const vec3 viewDir, const vec3 n
    const vec3 lightPos = pointLights.light[lightIndex].position;
    const vec3 lightDir = normalize(inTangentLightPos[lightIndex] - inTangentFragPos);
 
-   //return 0.5 * (lightDir + 1.0);
    const float diffuse = max(dot(normal, lightDir), 0.0);   // diffuseIntensity
 
    if(diffuse > 0.0) {
@@ -357,5 +356,4 @@ void main() {
       }
    }
    outFragColor = vec4(color, diffuseColor.a);
-   //outFragColor = vec4(0.5 * (normal + 1.0), 1.0);
 }

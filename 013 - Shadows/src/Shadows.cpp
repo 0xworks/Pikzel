@@ -1,10 +1,8 @@
-#include "Camera.h"
-
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
-constexpr float nearPlane = 0.1f;
-constexpr float farPlane = 50.0f;
+const float nearPlane = 0.1f;
+const float farPlane = 50.0f;
 
 class Shadows final : public Pikzel::Application {
 public:

@@ -9,15 +9,17 @@ const float maxShininess = 128.0f;
 const int numPCSSSamples = 64;
 const int numPCFSamples = 64;
 
+layout(location = 0) in vec3 inFragPos;
+layout(location = 1) in vec4 inFragPosLightSpace;
+layout(location = 2) in vec2 inTexCoords;
+layout(location = 3) in vec3 inTangentViewPos;
+layout(location = 4) in vec3 inTangentFragPos;
+layout(location = 5) in vec3 inTangentLightDir;
+layout(location = 6) in vec3 inTangentLightPos[MAX_POINT_LIGHTS];
 
-layout(location = 0) in vec4 inNormal;
-layout(location = 1) in vec4 inFragPos;
-layout(location = 2) in vec4 inFragPosLightSpace;
-layout(location = 3) in vec2 inTexCoords;
 
 layout(push_constant) uniform PC {
    mat4 model;
-   mat4 modelInvTrans;
    float lightRadius;
    uint numPointLights;
 } constants;
@@ -40,12 +42,13 @@ layout(set = 1, binding = 3) uniform samplerCubeArray ptShadowMap;
 
 layout(set = 2, binding = 0) uniform sampler2D diffuseMap;
 layout(set = 2, binding = 1) uniform sampler2D specularMap;
+layout(set = 2, binding = 2) uniform sampler2D normalMap;
 
 layout (location = 0) out vec4 outFragColor;
 
 
-float BlinnPhong(const vec4 lightDir, const vec4 viewDir, const vec4 normal, const float shininess) {
-   const vec4 halfwayDir = normalize(lightDir + viewDir);
+float BlinnPhong(const vec3 lightDir, const vec3 viewDir, const vec3 normal, const float shininess) {
+   const vec3 halfwayDir = normalize(lightDir + viewDir);
    return pow(max(dot(normal, halfwayDir), 0.0), shininess);
 }
 
@@ -211,7 +214,7 @@ float PCFDirectionalShadow(const vec3 shadowCoords, const float bias, const floa
 }
 
 
-float CalculateDirectionalShadow(const vec4 fragPosLightSpace, const vec4 normal, const vec4 lightDir) {
+float CalculateDirectionalShadow(const vec4 fragPosLightSpace, const vec3 normal, const vec3 lightDir) {
    vec3 shadowCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
    // note: Pikzel uses the Vulkan convention where NDC is -1 to 1 for x and y, and 0 to 1 for z
@@ -230,27 +233,27 @@ float CalculateDirectionalShadow(const vec4 fragPosLightSpace, const vec4 normal
 }
 
 
-vec3 CalculateDirectionalLight(const DirectionalLight light, const vec4 viewDir, const vec4 normal, const vec3 diffuseColor, const vec3 specularColor) {
-   const vec4 lightDir = normalize(vec4(-light.direction, 0.0));
+vec3 CalculateDirectionalLight(const DirectionalLight light, const vec3 viewDir, const vec3 normal, const vec3 diffuseColor, const vec3 specularColor) {
+   const vec3 lightDir = normalize(-inTangentLightDir);
 
    const float diffuse = max(dot(normal, lightDir), 0.0);
    if(diffuse > 0.0) {
-      const float specular = BlinnPhong(lightDir, viewDir, normal, specularColor.g * maxShininess); // shininess in specularmap green channel
+      const float specular = BlinnPhong(lightDir, viewDir, normal, 0.125 /*specularColor.r*/ * maxShininess);       // shininess in specularmap green channel
       const float notShadowed = 1.0 - CalculateDirectionalShadow(inFragPosLightSpace, normal, lightDir);
 
       return diffuseColor * (light.ambient + (light.color * diffuse * notShadowed)) +
-         specularColor.r * (light.color * specular * notShadowed)
-      ; // specularity in specularmap red channel
+         specularColor.r * (light.color * specular * notShadowed)                                         // specularity in specularmap red channel
+      ;
    }
    return diffuseColor * light.ambient;
 }
 
 
-float BlockerDepthPt(const uint lightIndex, const vec4 fragPos, const float fragDepth, const vec4 lightPos, const float lightSize) {
+float BlockerDepthPt(const uint lightIndex, const vec3 fragPos, const float fragDepth, const vec3 lightPos, const float lightSize) {
    float numBlockers = 0.0;
    float sumBlockers = 0.0;
    for (int i = 0; i < numPCSSSamples; ++i) {
-      const vec3 fragToLight = (fragPos.xyz + poissonSphere[i] * lightSize) - lightPos.xyz;
+      const vec3 fragToLight = (fragPos + poissonSphere[i] * lightSize) - lightPos;
       const float z = texture(ptShadowMap, vec4(fragToLight, lightIndex)).r;
       if(z < fragDepth) {
          numBlockers += 1.0;
@@ -261,10 +264,10 @@ float BlockerDepthPt(const uint lightIndex, const vec4 fragPos, const float frag
 }
 
 
-float PCFPointShadow(const uint lightIndex, const vec4 fragPos, const float fragDepth, const vec4 lightPos, const float radius) {
+float PCFPointShadow(const uint lightIndex, const vec3 fragPos, const float fragDepth, const vec3 lightPos, const float radius) {
    float sum = 0;
    for (int i = 0; i < numPCFSamples; ++i) {
-      const vec3 fragToLight = (fragPos.xyz + poissonSphere[i] * radius) - lightPos.xyz;
+      const vec3 fragToLight = (fragPos + poissonSphere[i] * radius) - lightPos;
       const float z = texture(ptShadowMap, vec4(fragToLight, lightIndex)).r;
       if(z < fragDepth) {
          ++sum;
@@ -274,10 +277,10 @@ float PCFPointShadow(const uint lightIndex, const vec4 fragPos, const float frag
 }
 
 
-float CalculatePointShadow(const uint lightIndex, const vec4 fragPos, const vec4 lightPos) {
+float CalculatePointShadow(const uint lightIndex, const vec3 fragPos, const vec3 lightPos) {
    const float bias = 0.001;
    const float lightSize = pointLights.light[lightIndex].size;
-   const vec4 fragToLight = fragPos - lightPos;
+   const vec3 fragToLight = fragPos - lightPos;
    const float fragDepth = (length(fragToLight) / constants.lightRadius) - bias;
 
    const float blockerDepth = BlockerDepthPt(lightIndex, fragPos, fragDepth, lightPos, lightSize);
@@ -289,9 +292,9 @@ float CalculatePointShadow(const uint lightIndex, const vec4 fragPos, const vec4
 }
 
 
-vec3 CalculatePointLight(const uint lightIndex, const vec4 viewDir, const vec4 normal, const vec3 diffuseColor, const vec3 specularColor) {
-   const vec4 lightPos = vec4(pointLights.light[lightIndex].position, 1.0);
-   const vec4 lightDir = normalize(lightPos - inFragPos);
+vec3 CalculatePointLight(const uint lightIndex, const vec3 viewDir, const vec3 normal, const vec3 diffuseColor, const vec3 specularColor) {
+   const vec3 lightPos = pointLights.light[lightIndex].position;
+   const vec3 lightDir = normalize(inTangentLightPos[lightIndex] - inTangentFragPos);
 
    const float diffuse = max(dot(normal, lightDir), 0.0);   // diffuseIntensity
 
@@ -311,8 +314,7 @@ vec3 CalculatePointLight(const uint lightIndex, const vec4 viewDir, const vec4 n
 
 
 void main() {
-   const vec4 viewDir = normalize(vec4(uboMatrices.matrices.eyePosition, 1.0) - inFragPos);
-   const vec4 normal = normalize(inNormal);
+   const vec3 viewDir = normalize(inTangentViewPos - inTangentFragPos);
    const vec4 diffuseColor = texture(diffuseMap, inTexCoords);
 
    if (diffuseColor.a < 0.1) {
@@ -320,6 +322,7 @@ void main() {
    }
 
    const vec3 specularColor = texture(specularMap, inTexCoords).rgb;
+   const vec3 normal = normalize(texture(normalMap, inTexCoords).xyz * 2.0 - 1.0);
 
    vec3 color = CalculateDirectionalLight(directionalLight.light, viewDir, normal, diffuseColor.rgb, specularColor);
 

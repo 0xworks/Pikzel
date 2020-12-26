@@ -12,9 +12,10 @@ namespace Pikzel {
    struct PKZL_API Mesh {
 
       struct Vertex {
-         Vertex(glm::vec3 pos, glm::vec3 normal, glm::vec2 uv) : Pos {pos}, Normal { normal }, UV {uv} {}
+         Vertex(glm::vec3 pos, glm::vec3 normal, glm::vec3 tangent, glm::vec2 uv) : Pos {pos}, Normal {normal}, Tangent {tangent}, UV {uv} {}
          glm::vec3 Pos;
          glm::vec3 Normal;
+         glm::vec3 Tangent;
          glm::vec2 UV;
       };
 
@@ -23,6 +24,7 @@ namespace Pikzel {
       std::shared_ptr<Pikzel::IndexBuffer> IndexBuffer;
       std::shared_ptr<Pikzel::Texture> DiffuseTexture;
       std::shared_ptr<Pikzel::Texture> SpecularTexture;
+      std::shared_ptr<Pikzel::Texture> NormalTexture;
       uint32_t Index;
    };
 
