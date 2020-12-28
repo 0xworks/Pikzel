@@ -1044,6 +1044,12 @@ namespace Pikzel {
       return m_InFlightFences[m_CurrentFrame];
    }
 
+
+   uint32_t VulkanWindowGC::GetNumColorAttachments() const {
+      return 1;
+   }
+
+
    void VulkanWindowGC::CreateSurface() {
       VkSurfaceKHR surface;
       if (glfwCreateWindowSurface(m_Device->GetVkInstance(), m_Window, nullptr, &surface) != VK_SUCCESS) {
@@ -1514,7 +1520,7 @@ namespace Pikzel {
       // This is not really how things should be done, as it can be much more efficient to do it
       // with render sub-passes instead.
       // TODO: subpasses
-      if(m_Framebuffer->HasDepthTexture()) {
+      if(m_Framebuffer->HasDepthAttachment()) {
          m_Framebuffer->TransitionDepthImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
       }
    }
@@ -1545,6 +1551,11 @@ namespace Pikzel {
 
    std::shared_ptr<VulkanFence> VulkanFramebufferGC::GetFence() {
       return m_InFlightFence;
+   }
+
+
+   uint32_t VulkanFramebufferGC::GetNumColorAttachments() const {
+      return m_Framebuffer->GetNumColorAttachments();
    }
 
 

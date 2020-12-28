@@ -98,8 +98,18 @@ namespace Pikzel {
    }
 
 
+   uint32_t OpenGLFramebuffer::GetNumColorAttachments() const {
+      return m_ColorTextures.size();
+   }
+
+
    const Texture& OpenGLFramebuffer::GetColorTexture(const int index) const {
       return *m_ColorTextures[index];
+   }
+
+
+   bool OpenGLFramebuffer::HasDepthAttachment() const {
+      return m_DepthTexture != nullptr;
    }
 
 

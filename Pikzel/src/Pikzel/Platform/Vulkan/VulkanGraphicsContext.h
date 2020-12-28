@@ -92,6 +92,8 @@ namespace Pikzel {
 
       vk::SampleCountFlagBits GetNumSamples() const;
 
+      virtual uint32_t GetNumColorAttachments() const = 0;
+
    protected:
       vk::RenderPass CreateRenderPass(const std::vector<vk::AttachmentDescription2>& attachments);
       void DestroyRenderPass(vk::RenderPass renderPass);
@@ -153,6 +155,8 @@ namespace Pikzel {
    public:
       virtual vk::CommandBuffer GetVkCommandBuffer() override;
       virtual std::shared_ptr<VulkanFence> GetFence() override;
+
+      virtual uint32_t GetNumColorAttachments() const override;
 
    private:
       void CreateSurface();
@@ -233,6 +237,8 @@ namespace Pikzel {
    public:
       virtual vk::CommandBuffer GetVkCommandBuffer() override;
       virtual std::shared_ptr<VulkanFence> GetFence() override;
+
+      virtual uint32_t GetNumColorAttachments() const override;
 
    private:
       void CreateSyncObjects();

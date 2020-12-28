@@ -1,16 +1,16 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
-const float nearPlane = 0.1f;
-const float farPlane = 50.0f;
+constexpr float nearPlane = 0.1f;
+constexpr float farPlane = 50.0f;
 
-class NormalMaps final : public Pikzel::Application {
+class HDRdemo final : public Pikzel::Application {
 public:
-   NormalMaps()
+   HDRdemo()
    : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
-      CreateVertexBuffer();
+      CreateVertexBuffers();
       CreateUniformBuffers();
       CreateTextures();
       CreateFramebuffers();
@@ -124,9 +124,9 @@ protected:
          if (m_ShowPointLights) {
             gc.Bind(*m_PipelineColoredModel);
             for (const auto& pointLight : m_PointLights) {
-               glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), pointLight.Position), {0.05f, 0.05f, 0.05f});
+               glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), pointLight.Position), {pointLight.Size,pointLight.Size,pointLight.Size});
                gc.PushConstant("constants.mvp"_hs, matrices.viewProjection * model);
-               gc.PushConstant("constants.color"_hs, pointLight.Color);
+               gc.PushConstant("constants.color"_hs, pointLight.Color * pointLight.Power);
                gc.DrawTriangles(*m_VertexBuffer, 36);
             }
          }
@@ -168,12 +168,42 @@ protected:
          gc.SwapBuffers();
       }
 
+      // bloom post processing
+      bool horizontal = true;
+      if(m_Bloom) {
+         bool firstIteration = true;
+         uint32_t blurIterations = 10;
+
+         for (uint32_t i = 0; i < blurIterations; ++i) {
+            Pikzel::GraphicsContext& gc = m_FramebufferBlur[horizontal]->GetGraphicsContext();
+            gc.BeginFrame();
+
+            gc.Bind(*m_PipelineBlur);
+
+            gc.PushConstant("constants.horizontal"_hs, horizontal ? 1u : 0u);
+            if (firstIteration) {
+               gc.Bind(m_FramebufferScene->GetColorTexture(1), "uTexture"_hs);
+               firstIteration = false;
+            } else {
+               gc.Bind(m_FramebufferBlur[!horizontal]->GetColorTexture(0), "uTexture"_hs);
+            }
+            gc.DrawTriangles(*m_QuadVertexBuffer, 6);
+
+            gc.EndFrame();
+            gc.SwapBuffers();
+            horizontal = !horizontal;
+         }
+      }
+
       GetWindow().BeginFrame();
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
-      gc.Bind(*m_PipelineFullScreenQuad);
-
+      gc.Bind(*m_PipelineScreenQuad);
+      gc.PushConstant("constants.bloom"_hs, m_Bloom ? 1 : 0);
+      gc.PushConstant("constants.tonemap"_hs, m_ToneMap);
+      gc.PushConstant("constants.exposure"_hs, m_Exposure);
       gc.Bind(m_FramebufferScene->GetColorTexture(0), "uTexture"_hs);
-      gc.DrawTriangles(*m_VertexBuffer, 6, 42);
+      gc.Bind(m_FramebufferBlur[!horizontal]->GetColorTexture(0), "uBloom"_hs);
+      gc.DrawTriangles(*m_QuadVertexBuffer, 6);
 
       auto end = std::chrono::steady_clock::now();
       std::chrono::duration<double, std::milli> ms = end - start;
@@ -181,6 +211,13 @@ protected:
       GetWindow().BeginImGuiFrame();
       {
          ImGui::Begin("Lighting");
+         ImGui::Checkbox("Bloom", &m_Bloom);
+         ImGui::Text("Tone mapping:");
+         ImGui::RadioButton("None", &m_ToneMap, 0);
+         ImGui::RadioButton("Reinhard", &m_ToneMap, 1);
+         ImGui::RadioButton("Exposure", &m_ToneMap, 2);
+         ImGui::SameLine();
+         ImGui::DragFloat("", &m_Exposure, 0.1f, 0, 10);
          ImGui::Checkbox("Normal mapping", &m_UseNormalMaps);
          ImGui::Checkbox("Displacement mapping", &m_UseDisplacementMaps);
          ImGui::Checkbox("Directional Light", &m_ShowDirectionalLight);
@@ -188,10 +225,10 @@ protected:
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
             ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
          }
-         //ImGui::Text("Depth buffer:");
+         ImGui::Text("Frame time: %.3fms (%.0f FPS)", ms.count(), 1000.0 / ms.count());
+         //ImGui::Text("Brightness color buffer:");
          //ImVec2 size = ImGui::GetContentRegionAvail();
-         //ImGui::Image(m_FramebufferDepth->GetImGuiDepthTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
-         ImGui::Text("Frame time: %f (%f)", ms.count(), 1000.0 / ms.count());
+         //ImGui::Image(m_FramebufferScene->GetImGuiColorTextureId(1), size, ImVec2 {0, 1}, ImVec2 {1, 0});
          ImGui::End();
       }
       GetWindow().EndImGuiFrame();
@@ -220,7 +257,12 @@ private:
       glm::vec2 TexCoord;
    };
 
-   void CreateVertexBuffer() {
+   struct QuadVertex {
+      glm::vec3 Pos;
+      glm::vec2 TexCoord;
+   };
+
+   void CreateVertexBuffers() {
       Vertex vertices[] = {
          // Cube
          {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}, .Tangent{-1.0f,  0.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
@@ -273,16 +315,17 @@ private:
          {.Pos{ 10.0f,  0.0f,  10.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{-1.0f, 0.0f, 0.0f}, .TexCoord{ 0.0f, 10.0f}},
          {.Pos{-10.0f,  0.0f, -10.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{-1.0f, 0.0f, 0.0f}, .TexCoord{10.0f,  0.0f}},
          {.Pos{-10.0f,  0.0f,  10.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{-1.0f, 0.0f, 0.0f}, .TexCoord{10.0f, 10.0f}},
+      };
 
-
+      QuadVertex quadVertices[] = {
          // Fullscreen  quad
-         {.Pos{ -1.0f,   1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 0.0f,  1.0f}},
-         {.Pos{ -1.0f,  -1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 0.0f,  0.0f}},
-         {.Pos{  1.0f,  -1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 1.0f,  0.0f}},
+         {.Pos {-1.0f,   1.0f,   0.0f}, .TexCoord {0.0f,  1.0f}},
+         {.Pos{ -1.0f,  -1.0f,   0.0f}, .TexCoord{ 0.0f,  0.0f}},
+         {.Pos{  1.0f,  -1.0f,   0.0f}, .TexCoord{ 1.0f,  0.0f}},
 
-         {.Pos{ -1.0f,   1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 0.0f,  1.0f}},
-         {.Pos{  1.0f,  -1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 1.0f,  0.0f}},
-         {.Pos{  1.0f,   1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 1.0f,  1.0f}},
+         {.Pos{ -1.0f,   1.0f,   0.0f}, .TexCoord{ 0.0f,  1.0f}},
+         {.Pos{  1.0f,  -1.0f,   0.0f}, .TexCoord{ 1.0f,  0.0f}},
+         {.Pos{  1.0f,   1.0f,   0.0f}, .TexCoord{ 1.0f,  1.0f}},
       };
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
@@ -292,6 +335,13 @@ private:
          { "inTangent",  Pikzel::DataType::Vec3 },
          { "inTexCoord", Pikzel::DataType::Vec2 }
       });
+
+      m_QuadVertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(quadVertices), quadVertices);
+      m_QuadVertexBuffer->SetLayout({
+         { "inPos",      Pikzel::DataType::Vec3 },
+         { "inTexCoord", Pikzel::DataType::Vec2 }
+      });
+
    }
 
 
@@ -328,16 +378,56 @@ private:
 
 
    void CreateFramebuffers() {
-      uint32_t width = 4096;
-      uint32_t height = 4096;
-      m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
-      m_FramebufferDirShadow = Pikzel::RenderCore::CreateFramebuffer({.Width = width, .Height = height, .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}}});
-      m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
-         .Width = width,
-         .Height = height,
-         .Layers = static_cast<uint32_t>(m_PointLights.size()),
-         .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F, Pikzel::TextureType::TextureCubeArray}}
+      const uint32_t shadowMapWidth = 2048;
+      const uint32_t shadowMapHeight = 2048;
+
+      m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({
+         .Width = GetWindow().GetWidth(),
+         .Height = GetWindow().GetHeight(),
+         .MSAANumSamples = 4,
+         .ClearColor = GetWindow().GetClearColor(),
+         .Attachments = {
+            {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
+            {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
+            {Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}
+         }
       });
+
+
+      m_FramebufferBlur[0] = Pikzel::RenderCore::CreateFramebuffer({
+         .Width = GetWindow().GetWidth(),
+         .Height = GetWindow().GetHeight(),
+         .ClearColor = GetWindow().GetClearColor(),
+         .Attachments = {
+            {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
+         }
+      });
+
+      m_FramebufferBlur[1] = Pikzel::RenderCore::CreateFramebuffer({
+         .Width = GetWindow().GetWidth(),
+         .Height = GetWindow().GetHeight(),
+         .ClearColor = GetWindow().GetClearColor(),
+         .Attachments = {
+            {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
+         }
+      });
+
+      if (!m_FramebufferDirShadow) {
+         m_FramebufferDirShadow = Pikzel::RenderCore::CreateFramebuffer({
+            .Width = shadowMapWidth,
+            .Height = shadowMapHeight,
+            .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}}
+         });
+      }
+
+      if (!m_FramebufferPtShadow) {
+         m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
+            .Width = shadowMapWidth,
+            .Height = shadowMapHeight,
+            .Layers = static_cast<uint32_t>(m_PointLights.size()),
+            .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F, Pikzel::TextureType::TextureCubeArray}}
+         });
+      }
    }
 
 
@@ -371,11 +461,18 @@ private:
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/LitModel.frag.spv" }
          }
       });
-      m_PipelineFullScreenQuad = GetWindow().GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
+      m_PipelineBlur = m_FramebufferBlur[0]->GetGraphicsContext().CreatePipeline({
+         m_QuadVertexBuffer->GetLayout(),
          {
-            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/FullScreenQuad.vert.spv" },
-            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/FullScreenQuad.frag.spv" }
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Quad.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/QuadGaussianBlur.frag.spv" }
+         }
+      });
+      m_PipelineScreenQuad = GetWindow().GetGraphicsContext().CreatePipeline({
+         m_QuadVertexBuffer->GetLayout(),
+         {
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Quad.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/QuadCombine.frag.spv" }
          }
       });
    }
@@ -411,8 +508,8 @@ private:
    Pikzel::DirectionalLight m_DirectionalLights[1] = {
       {
          .Direction = { -2.0f, -4.0f, 2.0f},
-         .Color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
-         .Ambient = Pikzel::sRGB{0.01f, 0.01f, 0.01f},
+         .Color = Pikzel::sRGB{0.0f, 0.0f, 0.0f},
+         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
          .Size = 0.02
       }
    };
@@ -425,12 +522,12 @@ private:
          .Size = 0.02,
          .Power = 20.0f
       }
-//      ,{
-//         .Position = {2.3f, 3.3f, -4.0f},
-//         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
-//         .Size = 0.02,
-//         .Power = 20.0f
-//      }
+      ,{
+         .Position = {2.3f, 3.3f, -4.0f},
+         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
+         .Size = 0.02,
+         .Power = 20.0f
+      }
    };
 //       {
 //          .Position = {-4.0f, 2.0f, -12.0f},
@@ -456,6 +553,7 @@ private:
    glm::mat4 m_LightSpace;
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
+   std::unique_ptr<Pikzel::VertexBuffer> m_QuadVertexBuffer;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferMatrices;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferLightViews;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferDirectionalLight;
@@ -470,13 +568,18 @@ private:
    std::unique_ptr<Pikzel::Texture> m_TextureFloorDisplacement;
    std::unique_ptr<Pikzel::Framebuffer> m_FramebufferDirShadow;
    std::unique_ptr<Pikzel::Framebuffer> m_FramebufferPtShadow;
+   std::array<std::unique_ptr<Pikzel::Framebuffer>, 2> m_FramebufferBlur;
    std::unique_ptr<Pikzel::Framebuffer> m_FramebufferScene;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineDirShadow;
    std::unique_ptr<Pikzel::Pipeline> m_PipelinePtShadow;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineColoredModel;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLitModel;
-   std::unique_ptr<Pikzel::Pipeline> m_PipelineFullScreenQuad;
+   std::unique_ptr<Pikzel::Pipeline> m_PipelineScreenQuad;
+   std::unique_ptr<Pikzel::Pipeline> m_PipelineBlur;
 
+   float m_Exposure = 1.0;
+   int m_ToneMap = 0;
+   bool m_Bloom = true;
    bool m_ShowDirectionalLight = true;
    bool m_ShowPointLights = true;
    bool m_UseNormalMaps = true;
@@ -485,5 +588,5 @@ private:
 
 
 std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
-   return std::make_unique<NormalMaps>();
+   return std::make_unique<HDRdemo>();
 }

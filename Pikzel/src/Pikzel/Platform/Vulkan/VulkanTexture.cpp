@@ -14,6 +14,8 @@ namespace Pikzel {
          case vk::Format::eR8G8B8A8Unorm:         return TextureFormat::RGBA8;
          // case vk::Format::eR8G8B8Srgb: return TextureFormat::SRGB8; // not supported.  need 32-bits per texel
          case vk::Format::eR8G8B8A8Srgb:          return TextureFormat::SRGB8;
+         case vk::Format::eR16G16B16Sfloat:       return TextureFormat::RGB16F;
+         case vk::Format::eR16G16B16A16Sfloat:    return TextureFormat::RGBA16F;
          case vk::Format::eR32G32B32Sfloat:       return TextureFormat::RGB32F;
          case vk::Format::eR32G32B32A32Sfloat:    return TextureFormat::RGBA32F;
          case vk::Format::eB10G11R11UfloatPack32: return TextureFormat::BGR8;
@@ -35,6 +37,8 @@ namespace Pikzel {
          case TextureFormat::RGBA8:    return vk::Format::eR8G8B8A8Unorm;
          // case TextureFormat::SRGB8: return vk::Format::eR8G8B8Srgb; // not supported.  need 32-bits per texel
          case TextureFormat::SRGBA8:   return vk::Format::eR8G8B8A8Srgb;
+         case TextureFormat::RGB16F:   return vk::Format::eR16G16B16Sfloat;
+         case TextureFormat::RGBA16F:  return vk::Format::eR16G16B16A16Sfloat;
          case TextureFormat::RGB32F:   return vk::Format::eR32G32B32Sfloat;
          case TextureFormat::RGBA32F:  return vk::Format::eR32G32B32A32Sfloat;
          case TextureFormat::BGR8:     return vk::Format::eB10G11R11UfloatPack32; // the texels must still be 32-bits, so if no alpha channel then use more bits in other channels

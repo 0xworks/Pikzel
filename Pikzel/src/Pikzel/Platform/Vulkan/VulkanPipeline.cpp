@@ -431,24 +431,28 @@ namespace Pikzel {
 
       // Color blend state describes how blend factors are calculated (if used)
       // We need one blend attachment state per color attachment (even if blending is not used)
-      vk::PipelineColorBlendAttachmentState colorBlendAttachmentState = {
-         true                                     /*blendEnable*/,
-         vk::BlendFactor::eSrcAlpha               /*srcColorBlendFactor*/,
-         vk::BlendFactor::eOneMinusSrcAlpha       /*dstColorBlendFactor*/,
-         vk::BlendOp::eAdd                        /*colorBlendOp*/,
-         vk::BlendFactor::eOne                    /*srcAlphaBlendFactor*/,
-         vk::BlendFactor::eZero                   /*dstAlphaBlendFactor*/,
-         vk::BlendOp::eAdd                        /*alphaBlendOp*/,
-         {vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA } /*colorWriteMask*/
-      };
+      std::vector<vk::PipelineColorBlendAttachmentState> colorBlendAttachmentStates;
+      colorBlendAttachmentStates.reserve(gc.GetNumColorAttachments());
+      for (uint32_t i = 0; i < gc.GetNumColorAttachments(); ++i) {
+         colorBlendAttachmentStates.emplace_back(
+            true                                     /*blendEnable*/,
+            vk::BlendFactor::eSrcAlpha               /*srcColorBlendFactor*/,
+            vk::BlendFactor::eOneMinusSrcAlpha       /*dstColorBlendFactor*/,
+            vk::BlendOp::eAdd                        /*colorBlendOp*/,
+            vk::BlendFactor::eOne                    /*srcAlphaBlendFactor*/,
+            vk::BlendFactor::eZero                   /*dstAlphaBlendFactor*/,
+            vk::BlendOp::eAdd                        /*alphaBlendOp*/,
+            vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA /*colorWriteMask*/
+         );
+      }
 
       vk::PipelineColorBlendStateCreateInfo colorBlendState = {
-         {}                         /*flags*/,
-         false                      /*logicOpEnable*/,
-         vk::LogicOp::eCopy         /*logicOp*/,
-         1                          /*attachmentCount*/,
-         &colorBlendAttachmentState /*pAttachments*/,
-         {{0.0f}}                   /*blendConstants*/
+         {}                                 /*flags*/,
+         false                              /*logicOpEnable*/,
+         vk::LogicOp::eCopy                 /*logicOp*/,
+         gc.GetNumColorAttachments()        /*attachmentCount*/,
+         colorBlendAttachmentStates.data()  /*pAttachments*/,
+         {{0.0f}}                           /*blendConstants*/
       };
       pipelineCI.pColorBlendState = &colorBlendState;
 
