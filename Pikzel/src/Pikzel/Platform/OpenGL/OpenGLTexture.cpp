@@ -13,6 +13,8 @@ namespace Pikzel {
          case TextureFormat::RGBA8: return GL_RGBA8;
          case TextureFormat::SRGB8: return GL_SRGB8;
          case TextureFormat::SRGBA8: return GL_SRGB8_ALPHA8;
+         case TextureFormat::RGB16F: return GL_RGB16F;
+         case TextureFormat::RGBA16F: return GL_RGBA16F;
          case TextureFormat::RGB32F: return GL_RGB32F;
          case TextureFormat::RGBA32F: return GL_RGBA32F;
          case TextureFormat::R8: return GL_R8;
@@ -33,6 +35,8 @@ namespace Pikzel {
          case TextureFormat::RGBA8: return GL_RGBA;
          case TextureFormat::SRGB8: return GL_RGB;
          case TextureFormat::SRGBA8: return GL_RGBA;
+         case TextureFormat::RGB16F: return GL_RGB;
+         case TextureFormat::RGBA16F: return GL_RGBA;
          case TextureFormat::RGB32F: return GL_RGB;
          case TextureFormat::RGBA32F: return GL_RGBA;
          case TextureFormat::R8: return GL_R;
@@ -50,6 +54,8 @@ namespace Pikzel {
          case TextureFormat::RGBA8: return GL_UNSIGNED_BYTE;
          case TextureFormat::SRGB8: return GL_UNSIGNED_BYTE;
          case TextureFormat::SRGBA8: return GL_UNSIGNED_BYTE;
+         case TextureFormat::RGB16F: return GL_HALF_FLOAT;
+         case TextureFormat::RGBA16F: return GL_HALF_FLOAT;
          case TextureFormat::RGB32F: return GL_FLOAT;
          case TextureFormat::RGBA32F: return GL_FLOAT;
          case TextureFormat::R8: return GL_UNSIGNED_BYTE;

@@ -12,6 +12,8 @@ namespace Pikzel {
       RGBA8            /* linear RGBA, 8 bits per component */,
       SRGB8            /* non-linear sRGB, 8 bits per component */,
       SRGBA8           /* non-linear sRGBA, 8 bits per component (alpha channel linear) */,
+      RGB16F           /* linear RGB, 16-bit floating point components */,
+      RGBA16F          /* linear RGBA, 16-bit floating point components */,
       RGB32F           /* linear RGB, 32-bit floating point components */,
       RGBA32F          /* linear RGBA, 32-bit floating point components */,
       BGR8             /* BGR in sRGB color space, 8 bits per component (except: on Vulkan this one is B10 G11 R11, for 32-bit texels)*/,
@@ -38,6 +40,8 @@ namespace Pikzel {
          case TextureFormat::RGBA8:   return true;
          case TextureFormat::SRGB8:   return true;
          case TextureFormat::SRGBA8:  return true;
+         case TextureFormat::RGB16F:  return true;
+         case TextureFormat::RGBA16F: return true;
          case TextureFormat::RGB32F:  return true;
          case TextureFormat::RGBA32F: return true;
          case TextureFormat::BGR8:    return true;
@@ -58,6 +62,8 @@ namespace Pikzel {
          case TextureFormat::RGBA8:   return false;
          case TextureFormat::SRGB8:   return false;
          case TextureFormat::SRGBA8:  return false;
+         case TextureFormat::RGB16F:  return false;
+         case TextureFormat::RGBA16F: return false;
          case TextureFormat::RGB32F:  return false;
          case TextureFormat::RGBA32F: return false;
          case TextureFormat::BGR8:    return false;
@@ -101,6 +107,8 @@ namespace Pikzel {
          case TextureFormat::RGBA8: return 4;
          case TextureFormat::SRGB8: return 3;
          case TextureFormat::SRGBA8: return 4;
+         case TextureFormat::RGB16F:  return 6;
+         case TextureFormat::RGBA16F: return 8;
          case TextureFormat::RGB32F: return 12;
          case TextureFormat::RGBA32F: return 16;
          case TextureFormat::BGR8: return 3; // warning: with Vulkan back-end this format is actually 4 bytes

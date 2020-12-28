@@ -44,17 +44,6 @@ protected:
 
       auto start = std::chrono::steady_clock::now();
 
-      // Note: This example illustrates the basic idea of shadow maps, namely that you first render the scene to
-      //       an offscreen depth buffer, and then render the scene for real, sampling from the depth buffer to figure
-      //       out which fragments are in shadow.
-      //
-      //       The actual implementation here is not how you'd really do things though, especially not in Vulkan.
-      //       Instead of these completely separate "framebuffers", better would be one render pass (using subpasses for the depth)
-      //       Secondly, for the point light shadows, it might be better to use multi-views rather than the geometry shader
-      //       used here.
-      //
-      //       When/if I get around to writing some higher level "scene renderer" classes, I will deal with these issues then.
-
       // update buffers
       Matrices matrices;
       matrices.viewProjection = m_Camera.Projection * glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);

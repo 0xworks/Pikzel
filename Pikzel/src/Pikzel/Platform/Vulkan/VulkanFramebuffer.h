@@ -22,7 +22,10 @@ namespace Pikzel {
       virtual uint32_t GetMSAANumSamples() const override;
       virtual const glm::vec4& GetClearColor() const override;
 
+      virtual uint32_t GetNumColorAttachments() const override;
       virtual const Texture& GetColorTexture(const int index) const override;
+
+      virtual bool HasDepthAttachment() const override;
       virtual const Texture& GetDepthTexture() const override;
 
       virtual ImTextureID GetImGuiColorTextureId(const int index) const override;
@@ -32,7 +35,6 @@ namespace Pikzel {
       vk::Framebuffer GetVkFramebuffer() const;
       std::vector<vk::AttachmentDescription2>& GetVkAttachments();
 
-      bool HasDepthTexture() const;
       void TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout);
 
    private:
@@ -60,6 +62,5 @@ namespace Pikzel {
       mutable std::vector<VkDescriptorSet> m_ColorDescriptorSets;
       mutable VkDescriptorSet m_DepthDescriptorSet = VK_NULL_HANDLE;
       uint32_t m_LayerCount = 0;
-      bool m_HasDepthTexture = false;
    };
 }

@@ -47,7 +47,10 @@ namespace Pikzel {
 
       virtual const glm::vec4& GetClearColor() const = 0;
 
+      virtual uint32_t GetNumColorAttachments() const = 0;
       virtual const Texture& GetColorTexture(const int index) const = 0;
+
+      virtual bool HasDepthAttachment() const = 0;
       virtual const Texture& GetDepthTexture() const = 0;
 
       // for using the contents of the framebuffer in a call to ImGui::Image()

@@ -436,7 +436,7 @@ namespace Pikzel {
 
 
    OpenGLFramebufferGC::OpenGLFramebufferGC(OpenGLFramebuffer* framebuffer)
-   : OpenGLGraphicsContext(framebuffer->GetClearColor())
+   : OpenGLGraphicsContext {framebuffer->GetClearColor()}
    , m_Framebuffer {framebuffer}
    {}
 
@@ -471,17 +471,41 @@ namespace Pikzel {
 
    void OpenGLFramebufferGC::SwapBuffers() {
       PKZL_PROFILE_FUNCTION();
+
+      static GLenum buffers[4] = {
+         GL_COLOR_ATTACHMENT0,
+         GL_COLOR_ATTACHMENT1,
+         GL_COLOR_ATTACHMENT2,
+         GL_COLOR_ATTACHMENT3,
+      };
+
       if (m_Framebuffer->GetResolveRendererId()) {
-         glBlitNamedFramebuffer(
-            m_Framebuffer->GetRendererId(),
-            m_Framebuffer->GetResolveRendererId(),
-            0, 0,
-            m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
-            0, 0,
-            m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
-            GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
-            GL_NEAREST
-         );
+         for (uint32_t i = 0; i < m_Framebuffer->GetNumColorAttachments(); ++i) {
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Framebuffer->GetRendererId());
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Framebuffer->GetResolveRendererId());
+            glReadBuffer(buffers[i]);
+            glDrawBuffer(buffers[i]);
+            glBlitFramebuffer(
+               0, 0,
+               m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+               0, 0,
+               m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+               GL_COLOR_BUFFER_BIT,
+               GL_NEAREST
+            );
+         }
+
+         if (m_Framebuffer->HasDepthAttachment()) {
+            glBlitFramebuffer(
+               0, 0,
+               m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+               0, 0,
+               m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+               GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
+               GL_NEAREST
+            );
+
+         }
       }
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
    }

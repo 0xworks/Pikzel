@@ -65,6 +65,11 @@ namespace Pikzel {
    }
 
 
+   uint32_t VulkanFramebuffer::GetNumColorAttachments() const {
+      return m_ColorTextures.size();
+   }
+
+
    const Texture& VulkanFramebuffer::GetColorTexture(const int index) const {
       return *m_ColorTextures[index];
    }
@@ -81,6 +86,11 @@ namespace Pikzel {
          m_ColorDescriptorSets[index] = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(texture.GetVkSampler(), texture.GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
       }
       return reinterpret_cast<ImTextureID>(m_ColorDescriptorSets[index]);
+   }
+
+
+   bool VulkanFramebuffer::HasDepthAttachment() const {
+      return m_DepthTexture != nullptr;
    }
 
 
@@ -109,11 +119,6 @@ namespace Pikzel {
    }
 
 
-   bool VulkanFramebuffer::HasDepthTexture() const {
-      return m_HasDepthTexture;
-   }
-
-
    void VulkanFramebuffer::TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout) {
       m_DepthTexture->TransitionImageLayout(oldLayout, newLayout);
    }
@@ -125,8 +130,8 @@ namespace Pikzel {
 
       m_ImageViews.clear();
       m_ImageViews.reserve(m_Settings.Attachments.size() * (isMultiSampled? 2 : 1));
-      int numColorAttachments = 0;
-      int numDepthAttachments = 0;
+      uint32_t numColorAttachments = 0;
+      uint32_t numDepthAttachments = 0;
       m_LayerCount = 1;
       for (const auto attachment : m_Settings.Attachments) {
          switch (attachment.AttachmentType) {
@@ -227,7 +232,7 @@ namespace Pikzel {
                      vk::AttachmentStoreOp::eDontCare                 /*stencilStoreOp*/,
                      vk::ImageLayout::eUndefined                      /*initialLayout*/,
                      vk::ImageLayout::eDepthStencilAttachmentOptimal  /*finalLayout*/
-                     });
+                  });
                }
                switch (attachment.TextureType) {
                   case TextureType::Texture2D:
@@ -257,7 +262,7 @@ namespace Pikzel {
                   vk::AttachmentStoreOp::eStore                                                   /*stencilStoreOp*/,
                   vk::ImageLayout::eUndefined                                                     /*initialLayout*/,
                   vk::ImageLayout::eDepthStencilAttachmentOptimal                                 /*finalLayout*/
-                  });
+               });
                ++numDepthAttachments;
                break;
             }
@@ -266,7 +271,6 @@ namespace Pikzel {
             }
          }
       }
-      m_HasDepthTexture = numDepthAttachments > 0;
    }
 
 

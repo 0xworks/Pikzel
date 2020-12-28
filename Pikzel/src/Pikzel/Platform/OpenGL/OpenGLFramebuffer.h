@@ -20,7 +20,10 @@ namespace Pikzel {
 
       virtual const glm::vec4& GetClearColor() const override;
 
+      virtual uint32_t GetNumColorAttachments() const override;
       virtual const Texture& GetColorTexture(const int index) const override;
+
+      virtual bool HasDepthAttachment() const override;
       virtual const Texture& GetDepthTexture() const override;
 
       virtual ImTextureID GetImGuiColorTextureId(const int index) const override;
