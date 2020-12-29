@@ -17,6 +17,7 @@ This project is mainly a learning exercise for me, and I hope that the code is c
   - [ ] Mobile
 
 - [ ] Rendering APIs
+  - [ ] Software (unlikely)
   - [x] OpenGL
   - [x] Vulkan
   - [ ] DirectX
@@ -34,11 +35,13 @@ This project is mainly a learning exercise for me, and I hope that the code is c
     - [ ] Shadow mapping
       - [x] Directional light shadows
       - [x] Point light shadows
-      - [ ] Cascades
+      - [ ] Cascades / Parallel Split Shadow maps (PSSM)
       - [x] Percent closer soft shadows (PCSS)
-    - [ ] Normal maps
-    - [ ] Bloom
+      - [ ] (exponential) variance shadow maps ((E)VSM)
+    - [x] Normal maps
+    - [x] Bloom
     - [ ] Deferred rendering
+    - [ ] Forward+ rendering
     - [ ] Screen space ambient occulsion
     - [ ] Screen space reflection
     - [ ] Physically based rendering (PBR)
@@ -48,23 +51,23 @@ This project is mainly a learning exercise for me, and I hope that the code is c
     - [ ] Nvidia Optix
     - [ ] other (e.g. non-nvidia specific)
 
-  - [ ] Application Framework
-    - [x] Entry point
-    - [x] Logging
-    - [x] Tracy integration (performance profiling)
-    - [x] Runtime load of selected rendering API
-    - [x] Main window management
-    - [x] Main loop
-    - [x] Event system
-    - [x] Basic ImGui integration
+- [ ] Application Framework
+  - [x] Entry point
+  - [x] Logging
+  - [x] Tracy integration (performance profiling)
+  - [x] Runtime load of selected rendering API
+  - [x] Main window management
+  - [x] Main loop
+  - [x] Event system
+  - [x] Basic ImGui integration
 
-  - [ ] Scene editor
+- [ ] Scene editor
 
 ## Building
 This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2019 on Win10.  Others are untested, but may work (with hopefully only minor changes).
 
 ### Prerequisites
-- Vulkan SDK  (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).
+- [Vulkan SDK](https://vulkan.lunarg.com/) (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).  Currently built against Vulkan SDK v1.2.162.0.
 - All other dependencies are brought in via git submodules, so there is no need to pre-install anything.  The other dependencies are:
   - assimp  (asset (aka 3d models) importing)
   - cmrc    (for embedding resources (such as shader binaries) into the compiled application)
@@ -84,6 +87,6 @@ This project is C++ and uses CMake to generate build system files.  My developme
 Be aware that the first time you build, it will take a little longer than usual (a couple of minutes maybe) as it builds all of the dependencies.
 
 ## Acknowledgements
+- For the OpenGL backend, and inspiration for the demo apps, I relied heavily on Joey de Vries' [learnopengl.com](https://learnopengl.com)
+- Similarly the Vulkan backend would not have been possible without Alexander Overvoorde's [Vulkan Tutorial](https://vulkan-tutorial.com)
 - Some of the code in this project is based on The Cherno's [Game Engine Series](https://thecherno.com/engine) youtube channel
-- The demos are mostly lifted directly from Joey de Vries' [learnopengl.com](https://learnopengl.com)
-- The Vulkan renderer backend is inspired by Alexander Overvoorde's [Vulkan Tutorial](https://vulkan-tutorial.com)

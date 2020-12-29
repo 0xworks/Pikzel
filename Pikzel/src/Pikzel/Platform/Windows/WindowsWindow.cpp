@@ -207,12 +207,9 @@ namespace Pikzel {
 
 
    void WindowsWindow::EndFrame() {
+      PKZL_PROFILE_FUNCTION();
       m_Context->EndFrame();     // i.e. "submit"
       m_Context->SwapBuffers();  // i.e. "present"
-      {
-         PKZL_PROFILE_SCOPE("glfwPollEvents");
-         glfwPollEvents();
-      }
    }
 
 

@@ -43,6 +43,10 @@ namespace Pikzel {
       m_Running = true;
       while (m_Running) {
          PKZL_PROFILE_FRAMEMARKER();
+         {
+            PKZL_PROFILE_SCOPE("glfwPollEvents");
+            glfwPollEvents();
+         }
 
          const auto currentTime = std::chrono::steady_clock::now();
          {
