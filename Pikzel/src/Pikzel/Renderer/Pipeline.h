@@ -18,7 +18,7 @@ namespace Pikzel {
    };
 
    struct PKZL_API PipelineSettings {
-      const BufferLayout& BufferLayout;
+      const BufferLayout& BufferLayout = {};
       std::vector<std::pair<ShaderType, std::filesystem::path>> Shaders;
    };
 

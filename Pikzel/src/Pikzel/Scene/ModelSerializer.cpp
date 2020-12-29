@@ -25,7 +25,7 @@ namespace Pikzel {
                // Make an assumption that DIFFUSE is non-linear, and SPECULAR is linear
                // TODO: when we come to needing other texture types (eg. Normals) then this needs to be revisited
                bool isSRGB = (type == aiTextureType_DIFFUSE);
-               g_TextureCache[texturePath.string()] = RenderCore::CreateTexture2D(texturePath, isSRGB);
+               g_TextureCache[texturePath.string()] = RenderCore::CreateTexture({.Path = texturePath, .Format = (type == aiTextureType_DIFFUSE ? TextureFormat::SRGBA8 : TextureFormat::RGBA8)});
             }
             return g_TextureCache[texturePath.string()];
          }
@@ -33,7 +33,7 @@ namespace Pikzel {
          // material did not have a texture of specified type => create one
          if (type == aiTextureType_SPECULAR) {
             if (g_TextureCache.find("**black**") == g_TextureCache.end()) {
-               std::shared_ptr<Texture> blackTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::RGBA8, 1);
+               std::shared_ptr<Texture> blackTexture = RenderCore::CreateTexture();
                uint32_t black = 0;
                blackTexture->SetData(&black, sizeof(uint32_t));
                g_TextureCache["**black**"] = blackTexture;
@@ -41,7 +41,7 @@ namespace Pikzel {
             return g_TextureCache["**black**"];
          } else if (type == aiTextureType_NORMALS) {
             if (g_TextureCache.find("**unit-z**") == g_TextureCache.end()) {
-               std::shared_ptr<Texture> unitVectorZ = RenderCore::CreateTexture2D(1, 1, TextureFormat::RGBA8, 1);
+               std::shared_ptr<Texture> unitVectorZ = RenderCore::CreateTexture();
                uint32_t normal = 0x8080ff00;
                unitVectorZ->SetData(&normal, sizeof(uint32_t));
                g_TextureCache["**unit-z**"] = unitVectorZ;
@@ -49,7 +49,7 @@ namespace Pikzel {
             return g_TextureCache["**unit-z**"];
          }
          if (g_TextureCache.find("**white**") == g_TextureCache.end()) {
-            std::shared_ptr<Texture> whiteTexture = RenderCore::CreateTexture2D(1, 1, TextureFormat::SRGBA8, 1);
+            std::shared_ptr<Texture> whiteTexture = RenderCore::CreateTexture();
             uint32_t white = 0xffffffff;
             whiteTexture->SetData(&white, sizeof(uint32_t));
             g_TextureCache["**white**"] = whiteTexture;

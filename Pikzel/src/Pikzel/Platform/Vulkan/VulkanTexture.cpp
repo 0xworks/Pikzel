@@ -12,7 +12,7 @@ namespace Pikzel {
       switch (format) {
          // case vk::Format::eR8G8B8Unorm: return TextureFormat::RGB8; // not supported.  need 32-bits per texel
          case vk::Format::eR8G8B8A8Unorm:         return TextureFormat::RGBA8;
-         // case vk::Format::eR8G8B8Srgb: return TextureFormat::SRGB8; // not supported.  need 32-bits per texel
+            // case vk::Format::eR8G8B8Srgb: return TextureFormat::SRGB8; // not supported.  need 32-bits per texel
          case vk::Format::eR8G8B8A8Srgb:          return TextureFormat::SRGB8;
          case vk::Format::eR16G16B16Sfloat:       return TextureFormat::RGB16F;
          case vk::Format::eR16G16B16A16Sfloat:    return TextureFormat::RGBA16F;
@@ -35,7 +35,7 @@ namespace Pikzel {
       switch (format) {
          // case TextureFormat::RGB8:  return vk::Format::eR8G8B8Unorm; // not supported.  need 32-bits per texel
          case TextureFormat::RGBA8:    return vk::Format::eR8G8B8A8Unorm;
-         // case TextureFormat::SRGB8: return vk::Format::eR8G8B8Srgb; // not supported.  need 32-bits per texel
+            // case TextureFormat::SRGB8: return vk::Format::eR8G8B8Srgb; // not supported.  need 32-bits per texel
          case TextureFormat::SRGBA8:   return vk::Format::eR8G8B8A8Srgb;
          case TextureFormat::RGB16F:   return vk::Format::eR16G16B16Sfloat;
          case TextureFormat::RGBA16F:  return vk::Format::eR16G16B16A16Sfloat;
@@ -51,6 +51,46 @@ namespace Pikzel {
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return vk::Format::eUndefined;
+   }
+
+
+   vk::Filter TextureFilterToVkFilter(const TextureFilter filter) {
+      switch (filter) {
+         case TextureFilter::Nearest:                return vk::Filter::eNearest;
+         case TextureFilter::NearestMipMapNearest:   return vk::Filter::eNearest;
+         case TextureFilter::NearestMipMapLinear:    return vk::Filter::eNearest;
+         case TextureFilter::Linear:                 return vk::Filter::eLinear;
+         case TextureFilter::LinearMipMapNearest:    return vk::Filter::eLinear;
+         case TextureFilter::LinearMipMapLinear:     return vk::Filter::eLinear;
+      }
+      PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
+      return vk::Filter::eLinear;
+   }
+
+
+   vk::SamplerMipmapMode TextureFilterToVkMipMapMode(const TextureFilter filter) {
+      switch (filter) {
+         case TextureFilter::Nearest:                return vk::SamplerMipmapMode::eNearest;
+         case TextureFilter::NearestMipMapNearest:   return vk::SamplerMipmapMode::eNearest;
+         case TextureFilter::NearestMipMapLinear:    return vk::SamplerMipmapMode::eLinear;
+         case TextureFilter::Linear:                 return vk::SamplerMipmapMode::eLinear;
+         case TextureFilter::LinearMipMapNearest:    return vk::SamplerMipmapMode::eNearest;
+         case TextureFilter::LinearMipMapLinear:     return vk::SamplerMipmapMode::eLinear;
+      }
+      PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
+      return vk::SamplerMipmapMode::eLinear;
+   }
+
+
+   vk::SamplerAddressMode TextureWrapToVkSamplerAddressMode(const TextureWrap wrap) {
+      switch (wrap) {
+         case TextureWrap::ClampToEdge:    return vk::SamplerAddressMode::eClampToEdge;
+         case TextureWrap::ClampToBorder:  return vk::SamplerAddressMode::eClampToBorder;
+         case TextureWrap::Repeat:         return vk::SamplerAddressMode::eRepeat;
+         case TextureWrap::MirrorRepeat:   return vk::SamplerAddressMode::eMirroredRepeat;
+      }
+      PKZL_CORE_ASSERT(false, "Unsupported TextureWrap!");
+      return vk::SamplerAddressMode::eClampToEdge;
    }
 
 
@@ -88,10 +128,9 @@ namespace Pikzel {
       if ((channels == 3) || (channels == 4)) {
          // we forced in an alpha channel in the load above (because we don't have 24-bit textures here)
          *format = isHDR ? TextureFormat::RGBA32F : isSRGB ? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
-      } else if(channels == 1) {
+      } else if (channels == 1) {
          *format = isHDR ? TextureFormat::R32F : TextureFormat::R8;
-      }
-      else {
+      } else {
          throw std::runtime_error {fmt::format("'{0}': Image format not supported!", path.string())};
       }
 
@@ -157,13 +196,13 @@ namespace Pikzel {
          width,
          height,
          layers,
-         mipLevels,
+         mipLevels == 0? CalculateMipMapLevels(width, height) : mipLevels,
          vk::SampleCountFlagBits::e1,
          format,
          vk::ImageTiling::eOptimal,
          usage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
          vk::MemoryPropertyFlagBits::eDeviceLocal
-      );
+         );
       m_Image->CreateImageView(format, aspect);
    }
 
@@ -173,46 +212,48 @@ namespace Pikzel {
    }
 
 
-   void VulkanTexture::CreateSampler() {
-      if (IsDepthFormat(GetFormat())) {
-         m_TextureSampler = m_Device->GetVkDevice().createSampler({
-            {}                                                              /*flags*/,
-            vk::Filter::eNearest                                            /*magFilter*/,
-            vk::Filter::eNearest                                            /*minFilter*/,
-            vk::SamplerMipmapMode::eNearest                                 /*mipmapMode*/,
-            vk::SamplerAddressMode::eClampToEdge                            /*addressModeU*/,
-            vk::SamplerAddressMode::eClampToEdge                            /*addressModeV*/,
-            vk::SamplerAddressMode::eClampToEdge                            /*addressModeW*/,
-            0.0f                                                            /*mipLodBias*/,
-            m_Device->GetEnabledPhysicalDeviceFeatures().samplerAnisotropy  /*anisotropyEnable*/,
-            16                                                              /*maxAnisotropy*/,
-            false                                                           /*compareEnable*/,
-            vk::CompareOp::eNever                                           /*compareOp*/,
-            0.0f                                                            /*minLod*/,
-            static_cast<float>(m_Image->GetMIPLevels())                     /*maxLod*/,
-            vk::BorderColor::eFloatOpaqueBlack                              /*borderColor*/,
-            false                                                           /*unnormalizedCoordinates*/
-         });
-      } else {
-         m_TextureSampler = m_Device->GetVkDevice().createSampler({
-            {}                                                              /*flags*/,
-            vk::Filter::eLinear                                             /*magFilter*/,
-            vk::Filter::eLinear                                             /*minFilter*/,
-            vk::SamplerMipmapMode::eLinear                                  /*mipmapMode*/,
-            vk::SamplerAddressMode::eRepeat                                 /*addressModeU*/,
-            vk::SamplerAddressMode::eRepeat                                 /*addressModeV*/,
-            vk::SamplerAddressMode::eRepeat                                 /*addressModeW*/,
-            0.0f                                                            /*mipLodBias*/,
-            m_Device->GetEnabledPhysicalDeviceFeatures().samplerAnisotropy  /*anisotropyEnable*/,
-            16                                                              /*maxAnisotropy*/,
-            false                                                           /*compareEnable*/,
-            vk::CompareOp::eNever                                           /*compareOp*/,
-            0.0f                                                            /*minLod*/,
-            static_cast<float>(m_Image->GetMIPLevels())                     /*maxLod*/,
-            vk::BorderColor::eFloatOpaqueBlack                              /*borderColor*/,
-            false                                                           /*unnormalizedCoordinates*/
-         });
+   void VulkanTexture::CreateSampler(const TextureSettings& settings) {
+      TextureFilter minFilter = settings.MinFilter;
+      TextureFilter magFilter = settings.MagFilter;
+      TextureWrap wrapU = settings.WrapU;
+      TextureWrap wrapV = settings.WrapV;
+      TextureWrap wrapW = settings.WrapW;
+
+      if (minFilter == TextureFilter::Undefined) {
+         minFilter = IsDepthFormat(GetFormat()) ? TextureFilter::Nearest : m_Image->GetMIPLevels() == 1 ? TextureFilter::Linear : TextureFilter::LinearMipMapLinear;
       }
+      if (magFilter == TextureFilter::Undefined) {
+         magFilter = IsDepthFormat(GetFormat()) ? TextureFilter::Nearest : TextureFilter::Linear;
+      }
+
+      if (wrapU == TextureWrap::Undefined) {
+         wrapU = IsDepthFormat(GetFormat()) ? TextureWrap::ClampToEdge : TextureWrap::Repeat;
+      }
+      if (wrapV == TextureWrap::Undefined) {
+         wrapV = IsDepthFormat(GetFormat()) ? TextureWrap::ClampToEdge : TextureWrap::Repeat;
+      }
+      if (wrapW == TextureWrap::Undefined) {
+         wrapW = IsDepthFormat(GetFormat()) ? TextureWrap::ClampToEdge : TextureWrap::Repeat;
+      }
+
+      m_TextureSampler = m_Device->GetVkDevice().createSampler({
+         {}                                                              /*flags*/,
+         TextureFilterToVkFilter(magFilter)                              /*magFilter*/,
+         TextureFilterToVkFilter(minFilter)                              /*minFilter*/,
+         TextureFilterToVkMipMapMode(minFilter)                          /*mipmapMode*/,
+         TextureWrapToVkSamplerAddressMode(wrapU)                        /*addressModeU*/,
+         TextureWrapToVkSamplerAddressMode(wrapV)                        /*addressModeV*/,
+         TextureWrapToVkSamplerAddressMode(wrapW)                        /*addressModeW*/,
+         0.0f                                                            /*mipLodBias*/,
+         m_Device->GetEnabledPhysicalDeviceFeatures().samplerAnisotropy  /*anisotropyEnable*/,
+         16                                                              /*maxAnisotropy*/,
+         false                                                           /*compareEnable*/,
+         vk::CompareOp::eNever                                           /*compareOp*/,
+         0.0f                                                            /*minLod*/,
+         static_cast<float>(m_Image->GetMIPLevels())                     /*maxLod*/,
+         vk::BorderColor::eFloatOpaqueBlack                              /*borderColor*/,
+         false                                                           /*unnormalizedCoordinates*/
+      });
    }
 
 
@@ -224,28 +265,23 @@ namespace Pikzel {
    }
 
 
-   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
-      m_Device = device;
-      CreateImage(vk::ImageViewType::e2D, width, height, 1, mipLevels, TextureFormatToVkFormat(format), usage, aspect);
-      CreateSampler();
-   }
-
-
-   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB)
-   : m_Path {path}
+   VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect)
+   : m_Path {settings.Path}
    {
-      uint32_t width;
-      uint32_t height;
-      TextureFormat format;
-      stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &format);
-
       m_Device = device;
-      CreateImage(vk::ImageViewType::e2D, width, height, 1, CalculateMipMapLevels(width, height), TextureFormatToVkFormat(format), vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlagBits::eColor);
-      CreateSampler();
-      PKZL_CORE_ASSERT(BPP(format) != 3, "VulkanTexture2D format cannot be 24-bits per texel");
-      SetData(data, width * height * BPP(format));
-
-      stbi_image_free(data);
+      if (m_Path.empty()) {
+         CreateImage(vk::ImageViewType::e2D, settings.Width, settings.Height, 1, settings.MIPLevels, TextureFormatToVkFormat(settings.Format), usage, aspect);
+      } else {
+         uint32_t width;
+         uint32_t height;
+         TextureFormat format;
+         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &width, &height, &format);
+         CreateImage(vk::ImageViewType::e2D, width, height, 1, settings.MIPLevels, TextureFormatToVkFormat(format), usage, aspect);
+         PKZL_CORE_ASSERT(BPP(format) != 3, "VulkanTexture2D format cannot be 24-bits per texel");
+         SetData(data, width * height * BPP(format));
+         stbi_image_free(data);
+      }
+      CreateSampler(settings);
    }
 
 
@@ -263,10 +299,10 @@ namespace Pikzel {
    }
 
 
-   VulkanTexture2DArray::VulkanTexture2DArray(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage /*= vk::ImageUsageFlagBits::eColorAttachment*/, vk::ImageAspectFlags aspect /*= vk::ImageAspectFlagBits::eColor*/) {
+   VulkanTexture2DArray::VulkanTexture2DArray(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
       m_Device = device;
-      CreateImage(vk::ImageViewType::e2DArray, width, height, layers, mipLevels, TextureFormatToVkFormat(format), usage, aspect);
-      CreateSampler();
+      CreateImage(vk::ImageViewType::e2DArray, settings.Width, settings.Height, settings.Layers, settings.MIPLevels, TextureFormatToVkFormat(settings.Format), usage, aspect);
+      CreateSampler(settings);
    }
 
 
@@ -284,36 +320,32 @@ namespace Pikzel {
    }
 
 
-   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
-      m_Device = device;
-      CreateImage(vk::ImageViewType::eCube, size, size, 1, mipLevels, TextureFormatToVkFormat(format), usage, aspect);
-      CreateSampler();
-   }
-
-
-   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB)
-   : m_Path {path}
+   VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect)
+   : m_Path {settings.Path}
    {
-      uint32_t width;
-      uint32_t height;
-      stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &m_DataFormat);
-
-      // guess whether the data is the 6-faces of a cube, or whether it's equirectangular
-      // width is twice the height -> equirectangular (probably)
-      // width is 4/3 the height -> 6 faces of a cube (probably)
-      uint32_t size = 0;
-      if (width / 2 == height) {
-         size = height;
-      } else {
-         size = width / 4;
-      }
-
       m_Device = device;
-      CreateImage(vk::ImageViewType::eCube, size, size, 1, CalculateMipMapLevels(size, size), TextureFormatToVkFormat(TextureFormat::RGBA8), vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eStorage, vk::ImageAspectFlagBits::eColor);
-      CreateSampler();
-      PKZL_CORE_ASSERT(BPP(m_DataFormat) != 3, "VulkanTextureCube format cannot be 24-bits per texel");
-      SetData(data, width * height * BPP(m_DataFormat));
-      stbi_image_free(data);
+      if (m_Path.empty()) {
+         CreateImage(vk::ImageViewType::eCube, settings.Width, settings.Height, 1, settings.MIPLevels, TextureFormatToVkFormat(settings.Format), usage, aspect);
+      } else {
+         uint32_t width;
+         uint32_t height;
+         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &width, &height, &m_DataFormat);
+
+         // guess whether the data is the 6-faces of a cube, or whether it's equirectangular
+         // width is twice the height -> equirectangular (probably)
+         // width is 4/3 the height -> 6 faces of a cube (probably)
+         uint32_t size = 0;
+         if (width / 2 == height) {
+            size = height;
+         } else {
+            size = width / 4;
+         }
+         CreateImage(vk::ImageViewType::eCube, size, size, 1, settings.MIPLevels, TextureFormatToVkFormat(TextureFormat::RGBA8), usage | vk::ImageUsageFlagBits::eStorage, aspect);
+         PKZL_CORE_ASSERT(BPP(m_DataFormat) != 3, "VulkanTextureCube format cannot be 24-bits per texel");
+         SetData(data, width * height * BPP(m_DataFormat));
+         stbi_image_free(data);
+      }
+      CreateSampler(settings);
    }
 
 
@@ -337,7 +369,7 @@ namespace Pikzel {
          throw std::runtime_error("Data must be entire texture!");
       }
 
-      std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, width, height, m_DataFormat, 1);
+      std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, TextureSettings{.Width = width, .Height = height, .Format = m_DataFormat, .MIPLevels = 1});
       tex2d->SetData(data, size);
       int tonemap = 0;
       if (
@@ -415,10 +447,10 @@ namespace Pikzel {
    }
 
 
-   VulkanTextureCubeArray::VulkanTextureCubeArray(std::shared_ptr<VulkanDevice> device, const uint32_t size, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage /*= vk::ImageUsageFlagBits::eColorAttachment*/, vk::ImageAspectFlags aspect /*= vk::ImageAspectFlagBits::eColor*/) {
+   VulkanTextureCubeArray::VulkanTextureCubeArray(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
       m_Device = device;
-      CreateImage(vk::ImageViewType::eCubeArray, size, size, layers, mipLevels, TextureFormatToVkFormat(format), usage, aspect);
-      CreateSampler();
+      CreateImage(vk::ImageViewType::eCubeArray, settings.Width, settings.Height, settings.Layers, settings.MIPLevels, TextureFormatToVkFormat(settings.Format), usage, aspect);
+      CreateSampler(settings);
    }
 
 

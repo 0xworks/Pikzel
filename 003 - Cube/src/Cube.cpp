@@ -122,7 +122,7 @@ private:
 
 
    void CreateTextures() {
-      m_Texture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Container.jpg");
+      m_Texture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.jpg"});
    }
 
 

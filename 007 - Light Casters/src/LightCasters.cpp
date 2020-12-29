@@ -156,8 +156,8 @@ private:
 
 
    void CreateTextures() {
-      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Diffuse.png");
-      m_SpecularTexture = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Specular.png", false);
+      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Diffuse.png"});
+      m_SpecularTexture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Specular.png", .Format = Pikzel::TextureFormat::RGBA8});
    }
 
 

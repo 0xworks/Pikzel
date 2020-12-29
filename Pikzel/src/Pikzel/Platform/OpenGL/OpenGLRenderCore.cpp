@@ -135,23 +135,15 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Texture> OpenGLRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) {
-      return std::make_unique<OpenGLTexture2D>(width, height, format, mipLevels);
-   }
-
-
-   std::unique_ptr<Texture> OpenGLRenderCore::CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) {
-      return std::make_unique<OpenGLTexture2D>(path, isSRGB);
-   }
-
-
-   std::unique_ptr<Texture> OpenGLRenderCore::CreateTextureCube(const uint32_t size, TextureFormat format, const uint32_t mipLevels) {
-      return std::make_unique<OpenGLTextureCube>(size, format, mipLevels);
-   }
-
-
-   std::unique_ptr<Texture> OpenGLRenderCore::CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) {
-      return std::make_unique<OpenGLTextureCube>(path, isSRGB);
+   std::unique_ptr<Texture> OpenGLRenderCore::CreateTexture(const TextureSettings& settings) {
+      switch (settings.Type) {
+         case TextureType::Texture2D: return std::make_unique<OpenGLTexture2D>(settings);
+         case TextureType::Texture2DArray: return std::make_unique<OpenGLTexture2DArray>(settings);
+         case TextureType::TextureCube: return std::make_unique<OpenGLTextureCube>(settings);
+         case TextureType::TextureCubeArray: return std::make_unique<OpenGLTextureCubeArray>(settings);
+      }
+      PKZL_CORE_ASSERT(false, "TextureType not supported!");
+      return nullptr;
    }
 
 }

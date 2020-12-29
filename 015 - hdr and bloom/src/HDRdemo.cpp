@@ -365,15 +365,15 @@ private:
 
 
    void CreateTextures() {
-      m_TextureContainer = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Container.png");
-      m_TextureContainerSpecular = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/ContainerSpecular.png", false);
-      m_TextureContainerNormal = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/ContainerNormal.png", false);
-      m_TextureContainerDisplacement = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/ContainerDisplacement.png", false);
+      m_TextureContainer = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.png"});
+      m_TextureContainerSpecular = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/ContainerSpecular.png", .Format = Pikzel::TextureFormat::RGBA8});
+      m_TextureContainerNormal = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/ContainerNormal.png", .Format = Pikzel::TextureFormat::RGBA8});
+      m_TextureContainerDisplacement = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/ContainerDisplacement.png", .Format = Pikzel::TextureFormat::RGBA8});
 
-      m_TextureFloor = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Floor.jpg");
-      m_TextureFloorSpecular = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/FloorSpecular.jpg", false);
-      m_TextureFloorNormal = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/FloorNormal.jpg", false);
-      m_TextureFloorDisplacement = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/FloorDisplacement.jpg", false);
+      m_TextureFloor = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Floor.jpg"});
+      m_TextureFloorSpecular = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/FloorSpecular.jpg", .Format = Pikzel::TextureFormat::RGBA8});
+      m_TextureFloorNormal = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/FloorNormal.jpg", .Format = Pikzel::TextureFormat::RGBA8});
+      m_TextureFloorDisplacement = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/FloorDisplacement.jpg", .Format = Pikzel::TextureFormat::RGBA8});
    }
 
 

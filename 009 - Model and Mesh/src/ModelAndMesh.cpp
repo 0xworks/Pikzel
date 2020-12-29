@@ -30,6 +30,7 @@ public:
 
    virtual void Update(const Pikzel::DeltaTime deltaTime) override {
       PKZL_PROFILE_FUNCTION();
+      m_DeltaTime = deltaTime;
       if (m_Input.IsKeyPressed(Pikzel::KeyCode::Escape)) {
          Exit();
       }
@@ -43,46 +44,48 @@ public:
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
 
-      auto start = std::chrono::steady_clock::now();
-
       glm::mat4 transform = glm::identity<glm::mat4>();
       glm::mat4 view = glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
-
-      // Render the model, positioned according to given transform, with camera and lighting as given
-      m_ModelRenderer->Draw(
-         GetWindow().GetGraphicsContext(),
-         {m_Camera.Projection, view, m_Camera.Position, m_LightSpace, m_DirectionalLights, m_PointLights},
-         transform
-      );
-
-      // Render point lights as little cubes
-      Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
-      glm::mat4 projView = m_Camera.Projection * view;
       {
-         gc.Bind(*m_PipelineLight);
-         for (const auto& pointLight : m_PointLights) {
-            glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), pointLight.Position);
-            gc.PushConstant("constants.mvp"_hs, projView * model);
-            gc.PushConstant("constants.lightColor"_hs, pointLight.Color);
-            gc.DrawTriangles(*m_VertexBuffer, 36);
+         PKZL_PROFILE_SCOPE("Render model");
+
+         // Render the model, positioned according to given transform, with camera and lighting as given
+         m_ModelRenderer->Draw(
+            GetWindow().GetGraphicsContext(),
+            {m_Camera.Projection, view, m_Camera.Position, m_LightSpace, m_DirectionalLights, m_PointLights},
+            transform
+         );
+      }
+
+      {
+         PKZL_PROFILE_SCOPE("Render light cubes");
+         Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
+         glm::mat4 projView = m_Camera.Projection * view;
+         {
+            gc.Bind(*m_PipelineLight);
+            for (const auto& pointLight : m_PointLights) {
+               glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), pointLight.Position);
+               gc.PushConstant("constants.mvp"_hs, projView * model);
+               gc.PushConstant("constants.lightColor"_hs, pointLight.Color);
+               gc.DrawTriangles(*m_VertexBuffer, 36);
+            }
          }
       }
 
-      auto end = std::chrono::steady_clock::now();
-      std::chrono::duration<double, std::milli> ms = end - start;
-
-      // If you want to render ImGui windows, do it between calls to BeginImGuiFrame() and EndImGuiFrame()
-      GetWindow().BeginImGuiFrame();
       {
-         // You can draw multiple ImGui windows in here, you do not need to call Begin/End ImGuiFrame() again.
-         ImGui::Begin("Lighting");
-         for (size_t i = 0; i < m_PointLights.size(); ++i) {
-            ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
+         PKZL_PROFILE_SCOPE("Render ImGui");
+         GetWindow().BeginImGuiFrame();
+         {
+            // You can draw multiple ImGui windows in here, you do not need to call Begin/End ImGuiFrame() again.
+            ImGui::Begin("Lighting");
+            for (size_t i = 0; i < m_PointLights.size(); ++i) {
+               ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
+            }
+            ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
+            ImGui::End();
          }
-         ImGui::Text("Frame time: %f (%f)", ms.count(), 1000.0 / ms.count());
-         ImGui::End();
+         GetWindow().EndImGuiFrame();
       }
-      GetWindow().EndImGuiFrame();
       GetWindow().EndFrame();
    }
 
@@ -242,6 +245,8 @@ private:
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLight;
    std::unique_ptr<Pikzel::ModelRenderer> m_ModelRenderer;
+
+   Pikzel::DeltaTime m_DeltaTime;
 };
 
 

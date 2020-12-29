@@ -10,7 +10,9 @@ namespace Pikzel {
 
    TextureFormat VkFormatToTextureFormat(const vk::Format format);
    vk::Format TextureFormatToVkFormat(const TextureFormat format);
-
+   vk::Filter TextureFilterToVkFilter(const TextureFilter filter);
+   vk::SamplerMipmapMode TextureFilterToVkMipMapMode(const TextureFilter filter);
+   vk::SamplerAddressMode TextureWrapToVkSamplerAddressMode(const TextureWrap wrap);
 
    class VulkanTexture : public Texture {
    public:
@@ -35,7 +37,7 @@ namespace Pikzel {
       void CreateImage(const vk::ImageViewType type, const uint32_t width, const uint32_t height, const uint32_t layers, const uint32_t mipLevels, const vk::Format format, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect);
       void DestroyImage();
 
-      void CreateSampler();
+      void CreateSampler(const TextureSettings& settings);
       void DestroySampler();
 
    protected:
@@ -47,8 +49,7 @@ namespace Pikzel {
 
    class VulkanTexture2D : public VulkanTexture {
    public:
-      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
-      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB);
+      VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
 
       virtual TextureType GetType() const override;
 
@@ -61,7 +62,7 @@ namespace Pikzel {
 
    class VulkanTexture2DArray : public VulkanTexture {
    public:
-      VulkanTexture2DArray(std::shared_ptr<VulkanDevice> device, const uint32_t width, const uint32_t height, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
+      VulkanTexture2DArray(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
 
       virtual TextureType GetType() const override;
 
@@ -72,9 +73,7 @@ namespace Pikzel {
 
    class VulkanTextureCube : public VulkanTexture {
    public:
-
-      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const uint32_t size, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
-      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const std::filesystem::path& path, const bool isSRGB);
+      VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
 
       virtual TextureType GetType() const override;
 
@@ -88,8 +87,7 @@ namespace Pikzel {
 
    class VulkanTextureCubeArray : public VulkanTexture {
    public:
-
-      VulkanTextureCubeArray(std::shared_ptr<VulkanDevice> device, const uint32_t size, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
+      VulkanTextureCubeArray(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment, vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor);
 
       virtual TextureType GetType() const override;
 
