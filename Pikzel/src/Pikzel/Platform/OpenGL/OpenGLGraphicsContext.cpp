@@ -326,12 +326,14 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::DrawTriangles(const VertexBuffer& vertexBuffer, const uint32_t vertexCount, const uint32_t vertexOffset/*= 0*/) {
+      PKZL_PROFILE_FUNCTION();
       Bind(vertexBuffer);
       glDrawArrays(GL_TRIANGLES, vertexOffset, vertexCount);
    }
 
 
    void OpenGLGraphicsContext::DrawIndexed(const VertexBuffer& vertexBuffer, const IndexBuffer& indexBuffer, const uint32_t indexCount/*= 0*/, const uint32_t vertexOffset/*= 0*/) {
+      PKZL_PROFILE_FUNCTION();
       uint32_t count = indexCount ? indexCount : indexBuffer.GetCount();
       Bind(vertexBuffer);
       Bind(indexBuffer);
@@ -373,6 +375,7 @@ namespace Pikzel {
 
 
    void OpenGLWindowGC::BeginImGuiFrame() {
+      PKZL_PROFILE_FUNCTION();
       ImGui_ImplOpenGL3_NewFrame();
       ImGui_ImplGlfw_NewFrame();
       ImGui::NewFrame();
@@ -380,6 +383,7 @@ namespace Pikzel {
 
 
    void OpenGLWindowGC::EndImGuiFrame() {
+      PKZL_PROFILE_FUNCTION();
       ImGui::Render();
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
       if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
@@ -393,27 +397,39 @@ namespace Pikzel {
 
    void OpenGLWindowGC::BeginFrame(const BeginFrameOp operation) {
       PKZL_PROFILE_FUNCTION();
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      glfwMakeContextCurrent(m_WindowHandle);
-      int width;
-      int height;
-      glfwGetWindowSize(m_WindowHandle, &width, &height);
-      glViewport(0, 0, width, height);
-      if (operation != BeginFrameOp::ClearNone) {
-         glm::vec4 clearColor = GetClearColor();
-         glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
-         switch (operation) {
-            case BeginFrameOp::ClearDepth:
-               glClear(GL_DEPTH_BUFFER_BIT);
-               break;
-            case BeginFrameOp::ClearColor:
-               glClear(GL_COLOR_BUFFER_BIT);
-               break;
-            case BeginFrameOp::ClearAll:
-               glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-               break;
-            default:
-               PKZL_CORE_ASSERT(false, "Unknown BeginFrameOp!");
+      {
+         PKZL_PROFILE_SCOPE("glBindFramebuffer");
+         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      }
+      {
+         PKZL_PROFILE_SCOPE("glfwMakeContextCurrent");
+         glfwMakeContextCurrent(m_WindowHandle);
+      }
+      {
+         PKZL_PROFILE_SCOPE("glViewport");
+         int width;
+         int height;
+         glfwGetWindowSize(m_WindowHandle, &width, &height);
+         glViewport(0, 0, width, height);
+      }
+      {
+         PKZL_PROFILE_SCOPE("glClear");
+         if (operation != BeginFrameOp::ClearNone) {
+            glm::vec4 clearColor = GetClearColor();
+            glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+            switch (operation) {
+               case BeginFrameOp::ClearDepth:
+                  glClear(GL_DEPTH_BUFFER_BIT);
+                  break;
+               case BeginFrameOp::ClearColor:
+                  glClear(GL_COLOR_BUFFER_BIT);
+                  break;
+               case BeginFrameOp::ClearAll:
+                  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                  break;
+               default:
+                  PKZL_CORE_ASSERT(false, "Unknown BeginFrameOp!");
+            }
          }
       }
    }
@@ -443,24 +459,33 @@ namespace Pikzel {
 
    void OpenGLFramebufferGC::BeginFrame(const BeginFrameOp operation) {
       PKZL_PROFILE_FUNCTION();
-      glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer->GetRendererId());
-      glViewport(0, 0, m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight());
-      glm::vec4 clearColor = GetClearColor();
-      if (operation != BeginFrameOp::ClearNone) {
+      {
+         PKZL_PROFILE_SCOPE("glBindFramebuffer");
+         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer->GetRendererId());
+      }
+      {
+         PKZL_PROFILE_SCOPE("glViewport");
+         glViewport(0, 0, m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight());
+      }
+      {
+         PKZL_PROFILE_SCOPE("glClear");
          glm::vec4 clearColor = GetClearColor();
-         glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
-         switch (operation) {
-            case BeginFrameOp::ClearDepth:
-               glClear(GL_DEPTH_BUFFER_BIT);
-               break;
-            case BeginFrameOp::ClearColor:
-               glClear(GL_COLOR_BUFFER_BIT);
-               break;
-            case BeginFrameOp::ClearAll:
-               glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-               break;
-            default:
-               PKZL_CORE_ASSERT(false, "Unknown BeginFrameOp!");
+         if (operation != BeginFrameOp::ClearNone) {
+            glm::vec4 clearColor = GetClearColor();
+            glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+            switch (operation) {
+               case BeginFrameOp::ClearDepth:
+                  glClear(GL_DEPTH_BUFFER_BIT);
+                  break;
+               case BeginFrameOp::ClearColor:
+                  glClear(GL_COLOR_BUFFER_BIT);
+                  break;
+               case BeginFrameOp::ClearAll:
+                  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                  break;
+               default:
+                  PKZL_CORE_ASSERT(false, "Unknown BeginFrameOp!");
+            }
          }
       }
    }
@@ -472,42 +497,47 @@ namespace Pikzel {
    void OpenGLFramebufferGC::SwapBuffers() {
       PKZL_PROFILE_FUNCTION();
 
-      static GLenum buffers[4] = {
-         GL_COLOR_ATTACHMENT0,
-         GL_COLOR_ATTACHMENT1,
-         GL_COLOR_ATTACHMENT2,
-         GL_COLOR_ATTACHMENT3,
-      };
+      {
+         PKZL_PROFILE_SCOPE("glBlitFramebuffer")
+            static GLenum buffers[4] = {
+               GL_COLOR_ATTACHMENT0,
+               GL_COLOR_ATTACHMENT1,
+               GL_COLOR_ATTACHMENT2,
+               GL_COLOR_ATTACHMENT3,
+         };
 
-      if (m_Framebuffer->GetResolveRendererId()) {
-         for (uint32_t i = 0; i < m_Framebuffer->GetNumColorAttachments(); ++i) {
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Framebuffer->GetRendererId());
-            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Framebuffer->GetResolveRendererId());
-            glReadBuffer(buffers[i]);
-            glDrawBuffer(buffers[i]);
-            glBlitFramebuffer(
-               0, 0,
-               m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
-               0, 0,
-               m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
-               GL_COLOR_BUFFER_BIT,
-               GL_NEAREST
-            );
-         }
+         if (m_Framebuffer->GetResolveRendererId()) {
+            for (uint32_t i = 0; i < m_Framebuffer->GetNumColorAttachments(); ++i) {
+               glBindFramebuffer(GL_READ_FRAMEBUFFER, m_Framebuffer->GetRendererId());
+               glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Framebuffer->GetResolveRendererId());
+               glReadBuffer(buffers[i]);
+               glDrawBuffer(buffers[i]);
+               glBlitFramebuffer(
+                  0, 0,
+                  m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+                  0, 0,
+                  m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+                  GL_COLOR_BUFFER_BIT,
+                  GL_NEAREST
+               );
+            }
 
-         if (m_Framebuffer->HasDepthAttachment()) {
-            glBlitFramebuffer(
-               0, 0,
-               m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
-               0, 0,
-               m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
-               GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
-               GL_NEAREST
-            );
+            if (m_Framebuffer->HasDepthAttachment()) {
+               glBlitFramebuffer(
+                  0, 0,
+                  m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+                  0, 0,
+                  m_Framebuffer->GetWidth(), m_Framebuffer->GetHeight(),
+                  GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT,
+                  GL_NEAREST
+               );
 
+            }
          }
       }
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      {
+         PKZL_PROFILE_SCOPE("glBindFramebuffer(0)");
+         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      }
    }
-
 }
