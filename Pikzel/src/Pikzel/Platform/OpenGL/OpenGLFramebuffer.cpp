@@ -169,6 +169,8 @@ namespace Pikzel {
                   .Height = m_Settings.Height,
                   .Layers = m_Settings.Layers,
                   .Format = attachment.Format,
+                  .WrapU = TextureWrap::ClampToEdge,
+                  .WrapV = TextureWrap::ClampToEdge,
                   .MIPLevels = 1
                }));
                ++numColorAttachments;
@@ -192,6 +194,8 @@ namespace Pikzel {
                   .Height = m_Settings.Height,
                   .Layers = m_Settings.Layers,
                   .Format = attachment.Format,
+                  .WrapU = TextureWrap::ClampToEdge,
+                  .WrapV = TextureWrap::ClampToEdge,
                   .MIPLevels = 1
                });
                ++numDepthAttachments;
