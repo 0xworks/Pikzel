@@ -2,6 +2,8 @@
 #include "VulkanGraphicsContext.h"
 #include "VulkanUtility.h"
 
+#include "Pikzel/Renderer/RenderCore.h"
+
 #include "imgui_impl_vulkan.h"
 
 namespace Pikzel {
@@ -82,8 +84,8 @@ namespace Pikzel {
       }
       if(!m_ColorDescriptorSets[index]) {
          PKZL_CORE_ASSERT(ImGui::GetIO().BackendRendererName, "Called GetImGuiTextureId, but ImGui has not been initialized.  Please call GraphicsContext::InitalizeImGui() first");
-         auto& texture = *m_ColorTextures[index];
-         m_ColorDescriptorSets[index] = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(texture.GetVkSampler(), texture.GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+         auto texture = static_cast<VulkanTexture*>(m_ColorTextures[index].get());
+         m_ColorDescriptorSets[index] = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(texture->GetVkSampler(), texture->GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
       }
       return reinterpret_cast<ImTextureID>(m_ColorDescriptorSets[index]);
    }
@@ -102,8 +104,8 @@ namespace Pikzel {
    ImTextureID VulkanFramebuffer::GetImGuiDepthTextureId() const {
       if (!m_DepthDescriptorSet) {
          PKZL_CORE_ASSERT(ImGui::GetIO().BackendRendererName, "Called GetImGuiTextureId, but ImGui has not been initialized.  Please call GraphicsContext::InitalizeImGui() first");
-         auto& texture = *m_DepthTexture;
-         m_DepthDescriptorSet = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(texture.GetVkSampler(), texture.GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+         auto texture = static_cast<VulkanTexture*>(m_DepthTexture.get());
+         m_DepthDescriptorSet = reinterpret_cast<VkDescriptorSet>(ImGui_ImplVulkan_AddTexture(texture->GetVkSampler(), texture->GetVkImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
       }
       return reinterpret_cast<ImTextureID>(m_DepthDescriptorSet);
    }
@@ -120,7 +122,7 @@ namespace Pikzel {
 
 
    void VulkanFramebuffer::TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout) {
-      m_DepthTexture->TransitionImageLayout(oldLayout, newLayout);
+      static_cast<VulkanTexture*>(m_DepthTexture.get())->TransitionImageLayout(oldLayout, newLayout);
    }
 
 
@@ -168,23 +170,15 @@ namespace Pikzel {
                      vk::ImageLayout::eColorAttachmentOptimal         /*finalLayout*/
                   });
                }
-               switch (attachment.TextureType) {
-                  case TextureType::Texture2D:
-                     m_ColorTextures.emplace_back(std::make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1));
-                     break;
-                  case TextureType::Texture2DArray:
-                     m_ColorTextures.emplace_back(std::make_unique<VulkanTexture2DArray>(m_Device, m_Settings.Width, m_Settings.Height, m_Settings.Layers, attachment.Format, 1));
-                     break;
-                  case TextureType::TextureCube:
-                     m_ColorTextures.emplace_back(std::make_unique<VulkanTextureCube>(m_Device, m_Settings.Width, attachment.Format, 1));
-                     break;
-                  case TextureType::TextureCubeArray:
-                     m_ColorTextures.emplace_back(std::make_unique<VulkanTextureCubeArray>(m_Device, m_Settings.Width, m_Settings.Layers, attachment.Format, 1));
-                     break;
-                  default:
-                     PKZL_CORE_ASSERT(false, "unknown attachment texture type!");
-               }
-               m_ImageViews.push_back(m_ColorTextures.back()->GetVkImageView());
+               m_ColorTextures.emplace_back(RenderCore::CreateTexture({
+                  .Type = attachment.TextureType,
+                  .Width = m_Settings.Width,
+                  .Height = m_Settings.Height,
+                  .Layers = m_Settings.Layers,
+                  .Format = attachment.Format,
+                  .MIPLevels = 1
+               }));
+               m_ImageViews.push_back(static_cast<VulkanTexture*>(m_ColorTextures.back().get())->GetVkImageView());
                m_LayerCount = m_ColorTextures.back()->GetLayers();
                m_Attachments.push_back({
                   {}                                                                              /*flags*/,
@@ -234,23 +228,15 @@ namespace Pikzel {
                      vk::ImageLayout::eDepthStencilAttachmentOptimal  /*finalLayout*/
                   });
                }
-               switch (attachment.TextureType) {
-                  case TextureType::Texture2D:
-                     m_DepthTexture = std::make_unique<VulkanTexture2D>(m_Device, m_Settings.Width, m_Settings.Height, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
-                     break;
-                  case TextureType::Texture2DArray:
-                     m_DepthTexture = std::make_unique<VulkanTexture2DArray>(m_Device, m_Settings.Width, m_Settings.Height, m_Settings.Layers, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
-                     break;
-                  case TextureType::TextureCube:
-                     m_DepthTexture = std::make_unique<VulkanTextureCube>(m_Device, m_Settings.Width, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
-                     break;
-                  case TextureType::TextureCubeArray:
-                     m_DepthTexture = std::make_unique<VulkanTextureCubeArray>(m_Device, m_Settings.Width, m_Settings.Layers, attachment.Format, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
-                     break;
-                  default:
-                     PKZL_CORE_ASSERT(false, "unknown attachment texture type!");
-               }
-               m_ImageViews.push_back(m_DepthTexture->GetVkImageView());
+               m_DepthTexture = RenderCore::CreateTexture({
+                  .Type = attachment.TextureType,
+                  .Width = m_Settings.Width,
+                  .Height = m_Settings.Height,
+                  .Layers = m_Settings.Layers,
+                  .Format = attachment.Format,
+                  .MIPLevels = 1
+               });
+               m_ImageViews.push_back(static_cast<VulkanTexture*>(m_DepthTexture.get())->GetVkImageView());
                m_LayerCount = m_DepthTexture->GetLayers();
                m_Attachments.push_back({
                   {}                                                                              /*flags*/,

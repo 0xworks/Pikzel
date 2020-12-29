@@ -112,35 +112,22 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Texture> VulkanRenderCore::CreateTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels) {
+   std::unique_ptr<Texture> VulkanRenderCore::CreateTexture(const TextureSettings& settings) {
       vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment;
       vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor;
-      if (IsDepthFormat(format)) {
+      if (IsDepthFormat(settings.Format)) {
          usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
          aspect = vk::ImageAspectFlagBits::eDepth;
       }
-      return std::make_unique<VulkanTexture2D>(m_Device, width, height, format, mipLevels, usage, aspect);
-   }
-
-
-   std::unique_ptr<Texture> VulkanRenderCore::CreateTexture2D(const std::filesystem::path& path, const bool isSRGB) {
-      return std::make_unique<VulkanTexture2D>(m_Device, path, isSRGB);
-   }
-
-
-   std::unique_ptr<Texture> VulkanRenderCore::CreateTextureCube(const uint32_t size, TextureFormat format, const uint32_t mipLevels) {
-      vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment;
-      vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor;
-      if (IsDepthFormat(format)) {
-         usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-         aspect = vk::ImageAspectFlagBits::eDepth;
+   
+      switch (settings.Type) {
+         case TextureType::Texture2D:        return std::make_unique<VulkanTexture2D>(m_Device, settings, usage, aspect);
+         case TextureType::Texture2DArray:   return std::make_unique<VulkanTexture2DArray>(m_Device, settings, usage, aspect);
+         case TextureType::TextureCube:      return std::make_unique<VulkanTextureCube>(m_Device, settings, usage, aspect);
+         case TextureType::TextureCubeArray: return std::make_unique<VulkanTextureCubeArray>(m_Device, settings, usage, aspect);
       }
-      return std::make_unique<VulkanTextureCube>(m_Device, size, format, mipLevels, usage, aspect);
-   }
-
-
-   std::unique_ptr<Texture> VulkanRenderCore::CreateTextureCube(const std::filesystem::path& path, const bool isSRGB) {
-      return std::make_unique<VulkanTextureCube>(m_Device, path, isSRGB);
+      PKZL_CORE_ASSERT(false, "TextureType not supported!");
+      return nullptr;
    }
 
 

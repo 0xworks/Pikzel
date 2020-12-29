@@ -26,6 +26,9 @@ namespace Pikzel {
       uint32_t GetRendererId() const;
 
    protected:
+      void SetTextureParameters(const TextureSettings& settings, const uint32_t mipLevels);
+
+   protected:
       TextureFormat m_Format = {};
       uint32_t m_Width = {};
       uint32_t m_Height = {};
@@ -35,8 +38,7 @@ namespace Pikzel {
 
    class OpenGLTexture2D : public OpenGLTexture {
    public:
-      OpenGLTexture2D(const uint32_t width, const uint32_t height, const TextureFormat format, const uint32_t mipLevels);
-      OpenGLTexture2D(const std::filesystem::path& path, const bool isSRGB);
+      OpenGLTexture2D(const TextureSettings& settings);
 
       virtual TextureType GetType() const override;
 
@@ -51,7 +53,7 @@ namespace Pikzel {
 
    class OpenGLTexture2DArray : public OpenGLTexture {
    public:
-      OpenGLTexture2DArray(const uint32_t width, const uint32_t height, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels);
+      OpenGLTexture2DArray(const TextureSettings& settings);
 
       virtual TextureType GetType() const override;
 
@@ -67,8 +69,7 @@ namespace Pikzel {
    class OpenGLTextureCube : public OpenGLTexture {
    public:
 
-      OpenGLTextureCube(const uint32_t size, TextureFormat format, const uint32_t mipLevels);
-      OpenGLTextureCube(const std::filesystem::path& path, const bool isSRGB);
+      OpenGLTextureCube(const TextureSettings& settings);
 
       virtual TextureType GetType() const override;
 
@@ -87,16 +88,13 @@ namespace Pikzel {
 
    class OpenGLTextureCubeArray : public OpenGLTexture {
    public:
-      OpenGLTextureCubeArray(const uint32_t size, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels);
+      OpenGLTextureCubeArray(const TextureSettings& settings);
 
       virtual TextureType GetType() const override;
 
       virtual uint32_t GetLayers() const override;
 
       virtual void SetData(void* data, const uint32_t size) override;
-
-   private:
-      void AllocateStorage(const uint32_t mipLevels);
 
    private:
       uint32_t m_Layers = {};

@@ -1,6 +1,8 @@
 #include "OpenGLFramebuffer.h"
 #include "OpenGLGraphicsContext.h"
 
+#include "Pikzel/Renderer/RenderCore.h"
+
 namespace Pikzel {
 
    static GLenum buffers[4] = {
@@ -161,22 +163,14 @@ namespace Pikzel {
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
                   glFramebufferTexture2D(GL_FRAMEBUFFER, OpenGLAttachmentType(attachment.AttachmentType, numColorAttachments), GL_TEXTURE_2D_MULTISAMPLE, m_MSAAColorAttachmentRendererIds.back(), 0);
                }
-               switch (attachment.TextureType) {
-                  case TextureType::Texture2D:
-                     m_ColorTextures.emplace_back(std::make_unique<OpenGLTexture2D>(m_Settings.Width, m_Settings.Height, attachment.Format, 1));
-                     break;
-                  case TextureType::Texture2DArray:
-                     m_ColorTextures.emplace_back(std::make_unique<OpenGLTexture2DArray>(m_Settings.Width, m_Settings.Height, m_Settings.Layers, attachment.Format, 1));
-                     break;
-                  case TextureType::TextureCube:
-                     m_ColorTextures.emplace_back(std::make_unique<OpenGLTextureCube>(m_Settings.Width, attachment.Format, 1));
-                     break;
-                  case TextureType::TextureCubeArray:
-                     m_ColorTextures.emplace_back(std::make_unique<OpenGLTextureCubeArray>(m_Settings.Width, m_Settings.Layers, attachment.Format, 1));
-                     break;
-                  default:
-                     PKZL_CORE_ASSERT(false, "Unknown texture type for attachment!");
-               }
+               m_ColorTextures.emplace_back(RenderCore::CreateTexture({
+                  .Type = attachment.TextureType,
+                  .Width = m_Settings.Width,
+                  .Height = m_Settings.Height,
+                  .Layers = m_Settings.Layers,
+                  .Format = attachment.Format,
+                  .MIPLevels = 1
+               }));
                ++numColorAttachments;
                break;
             }
@@ -192,22 +186,14 @@ namespace Pikzel {
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
                   glFramebufferTexture2D(GL_FRAMEBUFFER, depthAttachmentType, GL_TEXTURE_2D_MULTISAMPLE, m_MSAADepthStencilAttachmentRendererId, 0);
                }
-               switch (attachment.TextureType) {
-                  case TextureType::Texture2D:
-                     m_DepthTexture = std::make_unique<OpenGLTexture2D>(m_Settings.Width, m_Settings.Height, attachment.Format, 1);
-                     break;
-                  case TextureType::Texture2DArray:
-                     m_DepthTexture = std::make_unique<OpenGLTexture2DArray>(m_Settings.Width, m_Settings.Height, m_Settings.Layers, attachment.Format, 1);
-                     break;
-                  case TextureType::TextureCube:
-                     m_DepthTexture = std::make_unique<OpenGLTextureCube>(m_Settings.Width, attachment.Format, 1);
-                     break;
-                  case TextureType::TextureCubeArray:
-                     m_DepthTexture = std::make_unique<OpenGLTextureCubeArray>(m_Settings.Width, m_Settings.Layers, attachment.Format, 1);
-                     break;
-                  default:
-                     PKZL_CORE_ASSERT(false, "Unknown texture type for attachment!");
-               }
+               m_DepthTexture = RenderCore::CreateTexture({
+                  .Type = attachment.TextureType,
+                  .Width = m_Settings.Width,
+                  .Height = m_Settings.Height,
+                  .Layers = m_Settings.Layers,
+                  .Format = attachment.Format,
+                  .MIPLevels = 1
+               });
                ++numDepthAttachments;
                break;
             }

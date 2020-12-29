@@ -7,7 +7,7 @@
 namespace Pikzel {
 
    enum class TextureFormat {
-      Undefined,
+      Undefined,       /* determine automatically from supplied data (e.g. image file) */
       RGB8             /* linear RGB, 8 bits per component */,
       RGBA8            /* linear RGBA, 8 bits per component */,
       SRGB8            /* non-linear sRGB, 8 bits per component */,
@@ -31,6 +31,26 @@ namespace Pikzel {
       Texture2DArray,
       TextureCube,
       TextureCubeArray
+   };
+
+
+   enum class TextureFilter {
+      Undefined,  /* means guess an appropriate setting from other supplied data */
+      Nearest,
+      NearestMipMapNearest,
+      NearestMipMapLinear,
+      Linear,
+      LinearMipMapNearest,
+      LinearMipMapLinear
+   };
+
+
+   enum class TextureWrap {
+      Undefined,  /* means guess an appropriate setting from other supplied data */
+      ClampToEdge,
+      ClampToBorder,
+      Repeat,
+      MirrorRepeat
    };
 
 
@@ -76,6 +96,45 @@ namespace Pikzel {
       }
       return false;
    }
+
+
+   inline bool IsLinearColorSpace(const TextureFormat format) {
+      switch (format) {
+         case TextureFormat::RGB8:    return true;
+         case TextureFormat::RGBA8:   return true;
+         case TextureFormat::SRGB8:   return false;
+         case TextureFormat::SRGBA8:  return false;
+         case TextureFormat::RGB16F:  return true;
+         case TextureFormat::RGBA16F: return true;
+         case TextureFormat::RGB32F:  return true;
+         case TextureFormat::RGBA32F: return true;
+         case TextureFormat::BGR8:    return true;
+         case TextureFormat::BGRA8:   return true;
+         case TextureFormat::R8:      return true;
+         case TextureFormat::R32F:    return true;
+         case TextureFormat::D32F:    return true;
+         case TextureFormat::D24S8:   return true;
+         case TextureFormat::D32S8:   return true;
+      }
+      return false;
+   }
+
+
+   struct PKZL_API TextureSettings {
+      TextureType Type = TextureType::Texture2D;
+      std::filesystem::path Path;
+      uint32_t Width = 1;
+      uint32_t Height = 1;
+      uint32_t Depth = 1;
+      uint32_t Layers = 1;
+      TextureFormat Format = TextureFormat::SRGBA8;
+      TextureFilter MinFilter = TextureFilter::LinearMipMapLinear;
+      TextureFilter MagFilter = TextureFilter::Linear;
+      TextureWrap WrapU = TextureWrap::Repeat;
+      TextureWrap WrapV = TextureWrap::Repeat;
+      TextureWrap WrapW = TextureWrap::Repeat;
+      uint32_t MIPLevels = 0; // 0 = auto calculate
+   };
 
 
    class PKZL_API Texture {

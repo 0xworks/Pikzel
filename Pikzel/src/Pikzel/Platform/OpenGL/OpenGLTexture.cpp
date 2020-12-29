@@ -67,6 +67,32 @@ namespace Pikzel {
    }
 
 
+   GLenum TextureFilterToGLTextureFilter(const TextureFilter filter) {
+      switch (filter) {
+         case TextureFilter::Nearest: return GL_NEAREST;
+         case TextureFilter::NearestMipMapNearest: return GL_NEAREST_MIPMAP_NEAREST;
+         case TextureFilter::NearestMipMapLinear: return GL_NEAREST_MIPMAP_LINEAR;
+         case TextureFilter::Linear: return GL_LINEAR;
+         case TextureFilter::LinearMipMapNearest: return GL_LINEAR_MIPMAP_NEAREST;
+         case TextureFilter::LinearMipMapLinear: return GL_LINEAR_MIPMAP_LINEAR;
+      }
+      PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
+      return GL_LINEAR;
+   }
+
+
+   GLenum TextureWrapToGLTextureWrap(const TextureWrap wrap) {
+      switch (wrap) {
+         case TextureWrap::ClampToEdge: return GL_CLAMP_TO_EDGE;
+         case TextureWrap::ClampToBorder: return GL_CLAMP_TO_BORDER;
+         case TextureWrap::Repeat: return GL_REPEAT;
+         case TextureWrap::MirrorRepeat: return GL_MIRRORED_REPEAT;
+      }
+      PKZL_CORE_ASSERT(false, "Unsupported TextureWrap!");
+      return GL_CLAMP_TO_EDGE;
+   }
+
+
    static stbi_uc* STBILoad(const std::filesystem::path& path, const bool isSRGB, uint32_t* width, uint32_t* height, TextureFormat* format) {
       int iWidth;
       int iHeight;
@@ -124,50 +150,70 @@ namespace Pikzel {
    }
 
 
+   void OpenGLTexture::SetTextureParameters(const TextureSettings& settings, const uint32_t mipLevels) {
+      TextureFilter minFilter = settings.MinFilter;
+      TextureFilter magFilter = settings.MagFilter;
+      TextureWrap wrapU = settings.WrapU;
+      TextureWrap wrapV = settings.WrapV;
+      TextureWrap wrapW = settings.WrapW;
+
+      if (minFilter == TextureFilter::Undefined) {
+         minFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : mipLevels == 1 ? TextureFilter::Linear : TextureFilter::LinearMipMapLinear;
+      }
+      if (magFilter == TextureFilter::Undefined) {
+         magFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : TextureFilter::Linear;
+      }
+
+      if (wrapU == TextureWrap::Undefined) {
+         wrapU = IsDepthFormat(m_Format) ? TextureWrap::ClampToEdge : TextureWrap::Repeat;
+      }
+      if (wrapV == TextureWrap::Undefined) {
+         wrapV = IsDepthFormat(m_Format) ? TextureWrap::ClampToEdge : TextureWrap::Repeat;
+      }
+      if (wrapW == TextureWrap::Undefined) {
+         wrapW = IsDepthFormat(m_Format) ? TextureWrap::ClampToEdge : TextureWrap::Repeat;
+      }
+
+      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, TextureFilterToGLTextureFilter(minFilter));
+      glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, TextureFilterToGLTextureFilter(magFilter));
+      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, TextureWrapToGLTextureWrap(wrapU));
+      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, TextureWrapToGLTextureWrap(wrapV));
+      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_R, TextureWrapToGLTextureWrap(wrapW));
+   }
+
+
    bool OpenGLTexture::operator==(const Texture& that) {
       return m_RendererId = static_cast<const OpenGLTexture&>(that).m_RendererId;
    }
 
 
-   OpenGLTexture2D::OpenGLTexture2D(const uint32_t width, const uint32_t height, TextureFormat format, const uint32_t mipLevels) {
-      m_Width = width;
-      m_Height = height;
-      m_Format = format;
-      glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
-      glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
-
-      if (IsDepthFormat(format)) {
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      } else {
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_REPEAT);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      }
-   }
-
-
-   OpenGLTexture2D::OpenGLTexture2D(const std::filesystem::path& path, const bool isSRGB)
-   : m_Path {path}
+   OpenGLTexture2D::OpenGLTexture2D(const TextureSettings& settings)
+   : m_Path {settings.Path}
    {
-      stbi_uc* data = STBILoad(path, isSRGB, &m_Width, &m_Height, &m_Format);
-      uint32_t levels = CalculateMipMapLevels(m_Width, m_Height);
-      glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
-      glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
+      uint32_t levels = settings.MIPLevels;
+      if (m_Path.empty()) {
+         m_Width = settings.Width;
+         m_Height = settings.Height;
+         m_Format = settings.Format;
+         if (levels == 0) {
+            levels = CalculateMipMapLevels(m_Width, m_Height);
+         }
 
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
+         glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
+      } else {
+         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &m_Width, &m_Height, &m_Format);
+         if (levels == 0) {
+            levels = CalculateMipMapLevels(m_Width, m_Height);
+         }
 
-      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-      glTextureSubImage2D(m_RendererId, 0, 0, 0, m_Width, m_Height, TextureFormatToDataFormat(m_Format), TextureFormatToDataType(m_Format), data);
-      stbi_image_free(data);
-
-      glGenerateTextureMipmap(m_RendererId);
+         glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
+         glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
+         glTextureSubImage2D(m_RendererId, 0, 0, 0, m_Width, m_Height, TextureFormatToDataFormat(m_Format), TextureFormatToDataType(m_Format), data);
+         glGenerateTextureMipmap(m_RendererId);
+         stbi_image_free(data);
+      }
+      SetTextureParameters(settings, levels);
    }
 
 
@@ -187,26 +233,19 @@ namespace Pikzel {
    }
 
 
-   OpenGLTexture2DArray::OpenGLTexture2DArray(const uint32_t width, const uint32_t height, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels)
-   : m_Layers {layers}
+   OpenGLTexture2DArray::OpenGLTexture2DArray(const TextureSettings& settings)
+   : m_Layers {settings.Layers}
    {
-      m_Width = width;
-      m_Height = height;
-      m_Format = format;
+      m_Width = settings.Width;
+      m_Height = settings.Height;
+      m_Format = settings.Format;
       glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_RendererId);
-      glTextureStorage3D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers);
-
-      if (IsDepthFormat(format)) {
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      } else {
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, GL_REPEAT);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      uint32_t levels = settings.MIPLevels;
+      if (levels == 0) {
+         levels = CalculateMipMapLevels(m_Width, m_Height);
       }
+      glTextureStorage3D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers);
+      SetTextureParameters(settings, levels);
    }
 
 
@@ -226,37 +265,43 @@ namespace Pikzel {
    }
 
 
-   OpenGLTextureCube::OpenGLTextureCube(const uint32_t size, TextureFormat format, const uint32_t mipLevels) {
-      m_Width = size;
-      m_Height = size;
-      m_Format = format;
-      AllocateStorage(mipLevels);
-   }
-
-
-   OpenGLTextureCube::OpenGLTextureCube(const std::filesystem::path& path, const bool isSRGB)
-   : m_Path {path}
+   OpenGLTextureCube::OpenGLTextureCube(const TextureSettings& settings)
+   : m_Path(settings.Path)
    , m_DataFormat {TextureFormat::Undefined}
    {
-      m_Format = TextureFormat::RGBA8;
-
-      uint32_t width;
-      uint32_t height;
-      stbi_uc* data = STBILoad(path, isSRGB, &width, &height, &m_DataFormat);
-
-      // guess whether the data is the 6-faces of a cube, or whether it's equirectangular
-      // width is twice the height -> equirectangular (probably)
-      // width is 4/3 the height -> 6 faces of a cube (probably)
-      if (width / 2 == height) {
-         m_Width = height;
-         m_Height = m_Width;
+      uint32_t levels = settings.MIPLevels;
+      if (m_Path.empty()) {
+         m_Width = settings.Width;
+         m_Height = settings.Height;
+         m_Format = settings.Format;
+         if (levels == 0) {
+            levels = CalculateMipMapLevels(m_Width, m_Height);
+         }
+         AllocateStorage(levels);
       } else {
-         m_Width = width / 4;
-         m_Height = m_Width;
+         m_Format = TextureFormat::RGBA8;
+         uint32_t width;
+         uint32_t height;
+         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &width, &height, &m_DataFormat);
+
+         // guess whether the data is the 6-faces of a cube, or whether it's equirectangular
+         // width is twice the height -> equirectangular (probably)
+         // width is 4/3 the height -> 6 faces of a cube (probably)
+         if (width / 2 == height) {
+            m_Width = height;
+            m_Height = m_Width;
+         } else {
+            m_Width = width / 4;
+            m_Height = m_Width;
+         }
+         if (levels == 0) {
+            levels = CalculateMipMapLevels(m_Width, m_Height);
+         }
+         AllocateStorage(levels);
+         SetData(data, width * height * BPP(m_DataFormat));
+         stbi_image_free(data);
       }
-      AllocateStorage(CalculateMipMapLevels(m_Width, m_Height));
-      SetData(data, width * height * BPP(m_DataFormat));
-      stbi_image_free(data);
+      SetTextureParameters(settings, levels);
    }
 
 
@@ -285,7 +330,7 @@ namespace Pikzel {
          throw std::runtime_error("Data must be entire texture!");
       }
 
-      std::unique_ptr<OpenGLTexture2D> tex2d = std::make_unique<OpenGLTexture2D>(width, height, m_DataFormat, 1);
+      std::unique_ptr<OpenGLTexture2D> tex2d = std::make_unique<OpenGLTexture2D>(TextureSettings{.Width = width, .Height = height, .Format = m_DataFormat, .MIPLevels = 1});
       tex2d->SetData(data, size);
       int tonemap = 0;
       if (
@@ -296,8 +341,7 @@ namespace Pikzel {
       }
 
       std::unique_ptr<OpenGLPipeline> pipeline = std::make_unique<OpenGLPipeline>(PipelineSettings {
-         {},
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Compute, shader }
          }
       });
@@ -318,29 +362,27 @@ namespace Pikzel {
 
       glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererId);
       glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
-      if (IsDepthFormat(m_Format)) {
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      } else {
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      }
    }
 
 
-   OpenGLTextureCubeArray::OpenGLTextureCubeArray(const uint32_t size, const uint32_t layers, const TextureFormat format, const uint32_t mipLevels)
-   : m_Layers {layers}
+   OpenGLTextureCubeArray::OpenGLTextureCubeArray(const TextureSettings& settings)
+   : m_Layers {settings.Layers}
    {
-      m_Width = size;
-      m_Height = size;
-      m_Format = format;
-      AllocateStorage(mipLevels);
+      m_Width = settings.Width;
+      m_Height = settings.Height;
+      m_Format = settings.Format;
+      uint32_t levels = settings.MIPLevels;
+      if (levels == 0) {
+         levels = CalculateMipMapLevels(m_Width, m_Height);
+      }
+
+      if ((GetWidth() % 32)) {
+         throw std::runtime_error {"Cube texture size must be a multiple of 32!"};
+      }
+
+      glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &m_RendererId);
+      glTextureStorage3D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers * 6);
+      SetTextureParameters(settings, levels);
    }
 
 
@@ -356,29 +398,6 @@ namespace Pikzel {
 
    void OpenGLTextureCubeArray::SetData(void* data, const uint32_t size) {
       PKZL_NOT_IMPLEMENTED;
-   }
-
-
-   void OpenGLTextureCubeArray::AllocateStorage(const uint32_t mipLevels) {
-      if ((GetWidth() % 32)) {
-         throw std::runtime_error {"Cube texture size must be a multiple of 32!"};
-      }
-
-      glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &m_RendererId);
-      glTextureStorage3D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers * 6);
-      if (IsDepthFormat(m_Format)) {
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      } else {
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MIN_FILTER, mipLevels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-         glTextureParameteri(m_RendererId, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      }
    }
 
 }

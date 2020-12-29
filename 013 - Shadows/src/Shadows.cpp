@@ -313,10 +313,10 @@ private:
 
 
    void CreateTextures() {
-      m_TextureContainer = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Container.png");
-      m_TextureContainerSpecular = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/ContainerSpecular.png", false);
-      m_TextureFloor = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/Floor.png");
-      m_TextureFloorSpecular = Pikzel::RenderCore::CreateTexture2D("Assets/" APP_NAME "/Textures/FloorSpecular.png", false);
+      m_TextureContainer = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.png"});
+      m_TextureContainerSpecular = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/ContainerSpecular.png", .Format = Pikzel::TextureFormat::RGBA8});
+      m_TextureFloor = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Floor.png"});
+      m_TextureFloorSpecular = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/FloorSpecular.png", .Format = Pikzel::TextureFormat::RGBA8});
    }
 
 
