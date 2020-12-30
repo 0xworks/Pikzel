@@ -26,6 +26,7 @@ protected:
 
    virtual void Update(const Pikzel::DeltaTime deltaTime) override {
       PKZL_PROFILE_FUNCTION();
+      m_DeltaTime = deltaTime;
       if (m_Input.IsKeyPressed(Pikzel::KeyCode::Escape)) {
          Exit();
       }
@@ -225,7 +226,7 @@ protected:
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
             ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
          }
-         ImGui::Text("Frame time: %.3fms (%.0f FPS)", ms.count(), 1000.0 / ms.count());
+         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
          //ImGui::Text("Brightness color buffer:");
          //ImVec2 size = ImGui::GetContentRegionAvail();
          //ImGui::Image(m_FramebufferScene->GetImGuiColorTextureId(1), size, ImVec2 {0, 1}, ImVec2 {1, 0});
@@ -577,6 +578,7 @@ private:
    std::unique_ptr<Pikzel::Pipeline> m_PipelineScreenQuad;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineBlur;
 
+   Pikzel::DeltaTime m_DeltaTime = {};
    float m_Exposure = 1.0;
    int m_ToneMap = 0;
    bool m_Bloom = true;

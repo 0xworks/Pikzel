@@ -26,6 +26,7 @@ protected:
 
    virtual void Update(const Pikzel::DeltaTime deltaTime) override {
       PKZL_PROFILE_FUNCTION();
+      m_DeltaTime = deltaTime;
       if (m_Input.IsKeyPressed(Pikzel::KeyCode::Escape)) {
          Exit();
       }
@@ -191,7 +192,7 @@ protected:
          //ImGui::Text("Depth buffer:");
          //ImVec2 size = ImGui::GetContentRegionAvail();
          //ImGui::Image(m_FramebufferDepth->GetImGuiDepthTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
-         ImGui::Text("Frame time: %f (%f)", ms.count(), 1000.0 / ms.count());
+         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
          ImGui::End();
       }
       GetWindow().EndImGuiFrame();
@@ -477,6 +478,7 @@ private:
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLitModel;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineFullScreenQuad;
 
+   Pikzel::DeltaTime m_DeltaTime = {};
    bool m_ShowDirectionalLight = true;
    bool m_ShowPointLights = true;
    bool m_UseNormalMaps = true;
