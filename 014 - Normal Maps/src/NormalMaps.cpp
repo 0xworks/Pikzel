@@ -53,69 +53,6 @@ protected:
       m_BufferMatrices->CopyFromHost(0, sizeof(Matrices), &matrices);
       m_BufferPointLights->CopyFromHost(0, sizeof(Pikzel::PointLight) * m_PointLights.size(), m_PointLights.data());
 
-      // render to directional light shadow map
-      if(m_ShowDirectionalLight) {
-         Pikzel::GraphicsContext& gc = m_FramebufferDirShadow->GetGraphicsContext();
-         gc.BeginFrame();
-         gc.Bind(*m_PipelineDirShadow);
-
-         // floor
-         glm::mat4 model = glm::identity<glm::mat4>();
-         gc.PushConstant("constants.mvp"_hs, m_LightSpace * model);
-         gc.DrawTriangles(*m_VertexBuffer, 6, 36);
-
-         // cubes
-         for (int i = 0; i < m_CubePositions.size(); ++i) {
-            glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
-            gc.PushConstant("constants.mvp"_hs, m_LightSpace * model);
-            gc.DrawTriangles(*m_VertexBuffer, 36);
-         }
-
-         gc.EndFrame();
-         gc.SwapBuffers();
-      }
-
-      // render to point light shadow map
-      if(m_ShowPointLights) {
-         Pikzel::GraphicsContext& gc = m_FramebufferPtShadow->GetGraphicsContext();
-
-         for (int i = 0; i < m_PointLights.size(); ++i) {
-            auto& light = m_PointLights[i];
-
-            std::array<glm::mat4, 6> lightViews = {
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 {1.0f,  0.0f,  0.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 {-1.0f,  0.0f,  0.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 {0.0f,  1.0f,  0.0f}, glm::vec3 {0.0f,  0.0f,  1.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 {0.0f, -1.0f,  0.0f}, glm::vec3 {0.0f,  0.0f, -1.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 {0.0f,  0.0f,  1.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 {0.0f,  0.0f, -1.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
-            };
-            m_BufferLightViews->CopyFromHost(0, sizeof(glm::mat4) * lightViews.size(), lightViews.data());
-
-            gc.BeginFrame(i == 0? Pikzel::BeginFrameOp::ClearAll : Pikzel::BeginFrameOp::ClearNone);
-            gc.Bind(*m_PipelinePtShadow);
-            gc.PushConstant("constants.lightIndex"_hs, i);
-            gc.PushConstant("constants.lightRadius"_hs, lightRadius);
-            gc.Bind(*m_BufferLightViews, "UBOLightViews"_hs);
-            gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
-
-            // floor
-            glm::mat4 model = glm::identity<glm::mat4>();
-            gc.PushConstant("constants.model"_hs, model);
-            gc.DrawTriangles(*m_VertexBuffer, 6, 36);
-
-            // cubes
-            for (int i = 0; i < m_CubePositions.size(); ++i) {
-               glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
-               gc.PushConstant("constants.model"_hs, model);
-               gc.DrawTriangles(*m_VertexBuffer, 36);
-            }
-
-            gc.EndFrame();
-            gc.SwapBuffers();
-         }
-      }
-
       // render scene
       {
 
@@ -142,8 +79,6 @@ protected:
          gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
          gc.Bind(*m_BufferDirectionalLight, "UBODirectionalLight"_hs);
          gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
-         gc.Bind(m_FramebufferDirShadow->GetDepthTexture(), "dirShadowMap"_hs);
-         gc.Bind(m_FramebufferPtShadow->GetDepthTexture(), "ptShadowMap"_hs);
 
          // floor
          glm::mat4 model = glm::identity<glm::mat4>();
@@ -182,6 +117,7 @@ protected:
       GetWindow().BeginImGuiFrame();
       {
          ImGui::Begin("Lighting");
+         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
          ImGui::Checkbox("Normal mapping", &m_UseNormalMaps);
          ImGui::Checkbox("Displacement mapping", &m_UseDisplacementMaps);
          ImGui::Checkbox("Directional Light", &m_ShowDirectionalLight);
@@ -192,7 +128,6 @@ protected:
          //ImGui::Text("Depth buffer:");
          //ImVec2 size = ImGui::GetContentRegionAvail();
          //ImGui::Image(m_FramebufferDepth->GetImGuiDepthTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
-         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
          ImGui::End();
       }
       GetWindow().EndImGuiFrame();
@@ -329,35 +264,11 @@ private:
 
 
    void CreateFramebuffers() {
-      uint32_t width = 4096;
-      uint32_t height = 4096;
       m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
-      m_FramebufferDirShadow = Pikzel::RenderCore::CreateFramebuffer({.Width = width, .Height = height, .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}}});
-      m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
-         .Width = width,
-         .Height = height,
-         .Layers = static_cast<uint32_t>(m_PointLights.size()),
-         .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F, Pikzel::TextureType::TextureCubeArray}}
-      });
    }
 
 
    void CreatePipelines() {
-      m_PipelineDirShadow = m_FramebufferDirShadow->GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
-            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Depth.vert.spv" },
-            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Depth.frag.spv" }
-         }
-      });
-      m_PipelinePtShadow = m_FramebufferPtShadow->GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
-            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/DepthCube.vert.spv" },
-            { Pikzel::ShaderType::Geometry, "Assets/" APP_NAME "/Shaders/DepthCube.geom.spv" },
-            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/DepthCube.frag.spv" }
-         }
-      });
       m_PipelineColoredModel = m_FramebufferScene->GetGraphicsContext().CreatePipeline({
          m_VertexBuffer->GetLayout(),
          {
@@ -469,11 +380,7 @@ private:
    std::unique_ptr<Pikzel::Texture> m_TextureFloorSpecular;
    std::unique_ptr<Pikzel::Texture> m_TextureFloorNormal;
    std::unique_ptr<Pikzel::Texture> m_TextureFloorDisplacement;
-   std::unique_ptr<Pikzel::Framebuffer> m_FramebufferDirShadow;
-   std::unique_ptr<Pikzel::Framebuffer> m_FramebufferPtShadow;
    std::unique_ptr<Pikzel::Framebuffer> m_FramebufferScene;
-   std::unique_ptr<Pikzel::Pipeline> m_PipelineDirShadow;
-   std::unique_ptr<Pikzel::Pipeline> m_PipelinePtShadow;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineColoredModel;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineLitModel;
    std::unique_ptr<Pikzel::Pipeline> m_PipelineFullScreenQuad;

@@ -19,6 +19,9 @@ layout(push_constant) uniform PC {
    mat4 model;
    mat4 modelInvTrans;
    float lightRadius;
+   uint showDirectionalLight;
+   uint showPointLights;
+   uint usePCSS;
    uint numPointLights;
 } constants;
 
@@ -219,14 +222,20 @@ float CalculateDirectionalShadow(const vec4 fragPosLightSpace, const vec4 normal
    shadowCoords = shadowCoords * vec3(0.5, 0.5, 1.0) + vec3(0.5, 0.5, 0.0);
    shadowCoords.z = shadowCoords.z > 1.0? 0.0 : shadowCoords.z;
 
-   const float lightSize = directionalLight.light.size;
+   float shadow = 0.0;
    const float bias = 0.001 * (1.0 - dot(-normal, lightDir));
-   const float blockerDepth = BlockerDepth(shadowCoords, bias, lightSize);
-   if (blockerDepth > 0.0) {
-      const float penumbraWidth = lightSize * (shadowCoords.z - blockerDepth) / blockerDepth;
-      return PCFDirectionalShadow(shadowCoords, bias, penumbraWidth);
+   if(constants.usePCSS == 1) {
+      const float lightSize = directionalLight.light.size;
+      const float blockerDepth = BlockerDepth(shadowCoords, bias, lightSize);
+      if (blockerDepth > 0.0) {
+         const float penumbraWidth = lightSize * (shadowCoords.z - blockerDepth) / blockerDepth;
+         shadow = PCFDirectionalShadow(shadowCoords, bias, penumbraWidth);
+      }
+   } else {
+      const float z = texture(dirShadowMap, shadowCoords.xy).r;
+      shadow = (z < shadowCoords.z - bias)? 1.0 : 0.0;
    }
-   return 0.0;
+   return shadow;
 }
 
 
@@ -239,8 +248,8 @@ vec3 CalculateDirectionalLight(const DirectionalLight light, const vec4 viewDir,
       const float notShadowed = 1.0 - CalculateDirectionalShadow(inFragPosLightSpace, normal, lightDir);
 
       return diffuseColor * (light.ambient + (light.color * diffuse * notShadowed)) +
-         specularColor.r * (light.color * specular * notShadowed)
-      ; // specularity in specularmap red channel
+         specularColor.r * (light.color * specular * notShadowed)                                   // specularity in specularmap red channel
+      ;
    }
    return diffuseColor * light.ambient;
 }
@@ -280,12 +289,19 @@ float CalculatePointShadow(const uint lightIndex, const vec4 fragPos, const vec4
    const vec4 fragToLight = fragPos - lightPos;
    const float fragDepth = (length(fragToLight) / constants.lightRadius) - bias;
 
-   const float blockerDepth = BlockerDepthPt(lightIndex, fragPos, fragDepth, lightPos, lightSize);
-   if (blockerDepth > 0.0) {
-      const float penumbraWidth = lightSize * (fragDepth - blockerDepth) / blockerDepth;
-      return PCFPointShadow(lightIndex, fragPos, fragDepth, lightPos, penumbraWidth);
+   float shadow = 0.0;
+   if(constants.usePCSS == 1) {
+      const float blockerDepth = BlockerDepthPt(lightIndex, fragPos, fragDepth, lightPos, lightSize);
+      if (blockerDepth > 0.0) {
+         const float penumbraWidth = lightSize * (fragDepth - blockerDepth) / blockerDepth;
+         shadow = PCFPointShadow(lightIndex, fragPos, fragDepth, lightPos, penumbraWidth);
+      }
+   } else {
+      const vec3 fragToLight = fragPos.xyz - lightPos.xyz;
+      const float z = texture(ptShadowMap, vec4(fragToLight, lightIndex)).r;
+      shadow = (z < fragDepth)? 1.0 : 0.0;
    }
-   return 0.0;
+   return shadow;
 }
 
 
@@ -303,8 +319,8 @@ vec3 CalculatePointLight(const uint lightIndex, const vec4 viewDir, const vec4 n
 
       return (
          (diffuseColor * diffuse) +
-         (specular * vec3(specularColor.r))
-      ) * pointLights.light[lightIndex].color * attenuation * notShadowed; // specularity in specularmap red channel
+         (specular * vec3(specularColor.r))                                                         // specularity in specularmap red channel
+      ) * pointLights.light[lightIndex].color * attenuation * notShadowed;
    }
    return vec3(0.0);
 }
@@ -321,10 +337,14 @@ void main() {
 
    const vec3 specularColor = texture(specularMap, inTexCoords).rgb;
 
-   vec3 color = CalculateDirectionalLight(directionalLight.light, viewDir, normal, diffuseColor.rgb, specularColor);
-
-   for(uint i = 0; i < constants.numPointLights; ++i) {
-      color += CalculatePointLight(i, viewDir, normal, diffuseColor.rgb, specularColor);
+   vec3 color = vec3(0.0);
+   if(constants.showDirectionalLight == 1) {
+      color += CalculateDirectionalLight(directionalLight.light, viewDir, normal, diffuseColor.rgb, specularColor);
+   }
+   if(constants.showPointLights == 1) {
+      for(uint i = 0; i < constants.numPointLights; ++i) {
+         color += CalculatePointLight(i, viewDir, normal, diffuseColor.rgb, specularColor);
+      }
    }
    outFragColor = vec4(color, diffuseColor.a);
 }
