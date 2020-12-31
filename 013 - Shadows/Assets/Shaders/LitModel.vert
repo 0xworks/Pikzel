@@ -11,6 +11,9 @@ layout(push_constant) uniform PC {
    mat4 model;
    mat4 modelInvTrans;
    float lightRadius;
+   uint showDirectionalLight;
+   uint showPointLights;
+   uint usePCSS;
    uint numPointLights;
 } constants;
 

@@ -65,7 +65,7 @@ protected:
       m_BufferPointLights->CopyFromHost(0, sizeof(Pikzel::PointLight) * m_PointLights.size(), m_PointLights.data());
 
       // render to directional light shadow map
-      {
+      if (m_ShowDirectionalLight) {
          Pikzel::GraphicsContext& gc = m_FramebufferDirShadow->GetGraphicsContext();
          gc.BeginFrame();
          gc.Bind(*m_PipelineDirShadow);
@@ -87,7 +87,7 @@ protected:
       }
 
       // render to point light shadow map
-      {
+      if (m_ShowPointLights) {
          Pikzel::GraphicsContext& gc = m_FramebufferPtShadow->GetGraphicsContext();
 
          for (int i = 0; i < m_PointLights.size(); ++i) {
@@ -144,6 +144,9 @@ protected:
          gc.Bind(*m_PipelineLitModel);
          gc.PushConstant("constants.lightRadius"_hs, lightRadius);
          gc.PushConstant("constants.numPointLights"_hs, static_cast<uint32_t>(m_PointLights.size()));
+         gc.PushConstant("constants.showDirectionalLight"_hs, m_ShowDirectionalLight ? 1u : 0u);
+         gc.PushConstant("constants.showPointLights"_hs, m_ShowPointLights ? 1u : 0u);
+         gc.PushConstant("constants.usePCSS"_hs, m_UsePCSS? 1u : 0u);
          gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
          gc.Bind(*m_BufferDirectionalLight, "UBODirectionalLight"_hs);
          gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
@@ -186,14 +189,17 @@ protected:
 
       GetWindow().BeginImGuiFrame();
       {
-         ImGui::Begin("Point Lights");
+         ImGui::Begin("Lighting:");
+         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
+         ImGui::Checkbox("Directional Light", &m_ShowDirectionalLight);
+         ImGui::Checkbox("Point Lights", &m_ShowPointLights);
+         ImGui::Checkbox("Soft Shadows", &m_UsePCSS);
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
             ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
          }
-         //ImGui::Text("Depth buffer:");
-         //ImVec2 size = ImGui::GetContentRegionAvail();
-         //ImGui::Image(m_FramebufferDepth->GetImGuiDepthTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
-         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
+         ImGui::Text("Depth buffer:");
+         ImVec2 size = ImGui::GetContentRegionAvail();
+         ImGui::Image(m_FramebufferDirShadow->GetImGuiDepthTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
          ImGui::End();
       }
       GetWindow().EndImGuiFrame();
@@ -468,6 +474,9 @@ private:
    std::unique_ptr<Pikzel::Pipeline> m_PipelineFullScreenQuad;
 
    Pikzel::DeltaTime m_DeltaTime = {};
+   bool m_ShowDirectionalLight = true;
+   bool m_ShowPointLights = true;
+   bool m_UsePCSS = true;
 };
 
 

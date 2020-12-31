@@ -212,6 +212,7 @@ protected:
       GetWindow().BeginImGuiFrame();
       {
          ImGui::Begin("Lighting");
+         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
          ImGui::Checkbox("Bloom", &m_Bloom);
          ImGui::Text("Tone mapping:");
          ImGui::RadioButton("None", &m_ToneMap, 0);
@@ -221,12 +222,11 @@ protected:
          ImGui::DragFloat("", &m_Exposure, 0.1f, 0, 10);
          ImGui::Checkbox("Normal mapping", &m_UseNormalMaps);
          ImGui::Checkbox("Displacement mapping", &m_UseDisplacementMaps);
-         ImGui::Checkbox("Directional Light", &m_ShowDirectionalLight);
+         ImGui::Checkbox("Ambient Light", &m_ShowDirectionalLight);
          ImGui::Checkbox("Point Lights", &m_ShowPointLights);
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
             ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
          }
-         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
          //ImGui::Text("Brightness color buffer:");
          //ImVec2 size = ImGui::GetContentRegionAvail();
          //ImGui::Image(m_FramebufferScene->GetImGuiColorTextureId(1), size, ImVec2 {0, 1}, ImVec2 {1, 0});
@@ -509,8 +509,8 @@ private:
    Pikzel::DirectionalLight m_DirectionalLights[1] = {
       {
          .Direction = { -2.0f, -4.0f, 2.0f},
-         .Color = Pikzel::sRGB{0.0f, 0.0f, 0.0f},
-         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
+         .Color = Pikzel::sRGB{0.0f, 0.0f, 0.0f},    // no directional, just Ambient in this demo
+         .Ambient = Pikzel::sRGB{0.2f, 0.2f, 0.2f},
          .Size = 0.02
       }
    };
