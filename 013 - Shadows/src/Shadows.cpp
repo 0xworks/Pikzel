@@ -43,8 +43,6 @@ protected:
       static float lightRadius = 25.0f;
       static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, lightRadius);
 
-      auto start = std::chrono::steady_clock::now();
-
       // Note: This example illustrates the basic idea of shadow maps, namely that you first render the scene to
       //       an offscreen depth buffer, and then render the scene for real, sampling from the depth buffer to figure
       //       out which fragments are in shadow.
@@ -183,9 +181,6 @@ protected:
 
       gc.Bind(m_FramebufferScene->GetColorTexture(0), "uTexture"_hs);
       gc.DrawTriangles(*m_VertexBuffer, 6, 42);
-
-      auto end = std::chrono::steady_clock::now();
-      std::chrono::duration<double, std::milli> ms = end - start;
 
       GetWindow().BeginImGuiFrame();
       {

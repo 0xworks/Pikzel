@@ -1,16 +1,30 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
-const float nearPlane = 0.1f;
-const float farPlane = 50.0f;
+// Deferred rendering demonstration
+// The scene is first rendered to an off-screen "G-buffer" consisting of:
+// - position information
+// - normals
+// - diffuse color (rgb) and specular amount (a) (packed into one vec4)
+//
+// Then later (i.e deferred), a full screen quad is rendered to the screen and this one does the (expensive) lighting calculations
+// using the information from G-buffer.
+//
+// I have not put too much effort into this demo as ultimately I want to go with a clustered forward renderer rather than deferred.
+// This demo is just a quick one to see how deferred works.
+//
+// Points of interest in the code are marked with "POI" in the code comments.
 
-class NormalMaps final : public Pikzel::Application {
+constexpr float nearPlane = 0.1f;
+constexpr float farPlane = 50.0f;
+
+class DeferredRendering final : public Pikzel::Application {
 public:
-   NormalMaps()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = true}}
+   DeferredRendering()
+   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = false}}
    , m_Input {GetWindow()}
    {
-      CreateVertexBuffer();
+      CreateVertexBuffers();
       CreateUniformBuffers();
       CreateTextures();
       CreateFramebuffers();
@@ -51,47 +65,25 @@ protected:
       m_BufferMatrices->CopyFromHost(0, sizeof(Matrices), &matrices);
       m_BufferPointLights->CopyFromHost(0, sizeof(Pikzel::PointLight) * m_PointLights.size(), m_PointLights.data());
 
-      // render scene
+      // POI: Geometry pass, render to G-buffer
       {
-
-         Pikzel::GraphicsContext& gc = m_FramebufferScene->GetGraphicsContext();
+         Pikzel::GraphicsContext& gc = m_GBuffer->GetGraphicsContext();
          gc.BeginFrame();
+         gc.Bind(*m_PipelineGeometry);
 
-         if (m_ShowPointLights) {
-            gc.Bind(*m_PipelineColoredModel);
-            for (const auto& pointLight : m_PointLights) {
-               glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), pointLight.Position), {0.05f, 0.05f, 0.05f});
-               gc.PushConstant("constants.mvp"_hs, matrices.viewProjection * model);
-               gc.PushConstant("constants.color"_hs, pointLight.Color);
-               gc.DrawTriangles(*m_VertexBuffer, 36);
-            }
-         }
 
-         gc.Bind(*m_PipelineLitModel);
-         gc.PushConstant("constants.lightRadius"_hs, lightRadius);
-         gc.PushConstant("constants.numPointLights"_hs, static_cast<uint32_t>(m_PointLights.size()));
-         gc.PushConstant("constants.showDirectionalLight"_hs, m_ShowDirectionalLight? 1u : 0u);
-         gc.PushConstant("constants.showPointLights"_hs, m_ShowPointLights ? 1u : 0u);
-         gc.PushConstant("constants.useNormalMaps"_hs, m_UseNormalMaps ? 1u : 0u);
-         gc.PushConstant("constants.useDisplacementMaps"_hs, m_UseDisplacementMaps ? 1u : 0u);
          gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
-         gc.Bind(*m_BufferDirectionalLight, "UBODirectionalLight"_hs);
-         gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
 
          // floor
          glm::mat4 model = glm::identity<glm::mat4>();
          gc.Bind(*m_TextureFloor, "diffuseMap"_hs);
          gc.Bind(*m_TextureFloorSpecular, "specularMap"_hs);
-         gc.Bind(*m_TextureFloorNormal, "normalMap"_hs);
-         gc.Bind(*m_TextureFloorDisplacement, "displacementMap"_hs);
          gc.PushConstant("constants.model"_hs, model);
          gc.DrawTriangles(*m_VertexBuffer, 6, 36);
 
          // cubes
          gc.Bind(*m_TextureContainer, "diffuseMap"_hs);
          gc.Bind(*m_TextureContainerSpecular, "specularMap"_hs);
-         gc.Bind(*m_TextureContainerNormal, "normalMap"_hs);
-         gc.Bind(*m_TextureContainerDisplacement, "displacementMap"_hs);
          for (int i = 0; i < m_CubePositions.size(); ++i) {
             glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
             gc.PushConstant("constants.model"_hs, model);
@@ -102,27 +94,46 @@ protected:
          gc.SwapBuffers();
       }
 
+      // POI: Lighting pass
       GetWindow().BeginFrame();
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
-      gc.Bind(*m_PipelineFullScreenQuad);
-
-      gc.Bind(m_FramebufferScene->GetColorTexture(0), "uTexture"_hs);
-      gc.DrawTriangles(*m_VertexBuffer, 6, 42);
+      gc.Bind(*m_PipelineLighting);
+      gc.PushConstant("constants.numPointLights"_hs, static_cast<uint32_t>(m_PointLights.size()));
+      gc.PushConstant("constants.showDirectionalLight"_hs, m_ShowDirectionalLight ? 1u : 0u);
+      gc.PushConstant("constants.showPointLights"_hs, m_ShowPointLights ? 1u : 0u);
+      gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
+      gc.Bind(*m_BufferDirectionalLight, "UBODirectionalLight"_hs);
+      gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
+      gc.Bind(m_GBuffer->GetColorTexture(0), "uPosition"_hs);
+      gc.Bind(m_GBuffer->GetColorTexture(1), "uNormal"_hs);
+      gc.Bind(m_GBuffer->GetColorTexture(2), "uDiffuseSpecular"_hs);
+      gc.DrawTriangles(*m_QuadVertexBuffer, 6);
 
       GetWindow().BeginImGuiFrame();
       {
          ImGui::Begin("Lighting");
-         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
-         ImGui::Checkbox("Normal mapping", &m_UseNormalMaps);
-         ImGui::Checkbox("Displacement mapping", &m_UseDisplacementMaps);
          ImGui::Checkbox("Directional Light", &m_ShowDirectionalLight);
          ImGui::Checkbox("Point Lights", &m_ShowPointLights);
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
             ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
          }
-         //ImGui::Text("Depth buffer:");
-         //ImVec2 size = ImGui::GetContentRegionAvail();
-         //ImGui::Image(m_FramebufferDepth->GetImGuiDepthTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
+         ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
+
+         // POI: We can also visualize what's in the G-buffer by drawing the attached textures in ImGui image.
+         //      Note that some of the images won't look quite right (as we have numbers outside of the 0-1 range in the G-buffer,
+         //      and in the case of the DiffuseSpecular texture, we're using the alpha channel for specular amount, not transparency!)
+         //      but this visualization gives you the general idea of what's going on.
+         ImGui::Text("G-Buffer:");
+         ImVec2 size = ImGui::GetContentRegionAvail();
+         size.x /= 2.0f;
+         size.y /= 2.0f;
+         ImGui::Image(m_GBuffer->GetImGuiColorTextureId(0), size, ImVec2 {0, 1}, ImVec2 {1, 0});
+         ImGui::SameLine();
+         ImGui::Image(m_GBuffer->GetImGuiColorTextureId(1), size, ImVec2 {0, 1}, ImVec2 {1, 0});
+         ImGui::Image(m_GBuffer->GetImGuiColorTextureId(2), size, ImVec2 {0, 1}, ImVec2 {1, 0});
+         ImGui::SameLine();
+         ImGui::Image(m_GBuffer->GetImGuiDepthTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
+
          ImGui::End();
       }
       GetWindow().EndImGuiFrame();
@@ -151,7 +162,12 @@ private:
       glm::vec2 TexCoord;
    };
 
-   void CreateVertexBuffer() {
+   struct QuadVertex {
+      glm::vec3 Pos;
+      glm::vec2 TexCoord;
+   };
+
+   void CreateVertexBuffers() {
       Vertex vertices[] = {
          // Cube
          {.Pos{-0.5f, -0.5f, -0.5f}, .Normal{ 0.0f,  0.0f, -1.0f}, .Tangent{-1.0f,  0.0f,  0.0f}, .TexCoord{1.0f, 0.0f}},
@@ -204,16 +220,17 @@ private:
          {.Pos{ 10.0f,  0.0f,  10.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{-1.0f, 0.0f, 0.0f}, .TexCoord{ 0.0f, 10.0f}},
          {.Pos{-10.0f,  0.0f, -10.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{-1.0f, 0.0f, 0.0f}, .TexCoord{10.0f,  0.0f}},
          {.Pos{-10.0f,  0.0f,  10.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{-1.0f, 0.0f, 0.0f}, .TexCoord{10.0f, 10.0f}},
+      };
 
-
+      QuadVertex quadVertices[] = {
          // Fullscreen  quad
-         {.Pos{ -1.0f,   1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 0.0f,  1.0f}},
-         {.Pos{ -1.0f,  -1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 0.0f,  0.0f}},
-         {.Pos{  1.0f,  -1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 1.0f,  0.0f}},
+         {.Pos {-1.0f,   1.0f,   0.0f}, .TexCoord {0.0f,  1.0f}},
+         {.Pos{ -1.0f,  -1.0f,   0.0f}, .TexCoord{ 0.0f,  0.0f}},
+         {.Pos{  1.0f,  -1.0f,   0.0f}, .TexCoord{ 1.0f,  0.0f}},
 
-         {.Pos{ -1.0f,   1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 0.0f,  1.0f}},
-         {.Pos{  1.0f,  -1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 1.0f,  0.0f}},
-         {.Pos{  1.0f,   1.0f,   0.0f}, .Normal{ 0.0f,  1.0f,  0.0f}, .Tangent{1.0f, 0.0f, 0.0f}, .TexCoord{ 1.0f,  1.0f}},
+         {.Pos{ -1.0f,   1.0f,   0.0f}, .TexCoord{ 0.0f,  1.0f}},
+         {.Pos{  1.0f,  -1.0f,   0.0f}, .TexCoord{ 1.0f,  0.0f}},
+         {.Pos{  1.0f,   1.0f,   0.0f}, .TexCoord{ 1.0f,  1.0f}},
       };
 
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
@@ -223,6 +240,13 @@ private:
          { "inTangent",  Pikzel::DataType::Vec3 },
          { "inTexCoord", Pikzel::DataType::Vec2 }
       });
+
+      m_QuadVertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(quadVertices), quadVertices);
+      m_QuadVertexBuffer->SetLayout({
+         { "inPos",      Pikzel::DataType::Vec3 },
+         { "inTexCoord", Pikzel::DataType::Vec2 }
+      });
+
    }
 
 
@@ -233,13 +257,7 @@ private:
    };
 
    void CreateUniformBuffers() {
-
-      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -5.0f, 10.0f);  // TODO: how does one determine the parameters here?
-      glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].Direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
-      m_LightSpace = lightProjection * lightView;
-
       m_BufferMatrices = Pikzel::RenderCore::CreateUniformBuffer(sizeof(Matrices));
-      m_BufferLightViews = Pikzel::RenderCore::CreateUniformBuffer(sizeof(glm::mat4) * m_PointLights.size() * 6);
       m_BufferDirectionalLight = Pikzel::RenderCore::CreateUniformBuffer(sizeof(m_DirectionalLights), m_DirectionalLights);
       m_BufferPointLights = Pikzel::RenderCore::CreateUniformBuffer(m_PointLights.size() * sizeof(Pikzel::PointLight), m_PointLights.data());
    }
@@ -259,30 +277,42 @@ private:
 
 
    void CreateFramebuffers() {
-      m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
+      m_GBuffer = Pikzel::RenderCore::CreateFramebuffer({
+         .Width = GetWindow().GetWidth(),
+         .Height = GetWindow().GetHeight(),
+         .MSAANumSamples = 1,                                                              // POI: no MSAA with deferred rendering
+         .ClearColor = GetWindow().GetClearColor(),
+         .Attachments = {
+            {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},               // POI: position color buffer. 16 bit floating point
+            {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},               // POI: normals color buffer. 16 bit floating point
+            {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA8},                 // POI: diffuse color + specular.  This can go in an RGBA 8-bit buffer
+            {Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}
+         }
+      });
+
+
    }
 
 
    void CreatePipelines() {
-      m_PipelineColoredModel = m_FramebufferScene->GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
-            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/ColoredModel.vert.spv" },
-            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/ColoredModel.frag.spv" }
-         }
+      // POI: We have a pipeline for the "geometry pass".  This renders the vertices into the G-buffer
+      m_PipelineGeometry = m_GBuffer->GetGraphicsContext().CreatePipeline({
+         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .Shaders = {
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/GeometryPass.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/GeometryPass.frag.spv" }
+         },
+         .EnableBlend = false  // POI: blending must be disabled for the G-Buffer to work properly
       });
-      m_PipelineLitModel = m_FramebufferScene->GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
-            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/LitModel.vert.spv" },
-            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/LitModel.frag.spv" }
-         }
-      });
-      m_PipelineFullScreenQuad = GetWindow().GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
-            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/FullScreenQuad.vert.spv" },
-            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/FullScreenQuad.frag.spv" }
+
+      // POI: and another pipeline for the "lighting pass". This pipeline is used to render a full screen quad,
+      // and the fragment shader does the (expensive) lighting calculations for each screen pixel using
+      // information taken from the G-buffer
+      m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
+         .BufferLayout = m_QuadVertexBuffer->GetLayout(),
+         .Shaders = {
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/LightingPass.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/LightingPass.frag.spv" }
          }
       });
    }
@@ -318,8 +348,8 @@ private:
    Pikzel::DirectionalLight m_DirectionalLights[1] = {
       {
          .Direction = { -2.0f, -4.0f, 2.0f},
-         .Color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
-         .Ambient = Pikzel::sRGB{0.01f, 0.01f, 0.01f},
+         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
          .Size = 0.02
       }
    };
@@ -332,12 +362,12 @@ private:
          .Size = 0.02,
          .Power = 20.0f
       }
-//      ,{
-//         .Position = {2.3f, 3.3f, -4.0f},
-//         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
-//         .Size = 0.02,
-//         .Power = 20.0f
-//      }
+      ,{
+         .Position = {2.3f, 3.3f, -4.0f},
+         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
+         .Size = 0.02,
+         .Power = 20.0f
+      }
    };
 //       {
 //          .Position = {-4.0f, 2.0f, -12.0f},
@@ -363,8 +393,8 @@ private:
    glm::mat4 m_LightSpace;
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
+   std::unique_ptr<Pikzel::VertexBuffer> m_QuadVertexBuffer;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferMatrices;
-   std::unique_ptr<Pikzel::UniformBuffer> m_BufferLightViews;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferDirectionalLight;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferPointLights;
    std::unique_ptr<Pikzel::Texture> m_TextureContainer;
@@ -375,19 +405,16 @@ private:
    std::unique_ptr<Pikzel::Texture> m_TextureFloorSpecular;
    std::unique_ptr<Pikzel::Texture> m_TextureFloorNormal;
    std::unique_ptr<Pikzel::Texture> m_TextureFloorDisplacement;
-   std::unique_ptr<Pikzel::Framebuffer> m_FramebufferScene;
-   std::unique_ptr<Pikzel::Pipeline> m_PipelineColoredModel;
-   std::unique_ptr<Pikzel::Pipeline> m_PipelineLitModel;
-   std::unique_ptr<Pikzel::Pipeline> m_PipelineFullScreenQuad;
+   std::unique_ptr<Pikzel::Framebuffer> m_GBuffer;
+   std::unique_ptr<Pikzel::Pipeline> m_PipelineGeometry;
+   std::unique_ptr<Pikzel::Pipeline> m_PipelineLighting;
 
    Pikzel::DeltaTime m_DeltaTime = {};
    bool m_ShowDirectionalLight = true;
    bool m_ShowPointLights = true;
-   bool m_UseNormalMaps = true;
-   bool m_UseDisplacementMaps = true;
 };
 
 
 std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
-   return std::make_unique<NormalMaps>();
+   return std::make_unique<DeferredRendering>();
 }

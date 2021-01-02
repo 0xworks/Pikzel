@@ -435,7 +435,7 @@ namespace Pikzel {
       colorBlendAttachmentStates.reserve(gc.GetNumColorAttachments());
       for (uint32_t i = 0; i < gc.GetNumColorAttachments(); ++i) {
          colorBlendAttachmentStates.emplace_back(
-            true                                     /*blendEnable*/,
+            settings.EnableBlend                     /*blendEnable*/,
             vk::BlendFactor::eSrcAlpha               /*srcColorBlendFactor*/,
             vk::BlendFactor::eOneMinusSrcAlpha       /*dstColorBlendFactor*/,
             vk::BlendOp::eAdd                        /*colorBlendOp*/,
