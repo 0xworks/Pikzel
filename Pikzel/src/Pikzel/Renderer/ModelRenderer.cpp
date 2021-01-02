@@ -17,8 +17,9 @@ namespace Pikzel {
 
    void ModelRenderer::Draw(GraphicsContext& gc, const DrawData& drawData, const glm::mat4& transform) {
       PKZL_PROFILE_FUNCTION();
-      static float lightRadius = 1000.0f;
-      static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, lightRadius);
+      static float lightRadius = 1000.0f; // TODO: set light radius appropriately
+      static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, lightRadius, 1.0f);  // note: Pikzel uses reverse-Z so near and far planes are swapped
+
 
       Matrices matrices;
       matrices.viewProjection = drawData.Projection * drawData.View;

@@ -1,8 +1,9 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
-constexpr float nearPlane = 0.1f;
-constexpr float farPlane = 50.0f;
+// note: Pikzel uses reverse-Z so near and far planes are swapped
+constexpr float nearPlane = 50.0f;
+constexpr float farPlane = 0.1f;
 
 class HDRdemo final : public Pikzel::Application {
 public:
@@ -381,7 +382,7 @@ private:
          .Width = GetWindow().GetWidth(),
          .Height = GetWindow().GetHeight(),
          .MSAANumSamples = 4,
-         .ClearColor = GetWindow().GetClearColor(),
+         .ClearColorValue = GetWindow().GetClearColor(),
          .Attachments = {
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
@@ -393,7 +394,7 @@ private:
       m_FramebufferBlur[0] = Pikzel::RenderCore::CreateFramebuffer({
          .Width = GetWindow().GetWidth(),
          .Height = GetWindow().GetHeight(),
-         .ClearColor = GetWindow().GetClearColor(),
+         .ClearColorValue = GetWindow().GetClearColor(),
          .Attachments = {
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
          }
@@ -402,7 +403,7 @@ private:
       m_FramebufferBlur[1] = Pikzel::RenderCore::CreateFramebuffer({
          .Width = GetWindow().GetWidth(),
          .Height = GetWindow().GetHeight(),
-         .ClearColor = GetWindow().GetClearColor(),
+         .ClearColorValue = GetWindow().GetClearColor(),
          .Attachments = {
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
          }

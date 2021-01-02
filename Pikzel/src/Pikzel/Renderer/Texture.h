@@ -7,7 +7,7 @@
 namespace Pikzel {
 
    enum class TextureFormat {
-      Undefined,       /* determine automatically from supplied data (e.g. image file) */
+      Undefined        /* determine automatically from supplied data (e.g. image file) */,
       RGB8             /* linear RGB, 8 bits per component */,
       RGBA8            /* linear RGBA, 8 bits per component */,
       SRGB8            /* non-linear sRGB, 8 bits per component */,
@@ -35,7 +35,7 @@ namespace Pikzel {
 
 
    enum class TextureFilter {
-      Undefined,  /* means guess an appropriate setting from other supplied data */
+      Undefined  /* means guess an appropriate setting from other supplied data */,
       Nearest,
       NearestMipMapNearest,
       NearestMipMapLinear,
@@ -46,9 +46,9 @@ namespace Pikzel {
 
 
    enum class TextureWrap {
-      Undefined,  /* means guess an appropriate setting from other supplied data */
+      Undefined  /* means guess an appropriate setting from other supplied data */,
       ClampToEdge,
-      ClampToBorder,
+      ClampToBorder /* border is always opaque black for now */,
       Repeat,
       MirrorRepeat
    };

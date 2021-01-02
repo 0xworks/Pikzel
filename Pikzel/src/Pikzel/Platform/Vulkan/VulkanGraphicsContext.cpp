@@ -732,11 +732,11 @@ namespace Pikzel {
       EventDispatcher::Connect<WindowVSyncChangedEvent, &VulkanWindowGC::OnWindowVSyncChanged>(*this);
 
       // Set clear values for all framebuffer attachments with loadOp set to clear
-      // We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
+      // The window graphics context has two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
       glm::vec4 clearColor = window.GetClearColor();
       m_ClearValues = {
          vk::ClearColorValue {std::array<float, 4>{clearColor.r, clearColor.g, clearColor.b, clearColor.a}},
-         vk::ClearDepthStencilValue {1.0f, 0}
+         vk::ClearDepthStencilValue {0.0f, 0}  // note: Pikzel uses reverse depth, so depth clear value is 0.0, rather than 1.0
       };
 
    }
@@ -1359,13 +1359,13 @@ namespace Pikzel {
    : VulkanGraphicsContext {device}
    , m_Framebuffer {framebuffer}
    {
-      glm::vec4 clearColor = m_Framebuffer->GetClearColor();
+      glm::vec4 clearColor = m_Framebuffer->GetClearColorValue();
       m_ClearValues.reserve(m_Framebuffer->GetVkAttachments().size());
       for (const auto& attachment : m_Framebuffer->GetVkAttachments()) {
          if (IsColorFormat(VkFormatToTextureFormat(attachment.format))) {
             m_ClearValues.emplace_back(vk::ClearColorValue {std::array<float, 4>{clearColor.r, clearColor.g, clearColor.b, clearColor.a}});
          } else {
-            m_ClearValues.emplace_back(vk::ClearDepthStencilValue {1.0f, 0});
+            m_ClearValues.emplace_back(vk::ClearDepthStencilValue {static_cast<float>(m_Framebuffer->GetClearDepthValue()), 0});
          }
       };
       m_SampleCount = static_cast<vk::SampleCountFlagBits>(m_Framebuffer->GetMSAANumSamples());

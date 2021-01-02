@@ -159,7 +159,7 @@ private:
 
 
    void CreateFramebuffer() {
-      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColorValue = GetWindow().GetClearColor()});
    }
 
 

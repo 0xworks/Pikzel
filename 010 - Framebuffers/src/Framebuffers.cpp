@@ -5,6 +5,10 @@
 // bypassing all of the framebuffer stuff
 #define RENDER_DIRECTLY_TO_WINDOW 0
 
+// note: Pikzel uses reverse-Z so near and far planes are swapped
+const float nearPlane = 1000.f;
+const float farPlane = 0.1f;
+
 
 class Framebuffers final : public Pikzel::Application {
 public:
@@ -17,7 +21,7 @@ public:
       CreateFramebuffer();
       CreatePipelines();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 1000.0f);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
@@ -117,6 +121,7 @@ protected:
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
       __super::OnWindowResize(event);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       // recreate framebuffer with new size
       CreateFramebuffer();
@@ -209,7 +214,7 @@ private:
 
 
    void CreateFramebuffer() {
-      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColorValue = GetWindow().GetClearColor()});
    }
 
 

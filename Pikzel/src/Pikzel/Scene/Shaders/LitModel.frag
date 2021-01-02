@@ -193,7 +193,7 @@ float BlockerDepth(const vec3 shadowCoords, const float bias, const float lightS
    float sumBlockers = 0.0;
    for (int i = 0; i < numPCSSSamples; ++i) {
       const float z = texture(dirShadowMap, shadowCoords.xy + poissonDisk[i] * lightSize).r;
-      if(z < shadowCoords.z - bias) {
+      if(z > shadowCoords.z + bias) {
          numBlockers += 1.0;
          sumBlockers += z;
       }
@@ -206,7 +206,7 @@ float PCFDirectionalShadow(const vec3 shadowCoords, const float bias, const floa
    float sum = 0;
    for (int i = 0; i < numPCFSamples; ++i) {
       float z = texture(dirShadowMap, shadowCoords.xy + poissonDisk[i] * radius).r;
-      if(z < shadowCoords.z - bias) {
+      if(z > shadowCoords.z + bias) {
          ++sum;
       }
    }
@@ -220,16 +220,16 @@ float CalculateDirectionalShadow(const vec4 fragPosLightSpace, const vec3 normal
    // note: Pikzel uses the Vulkan convention where NDC is -1 to 1 for x and y, and 0 to 1 for z
    //       Transform shadowCoords x and y to 0 to 1 here.  z is OK as is.
    shadowCoords = shadowCoords * vec3(0.5, 0.5, 1.0) + vec3(0.5, 0.5, 0.0);
-   shadowCoords.z = shadowCoords.z > 1.0? 0.0 : shadowCoords.z;
 
+   float shadow = 0.0;
    const float lightSize = directionalLight.light.size;
-   const float bias = 0.001 * (1.0 - dot(-normal, lightDir));
+   const float bias = 0.0005 * (1.0 - dot(-normal, lightDir));
    const float blockerDepth = BlockerDepth(shadowCoords, bias, lightSize);
    if (blockerDepth > 0.0) {
-      const float penumbraWidth = lightSize * (shadowCoords.z - blockerDepth) / blockerDepth;
-      return PCFDirectionalShadow(shadowCoords, bias, penumbraWidth);
+      const float penumbraWidth = lightSize * (blockerDepth - shadowCoords.z) / (1.0 - blockerDepth);
+      shadow = PCFDirectionalShadow(shadowCoords, bias, penumbraWidth);
    }
-   return 0.0;
+   return shadow;
 }
 
 
@@ -238,24 +238,24 @@ vec3 CalculateDirectionalLight(const DirectionalLight light, const vec3 viewDir,
 
    const float diffuse = max(dot(normal, lightDir), 0.0);
    if(diffuse > 0.0) {
-      const float specular = BlinnPhong(lightDir, viewDir, normal, 0.125 /*specularColor.r*/ * maxShininess);       // shininess in specularmap green channel
+      const float specular = BlinnPhong(lightDir, viewDir, normal, specularColor.g * maxShininess); // shininess in specularmap green channel
       const float notShadowed = 1.0 - CalculateDirectionalShadow(inFragPosLightSpace, normal, lightDir);
 
       return diffuseColor * (light.ambient + (light.color * diffuse * notShadowed)) +
-         specularColor.r * (light.color * specular * notShadowed)                                         // specularity in specularmap red channel
+         specularColor.r * (light.color * specular * notShadowed)                                   // specularity in specularmap red channel
       ;
    }
    return diffuseColor * light.ambient;
 }
 
 
-float BlockerDepthPt(const uint lightIndex, const vec3 fragPos, const float fragDepth, const vec3 lightPos, const float lightSize) {
+float BlockerDepthPt(const uint lightIndex, const vec3 fragPos, const float fragDepth, const float bias, const vec3 lightPos, const float lightSize) {
    float numBlockers = 0.0;
    float sumBlockers = 0.0;
    for (int i = 0; i < numPCSSSamples; ++i) {
       const vec3 fragToLight = (fragPos + poissonSphere[i] * lightSize) - lightPos;
       const float z = texture(ptShadowMap, vec4(fragToLight, lightIndex)).r;
-      if(z < fragDepth) {
+      if(z > fragDepth + bias) {
          numBlockers += 1.0;
          sumBlockers += z;
       }
@@ -264,12 +264,12 @@ float BlockerDepthPt(const uint lightIndex, const vec3 fragPos, const float frag
 }
 
 
-float PCFPointShadow(const uint lightIndex, const vec3 fragPos, const float fragDepth, const vec3 lightPos, const float radius) {
+float PCFPointShadow(const uint lightIndex, const vec3 fragPos, const float fragDepth, const float bias, const vec3 lightPos, const float radius) {
    float sum = 0;
    for (int i = 0; i < numPCFSamples; ++i) {
       const vec3 fragToLight = (fragPos + poissonSphere[i] * radius) - lightPos;
       const float z = texture(ptShadowMap, vec4(fragToLight, lightIndex)).r;
-      if(z < fragDepth) {
+      if(z > fragDepth + bias) {
          ++sum;
       }
    }
@@ -278,17 +278,18 @@ float PCFPointShadow(const uint lightIndex, const vec3 fragPos, const float frag
 
 
 float CalculatePointShadow(const uint lightIndex, const vec3 fragPos, const vec3 lightPos) {
-   const float bias = 0.001;
+   const float bias = 0.0005;
    const float lightSize = pointLights.light[lightIndex].size;
    const vec3 fragToLight = fragPos - lightPos;
-   const float fragDepth = (length(fragToLight) / constants.lightRadius) - bias;
+   const float fragDepth = 1.0 - (length(fragToLight) / constants.lightRadius);
 
-   const float blockerDepth = BlockerDepthPt(lightIndex, fragPos, fragDepth, lightPos, lightSize);
+   float shadow = 0.0;
+   const float blockerDepth = BlockerDepthPt(lightIndex, fragPos, fragDepth, bias, lightPos, lightSize);
    if (blockerDepth > 0.0) {
-      const float penumbraWidth = lightSize * (fragDepth - blockerDepth) / blockerDepth;
-      return PCFPointShadow(lightIndex, fragPos, fragDepth, lightPos, penumbraWidth);
+      const float penumbraWidth = lightSize * (blockerDepth - fragDepth) / (1.0 - blockerDepth);
+      shadow = PCFPointShadow(lightIndex, fragPos, fragDepth, bias, lightPos, penumbraWidth);
    }
-   return 0.0;
+   return shadow;
 }
 
 
@@ -306,8 +307,8 @@ vec3 CalculatePointLight(const uint lightIndex, const vec3 viewDir, const vec3 n
 
       return (
          (diffuseColor * diffuse) +
-         (specular * vec3(specularColor.r))
-      ) * pointLights.light[lightIndex].color * attenuation * notShadowed; // specularity in specularmap red channel
+         (specular * vec3(specularColor.r))                                                         // specularity in specularmap red channel
+      ) * pointLights.light[lightIndex].color * attenuation * notShadowed;
    }
    return vec3(0.0);
 }

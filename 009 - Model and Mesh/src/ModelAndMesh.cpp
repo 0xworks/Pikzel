@@ -1,6 +1,10 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
+// note: Pikzel uses reverse-Z so near and far planes are swapped
+const float nearPlane = 10000.0f;
+const float farPlane = 1.f;
+
 class ModelAndMesh final : public Pikzel::Application {
 public:
    ModelAndMesh()
@@ -8,7 +12,7 @@ public:
    , m_Input {GetWindow()}
    {
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 1.0f, 10000.0f);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       // for rendering point lights as cubes
       CreateVertexBuffer();
@@ -158,7 +162,7 @@ private:
 
 
    void CreateModelRenderer() {
-      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -5.0f, 10.0f);  // TODO: how does one determine the parameters here?
+      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 15.0f, -5.0f);  // TODO: how does one determine the parameters here?
       glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].Direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
       m_LightSpace = lightProjection * lightView;
 
@@ -184,7 +188,7 @@ private:
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
       __super::OnWindowResize(event);
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(event.Width) / static_cast<float>(event.Height), 1.0f, 10000.0f);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(event.Width) / static_cast<float>(event.Height), nearPlane, farPlane);
    }
 
 

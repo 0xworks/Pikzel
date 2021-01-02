@@ -62,8 +62,13 @@ namespace Pikzel {
    }
 
 
-   const glm::vec4& VulkanFramebuffer::GetClearColor() const {
-      return m_Settings.ClearColor;
+   const glm::vec4& VulkanFramebuffer::GetClearColorValue() const {
+      return m_Settings.ClearColorValue;
+   }
+
+
+   double VulkanFramebuffer::GetClearDepthValue() const {
+      return m_Settings.ClearDepthValue;
    }
 
 
@@ -236,8 +241,8 @@ namespace Pikzel {
                   .Height = m_Settings.Height,
                   .Layers = m_Settings.Layers,
                   .Format = attachment.Format,
-                  .WrapU = TextureWrap::ClampToEdge,
-                  .WrapV = TextureWrap::ClampToEdge,
+                  .WrapU = TextureWrap::ClampToBorder,
+                  .WrapV = TextureWrap::ClampToBorder,
                   .MIPLevels = 1
                });
                m_ImageViews.push_back(static_cast<VulkanTexture*>(m_DepthTexture.get())->GetVkImageView());

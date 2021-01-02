@@ -14,14 +14,20 @@
 
 namespace Pikzel {
 
-   OpenGLGraphicsContext::OpenGLGraphicsContext(const glm::vec4& clearColor)
+   OpenGLGraphicsContext::OpenGLGraphicsContext(const glm::vec4& clearColorValue, const GLdouble clearDepthValue)
    : m_Pipeline {nullptr}
-   , m_ClearColor {clearColor}
+   , m_ClearColorValue {clearColorValue}
+   , m_ClearDepthValue {clearDepthValue}
    {}
 
 
-   const glm::vec4 OpenGLGraphicsContext::GetClearColor() const {
-      return m_ClearColor;
+   const glm::vec4 OpenGLGraphicsContext::GetClearColorValue() const {
+      return m_ClearColorValue;
+   }
+
+
+   const GLdouble OpenGLGraphicsContext::GetClearDepthValue() const {
+      return m_ClearDepthValue;
    }
 
 
@@ -341,7 +347,7 @@ namespace Pikzel {
 
 
    OpenGLWindowGC::OpenGLWindowGC(const Window& window)
-   : OpenGLGraphicsContext {window.GetClearColor()}
+   : OpenGLGraphicsContext {window.GetClearColor(), 0.0}
    , m_WindowHandle {(GLFWwindow*)window.GetNativeWindow()}
    {
       PKZL_CORE_ASSERT(m_WindowHandle, "Window handle is null!")
@@ -414,16 +420,19 @@ namespace Pikzel {
       {
          PKZL_PROFILE_SCOPE("glClear");
          if (operation != BeginFrameOp::ClearNone) {
-            glm::vec4 clearColor = GetClearColor();
-            glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+            glm::vec4 clearColor = GetClearColorValue();
             switch (operation) {
                case BeginFrameOp::ClearDepth:
+                  glClearDepth(GetClearDepthValue());
                   glClear(GL_DEPTH_BUFFER_BIT);
                   break;
                case BeginFrameOp::ClearColor:
+                  glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
                   glClear(GL_COLOR_BUFFER_BIT);
                   break;
                case BeginFrameOp::ClearAll:
+                  glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+                  glClearDepth(GetClearDepthValue());
                   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                   break;
                default:
@@ -451,7 +460,7 @@ namespace Pikzel {
 
 
    OpenGLFramebufferGC::OpenGLFramebufferGC(OpenGLFramebuffer* framebuffer)
-   : OpenGLGraphicsContext {framebuffer->GetClearColor()}
+   : OpenGLGraphicsContext {framebuffer->GetClearColorValue(), framebuffer->GetClearDepthValue()}
    , m_Framebuffer {framebuffer}
    {}
 
@@ -468,9 +477,9 @@ namespace Pikzel {
       }
       {
          PKZL_PROFILE_SCOPE("glClear");
-         glm::vec4 clearColor = GetClearColor();
+         glm::vec4 clearColor = GetClearColorValue();
          if (operation != BeginFrameOp::ClearNone) {
-            glm::vec4 clearColor = GetClearColor();
+            glm::vec4 clearColor = GetClearColorValue();
             glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
             switch (operation) {
                case BeginFrameOp::ClearDepth:

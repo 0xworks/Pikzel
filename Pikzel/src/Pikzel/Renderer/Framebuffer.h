@@ -25,7 +25,8 @@ namespace Pikzel {
       uint32_t Height = 1080;
       uint32_t Layers = 1;
       uint32_t MSAANumSamples = 1;
-      glm::vec4 ClearColor = {};
+      glm::vec4 ClearColorValue = {};
+      double ClearDepthValue = 0.0;
       std::vector<FramebufferAttachmentSettings> Attachments = {
          {AttachmentType::Color, TextureFormat::SRGBA8, TextureType::Texture2D},
          {AttachmentType::Depth, TextureFormat::D32F, TextureType::Texture2D}
@@ -45,7 +46,8 @@ namespace Pikzel {
 
       virtual uint32_t GetMSAANumSamples() const = 0;
 
-      virtual const glm::vec4& GetClearColor() const = 0;
+      virtual const glm::vec4& GetClearColorValue() const = 0;
+      virtual double GetClearDepthValue() const = 0;
 
       virtual uint32_t GetNumColorAttachments() const = 0;
       virtual const Texture& GetColorTexture(const int index) const = 0;

@@ -12,5 +12,6 @@ layout (location = 0) out vec3 outTexCoords;
 void main() {
    outTexCoords = inPos;
    vec4 pos = constants.vp * vec4(inPos, 1.0);
-   gl_Position = pos.xyww;
+   gl_Position.xyw = pos.xyw;
+   gl_Position.z = 0.0;
 }
