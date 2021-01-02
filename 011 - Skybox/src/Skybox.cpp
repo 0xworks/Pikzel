@@ -3,6 +3,11 @@
 
 #include <optional>
 
+// note: Pikzel uses reverse-Z so near and far planes are swapped
+const float nearPlane = 1000.0f;
+const float farPlane = 0.1f;
+
+
 class Skybox final : public Pikzel::Application {
 public:
    Skybox()
@@ -13,7 +18,7 @@ public:
       CreateTextures();
       CreatePipelines();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 1000.0f);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
@@ -78,6 +83,12 @@ protected:
       ImGui::InputInt("Lod", &lod, 1.0f);
       ImGui::End();
       GetWindow().EndImGuiFrame();
+   }
+
+
+   virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
+      __super::OnWindowResize(event);
+      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
    }
 
 

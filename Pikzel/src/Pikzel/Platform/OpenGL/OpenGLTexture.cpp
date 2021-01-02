@@ -2,8 +2,11 @@
 
 #include "OpenGLPipeline.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
 
 namespace Pikzel {
 
@@ -151,6 +154,7 @@ namespace Pikzel {
 
 
    void OpenGLTexture::SetTextureParameters(const TextureSettings& settings, const uint32_t mipLevels) {
+      static glm::vec4 borderColor = {0.0f, 0.0f, 0.0f, 1.0f};
       TextureFilter minFilter = settings.MinFilter;
       TextureFilter magFilter = settings.MagFilter;
       TextureWrap wrapU = settings.WrapU;
@@ -179,6 +183,7 @@ namespace Pikzel {
       glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_S, TextureWrapToGLTextureWrap(wrapU));
       glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_T, TextureWrapToGLTextureWrap(wrapV));
       glTextureParameteri(m_RendererId, GL_TEXTURE_WRAP_R, TextureWrapToGLTextureWrap(wrapW));
+      glTextureParameterfv(m_RendererId, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(borderColor));
    }
 
 

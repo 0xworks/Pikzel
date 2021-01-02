@@ -502,7 +502,7 @@ namespace Pikzel {
          {}                           /*flags*/,
          true                         /*depthTestEnable*/,
          true                         /*depthWriteEnable*/,
-         vk::CompareOp::eLessOrEqual  /*depthCompareOp*/,          // LE for skybox
+         vk::CompareOp::eGreaterOrEqual  /*depthCompareOp*/,
          false                        /*depthBoundsTestEnable*/,
          false                        /*stencilTestEnable*/,
          {

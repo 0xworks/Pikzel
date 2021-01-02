@@ -95,10 +95,14 @@ namespace Pikzel {
    }
 
 
-   const glm::vec4& OpenGLFramebuffer::GetClearColor() const {
-      return m_Settings.ClearColor;
+   const glm::vec4& OpenGLFramebuffer::GetClearColorValue() const {
+      return m_Settings.ClearColorValue;
    }
 
+
+   double OpenGLFramebuffer::GetClearDepthValue() const {
+      return m_Settings.ClearDepthValue;
+   }
 
    uint32_t OpenGLFramebuffer::GetNumColorAttachments() const {
       return m_ColorTextures.size();
@@ -194,8 +198,8 @@ namespace Pikzel {
                   .Height = m_Settings.Height,
                   .Layers = m_Settings.Layers,
                   .Format = attachment.Format,
-                  .WrapU = TextureWrap::ClampToEdge,
-                  .WrapV = TextureWrap::ClampToEdge,
+                  .WrapU = TextureWrap::ClampToBorder,
+                  .WrapV = TextureWrap::ClampToBorder,
                   .MIPLevels = 1
                });
                ++numDepthAttachments;
