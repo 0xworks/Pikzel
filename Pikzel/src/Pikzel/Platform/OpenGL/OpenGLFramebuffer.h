@@ -18,7 +18,8 @@ namespace Pikzel {
 
       virtual uint32_t GetMSAANumSamples() const override;
 
-      virtual const glm::vec4& GetClearColor() const override;
+      virtual const glm::vec4& GetClearColorValue() const override;
+      virtual double GetClearDepthValue() const override;
 
       virtual uint32_t GetNumColorAttachments() const override;
       virtual const Texture& GetColorTexture(const int index) const override;

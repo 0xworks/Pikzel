@@ -79,7 +79,8 @@ namespace Pikzel {
       glFrontFace(GL_CCW);
 
       glEnable(GL_DEPTH_TEST);
-      glDepthFunc(GL_LEQUAL);
+      //glDepthFunc(GL_LEQUAL);
+      glDepthFunc(GL_GEQUAL);  // reverse-Z!
 
       glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 

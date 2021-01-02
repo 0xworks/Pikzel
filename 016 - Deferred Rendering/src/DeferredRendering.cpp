@@ -15,13 +15,14 @@
 //
 // Points of interest in the code are marked with "POI" in the code comments.
 
-constexpr float nearPlane = 0.1f;
-constexpr float farPlane = 50.0f;
+// note: Pikzel uses reverse-Z so near and far planes are swapped
+constexpr float nearPlane = 30.0f;
+constexpr float farPlane = 0.1f;
 
 class DeferredRendering final : public Pikzel::Application {
 public:
    DeferredRendering()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = false}}
+   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffers();
@@ -281,7 +282,7 @@ private:
          .Width = GetWindow().GetWidth(),
          .Height = GetWindow().GetHeight(),
          .MSAANumSamples = 1,                                                              // POI: no MSAA with deferred rendering
-         .ClearColor = GetWindow().GetClearColor(),
+         .ClearColorValue = GetWindow().GetClearColor(),
          .Attachments = {
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},               // POI: position color buffer. 16 bit floating point
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},               // POI: normals color buffer. 16 bit floating point
