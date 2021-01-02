@@ -18,12 +18,13 @@ namespace Pikzel {
 
    class OpenGLGraphicsContext : public GraphicsContext {
    protected:
-      OpenGLGraphicsContext(const glm::vec4& clearColor);
+      OpenGLGraphicsContext(const glm::vec4& clearColorValue, const GLdouble clearDepthValue);
       virtual ~OpenGLGraphicsContext() = default;
 
    public:
 
-      const glm::vec4 GetClearColor() const;
+      const glm::vec4 GetClearColorValue() const;
+      const GLdouble GetClearDepthValue() const;
 
       virtual void InitializeImGui() override;
       virtual ImGuiContext* GetImGuiContext() override;
@@ -91,7 +92,8 @@ namespace Pikzel {
 
    private:
       OpenGLPipeline* m_Pipeline;
-      glm::vec4 m_ClearColor;
+      glm::vec4 m_ClearColorValue;
+      GLdouble m_ClearDepthValue;
    };
 
 

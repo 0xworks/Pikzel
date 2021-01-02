@@ -11,7 +11,8 @@ public:
       CreateTextures();
       CreatePipeline();
 
-      m_Projection = glm::perspective(glm::radians(45.0f), static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 0.1f, 100.0f);
+      // note: Pikzel uses reverse-Z so near and far planes are swapped
+      m_Projection = glm::perspective(glm::radians(45.0f), static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 100.0f, 0.1f);
    }
 
 

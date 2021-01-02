@@ -1,8 +1,9 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
-const float nearPlane = 0.1f;
-const float farPlane = 50.0f;
+// note: Pikzel uses reverse-Z so near and far planes are swapped
+const float nearPlane = 50.0f;
+const float farPlane = 0.1f;
 
 class Shadows final : public Pikzel::Application {
 public:
@@ -41,7 +42,8 @@ protected:
       PKZL_PROFILE_FUNCTION();
 
       static float lightRadius = 25.0f;
-      static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, lightRadius);
+      static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, lightRadius, 0.1f); // note: Pikzel uses reverse-Z so near and far planes are swapped
+
 
       // Note: This example illustrates the basic idea of shadow maps, namely that you first render the scene to
       //       an offscreen depth buffer, and then render the scene for real, sampling from the depth buffer to figure
@@ -303,7 +305,7 @@ private:
 
    void CreateUniformBuffers() {
 
-      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -5.0f, 10.0f);  // TODO: how does one determine the parameters here?
+      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 15.0f, -5.0f);  // TODO: how does one determine the parameters here?
       glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].Direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
       m_LightSpace = lightProjection * lightView;
 
@@ -325,7 +327,7 @@ private:
    void CreateFramebuffers() {
       uint32_t width = 4096;
       uint32_t height = 4096;
-      m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
+      m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColorValue = GetWindow().GetClearColor()});
       m_FramebufferDirShadow = Pikzel::RenderCore::CreateFramebuffer({.Width = width, .Height = height, .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}}});
       m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
          .Width = width,

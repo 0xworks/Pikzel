@@ -1,8 +1,9 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
-const float nearPlane = 0.1f;
-const float farPlane = 50.0f;
+// note: Pikzel uses reverse-Z so near and far planes are swapped
+const float nearPlane = 50.0f;
+const float farPlane = 0.1f;
 
 class NormalMaps final : public Pikzel::Application {
 public:
@@ -259,7 +260,7 @@ private:
 
 
    void CreateFramebuffers() {
-      m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColor = GetWindow().GetClearColor()});
+      m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColorValue = GetWindow().GetClearColor()});
    }
 
 
