@@ -83,6 +83,8 @@ namespace Pikzel {
       GLuint GetStorageImageBinding(const entt::id_type resourceId) const;
       GLuint GetUniformBufferBinding(const entt::id_type resourceId) const;
 
+      void SetGLState() const;
+
    private:
       void AppendShader(ShaderType type, const std::filesystem::path path);
       void ParsePushConstants(spirv_cross::Compiler& compiler);
@@ -104,6 +106,8 @@ namespace Pikzel {
 
       uint32_t m_RendererId = 0;
       uint32_t m_VAORendererId = 0;
+
+      bool m_EnableBlend = true;
    };
 
 }

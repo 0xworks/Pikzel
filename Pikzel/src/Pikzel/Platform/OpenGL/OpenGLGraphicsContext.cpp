@@ -79,8 +79,7 @@ namespace Pikzel {
 
    void OpenGLGraphicsContext::Bind(const Pipeline& pipeline) {
       const OpenGLPipeline& glPipeline = static_cast<const OpenGLPipeline&>(pipeline);
-      glUseProgram(glPipeline.GetRendererId());
-      glBindVertexArray(glPipeline.GetVAORendererId());
+      glPipeline.SetGLState();
       m_Pipeline = const_cast<OpenGLPipeline*>(&glPipeline);
    }
 

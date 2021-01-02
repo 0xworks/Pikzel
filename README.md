@@ -41,7 +41,7 @@ This project is mainly a learning exercise for me, and I hope that the code is c
     - [x] Normal maps
     - [x] Bloom
     - [ ] Deferred rendering
-    - [ ] Forward+ rendering
+    - [ ] Clustered rendering
     - [ ] Screen space ambient occulsion
     - [ ] Screen space reflection
     - [ ] Physically based rendering (PBR)

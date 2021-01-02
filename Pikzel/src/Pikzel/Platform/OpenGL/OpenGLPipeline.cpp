@@ -157,7 +157,9 @@ namespace Pikzel {
    }
 
 
-   OpenGLPipeline::OpenGLPipeline(const PipelineSettings& settings) {
+   OpenGLPipeline::OpenGLPipeline(const PipelineSettings& settings)
+   : m_EnableBlend {settings.EnableBlend}
+   {
       std::vector<GLuint> shaders;
       for (const auto& [shaderType, src] : settings.Shaders) {
          AppendShader(shaderType, src);
@@ -493,6 +495,17 @@ namespace Pikzel {
 
    GLuint OpenGLPipeline::GetUniformBufferBinding(const entt::id_type resourceId) const {
       return m_UniformBufferResources.at(resourceId).Binding;
+   }
+
+
+   void OpenGLPipeline::SetGLState() const {
+      glUseProgram(GetRendererId());
+      glBindVertexArray(GetVAORendererId());
+      if (m_EnableBlend) {
+         glEnable(GL_BLEND);
+      } else {
+         glDisable(GL_BLEND);
+      }
    }
 
 

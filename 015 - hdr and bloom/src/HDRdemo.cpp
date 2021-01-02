@@ -43,8 +43,6 @@ protected:
       static float lightRadius = 25.0f;
       static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, lightRadius);
 
-      auto start = std::chrono::steady_clock::now();
-
       // update buffers
       Matrices matrices;
       matrices.viewProjection = m_Camera.Projection * glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
@@ -205,9 +203,6 @@ protected:
       gc.Bind(m_FramebufferScene->GetColorTexture(0), "uTexture"_hs);
       gc.Bind(m_FramebufferBlur[!horizontal]->GetColorTexture(0), "uBloom"_hs);
       gc.DrawTriangles(*m_QuadVertexBuffer, 6);
-
-      auto end = std::chrono::steady_clock::now();
-      std::chrono::duration<double, std::milli> ms = end - start;
 
       GetWindow().BeginImGuiFrame();
       {
