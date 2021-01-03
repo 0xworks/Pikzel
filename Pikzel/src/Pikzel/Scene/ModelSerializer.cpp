@@ -87,15 +87,16 @@ namespace Pikzel {
          }
 
          Mesh mesh;
-         mesh.VertexBuffer = RenderCore::CreateVertexBuffer(vertices.size() * sizeof(Mesh::Vertex), vertices.data());
-
-         // this is annoying. would be better if we didn't have to do this for every mesh...
-         mesh.VertexBuffer->SetLayout({
-            { "inPos",     Pikzel::DataType::Vec3 },
-            { "inNormal",  Pikzel::DataType::Vec3 },
-            { "inTangent", Pikzel::DataType::Vec3 },
-            { "inUV",      Pikzel::DataType::Vec2 },
-         });
+         mesh.VertexBuffer = RenderCore::CreateVertexBuffer(
+            {
+               { "inPos",     Pikzel::DataType::Vec3 },
+               { "inNormal",  Pikzel::DataType::Vec3 },
+               { "inTangent", Pikzel::DataType::Vec3 },
+               { "inUV",      Pikzel::DataType::Vec2 },
+            },
+            vertices.size() * sizeof(Mesh::Vertex),
+            vertices.data()
+         );
 
          mesh.IndexBuffer = RenderCore::CreateIndexBuffer(indices.size(), indices.data());
 

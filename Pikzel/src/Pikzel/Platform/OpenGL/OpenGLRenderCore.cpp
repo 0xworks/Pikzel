@@ -106,13 +106,13 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(const uint32_t size) {
-      return std::make_unique<OpenGLVertexBuffer>(size);
+   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(const BufferLayout& layout, const uint32_t size) {
+      return std::make_unique<OpenGLVertexBuffer>(layout, size);
    }
 
 
-   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(const uint32_t size, const void* data) {
-      return std::make_unique<OpenGLVertexBuffer>(size, data);
+   std::unique_ptr<VertexBuffer> OpenGLRenderCore::CreateVertexBuffer(const BufferLayout& layout, const uint32_t size, const void* data) {
+      return std::make_unique<OpenGLVertexBuffer>(layout, size, data);
    }
 
 

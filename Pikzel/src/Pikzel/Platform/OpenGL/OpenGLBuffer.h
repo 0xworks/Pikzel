@@ -6,8 +6,8 @@ namespace Pikzel {
 
    class OpenGLVertexBuffer : public VertexBuffer {
    public:
-      OpenGLVertexBuffer(const uint32_t size);
-      OpenGLVertexBuffer(const uint32_t size, const void* data);
+      OpenGLVertexBuffer(const BufferLayout& layout, const uint32_t size);
+      OpenGLVertexBuffer(const BufferLayout& layout, const uint32_t size, const void* data);
       virtual ~OpenGLVertexBuffer();
 
       virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;

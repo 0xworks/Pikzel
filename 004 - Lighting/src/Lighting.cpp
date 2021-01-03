@@ -127,11 +127,11 @@ private:
          {.Pos{-0.5f,  0.5f,  0.5f}, .Normal{ 0.0f,  1.0f,  0.0f}}
       };
 
-      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
-      m_VertexBuffer->SetLayout({
-         { "inPos",      Pikzel::DataType::Vec3 },
-         { "inNormal",      Pikzel::DataType::Vec3 },
-      });
+      Pikzel::BufferLayout layout = {
+         {"inPos",      Pikzel::DataType::Vec3},
+         {"inNormal",   Pikzel::DataType::Vec3},
+      };
+      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices);
    }
 
 

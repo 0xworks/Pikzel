@@ -40,8 +40,8 @@ namespace Pikzel {
    class VulkanVertexBuffer : public VertexBuffer {
    public:
 
-      VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size);
-      VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size, const void* data);
+      VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const BufferLayout& layout, const uint32_t size);
+      VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const BufferLayout& layout, const uint32_t size, const void* data);
 
       virtual void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) override;
 

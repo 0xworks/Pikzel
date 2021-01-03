@@ -1,13 +1,35 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
+
 class Triangle final : public Pikzel::Application {
 public:
-   Triangle()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.5f, 0.5f, 0.5f}}}
-   {
-      CreateVertexBuffer();
-      CreatePipeline();
+   Triangle() {
+      struct Vertex {
+         glm::vec3 Pos;
+         glm::vec3 Color;
+      };
+
+      Vertex vertices[] = {
+         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{1.0f, 0.0f, 0.0f}}},
+         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 1.0f, 0.0f}}},
+         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 0.0f, 1.0f}}}
+      };
+
+      Pikzel::BufferLayout layout {
+         {"inPos",   Pikzel::DataType::Vec3},
+         {"inColor", Pikzel::DataType::Vec3}
+      };
+      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices);
+
+      Pikzel::PipelineSettings settings {
+         .BufferLayout = layout,
+         .Shaders = {
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Triangle.vert.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Triangle.frag.spv" }
+         }
+      };
+      m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
    }
 
 
@@ -17,41 +39,6 @@ public:
       gc.PushConstant("constants.mvp"_hs, m_Projection * m_View);
       gc.DrawTriangles(*m_VertexBuffer, 3);
    }
-
-
-private:
-
-   struct Vertex {
-      glm::vec3 Pos;
-      glm::vec3 Color;
-   };
-
-   void CreateVertexBuffer() {
-      Vertex vertices[] = {
-         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{1.0f, 0.0f, 0.0f}}},
-         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 1.0f, 0.0f}}},
-         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 0.0f, 1.0f}}}
-      };
-
-      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
-      m_VertexBuffer->SetLayout({
-         {"inPos",   Pikzel::DataType::Vec3},
-         {"inColor", Pikzel::DataType::Vec3}
-      });
-   }
-
-
-   void CreatePipeline() {
-      Pikzel::PipelineSettings settings {
-         m_VertexBuffer->GetLayout(),
-         {
-            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Triangle.vert.spv" },
-            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Triangle.frag.spv" }
-         }
-      };
-      m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
-   }
-
 
 private:
    glm::mat4 m_View = glm::identity<glm::mat4>();
