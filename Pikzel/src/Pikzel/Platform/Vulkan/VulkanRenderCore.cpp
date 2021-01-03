@@ -82,13 +82,13 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<VertexBuffer> VulkanRenderCore::CreateVertexBuffer(const uint32_t size) {
-      return std::make_unique<VulkanVertexBuffer>(m_Device, size);
+   std::unique_ptr<VertexBuffer> VulkanRenderCore::CreateVertexBuffer(const BufferLayout& layout, const uint32_t size) {
+      return std::make_unique<VulkanVertexBuffer>(m_Device, layout, size);
    }
 
 
-   std::unique_ptr<VertexBuffer> VulkanRenderCore::CreateVertexBuffer(const uint32_t size, const void* data) {
-      return std::make_unique<VulkanVertexBuffer>(m_Device, size, data);
+   std::unique_ptr<VertexBuffer> VulkanRenderCore::CreateVertexBuffer(const BufferLayout& layout, const uint32_t size, const void* data) {
+      return std::make_unique<VulkanVertexBuffer>(m_Device, layout, size, data);
    }
 
 

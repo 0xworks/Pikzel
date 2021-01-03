@@ -199,11 +199,11 @@ private:
          {.Pos{ 1.0f,  1.0f,  0.0f}, .TexCoord{1.0f, 1.0f}},
       };
 
-      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
-      m_VertexBuffer->SetLayout({
-         { "inPos",      Pikzel::DataType::Vec3 },
-         { "inTexCoord", Pikzel::DataType::Vec2 }
-      });
+      Pikzel::BufferLayout layout = {
+         {"inPos",       Pikzel::DataType::Vec3},
+         {"inTexCoords", Pikzel::DataType::Vec2},
+      };
+      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices);
    }
 
 

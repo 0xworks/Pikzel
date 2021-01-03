@@ -92,13 +92,13 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(const uint32_t size) {
-      return s_RenderCore->CreateVertexBuffer(size);
+   std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(const BufferLayout& layout, const uint32_t size) {
+      return s_RenderCore->CreateVertexBuffer(layout, size);
    }
 
 
-   std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(const uint32_t size, const void* data) {
-      return s_RenderCore->CreateVertexBuffer(size, data);
+   std::unique_ptr<VertexBuffer> RenderCore::CreateVertexBuffer(const BufferLayout& layout, const uint32_t size, const void* data) {
+      return s_RenderCore->CreateVertexBuffer(layout, size, data);
    }
 
 

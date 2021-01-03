@@ -90,13 +90,15 @@ namespace Pikzel {
    }
 
 
-   VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, uint32_t size)
-   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal}
+   VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const BufferLayout& layout, uint32_t size)
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal},
+   m_Layout {layout}
    {}
 
 
-   VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size, const void* data)
-   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal}
+   VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const BufferLayout& layout, const uint32_t size, const void* data)
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal},
+   m_Layout {layout}
    {
       CopyFromHost(0, size, data);
    }

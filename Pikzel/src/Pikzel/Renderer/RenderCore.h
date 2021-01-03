@@ -24,8 +24,8 @@ namespace Pikzel {
 
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) = 0;
 
-      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size) = 0;
-      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size, const void* data) = 0;
+      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const BufferLayout& layout, const uint32_t size) = 0;
+      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const BufferLayout& layout, const uint32_t size, const void* data) = 0;
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(const uint32_t count, const uint32_t* indices) = 0;
 
@@ -69,8 +69,8 @@ namespace Pikzel {
 
       static std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window);
 
-      static std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size);
-      static std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size, const void* data);
+      static std::unique_ptr<VertexBuffer> CreateVertexBuffer(const BufferLayout& layout, const uint32_t size);
+      static std::unique_ptr<VertexBuffer> CreateVertexBuffer(const BufferLayout& layout, const uint32_t size, const void* data);
 
       static std::unique_ptr<IndexBuffer> CreateIndexBuffer(const uint32_t count, const uint32_t* indices);
 

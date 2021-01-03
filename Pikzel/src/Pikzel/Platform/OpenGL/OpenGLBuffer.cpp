@@ -2,14 +2,16 @@
 
 namespace Pikzel {
 
-   OpenGLVertexBuffer::OpenGLVertexBuffer(const uint32_t size) {
+   OpenGLVertexBuffer::OpenGLVertexBuffer(const BufferLayout& layout, const uint32_t size)
+   : m_Layout {layout} {
       glCreateBuffers(1, &m_RendererID);
       glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
       glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
    }
 
 
-   OpenGLVertexBuffer::OpenGLVertexBuffer(const uint32_t size, const void* data) {
+   OpenGLVertexBuffer::OpenGLVertexBuffer(const BufferLayout& layout, const uint32_t size, const void* data)
+   : m_Layout {layout} {
       glCreateBuffers(1, &m_RendererID);
       glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
       glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);

@@ -143,10 +143,10 @@ private:
          {-0.5f,  0.5f,  0.5f}
       };
 
-      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(sizeof(vertices), vertices);
-      m_VertexBuffer->SetLayout({
-         { "inPos",      Pikzel::DataType::Vec3 },
-      });
+      Pikzel::BufferLayout layout = {
+         {"inPos", Pikzel::DataType::Vec3},
+      };
+      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices);
    }
 
 

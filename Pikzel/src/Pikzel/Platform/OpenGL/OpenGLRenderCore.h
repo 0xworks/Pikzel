@@ -15,8 +15,8 @@ namespace Pikzel {
 
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) override;
 
-      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size) override;
-      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const uint32_t size, const void* data) override;
+      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const BufferLayout& layout, const uint32_t size) override;
+      virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const BufferLayout& layout, const uint32_t size, const void* data) override;
 
       virtual std::unique_ptr<IndexBuffer> CreateIndexBuffer(const uint32_t count, const uint32_t* indices) override;
 
