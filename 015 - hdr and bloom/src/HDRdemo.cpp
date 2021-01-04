@@ -42,7 +42,8 @@ protected:
       PKZL_PROFILE_FUNCTION();
 
       static float lightRadius = 25.0f;
-      static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, lightRadius);
+      static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, lightRadius, 0.1f); // note: Pikzel uses reverse-Z so near and far planes are swapped
+
 
       // update buffers
       Matrices matrices;
@@ -349,7 +350,7 @@ private:
 
    void CreateUniformBuffers() {
 
-      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -5.0f, 10.0f);  // TODO: how does one determine the parameters here?
+      glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 15.0f, -5.0f);  // TODO: how does one determine the parameters here?
       glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].Direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
       m_LightSpace = lightProjection * lightView;
 

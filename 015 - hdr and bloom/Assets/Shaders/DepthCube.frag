@@ -16,5 +16,5 @@ layout(set = 1, binding = 0) uniform UBOPointLights {
 } pointLights;
 
 void main() {
-   gl_FragDepth = length(inFragPos.xyz - pointLights.light[constants.lightIndex].position) / constants.lightRadius;
+   gl_FragDepth = 1.0 - length(pointLights.light[constants.lightIndex].position - inFragPos.xyz) / constants.lightRadius;
 }
