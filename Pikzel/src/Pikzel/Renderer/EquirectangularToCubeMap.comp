@@ -1,19 +1,12 @@
 #version 450 core
 
 // Converts equirectangular projection texture into a cubemap
-//
-// Tonemapping is done here and baked into the cubemap
-// (as opposed to doing this calculation at frame-render time)
 
 const float PI = 3.141592;
 
-layout(push_constant) uniform PC {
-   int tonemap; // 0 = none, 1 = Reinhard
-} constants;
-
 layout(set = 0, binding = 0) uniform sampler2D uTexture;
 
-layout(set = 0, binding = 1, rgba8) restrict writeonly uniform imageCube outCubeMap;
+layout(set = 0, binding = 1, rgba16) restrict writeonly uniform imageCube outCubeMap;
 
 
 vec3 GetCubeTexCoords() {
@@ -52,11 +45,6 @@ void main() {
    vec2 uv = CubeTexCoordsToSphericalUV(cubeTexCoords);
 
    vec4 color = texture(uTexture, uv);
-
-   // Reinhard tonemap (TODO: other tonemaps)
-   if(constants.tonemap == 1) {
-      color = vec4(vec3(color.rgb / (1.0 + color.rgb)), color.a);
-   }
 
    imageStore(outCubeMap, ivec3(gl_GlobalInvocationID), color);
 }

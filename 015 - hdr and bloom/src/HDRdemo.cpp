@@ -430,47 +430,47 @@ private:
 
    void CreatePipelines() {
       m_PipelineDirShadow = m_FramebufferDirShadow->GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Depth.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Depth.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout()
       });
       m_PipelinePtShadow = m_FramebufferPtShadow->GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/DepthCube.vert.spv" },
             { Pikzel::ShaderType::Geometry, "Assets/" APP_NAME "/Shaders/DepthCube.geom.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/DepthCube.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout()
       });
       m_PipelineColoredModel = m_FramebufferScene->GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/ColoredModel.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/ColoredModel.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout()
       });
       m_PipelineLitModel = m_FramebufferScene->GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/LitModel.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/LitModel.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout()
       });
       m_PipelineBlur = m_FramebufferBlur[0]->GetGraphicsContext().CreatePipeline({
-         m_QuadVertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Quad.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/QuadGaussianBlur.frag.spv" }
-         }
+         },
+         .BufferLayout = m_QuadVertexBuffer->GetLayout()
       });
       m_PipelineScreenQuad = GetWindow().GetGraphicsContext().CreatePipeline({
-         m_QuadVertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Quad.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/QuadCombine.frag.spv" }
-         }
+         },
+         .BufferLayout = m_QuadVertexBuffer->GetLayout()
       });
    }
 

@@ -192,11 +192,11 @@ private:
 
    void CreatePipelines() {
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Lighting.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Lighting.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout()
       });
    }
 

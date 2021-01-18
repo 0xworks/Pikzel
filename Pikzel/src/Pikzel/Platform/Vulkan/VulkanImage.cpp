@@ -284,7 +284,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanImage::GenerateMIPMaps() {
+   void VulkanImage::GenerateMipmap() {
       // Check if image format supports linear blitting
       vk::FormatProperties formatProperties = m_Device->GetVkPhysicalDevice().getFormatProperties(m_Format);
       if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eSampledImageFilterLinear)) {

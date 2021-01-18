@@ -297,23 +297,23 @@ private:
    void CreatePipelines() {
       // POI: We have a pipeline for the "geometry pass".  This renders the vertices into the G-buffer
       m_PipelineGeometry = m_GBuffer->GetGraphicsContext().CreatePipeline({
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .EnableBlend = false,  // POI: blending must be disabled for the G-Buffer to work properly
          .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/GeometryPass.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/GeometryPass.frag.spv" }
          },
-         .EnableBlend = false  // POI: blending must be disabled for the G-Buffer to work properly
+         .BufferLayout = m_VertexBuffer->GetLayout()
       });
 
       // POI: and another pipeline for the "lighting pass". This pipeline is used to render a full screen quad,
       // and the fragment shader does the (expensive) lighting calculations for each screen pixel using
       // information taken from the G-buffer
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
-         .BufferLayout = m_QuadVertexBuffer->GetLayout(),
          .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/LightingPass.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/LightingPass.frag.spv" }
-         }
+         },
+         .BufferLayout = m_QuadVertexBuffer->GetLayout(),
       });
    }
 

@@ -1,5 +1,6 @@
 #include "OpenGLTexture.h"
 
+#include "OpenGLComputeContext.h"
 #include "OpenGLPipeline.h"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -16,8 +17,10 @@ namespace Pikzel {
          case TextureFormat::RGBA8: return GL_RGBA8;
          case TextureFormat::SRGB8: return GL_SRGB8;
          case TextureFormat::SRGBA8: return GL_SRGB8_ALPHA8;
+         case TextureFormat::RG16F: return GL_RG16F;
          case TextureFormat::RGB16F: return GL_RGB16F;
          case TextureFormat::RGBA16F: return GL_RGBA16F;
+         case TextureFormat::RG32F: return GL_RG32F;
          case TextureFormat::RGB32F: return GL_RGB32F;
          case TextureFormat::RGBA32F: return GL_RGBA32F;
          case TextureFormat::R8: return GL_R8;
@@ -38,13 +41,15 @@ namespace Pikzel {
          case TextureFormat::RGBA8: return GL_RGBA;
          case TextureFormat::SRGB8: return GL_RGB;
          case TextureFormat::SRGBA8: return GL_RGBA;
+         case TextureFormat::RG16F: return GL_RG;
          case TextureFormat::RGB16F: return GL_RGB;
          case TextureFormat::RGBA16F: return GL_RGBA;
+         case TextureFormat::RG32F: return GL_RG;
          case TextureFormat::RGB32F: return GL_RGB;
          case TextureFormat::RGBA32F: return GL_RGBA;
          case TextureFormat::R8: return GL_R;
          case TextureFormat::R32F: return GL_R;
-         // no need to set depth data yourself, so no depth formats here
+         // no need (yet) to set depth data yourself, so no depth formats here
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
@@ -57,8 +62,10 @@ namespace Pikzel {
          case TextureFormat::RGBA8: return GL_UNSIGNED_BYTE;
          case TextureFormat::SRGB8: return GL_UNSIGNED_BYTE;
          case TextureFormat::SRGBA8: return GL_UNSIGNED_BYTE;
+         case TextureFormat::RG16F: return GL_HALF_FLOAT;
          case TextureFormat::RGB16F: return GL_HALF_FLOAT;
          case TextureFormat::RGBA16F: return GL_HALF_FLOAT;
+         case TextureFormat::RG32F: return GL_FLOAT;
          case TextureFormat::RGB32F: return GL_FLOAT;
          case TextureFormat::RGBA32F: return GL_FLOAT;
          case TextureFormat::R8: return GL_UNSIGNED_BYTE;
@@ -73,11 +80,11 @@ namespace Pikzel {
    GLenum TextureFilterToGLTextureFilter(const TextureFilter filter) {
       switch (filter) {
          case TextureFilter::Nearest: return GL_NEAREST;
-         case TextureFilter::NearestMipMapNearest: return GL_NEAREST_MIPMAP_NEAREST;
-         case TextureFilter::NearestMipMapLinear: return GL_NEAREST_MIPMAP_LINEAR;
+         case TextureFilter::NearestMipmapNearest: return GL_NEAREST_MIPMAP_NEAREST;
+         case TextureFilter::NearestMipmapLinear: return GL_NEAREST_MIPMAP_LINEAR;
          case TextureFilter::Linear: return GL_LINEAR;
-         case TextureFilter::LinearMipMapNearest: return GL_LINEAR_MIPMAP_NEAREST;
-         case TextureFilter::LinearMipMapLinear: return GL_LINEAR_MIPMAP_LINEAR;
+         case TextureFilter::LinearMipmapNearest: return GL_LINEAR_MIPMAP_NEAREST;
+         case TextureFilter::LinearMipmapLinear: return GL_LINEAR_MIPMAP_LINEAR;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
       return GL_LINEAR;
@@ -148,6 +155,11 @@ namespace Pikzel {
    }
 
 
+   void OpenGLTexture::GenerateMipmap() {
+      glGenerateTextureMipmap(m_RendererId);
+   }
+
+
    uint32_t OpenGLTexture::GetRendererId() const {
       return m_RendererId;
    }
@@ -162,7 +174,7 @@ namespace Pikzel {
       TextureWrap wrapW = settings.WrapW;
 
       if (minFilter == TextureFilter::Undefined) {
-         minFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : mipLevels == 1 ? TextureFilter::Linear : TextureFilter::LinearMipMapLinear;
+         minFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : mipLevels == 1 ? TextureFilter::Linear : TextureFilter::LinearMipmapLinear;
       }
       if (magFilter == TextureFilter::Undefined) {
          magFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : TextureFilter::Linear;
@@ -201,7 +213,7 @@ namespace Pikzel {
          m_Height = settings.Height;
          m_Format = settings.Format;
          if (levels == 0) {
-            levels = CalculateMipMapLevels(m_Width, m_Height);
+            levels = CalculateMipmapLevels(m_Width, m_Height);
          }
 
          glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
@@ -209,13 +221,13 @@ namespace Pikzel {
       } else {
          stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &m_Width, &m_Height, &m_Format);
          if (levels == 0) {
-            levels = CalculateMipMapLevels(m_Width, m_Height);
+            levels = CalculateMipmapLevels(m_Width, m_Height);
          }
 
          glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
          glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
          glTextureSubImage2D(m_RendererId, 0, 0, 0, m_Width, m_Height, TextureFormatToDataFormat(m_Format), TextureFormatToDataType(m_Format), data);
-         glGenerateTextureMipmap(m_RendererId);
+         GenerateMipmap();
          stbi_image_free(data);
       }
       SetTextureParameters(settings, levels);
@@ -247,7 +259,7 @@ namespace Pikzel {
       glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_RendererId);
       uint32_t levels = settings.MIPLevels;
       if (levels == 0) {
-         levels = CalculateMipMapLevels(m_Width, m_Height);
+         levels = CalculateMipmapLevels(m_Width, m_Height);
       }
       glTextureStorage3D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers);
       SetTextureParameters(settings, levels);
@@ -280,11 +292,11 @@ namespace Pikzel {
          m_Height = settings.Height;
          m_Format = settings.Format;
          if (levels == 0) {
-            levels = CalculateMipMapLevels(m_Width, m_Height);
+            levels = CalculateMipmapLevels(m_Width, m_Height);
          }
          AllocateStorage(levels);
       } else {
-         m_Format = TextureFormat::RGBA8;
+         m_Format = TextureFormat::RGBA16F;
          uint32_t width;
          uint32_t height;
          stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &width, &height, &m_DataFormat);
@@ -300,7 +312,7 @@ namespace Pikzel {
             m_Height = m_Width;
          }
          if (levels == 0) {
-            levels = CalculateMipMapLevels(m_Width, m_Height);
+            levels = CalculateMipmapLevels(m_Width, m_Height);
          }
          AllocateStorage(levels);
          SetData(data, width * height * BPP(m_DataFormat));
@@ -335,28 +347,24 @@ namespace Pikzel {
          throw std::runtime_error("Data must be entire texture!");
       }
 
-      std::unique_ptr<OpenGLTexture2D> tex2d = std::make_unique<OpenGLTexture2D>(TextureSettings{.Width = width, .Height = height, .Format = m_DataFormat, .MIPLevels = 1});
+      std::unique_ptr<Texture> tex2d = std::make_unique<OpenGLTexture2D>(TextureSettings{.Width = width, .Height = height, .Format = m_DataFormat, .MIPLevels = 1});
       tex2d->SetData(data, size);
-      int tonemap = 0;
-      if (
-         (tex2d->GetFormat() == TextureFormat::RGB32F) ||
-         (tex2d->GetFormat() == TextureFormat::RGBA32F)
-      ) {
-         tonemap = 1;
-      }
 
-      std::unique_ptr<OpenGLPipeline> pipeline = std::make_unique<OpenGLPipeline>(PipelineSettings {
+      std::unique_ptr<ComputeContext> compute = std::make_unique<OpenGLComputeContext>();
+
+      std::unique_ptr<Pipeline> pipeline = compute->CreatePipeline({
          .Shaders = {
             { Pikzel::ShaderType::Compute, shader }
          }
       });
 
-      glUseProgram(pipeline->GetRendererId());
-      glUniform1i(glGetUniformLocation(pipeline->GetRendererId(), "constants.tonemap"), tonemap);
-      glBindTextureUnit(pipeline->GetSamplerBinding("uTexture"_hs), tex2d->GetRendererId());
-      glBindImageTexture(pipeline->GetStorageImageBinding("outCubeMap"_hs), m_RendererId, 0, GL_TRUE, 0, GL_WRITE_ONLY, TextureFormatToInternalFormat(m_Format));
-      glDispatchCompute(GetWidth() / 32, GetHeight() / 32, 6);
-      glGenerateTextureMipmap(m_RendererId);
+      compute->Begin();
+      compute->Bind(*pipeline);
+      compute->Bind(*tex2d, "uTexture"_hs);
+      compute->Bind(*this, "outCubeMap"_hs);
+      compute->Dispatch(GetWidth() / 32, GetHeight() / 32, 6);
+      compute->End();
+      GenerateMipmap();
    }
 
 
@@ -378,7 +386,7 @@ namespace Pikzel {
       m_Format = settings.Format;
       uint32_t levels = settings.MIPLevels;
       if (levels == 0) {
-         levels = CalculateMipMapLevels(m_Width, m_Height);
+         levels = CalculateMipmapLevels(m_Width, m_Height);
       }
 
       if ((GetWidth() % 32)) {

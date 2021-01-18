@@ -130,7 +130,7 @@ namespace Pikzel {
          std::unique_ptr model = std::make_unique<Model>();
 
          Assimp::Importer importer;
-         const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace);
+         const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
          if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             throw std::runtime_error {fmt::format("Error when importing model '{0}': {1}", path.string(), importer.GetErrorString())};

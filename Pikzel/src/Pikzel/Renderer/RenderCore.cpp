@@ -87,6 +87,11 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<ComputeContext> RenderCore::CreateComputeContext() {
+      return s_RenderCore->CreateComputeContext();
+   }
+
+
    std::unique_ptr<GraphicsContext> RenderCore::CreateGraphicsContext(const Window& window) {
       return s_RenderCore->CreateGraphicsContext(window);
    }

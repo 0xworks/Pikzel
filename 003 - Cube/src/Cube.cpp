@@ -129,11 +129,11 @@ private:
 
    void CreatePipeline() {
       Pikzel::PipelineSettings settings {
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Cube.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Cube.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout(),
       };
       m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
    }

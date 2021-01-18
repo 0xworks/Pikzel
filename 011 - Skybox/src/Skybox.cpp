@@ -44,6 +44,7 @@ protected:
       PKZL_PROFILE_FUNCTION();
 
       static int lod = 0;
+      static bool tonemap = false;
 
       glm::mat4 transform = glm::identity<glm::mat4>();
       glm::mat4 view = glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
@@ -73,6 +74,7 @@ protected:
       gc.Bind(*m_Skybox, "uSkybox"_hs);
       gc.PushConstant("constants.vp"_hs, m_Camera.Projection * view);
       gc.PushConstant("constants.lod"_hs, lod);
+      gc.PushConstant("constants.tonemap"_hs, tonemap ? 1 : 0);
       gc.DrawTriangles(*m_VertexBuffer, 36);
 
       GetWindow().BeginImGuiFrame();
@@ -81,6 +83,7 @@ protected:
          m_NewSkyboxPath = Pikzel::OpenFileDialog();
       }
       ImGui::InputInt("Lod", &lod, 1.0f);
+      ImGui::Checkbox("Tonemap", &tonemap);
       ImGui::End();
       GetWindow().EndImGuiFrame();
    }
@@ -218,7 +221,7 @@ private:
    void CreateTextures() {
       m_TextureContainer = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.jpg"});
       m_TextureFloor = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Floor.png"});
-      m_NewSkyboxPath = "Assets/" APP_NAME "/Textures/Skybox.jpg";
+      m_NewSkyboxPath = "Assets/Skyboxes/Skybox.jpg";
    }
 
 
@@ -229,19 +232,19 @@ private:
 
    void CreatePipelines() {
       m_ScenePipeline = GetWindow().GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/TexturedModel.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/TexturedModel.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout()
       });
 
       m_SkyboxPipeline = GetWindow().GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Skybox.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Skybox.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout()
       });
    }
 

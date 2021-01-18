@@ -220,22 +220,22 @@ private:
 
    void CreatePipelines() {
       m_PostProcessingPipeline = GetWindow().GetGraphicsContext().CreatePipeline({
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/PostProcess.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/PostProcess.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout(),
       });
 #if RENDER_DIRECTLY_TO_WINDOW
       m_ScenePipeline = GetWindow().GetGraphicsContext().CreatePipeline({
 #else
       m_ScenePipeline = m_Framebuffer->GetGraphicsContext().CreatePipeline({
 #endif
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/TexturedModel.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/TexturedModel.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout(),
       });
    }
 

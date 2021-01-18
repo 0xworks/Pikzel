@@ -20,6 +20,7 @@
 #include "Pikzel/Input/MouseButtons.h"
 
 #include "Pikzel/Renderer/Buffer.h"
+#include "Pikzel/Renderer/ComputeContext.h"
 #include "Pikzel/Renderer/Framebuffer.h"
 #include "Pikzel/Renderer/GraphicsContext.h"
 #include "Pikzel/Renderer/MeshRenderer.h"
