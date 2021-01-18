@@ -1,6 +1,7 @@
 #include "VulkanRenderCore.h"
 
 #include "VulkanBuffer.h"
+#include "VulkanComputeContext.h"
 #include "VulkanGraphicsContext.h"
 #include "VulkanPipeline.h"
 #include "VulkanTexture.h"
@@ -77,6 +78,11 @@ namespace Pikzel {
    }
 
 
+   std::unique_ptr<ComputeContext> VulkanRenderCore::CreateComputeContext() {
+      return std::make_unique<VulkanComputeContext>(m_Device);
+   }
+
+
    std::unique_ptr<GraphicsContext> VulkanRenderCore::CreateGraphicsContext(const Window& window) {
       return std::make_unique<VulkanWindowGC>(m_Device, window);
    }
@@ -119,7 +125,10 @@ namespace Pikzel {
          usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
          aspect = vk::ImageAspectFlagBits::eDepth;
       }
-   
+      if (settings.ImageStorage) {
+         usage |= vk::ImageUsageFlagBits::eStorage;
+      }
+
       switch (settings.Type) {
          case TextureType::Texture2D:        return std::make_unique<VulkanTexture2D>(m_Device, settings, usage, aspect);
          case TextureType::Texture2DArray:   return std::make_unique<VulkanTexture2DArray>(m_Device, settings, usage, aspect);

@@ -34,7 +34,7 @@ namespace Pikzel {
 
       void CopyFromBuffer(vk::Buffer buffer); // TODO: offsets
 
-      void GenerateMIPMaps();
+      void GenerateMipmap();
 
    protected:
       std::shared_ptr<VulkanDevice> m_Device;

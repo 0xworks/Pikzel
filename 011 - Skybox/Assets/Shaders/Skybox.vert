@@ -5,6 +5,7 @@ layout (location = 0) in vec3 inPos;
 layout(push_constant) uniform PC {
    mat4 vp;
    int lod;
+   int tonemap;
 } constants;
 
 layout (location = 0) out vec3 outTexCoords;

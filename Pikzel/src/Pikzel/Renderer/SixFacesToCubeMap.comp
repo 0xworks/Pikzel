@@ -1,15 +1,8 @@
 #version 450 core
 
-// Converts equirectangular projection texture into a cubemap
-//
-// Tonemapping is done here and baked into the cubemap
-// (as opposed to doing this calculation at frame-render time)
+// Converts 2D "cube cross" into cubemap
 
 const float PI = 3.141592;
-
-layout(push_constant) uniform PC {
-   int tonemap; // 0 = none, 1 = Reinhard
-} constants;
 
 layout(set = 0, binding = 0) uniform sampler2D uTexture;
 
@@ -51,15 +44,8 @@ vec2 GetTexCoords() {
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 void main() {
-   //vec3 cubeTexCoords = GetCubeTexCoords();
-   //vec2 uv = CubeTexCoordsToSixFacesUV(cubeTexCoords);
    vec2 uv = GetTexCoords();
    vec4 color = texture(uTexture, uv);
-
-   // Reinhard tonemap (TODO: other tonemaps)
-   if(constants.tonemap == 1) {
-      color = vec4(vec3(color.rgb / (1.0 + color.rgb)), color.a);
-   }
 
    imageStore(outCubeMap, ivec3(gl_GlobalInvocationID), color);
 }

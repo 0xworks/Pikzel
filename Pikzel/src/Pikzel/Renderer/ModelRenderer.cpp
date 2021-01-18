@@ -127,19 +127,20 @@ namespace Pikzel {
       };
 
       m_PipelineDirShadow = m_FramebufferDirShadow->GetGraphicsContext().CreatePipeline({
-         layout,
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Scene/Shaders/Depth.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Scene/Shaders/Depth.frag.spv" }
-         }
+         },
+         .BufferLayout = layout,
       });
+
       m_PipelinePtShadow = m_FramebufferPtShadow->GetGraphicsContext().CreatePipeline({
-         layout,
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Scene/Shaders/DepthCube.vert.spv" },
             { Pikzel::ShaderType::Geometry, "Scene/Shaders/DepthCube.geom.spv" },
             { Pikzel::ShaderType::Fragment, "Scene/Shaders/DepthCube.frag.spv" }
-         }
+         },
+         .BufferLayout = layout,
       });
    }
 

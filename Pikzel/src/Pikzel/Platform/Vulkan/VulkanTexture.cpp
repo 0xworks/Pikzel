@@ -1,6 +1,7 @@
 #include "VulkanTexture.h"
 
 #include "VulkanBuffer.h"
+#include "VulkanComputeContext.h"
 #include "VulkanPipeline.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -14,8 +15,10 @@ namespace Pikzel {
          case vk::Format::eR8G8B8A8Unorm:         return TextureFormat::RGBA8;
             // case vk::Format::eR8G8B8Srgb: return TextureFormat::SRGB8; // not supported.  need 32-bits per texel
          case vk::Format::eR8G8B8A8Srgb:          return TextureFormat::SRGB8;
+         case vk::Format::eR16G16Sfloat:          return TextureFormat::RG16F;
          case vk::Format::eR16G16B16Sfloat:       return TextureFormat::RGB16F;
          case vk::Format::eR16G16B16A16Sfloat:    return TextureFormat::RGBA16F;
+         case vk::Format::eR32G32Sfloat:          return TextureFormat::RG32F;
          case vk::Format::eR32G32B32Sfloat:       return TextureFormat::RGB32F;
          case vk::Format::eR32G32B32A32Sfloat:    return TextureFormat::RGBA32F;
          case vk::Format::eB10G11R11UfloatPack32: return TextureFormat::BGR8;
@@ -37,8 +40,10 @@ namespace Pikzel {
          case TextureFormat::RGBA8:    return vk::Format::eR8G8B8A8Unorm;
             // case TextureFormat::SRGB8: return vk::Format::eR8G8B8Srgb; // not supported.  need 32-bits per texel
          case TextureFormat::SRGBA8:   return vk::Format::eR8G8B8A8Srgb;
+         case TextureFormat::RG16F:    return vk::Format::eR16G16Sfloat;
          case TextureFormat::RGB16F:   return vk::Format::eR16G16B16Sfloat;
          case TextureFormat::RGBA16F:  return vk::Format::eR16G16B16A16Sfloat;
+         case TextureFormat::RG32F:    return vk::Format::eR32G32Sfloat;
          case TextureFormat::RGB32F:   return vk::Format::eR32G32B32Sfloat;
          case TextureFormat::RGBA32F:  return vk::Format::eR32G32B32A32Sfloat;
          case TextureFormat::BGR8:     return vk::Format::eB10G11R11UfloatPack32; // the texels must still be 32-bits, so if no alpha channel then use more bits in other channels
@@ -57,25 +62,25 @@ namespace Pikzel {
    vk::Filter TextureFilterToVkFilter(const TextureFilter filter) {
       switch (filter) {
          case TextureFilter::Nearest:                return vk::Filter::eNearest;
-         case TextureFilter::NearestMipMapNearest:   return vk::Filter::eNearest;
-         case TextureFilter::NearestMipMapLinear:    return vk::Filter::eNearest;
+         case TextureFilter::NearestMipmapNearest:   return vk::Filter::eNearest;
+         case TextureFilter::NearestMipmapLinear:    return vk::Filter::eNearest;
          case TextureFilter::Linear:                 return vk::Filter::eLinear;
-         case TextureFilter::LinearMipMapNearest:    return vk::Filter::eLinear;
-         case TextureFilter::LinearMipMapLinear:     return vk::Filter::eLinear;
+         case TextureFilter::LinearMipmapNearest:    return vk::Filter::eLinear;
+         case TextureFilter::LinearMipmapLinear:     return vk::Filter::eLinear;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
       return vk::Filter::eLinear;
    }
 
 
-   vk::SamplerMipmapMode TextureFilterToVkMipMapMode(const TextureFilter filter) {
+   vk::SamplerMipmapMode TextureFilterToVkMipmapMode(const TextureFilter filter) {
       switch (filter) {
          case TextureFilter::Nearest:                return vk::SamplerMipmapMode::eNearest;
-         case TextureFilter::NearestMipMapNearest:   return vk::SamplerMipmapMode::eNearest;
-         case TextureFilter::NearestMipMapLinear:    return vk::SamplerMipmapMode::eLinear;
+         case TextureFilter::NearestMipmapNearest:   return vk::SamplerMipmapMode::eNearest;
+         case TextureFilter::NearestMipmapLinear:    return vk::SamplerMipmapMode::eLinear;
          case TextureFilter::Linear:                 return vk::SamplerMipmapMode::eLinear;
-         case TextureFilter::LinearMipMapNearest:    return vk::SamplerMipmapMode::eNearest;
-         case TextureFilter::LinearMipMapLinear:     return vk::SamplerMipmapMode::eLinear;
+         case TextureFilter::LinearMipmapNearest:    return vk::SamplerMipmapMode::eNearest;
+         case TextureFilter::LinearMipmapLinear:     return vk::SamplerMipmapMode::eLinear;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
       return vk::SamplerMipmapMode::eLinear;
@@ -164,6 +169,12 @@ namespace Pikzel {
    }
 
 
+   void VulkanTexture::GenerateMipmap() {
+      m_Image->TransitionImageLayout(vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal);
+      m_Image->GenerateMipmap();
+   }
+
+
    bool VulkanTexture::operator==(const Texture& that) {
       return m_Image->GetVkImage() == static_cast<const VulkanTexture&>(that).m_Image->GetVkImage();
    }
@@ -196,14 +207,18 @@ namespace Pikzel {
          width,
          height,
          layers,
-         mipLevels == 0? CalculateMipMapLevels(width, height) : mipLevels,
+         mipLevels == 0? CalculateMipmapLevels(width, height) : mipLevels,
          vk::SampleCountFlagBits::e1,
          format,
          vk::ImageTiling::eOptimal,
          usage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
          vk::MemoryPropertyFlagBits::eDeviceLocal
-         );
+      );
       m_Image->CreateImageView(format, aspect);
+      if (usage & vk::ImageUsageFlagBits::eStorage) {
+         m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
+      }
+
    }
 
 
@@ -220,7 +235,7 @@ namespace Pikzel {
       TextureWrap wrapW = settings.WrapW;
 
       if (minFilter == TextureFilter::Undefined) {
-         minFilter = IsDepthFormat(GetFormat()) ? TextureFilter::Nearest : m_Image->GetMIPLevels() == 1 ? TextureFilter::Linear : TextureFilter::LinearMipMapLinear;
+         minFilter = IsDepthFormat(GetFormat()) ? TextureFilter::Nearest : m_Image->GetMIPLevels() == 1 ? TextureFilter::Linear : TextureFilter::LinearMipmapLinear;
       }
       if (magFilter == TextureFilter::Undefined) {
          magFilter = IsDepthFormat(GetFormat()) ? TextureFilter::Nearest : TextureFilter::Linear;
@@ -240,7 +255,7 @@ namespace Pikzel {
          {}                                                              /*flags*/,
          TextureFilterToVkFilter(magFilter)                              /*magFilter*/,
          TextureFilterToVkFilter(minFilter)                              /*minFilter*/,
-         TextureFilterToVkMipMapMode(minFilter)                          /*mipmapMode*/,
+         TextureFilterToVkMipmapMode(minFilter)                          /*mipmapMode*/,
          TextureWrapToVkSamplerAddressMode(wrapU)                        /*addressModeU*/,
          TextureWrapToVkSamplerAddressMode(wrapV)                        /*addressModeV*/,
          TextureWrapToVkSamplerAddressMode(wrapW)                        /*addressModeW*/,
@@ -295,7 +310,7 @@ namespace Pikzel {
       stagingBuffer.CopyFromHost(0, size, data);
       m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
       m_Image->CopyFromBuffer(stagingBuffer.m_Buffer);
-      m_Image->GenerateMIPMaps();
+      m_Image->GenerateMipmap();
    }
 
 
@@ -316,7 +331,7 @@ namespace Pikzel {
       stagingBuffer.CopyFromHost(0, size, data);
       m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
       m_Image->CopyFromBuffer(stagingBuffer.m_Buffer);
-      m_Image->GenerateMIPMaps();
+      m_Image->GenerateMipmap();
    }
 
 
@@ -340,7 +355,7 @@ namespace Pikzel {
          } else {
             size = width / 4;
          }
-         CreateImage(vk::ImageViewType::eCube, size, size, 1, settings.MIPLevels, TextureFormatToVkFormat(TextureFormat::RGBA8), usage | vk::ImageUsageFlagBits::eStorage, aspect);
+         CreateImage(vk::ImageViewType::eCube, size, size, 1, settings.MIPLevels, TextureFormatToVkFormat(TextureFormat::RGBA16F), usage | vk::ImageUsageFlagBits::eStorage, aspect);
          PKZL_CORE_ASSERT(BPP(m_DataFormat) != 3, "VulkanTextureCube format cannot be 24-bits per texel");
          SetData(data, width * height * BPP(m_DataFormat));
          stbi_image_free(data);
@@ -371,79 +386,20 @@ namespace Pikzel {
 
       std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, TextureSettings{.Width = width, .Height = height, .Format = m_DataFormat, .MIPLevels = 1});
       tex2d->SetData(data, size);
-      int tonemap = 0;
-      if (
-         (tex2d->GetFormat() == TextureFormat::RGB32F) ||
-         (tex2d->GetFormat() == TextureFormat::RGBA32F)
-      ) {
-         tonemap = 1;
-      }
 
-      m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
-
-      std::unique_ptr<VulkanPipeline> pipeline = std::make_unique<VulkanPipeline>(
-         m_Device,
-         PipelineSettings {
-            {},
-            {
-               { Pikzel::ShaderType::Compute, shader }
-            }
+      std::unique_ptr<ComputeContext> compute = std::make_unique<VulkanComputeContext>(m_Device);
+      std::unique_ptr<Pipeline> pipeline = compute->CreatePipeline({
+         .Shaders = {
+            { Pikzel::ShaderType::Compute, shader }
          }
-      );
-
-      const VulkanResource& texResource = pipeline->GetResource("uTexture"_hs);
-      vk::DescriptorImageInfo texImageDescriptor = {
-            tex2d->GetVkSampler()                    /*sampler*/,
-            tex2d->GetVkImageView()                  /*imageView*/,
-            vk::ImageLayout::eShaderReadOnlyOptimal  /*imageLayout*/
-      };
-
-      const VulkanResource& cubeResource = pipeline->GetResource("outCubeMap"_hs);
-      vk::DescriptorImageInfo cubeImageDescriptor = {
-            nullptr                                  /*sampler*/,
-            GetVkImageView()                         /*imageView*/,
-            vk::ImageLayout::eGeneral                /*imageLayout*/
-      };
-
-      std::array<vk::WriteDescriptorSet, 2> writeDescriptors = {
-         vk::WriteDescriptorSet {
-            pipeline->GetVkDescriptorSet(texResource.DescriptorSet)  /*dstSet*/,
-            texResource.Binding                                      /*dstBinding*/,
-            0                                                        /*dstArrayElement*/,
-            texResource.GetCount()                                   /*descriptorCount*/,
-            texResource.Type                                         /*descriptorType*/,
-            &texImageDescriptor                                      /*pImageInfo*/,
-            nullptr                                                  /*pBufferInfo*/,
-            nullptr                                                  /*pTexelBufferView*/
-         },
-         vk::WriteDescriptorSet {
-            pipeline->GetVkDescriptorSet(cubeResource.DescriptorSet)  /*dstSet*/,
-            cubeResource.Binding                                      /*dstBinding*/,
-            0                                                         /*dstArrayElement*/,
-            cubeResource.GetCount()                                   /*descriptorCount*/,
-            cubeResource.Type                                         /*descriptorType*/,
-            &cubeImageDescriptor                                      /*pImageInfo*/,
-            nullptr                                                   /*pBufferInfo*/,
-            nullptr                                                   /*pTexelBufferView*/
-         }
-      };
-
-      m_Device->GetVkDevice().updateDescriptorSets(writeDescriptors, nullptr);
-
-      m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this, &pipeline, &tex2d, tonemap] (vk::CommandBuffer cmd) {
-         cmd.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline->GetVkPipelineCompute());
-         pipeline->BindDescriptorSets(cmd, nullptr);
-
-         const VulkanPushConstant& tonemapC = pipeline->GetPushConstant("constants.tonemap"_hs);
-         PKZL_CORE_ASSERT(tonemapC.Type == DataType::Int, "Push constant '{0}' type mismatch.  Was {1}, expected int!", tonemapC.Name, DataTypeToString(tonemapC.Type));
-         cmd.pushConstants<int>(pipeline->GetVkPipelineLayout(), tonemapC.ShaderStages, tonemapC.Offset, tonemap);
-
-         cmd.dispatch(GetWidth() / 32, GetHeight() / 32, 6);
       });
-      pipeline->UnbindDescriptorSets();
-
-      m_Image->TransitionImageLayout(vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal);
-      m_Image->GenerateMIPMaps();
+      compute->Begin();
+      compute->Bind(*pipeline);
+      compute->Bind(*tex2d, "uTexture"_hs);
+      compute->Bind(*this, "outCubeMap"_hs);
+      compute->Dispatch(GetWidth() / 32, GetHeight() / 32, 6);
+      compute->End();
+      GenerateMipmap();
    }
 
 

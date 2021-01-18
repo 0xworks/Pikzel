@@ -55,11 +55,11 @@ private:
 
    void CreatePipeline() {
       Pikzel::PipelineSettings settings {
-         m_VertexBuffer->GetLayout(),
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Textured.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Textured.frag.spv" }
-         }
+         },
+         .BufferLayout = m_VertexBuffer->GetLayout()
       };
       m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
    }

@@ -78,7 +78,7 @@ namespace Pikzel {
       vk::ShaderModule CreateShaderModule(ShaderType type, const std::vector<uint32_t>& src);
       void DestroyShaderModule(vk::ShaderModule& shaderModule);
 
-      void ReflectShaders();
+      void ReflectShaders(const SpecializationConstantsMap& specializationConstants);
 
       void CreateDescriptorSetLayouts(const PipelineSettings& settings);
       void DestroyDescriptorSetLayouts();
@@ -112,6 +112,9 @@ namespace Pikzel {
       std::vector<bool> m_DescriptorSetPending;                                     // m_DescriptorSetPending[i] = true <=> set i needs to be bound for next draw call
 
       std::vector<std::pair<ShaderType, std::vector<uint32_t>>> m_ShaderSrcs;
+      std::vector<vk::SpecializationInfo> m_ShaderSpecializations;
+      std::vector<std::vector<vk::SpecializationMapEntry>> m_SpecializationMap;
+      std::vector<std::vector<int32_t>> m_SpecializationData;
       std::unordered_map<entt::id_type, VulkanPushConstant> m_PushConstants;
       std::unordered_map<entt::id_type, VulkanResource> m_Resources;
    };

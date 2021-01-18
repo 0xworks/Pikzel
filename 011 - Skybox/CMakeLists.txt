@@ -37,8 +37,6 @@ set(
    Textures
    "Assets/Textures/Container.jpg"
    "Assets/Textures/Floor.png"
-   "Assets/Textures/Skybox.jpg"
-   "Assets/Textures/goegap.jpg"
 )
 
 source_group("src" FILES ${ProjectSources})

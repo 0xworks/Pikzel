@@ -20,6 +20,8 @@ namespace Pikzel {
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
 
+      virtual void GenerateMipmap() override;
+
       bool operator==(const Texture& that) override;
 
    public:

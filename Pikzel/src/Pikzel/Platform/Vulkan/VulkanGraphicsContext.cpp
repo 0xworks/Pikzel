@@ -1453,7 +1453,8 @@ namespace Pikzel {
    void VulkanFramebufferGC::BeginFrame(const BeginFrameOp operation) {
       PKZL_PROFILE_FUNCTION();
 
-      m_CommandBuffers.front().begin({
+      vk::CommandBuffer cmd = GetVkCommandBuffer();
+      cmd.begin({
          vk::CommandBufferUsageFlagBits::eSimultaneousUse
       });
 
@@ -1467,7 +1468,7 @@ namespace Pikzel {
          static_cast<uint32_t>(m_ClearValues.size())  /*clearValueCount*/,
          m_ClearValues.data()                         /*pClearValues*/
       };
-      m_CommandBuffers.front().beginRenderPass(renderPassBI, vk::SubpassContents::eInline);
+      cmd.beginRenderPass(renderPassBI, vk::SubpassContents::eInline);
 
       // Update dynamic state:
 
@@ -1485,28 +1486,28 @@ namespace Pikzel {
          static_cast<float>(m_Extent.width), static_cast<float>(m_Extent.height),
          0.0f, 1.0f
       };
-      m_CommandBuffers.front().setViewport(0, viewport);
+      cmd.setViewport(0, viewport);
 
       vk::Rect2D scissor = {
          {0, 0},
          m_Extent
       };
-      m_CommandBuffers.front().setScissor(0, scissor);
+      cmd.setScissor(0, scissor);
    }
 
 
    void VulkanFramebufferGC::EndFrame() {
       PKZL_PROFILE_FUNCTION();
-      vk::CommandBuffer commandBuffer = m_CommandBuffers.front();
-      commandBuffer.endRenderPass();  // TODO: think about where render passes should begin/end
-      commandBuffer.end();
+      vk::CommandBuffer cmd = m_CommandBuffers.front();
+      cmd.endRenderPass();  // TODO: think about where render passes should begin/end
+      cmd.end();
 
       vk::SubmitInfo si = {
          0                /*waitSemaphoreCount*/,
          nullptr          /*pWaitSemaphores*/,
          nullptr          /*pWaitDstStageMask*/,
          1                /*commandBufferCount*/,
-         &commandBuffer   /*pCommandBuffers*/,
+         &cmd             /*pCommandBuffers*/,
          0                /*signalSemaphoreCount*/,
          nullptr          /*pSignalSemaphores*/
       };

@@ -2,6 +2,7 @@
 
 #include "Buffer.h"
 #include "Framebuffer.h"
+#include "ComputeContext.h"
 #include "GraphicsContext.h"
 #include "Pipeline.h"
 #include "Texture.h"
@@ -22,6 +23,7 @@ namespace Pikzel {
 
       virtual void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) = 0;
 
+      virtual std::unique_ptr<ComputeContext> CreateComputeContext() = 0;
       virtual std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window) = 0;
 
       virtual std::unique_ptr<VertexBuffer> CreateVertexBuffer(const BufferLayout& layout, const uint32_t size) = 0;
@@ -67,6 +69,7 @@ namespace Pikzel {
 
       static void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height);
 
+      static std::unique_ptr<ComputeContext> CreateComputeContext();
       static std::unique_ptr<GraphicsContext> CreateGraphicsContext(const Window& window);
 
       static std::unique_ptr<VertexBuffer> CreateVertexBuffer(const BufferLayout& layout, const uint32_t size);

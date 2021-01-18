@@ -12,8 +12,10 @@ namespace Pikzel {
       RGBA8            /* linear RGBA, 8 bits per component */,
       SRGB8            /* non-linear sRGB, 8 bits per component */,
       SRGBA8           /* non-linear sRGBA, 8 bits per component (alpha channel linear) */,
+      RG16F            /* linear RG, 16-bit floating point components */,
       RGB16F           /* linear RGB, 16-bit floating point components */,
       RGBA16F          /* linear RGBA, 16-bit floating point components */,
+      RG32F            /* linear RG, 32-bit floating point components */,
       RGB32F           /* linear RGB, 32-bit floating point components */,
       RGBA32F          /* linear RGBA, 32-bit floating point components */,
       BGR8             /* BGR in sRGB color space, 8 bits per component (except: on Vulkan this one is B10 G11 R11, for 32-bit texels)*/,
@@ -37,11 +39,11 @@ namespace Pikzel {
    enum class TextureFilter {
       Undefined  /* means guess an appropriate setting from other supplied data */,
       Nearest,
-      NearestMipMapNearest,
-      NearestMipMapLinear,
+      NearestMipmapNearest,
+      NearestMipmapLinear,
       Linear,
-      LinearMipMapNearest,
-      LinearMipMapLinear
+      LinearMipmapNearest,
+      LinearMipmapLinear
    };
 
 
@@ -60,8 +62,10 @@ namespace Pikzel {
          case TextureFormat::RGBA8:   return true;
          case TextureFormat::SRGB8:   return true;
          case TextureFormat::SRGBA8:  return true;
+         case TextureFormat::RG16F:   return true;
          case TextureFormat::RGB16F:  return true;
          case TextureFormat::RGBA16F: return true;
+         case TextureFormat::RG32F:   return true;
          case TextureFormat::RGB32F:  return true;
          case TextureFormat::RGBA32F: return true;
          case TextureFormat::BGR8:    return true;
@@ -82,8 +86,10 @@ namespace Pikzel {
          case TextureFormat::RGBA8:   return false;
          case TextureFormat::SRGB8:   return false;
          case TextureFormat::SRGBA8:  return false;
+         case TextureFormat::RG16F:   return false;
          case TextureFormat::RGB16F:  return false;
          case TextureFormat::RGBA16F: return false;
+         case TextureFormat::RG32F:   return false;
          case TextureFormat::RGB32F:  return false;
          case TextureFormat::RGBA32F: return false;
          case TextureFormat::BGR8:    return false;
@@ -104,8 +110,10 @@ namespace Pikzel {
          case TextureFormat::RGBA8:   return true;
          case TextureFormat::SRGB8:   return false;
          case TextureFormat::SRGBA8:  return false;
+         case TextureFormat::RG16F:   return true;
          case TextureFormat::RGB16F:  return true;
          case TextureFormat::RGBA16F: return true;
+         case TextureFormat::RG32F:   return true;
          case TextureFormat::RGB32F:  return true;
          case TextureFormat::RGBA32F: return true;
          case TextureFormat::BGR8:    return true;
@@ -128,12 +136,13 @@ namespace Pikzel {
       uint32_t Depth = 1;
       uint32_t Layers = 1;
       TextureFormat Format = TextureFormat::SRGBA8;
-      TextureFilter MinFilter = TextureFilter::LinearMipMapLinear;
+      TextureFilter MinFilter = TextureFilter::LinearMipmapLinear;
       TextureFilter MagFilter = TextureFilter::Linear;
       TextureWrap WrapU = TextureWrap::Repeat;
       TextureWrap WrapV = TextureWrap::Repeat;
       TextureWrap WrapW = TextureWrap::Repeat;
       uint32_t MIPLevels = 0; // 0 = auto calculate
+      bool ImageStorage = false;  // true = allow writing to this image in shaders (via imagestore(...))
    };
 
 
@@ -152,10 +161,12 @@ namespace Pikzel {
 
       virtual void SetData(void* data, const uint32_t size) = 0;
 
+      virtual void GenerateMipmap() = 0;
+
       virtual bool operator==(const Texture& that) = 0;
 
    public:
-      static uint32_t CalculateMipMapLevels(const uint32_t width, const uint32_t height);
+      static uint32_t CalculateMipmapLevels(const uint32_t width, const uint32_t height);
       static uint32_t BPP(const TextureFormat format);
    };
 
@@ -177,7 +188,7 @@ namespace Pikzel {
    }
 
 
-   inline uint32_t Texture::CalculateMipMapLevels(const uint32_t width, const uint32_t height) {
+   inline uint32_t Texture::CalculateMipmapLevels(const uint32_t width, const uint32_t height) {
       uint32_t levels = 1;
       while ((width | height) >> levels) {
          ++levels;

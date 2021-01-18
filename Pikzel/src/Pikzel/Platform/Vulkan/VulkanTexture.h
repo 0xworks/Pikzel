@@ -11,7 +11,7 @@ namespace Pikzel {
    TextureFormat VkFormatToTextureFormat(const vk::Format format);
    vk::Format TextureFormatToVkFormat(const TextureFormat format);
    vk::Filter TextureFilterToVkFilter(const TextureFilter filter);
-   vk::SamplerMipmapMode TextureFilterToVkMipMapMode(const TextureFilter filter);
+   vk::SamplerMipmapMode TextureFilterToVkMipmapMode(const TextureFilter filter);
    vk::SamplerAddressMode TextureWrapToVkSamplerAddressMode(const TextureWrap wrap);
 
    class VulkanTexture : public Texture {
@@ -23,6 +23,8 @@ namespace Pikzel {
       virtual uint32_t GetLayers() const override;
 
       virtual TextureFormat GetFormat() const override;
+
+      virtual void GenerateMipmap() override;
 
       virtual bool operator==(const Texture& that) override;
 

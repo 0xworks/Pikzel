@@ -13,11 +13,11 @@ namespace Pikzel {
       };
 
       m_Pipeline = gc.CreatePipeline({
-         layout,
-         {
+         .Shaders = {
             { Pikzel::ShaderType::Vertex, "Scene/Shaders/LitModel.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Scene/Shaders/LitModel.frag.spv" }
-         }
+         },
+         .BufferLayout = layout,
       });
 
    }

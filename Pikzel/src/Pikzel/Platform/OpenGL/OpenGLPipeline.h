@@ -79,16 +79,17 @@ namespace Pikzel {
       //void PushConstant(const entt::id_type name, const glm::dmat4x3& value);
       void PushConstant(const entt::id_type name, const glm::dmat4& value);
 
-      GLuint GetSamplerBinding(const entt::id_type resourceId) const;
-      GLuint GetStorageImageBinding(const entt::id_type resourceId) const;
-      GLuint GetUniformBufferBinding(const entt::id_type resourceId) const;
+      GLuint GetSamplerBinding(const entt::id_type resourceId, const bool exceptionIfNotFound = true) const;
+      GLuint GetStorageImageBinding(const entt::id_type resourceId, const bool exceptionIfNotFound = true) const;
+      GLuint GetUniformBufferBinding(const entt::id_type resourceId, const bool exceptionIfNotFound = true) const;
 
       void SetGLState() const;
 
    private:
-      void AppendShader(ShaderType type, const std::filesystem::path path);
+      void AppendShader(ShaderType type, const std::filesystem::path path, const SpecializationConstantsMap& specializationConstants);
       void ParsePushConstants(spirv_cross::Compiler& compiler);
       void ParseResourceBindings(spirv_cross::Compiler& compiler);
+      void SetSpecializationConstants(spirv_cross::Compiler& compiler, const SpecializationConstantsMap& specializationConstants);
       void LinkShaderProgram();
       void DeleteShaders();
       void FindUniformLocations();
@@ -96,13 +97,13 @@ namespace Pikzel {
    private:
       std::vector<std::vector<uint32_t>> m_ShaderSrcs;
       std::vector<uint32_t> m_ShaderIds;
-      OpenGLUniformMap m_PushConstants;            // push constants in the Vulkan glsl get turned into uniforms for OpenGL
+      OpenGLUniformMap m_PushConstants;                            // push constants in the Vulkan glsl get turned into uniforms for OpenGL
       OpenGLBindingMap m_UniformBufferBindingMap;
-      OpenGLResourceMap m_UniformBufferResources;  // maps resource id (essentially the name of the resource) -> its opengl binding
+      OpenGLResourceMap m_UniformBufferResources;                  // maps resource id (essentially the name of the resource) -> its opengl binding
       OpenGLBindingMap m_SamplerBindingMap;
-      OpenGLResourceMap m_SamplerResources;        // maps resource id (essentially the name of the resource) -> its opengl binding
+      OpenGLResourceMap m_SamplerResources;                        // maps resource id (essentially the name of the resource) -> its opengl binding
       OpenGLBindingMap m_StorageImageBindingMap;
-      OpenGLResourceMap m_StorageImageResources;   // maps resource id (essentially the name of the resource) -> its opengl binding
+      OpenGLResourceMap m_StorageImageResources;                   // maps resource id (essentially the name of the resource) -> its opengl binding
 
       uint32_t m_RendererId = 0;
       uint32_t m_VAORendererId = 0;

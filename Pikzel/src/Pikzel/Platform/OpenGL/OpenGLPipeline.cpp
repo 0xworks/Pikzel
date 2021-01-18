@@ -50,6 +50,21 @@ namespace Pikzel {
    }
 
 
+   void OpenGLPipeline::SetSpecializationConstants(spirv_cross::Compiler& compiler, const SpecializationConstantsMap& specializationConstants) {
+      for (auto& specializationConstant : compiler.get_specialization_constants()) {
+         for (const auto& [name, value] : specializationConstants) {
+            if (compiler.get_name(specializationConstant.id) == name) {
+               auto& constant = compiler.get_constant(specializationConstant.id);
+               constant.m.c[0].r[0].i32 = value; // integer constants only for now
+               constant.m.c[0].vecsize = 1;
+               constant.m.columns = 1;
+               constant.specialization = true;
+            }
+         }
+      }
+   }
+
+
    void OpenGLPipeline::ParsePushConstants(spirv_cross::Compiler& compiler) {
       spirv_cross::ShaderResources resources = compiler.get_shader_resources();
       for (const auto& pushConstantBuffer : resources.push_constant_buffers) {
@@ -162,7 +177,7 @@ namespace Pikzel {
    {
       std::vector<GLuint> shaders;
       for (const auto& [shaderType, src] : settings.Shaders) {
-         AppendShader(shaderType, src);
+         AppendShader(shaderType, src, settings.SpecializationConstants);
       }
 
       LinkShaderProgram();
@@ -483,18 +498,33 @@ namespace Pikzel {
    }
 
 
-   GLuint OpenGLPipeline::GetSamplerBinding(const entt::id_type resourceId) const {
-      return m_SamplerResources.at(resourceId).Binding;
+   GLuint OpenGLPipeline::GetSamplerBinding(const entt::id_type resourceId, const bool exceptionIfNotFound) const {
+      const auto resource = m_SamplerResources.find(resourceId);
+      GLuint retVal = (resource == m_SamplerResources.end()) ? ~0 : resource->second.Binding;
+      if (exceptionIfNotFound && retVal == ~0) {
+         throw std::invalid_argument {fmt::format("OpenGLPipeline::GetSamplerBinding() failed to find resource with id {0}", resourceId)};
+      }
+      return retVal;
    }
 
 
-   GLuint OpenGLPipeline::GetStorageImageBinding(const entt::id_type resourceId) const {
-      return m_StorageImageResources.at(resourceId).Binding;
+   GLuint OpenGLPipeline::GetStorageImageBinding(const entt::id_type resourceId, bool exceptionIfNotFound) const {
+      const auto resource = m_StorageImageResources.find(resourceId);
+      GLuint retVal = (resource == m_StorageImageResources.end()) ? ~0 : resource->second.Binding;
+      if (exceptionIfNotFound && retVal == ~0) {
+         throw std::invalid_argument {fmt::format("OpenGLPipeline::GetStorageImageResources() failed to find resource with id {0}!", resourceId)};
+      }
+      return retVal;
    }
 
 
-   GLuint OpenGLPipeline::GetUniformBufferBinding(const entt::id_type resourceId) const {
-      return m_UniformBufferResources.at(resourceId).Binding;
+   GLuint OpenGLPipeline::GetUniformBufferBinding(const entt::id_type resourceId, bool exceptionIfNotFound) const {
+      const auto resource = m_UniformBufferResources.find(resourceId);
+      GLuint retVal = (resource == m_UniformBufferResources.end()) ? ~0 : resource->second.Binding;
+      if (exceptionIfNotFound && retVal == ~0) {
+         throw std::invalid_argument {fmt::format("OpenGLPipeline::GetUniformBufferBinding() failed to find resource with id {0}!", resourceId)};
+      }
+      return retVal;
    }
 
 
@@ -509,7 +539,7 @@ namespace Pikzel {
    }
 
 
-   void OpenGLPipeline::AppendShader(ShaderType type, const std::filesystem::path path) {
+   void OpenGLPipeline::AppendShader(ShaderType type, const std::filesystem::path path, const SpecializationConstantsMap& specializationConstants) {
       PKZL_CORE_LOG_TRACE("Appending shader '{0}'", path.string());
 
       std::vector<uint32_t> src = ReadFile<uint32_t>(path);
@@ -517,6 +547,7 @@ namespace Pikzel {
       spirv_cross::CompilerGLSL compiler(src);
       ParsePushConstants(compiler);
       ParseResourceBindings(compiler);
+      SetSpecializationConstants(compiler, specializationConstants);
       std::string glsl = compiler.compile();
 
       GLuint shader = glCreateShader(ShaderTypeToOpenGLType(type));

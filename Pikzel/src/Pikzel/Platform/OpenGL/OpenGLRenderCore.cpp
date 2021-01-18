@@ -1,5 +1,6 @@
 #include "OpenGLRenderCore.h"
 #include "OpenGLBuffer.h"
+#include "OpenGLComputeContext.h"
 #include "OpenGLGraphicsContext.h"
 #include "OpenGLPipeline.h"
 #include "OpenGLTexture.h"
@@ -98,6 +99,11 @@ namespace Pikzel {
 
    void OpenGLRenderCore::SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height) {
       glViewport(x, y, width, height);
+   }
+
+
+   std::unique_ptr<ComputeContext> OpenGLRenderCore::CreateComputeContext() {
+      return std::make_unique<OpenGLComputeContext>();
    }
 
 
