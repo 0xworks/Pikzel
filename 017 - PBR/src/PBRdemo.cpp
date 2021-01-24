@@ -85,23 +85,23 @@ protected:
          gc.BeginFrame();
 
          gc.Bind(*m_PipelinePBR);
-         gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
-         gc.Bind(*m_BufferDirectionalLight, "UBODirectionalLight"_hs);
-         gc.Bind(m_FramebufferDirShadow->GetDepthTexture(), "uDirShadowMap"_hs);
-         gc.Bind(*m_Irradiance, "uIrradiance"_hs);
-         gc.Bind(*m_SpecularIrradiance, "uSpecularIrradiance"_hs);
-         gc.Bind(*m_SpecularBRDF_LUT, "uSpecularBRDF_LUT"_hs);
+         gc.Bind("UBOMatrices"_hs, *m_BufferMatrices);
+         gc.Bind("UBODirectionalLight"_hs, *m_BufferDirectionalLight);
+         gc.Bind("uDirShadowMap"_hs, m_FramebufferDirShadow->GetDepthTexture());
+         gc.Bind("uIrradiance"_hs, *m_Irradiance);
+         gc.Bind("uSpecularIrradiance"_hs, *m_SpecularIrradiance);
+         gc.Bind("uSpecularBRDF_LUT"_hs, *m_SpecularBRDF_LUT);
 
          // Backdrop
          glm::mat4 transform = glm::identity<glm::mat4>();
          gc.PushConstant("constants.model"_hs, transform);
          gc.PushConstant("constants.textureRepeat"_hs, m_MaterialBackdrop.TextureRepeat);
          gc.PushConstant("constants.heightScale"_hs, m_MaterialBackdrop.HeightScale);
-         gc.Bind(*m_Textures[(int)m_MaterialBackdrop.BaseColor], "uAlbedo"_hs);
-         gc.Bind(*m_Textures[(int)m_MaterialBackdrop.MetallicRoughness], "uMetallicRoughness"_hs);
-         gc.Bind(*m_Textures[(int)m_MaterialBackdrop.Normals], "uNormals"_hs);
-         gc.Bind(*m_Textures[(int)m_MaterialBackdrop.AmbientOcclusion], "uAmbientOcclusion"_hs);
-         gc.Bind(*m_Textures[(int)m_MaterialBackdrop.HeightMap], "uHeightMap"_hs);
+         gc.Bind("uAlbedo"_hs, *m_Textures[(int)m_MaterialBackdrop.BaseColor]);
+         gc.Bind("uMetallicRoughness"_hs, *m_Textures[(int)m_MaterialBackdrop.MetallicRoughness]);
+         gc.Bind("uNormals"_hs, *m_Textures[(int)m_MaterialBackdrop.Normals]);
+         gc.Bind("uAmbientOcclusion"_hs, *m_Textures[(int)m_MaterialBackdrop.AmbientOcclusion]);
+         gc.Bind("uHeightMap"_hs, *m_Textures[(int)m_MaterialBackdrop.HeightMap]);
          for (const auto& mesh : m_ModelBackdrop->Meshes) {
             gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
          }
@@ -113,11 +113,11 @@ protected:
             for (size_t mesh = 0; mesh < m_ModelShaderBall->Meshes.size(); ++mesh) {
                gc.PushConstant("constants.textureRepeat"_hs, m_MaterialShaderBall[ball][mesh].TextureRepeat);
                gc.PushConstant("constants.heightScale"_hs, m_MaterialBackdrop.HeightScale);
-               gc.Bind(*m_Textures[(int)m_MaterialShaderBall[ball][mesh].BaseColor], "uAlbedo"_hs);
-               gc.Bind(*m_Textures[(int)m_MaterialShaderBall[ball][mesh].MetallicRoughness], "uMetallicRoughness"_hs);
-               gc.Bind(*m_Textures[(int)m_MaterialShaderBall[ball][mesh].Normals], "uNormals"_hs);
-               gc.Bind(*m_Textures[(int)m_MaterialShaderBall[ball][mesh].AmbientOcclusion], "uAmbientOcclusion"_hs);
-               gc.Bind(*m_Textures[(int)m_MaterialShaderBall[ball][mesh].HeightMap], "uHeightMap"_hs);
+               gc.Bind("uAlbedo"_hs, *m_Textures[(int)m_MaterialShaderBall[ball][mesh].BaseColor]);
+               gc.Bind("uMetallicRoughness"_hs, *m_Textures[(int)m_MaterialShaderBall[ball][mesh].MetallicRoughness]);
+               gc.Bind("uNormals"_hs, *m_Textures[(int)m_MaterialShaderBall[ball][mesh].Normals]);
+               gc.Bind("uAmbientOcclusion"_hs, *m_Textures[(int)m_MaterialShaderBall[ball][mesh].AmbientOcclusion]);
+               gc.Bind("uHeightMap"_hs, *m_Textures[(int)m_MaterialShaderBall[ball][mesh].HeightMap]);
                gc.DrawIndexed(*m_ModelShaderBall->Meshes[mesh].VertexBuffer, *m_ModelShaderBall->Meshes[mesh].IndexBuffer);
             }
          }
@@ -125,7 +125,7 @@ protected:
          // Skybox
          view = glm::mat3(view);
          gc.Bind(*m_PipelineSkybox);
-         gc.Bind(*m_Skybox, "uSkybox"_hs);
+         gc.Bind("uSkybox"_hs, *m_Skybox);
          gc.PushConstant("constants.vp"_hs, m_Camera.Projection * view);
          gc.PushConstant("constants.lod"_hs, skyboxLod);
          gc.DrawTriangles(*m_VertexBuffer, 36, 6);
@@ -140,7 +140,7 @@ protected:
       gc.Bind(*m_PipelinePostProcess);
       gc.PushConstant("constants.tonemap"_hs, m_ToneMap);
       gc.PushConstant("constants.exposure"_hs, m_Exposure);
-      gc.Bind(m_FramebufferScene->GetColorTexture(0), "uTexture"_hs);
+      gc.Bind("uTexture"_hs, m_FramebufferScene->GetColorTexture(0));
       gc.DrawTriangles(*m_VertexBuffer, 6);
 
       GetWindow().BeginImGuiFrame();

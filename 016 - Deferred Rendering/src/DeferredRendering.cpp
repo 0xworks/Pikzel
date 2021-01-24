@@ -73,18 +73,18 @@ protected:
          gc.Bind(*m_PipelineGeometry);
 
 
-         gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
+         gc.Bind("UBOMatrices"_hs, *m_BufferMatrices);
 
          // floor
          glm::mat4 model = glm::identity<glm::mat4>();
-         gc.Bind(*m_TextureFloor, "diffuseMap"_hs);
-         gc.Bind(*m_TextureFloorSpecular, "specularMap"_hs);
          gc.PushConstant("constants.model"_hs, model);
+         gc.Bind("diffuseMap"_hs, *m_TextureFloor);
+         gc.Bind("specularMap"_hs, *m_TextureFloorSpecular);
          gc.DrawTriangles(*m_VertexBuffer, 6, 36);
 
          // cubes
-         gc.Bind(*m_TextureContainer, "diffuseMap"_hs);
-         gc.Bind(*m_TextureContainerSpecular, "specularMap"_hs);
+         gc.Bind("diffuseMap"_hs, *m_TextureContainer);
+         gc.Bind("specularMap"_hs, *m_TextureContainerSpecular);
          for (int i = 0; i < m_CubePositions.size(); ++i) {
             glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
             gc.PushConstant("constants.model"_hs, model);
@@ -102,12 +102,12 @@ protected:
       gc.PushConstant("constants.numPointLights"_hs, static_cast<uint32_t>(m_PointLights.size()));
       gc.PushConstant("constants.showDirectionalLight"_hs, m_ShowDirectionalLight ? 1u : 0u);
       gc.PushConstant("constants.showPointLights"_hs, m_ShowPointLights ? 1u : 0u);
-      gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
-      gc.Bind(*m_BufferDirectionalLight, "UBODirectionalLight"_hs);
-      gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
-      gc.Bind(m_GBuffer->GetColorTexture(0), "uPosition"_hs);
-      gc.Bind(m_GBuffer->GetColorTexture(1), "uNormal"_hs);
-      gc.Bind(m_GBuffer->GetColorTexture(2), "uDiffuseSpecular"_hs);
+      gc.Bind("UBOMatrices"_hs, *m_BufferMatrices);
+      gc.Bind("UBODirectionalLight"_hs, *m_BufferDirectionalLight);
+      gc.Bind("UBOPointLights"_hs, *m_BufferPointLights);
+      gc.Bind("uPosition"_hs, m_GBuffer->GetColorTexture(0));
+      gc.Bind("uNormal"_hs, m_GBuffer->GetColorTexture(1));
+      gc.Bind("uDiffuseSpecular"_hs, m_GBuffer->GetColorTexture(2));
       gc.DrawTriangles(*m_QuadVertexBuffer, 6);
 
       GetWindow().BeginImGuiFrame();

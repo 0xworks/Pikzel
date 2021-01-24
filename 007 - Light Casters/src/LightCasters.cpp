@@ -75,10 +75,10 @@ public:
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       {
          gc.Bind(*m_PipelineLighting);
-         gc.Bind(*m_DiffuseTexture, "diffuseMap"_hs);
-         gc.Bind(*m_SpecularTexture, "specularMap"_hs);
-         gc.Bind(*m_MaterialBuffer, "Materials"_hs);
-         gc.Bind(*m_LightBuffer, "Lights"_hs);
+         gc.Bind("diffuseMap"_hs, *m_DiffuseTexture);
+         gc.Bind("specularMap"_hs, *m_SpecularTexture);
+         gc.Bind("Materials"_hs, *m_MaterialBuffer);
+         gc.Bind("Lights"_hs, *m_LightBuffer);
 
          gc.PushConstant("constants.vp"_hs, projView);
          gc.PushConstant("constants.viewPos"_hs, m_CameraPos);

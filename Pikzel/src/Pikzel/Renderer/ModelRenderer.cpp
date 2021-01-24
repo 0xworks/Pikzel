@@ -66,8 +66,8 @@ namespace Pikzel {
             gcPtShadows.Bind(*m_PipelinePtShadow);
             gcPtShadows.PushConstant("constants.lightIndex"_hs, i);
             gcPtShadows.PushConstant("constants.lightRadius"_hs, lightRadius);
-            gcPtShadows.Bind(*m_BufferLightViews, "UBOLightViews"_hs);
-            gcPtShadows.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
+            gcPtShadows.Bind("UBOLightViews"_hs, *m_BufferLightViews);
+            gcPtShadows.Bind("UBOPointLights"_hs, *m_BufferPointLights);
             gcPtShadows.PushConstant("constants.model"_hs, transform);
  
             for (const auto& mesh : m_Model->Meshes) {
@@ -83,13 +83,12 @@ namespace Pikzel {
 
       gc.PushConstant("constants.lightRadius"_hs, lightRadius);
       gc.PushConstant("constants.numPointLights"_hs, static_cast<uint32_t>(drawData.PointLights.size()));
-      gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
-      gc.Bind(*m_BufferDirectionalLights, "UBODirectionalLight"_hs);
-      gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
-      gc.Bind(m_FramebufferDirShadow->GetDepthTexture(), "dirShadowMap"_hs);
-      gc.Bind(m_FramebufferPtShadow->GetDepthTexture(), "ptShadowMap"_hs);
-
       gc.PushConstant("constants.model"_hs, transform);
+      gc.Bind("UBOMatrices"_hs, *m_BufferMatrices);
+      gc.Bind("UBODirectionalLight"_hs, *m_BufferDirectionalLights);
+      gc.Bind("UBOPointLights"_hs, *m_BufferPointLights);
+      gc.Bind("dirShadowMap"_hs, m_FramebufferDirShadow->GetDepthTexture());
+      gc.Bind("ptShadowMap"_hs, m_FramebufferPtShadow->GetDepthTexture());
       for (const auto& mesh : m_Model->Meshes) {
          m_MeshRenderer->Draw(gc, mesh);
       }

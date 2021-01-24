@@ -53,7 +53,7 @@ namespace Pikzel {
    void VulkanGraphicsContext::Unbind(const IndexBuffer& buffer) {}
 
 
-   void VulkanGraphicsContext::Bind(const UniformBuffer& buffer, const entt::id_type resourceId) {
+   void VulkanGraphicsContext::Bind(const entt::id_type resourceId, const UniformBuffer& buffer) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::DescriptorBufferInfo uniformBufferDescriptor = {
@@ -80,7 +80,7 @@ namespace Pikzel {
    void VulkanGraphicsContext::Unbind(const UniformBuffer&) {}
 
 
-   void VulkanGraphicsContext::Bind(const Texture& texture, const entt::id_type resourceId) {
+   void VulkanGraphicsContext::Bind(const entt::id_type resourceId, const Texture& texture) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::Sampler sampler = static_cast<const VulkanTexture&>(texture).GetVkSampler();
