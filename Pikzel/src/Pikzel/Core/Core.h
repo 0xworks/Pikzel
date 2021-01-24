@@ -55,6 +55,7 @@
 #define PKZL_NOT_IMPLEMENTED throw std::logic_error {PKZL_FUNCSIG + std::string(" is not implemented")}
 
 #include <entt/core/hashed_string.hpp>
+using namespace entt::literals;
 
 namespace std {
    template<typename T1, typename T2>

@@ -60,9 +60,6 @@ set(
    "src/Pikzel/Scene/Model.h"
    "src/Pikzel/Scene/ModelSerializer.h"
    "src/Pikzel/Scene/ModelSerializer.cpp"
-   "vendor/imgui/imgui.cpp"
-   "vendor/imgui/imgui_draw.cpp"
-   "vendor/imgui/imgui_widgets.cpp"
 )
 
 set(
@@ -119,6 +116,7 @@ set(
    "assimp"
    "glfw"
    "glm"
+   "ImGui"
 )
 
 add_library(
@@ -228,6 +226,7 @@ add_library(
    "src/Pikzel/ImGui/ImGuiEx.cpp"
    "vendor/imgui/imgui.cpp"
    "vendor/imgui/imgui_draw.cpp"
+   "vendor/imgui/imgui_tables.cpp"
    "vendor/imgui/imgui_widgets.cpp"
 )
 
@@ -317,7 +316,7 @@ target_precompile_headers(
    <glm/glm.hpp>
 )
 
-# no precompiled header for ImGui or GLAD
+# no precompiled header for GLAD
 set_source_files_properties(
    "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
    PROPERTIES
