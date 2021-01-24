@@ -164,14 +164,31 @@ namespace Pikzel {
    }
 
 
+   uint32_t VulkanTexture::GetMIPLevels() const {
+      return m_Image->GetMIPLevels();
+   }
+
+
    TextureFormat VulkanTexture::GetFormat() const {
       return VkFormatToTextureFormat(m_Image->GetVkFormat());
    }
 
 
-   void VulkanTexture::GenerateMipmap() {
-      m_Image->TransitionImageLayout(vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal);
-      m_Image->GenerateMipmap();
+   void VulkanTexture::Commit(const bool generateMipmap) {
+      if (generateMipmap) {
+         m_Device->PipelineBarrier(
+            vk::PipelineStageFlagBits::eAllCommands,
+            vk::PipelineStageFlagBits::eTransfer,
+            m_Image->Barrier(vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal, 0, 0, 0, 0)
+         );
+         m_Image->GenerateMipmap();
+      } else {
+         m_Device->PipelineBarrier(
+            vk::PipelineStageFlagBits::eAllCommands,
+            vk::PipelineStageFlagBits::eFragmentShader,
+            m_Image->Barrier(vk::ImageLayout::eGeneral, vk::ImageLayout::eShaderReadOnlyOptimal, 0, 0, 0, 0)
+         );
+      }
    }
 
 
@@ -180,13 +197,69 @@ namespace Pikzel {
    }
 
 
-   vk::Sampler VulkanTexture::GetVkSampler() const {
-      return m_TextureSampler;
-   }
+   void VulkanTexture::CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings) {
+      if (GetType() != srcTexture.GetType()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same type!")};
+      }
+      if (GetFormat() != srcTexture.GetFormat()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same format!")};
+      }
+      if (settings.srcMipLevel >= srcTexture.GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested mip level!")};
+      }
+      if (settings.dstMipLevel >= GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
+      }
 
+      uint32_t layerCount = settings.layerCount == 0 ? srcTexture.GetLayers() : settings.layerCount;
+      if (settings.srcLayer + layerCount > srcTexture.GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested layer!")};
+      }
+      if (settings.dstLayer + layerCount > GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested layer!")};
+      }
 
-   vk::ImageView VulkanTexture::GetVkImageView() const {
-      return m_Image->GetVkImageView();
+      uint32_t width = settings.width == 0 ? srcTexture.GetWidth() / (1 << settings.srcMipLevel) : settings.width;
+      uint32_t height = settings.height == 0 ? srcTexture.GetHeight() / (1 << settings.srcMipLevel) : settings.height;
+
+      if (width > GetWidth() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested width is larger than destination texture width!")};
+      }
+      if (height > GetHeight() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested height is larger than destination texture height!")};
+      }
+
+      vk::ImageCopy region = {
+         {
+            IsDepthFormat(srcTexture.GetFormat())? vk::ImageAspectFlagBits::eDepth : vk::ImageAspectFlagBits::eColor,
+            settings.srcMipLevel,
+            settings.srcLayer,
+            layerCount
+         } /*srcSubresource*/,
+         {
+            settings.srcX,
+            settings.srcY,
+            settings.srcZ
+         } /*srcOffset*/,
+         {
+            IsDepthFormat(GetFormat()) ? vk::ImageAspectFlagBits::eDepth : vk::ImageAspectFlagBits::eColor,
+            settings.dstMipLevel,
+            settings.dstLayer,
+            layerCount
+         } /*dstSubresource*/,
+         {
+            settings.dstX,
+            settings.dstY,
+            settings.dstZ
+         } /*dstOffset*/,
+         {
+            width,
+            height,
+            1  /*depth*/
+         } /*extent*/
+      };
+      VulkanTexture& vulkanTexture = static_cast<VulkanTexture&>(const_cast<Texture&>(srcTexture));
+      m_Image->CopyFromImage(vulkanTexture.GetImage(), region);
    }
 
 
@@ -195,8 +268,29 @@ namespace Pikzel {
    }
 
 
-   void VulkanTexture::TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
-      m_Image->TransitionImageLayout(oldLayout, newLayout);
+   vk::Image VulkanTexture::GetVkImage() const {
+      return m_Image->GetVkImage();
+   }
+
+
+   vk::ImageView VulkanTexture::GetVkImageView() const {
+      return m_Image->GetVkImageView();
+   }
+
+
+   vk::ImageView VulkanTexture::GetVkImageView(const uint32_t mipLevel) const {
+      return m_Image->GetVkImageView(mipLevel);
+   }
+
+
+   vk::Sampler VulkanTexture::GetVkSampler() const {
+      return m_TextureSampler;
+   }
+
+
+   const Pikzel::VulkanImage& VulkanTexture::GetImage() const {
+      PKZL_CORE_ASSERT(m_Image, "Attempted to access null image!");
+      return *m_Image;
    }
 
 
@@ -214,9 +308,13 @@ namespace Pikzel {
          usage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
          vk::MemoryPropertyFlagBits::eDeviceLocal
       );
-      m_Image->CreateImageView(format, aspect);
+      m_Image->CreateImageViews(format, aspect);
       if (usage & vk::ImageUsageFlagBits::eStorage) {
-         m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral);
+         m_Device->PipelineBarrier(
+            vk::PipelineStageFlagBits::eAllCommands,
+            vk::PipelineStageFlagBits::eAllCommands,
+            m_Image->Barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral, 0, 0, 0, 0)
+         );
       }
 
    }
@@ -308,7 +406,11 @@ namespace Pikzel {
    void VulkanTexture2D::SetData(void* data, uint32_t size) {
       VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
       stagingBuffer.CopyFromHost(0, size, data);
-      m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+      m_Device->PipelineBarrier(
+         vk::PipelineStageFlagBits::eTopOfPipe,
+         vk::PipelineStageFlagBits::eTransfer,
+         m_Image->Barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 0, 0, 0, 0)
+      );
       m_Image->CopyFromBuffer(stagingBuffer.m_Buffer);
       m_Image->GenerateMipmap();
    }
@@ -329,7 +431,11 @@ namespace Pikzel {
    void VulkanTexture2DArray::SetData(void* data, const uint32_t size) {
       VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
       stagingBuffer.CopyFromHost(0, size, data);
-      m_Image->TransitionImageLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+      m_Device->PipelineBarrier(
+         vk::PipelineStageFlagBits::eTopOfPipe,
+         vk::PipelineStageFlagBits::eTransfer,
+         m_Image->Barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 0, 0, 0, 0)
+      );
       m_Image->CopyFromBuffer(stagingBuffer.m_Buffer);
       m_Image->GenerateMipmap();
    }
@@ -395,11 +501,11 @@ namespace Pikzel {
       });
       compute->Begin();
       compute->Bind(*pipeline);
-      compute->Bind(*tex2d, "uTexture"_hs);
-      compute->Bind(*this, "outCubeMap"_hs);
+      compute->Bind("uTexture"_hs, *tex2d);
+      compute->Bind("outCubeMap"_hs, *this);
       compute->Dispatch(GetWidth() / 32, GetHeight() / 32, 6);
       compute->End();
-      GenerateMipmap();
+      Commit();
    }
 
 

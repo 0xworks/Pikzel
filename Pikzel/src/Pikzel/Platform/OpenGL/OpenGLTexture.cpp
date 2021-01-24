@@ -47,8 +47,8 @@ namespace Pikzel {
          case TextureFormat::RG32F: return GL_RG;
          case TextureFormat::RGB32F: return GL_RGB;
          case TextureFormat::RGBA32F: return GL_RGBA;
-         case TextureFormat::R8: return GL_R;
-         case TextureFormat::R32F: return GL_R;
+         case TextureFormat::R8: return GL_RED;
+         case TextureFormat::R32F: return GL_RED;
          // no need (yet) to set depth data yourself, so no depth formats here
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
@@ -155,8 +155,15 @@ namespace Pikzel {
    }
 
 
-   void OpenGLTexture::GenerateMipmap() {
-      glGenerateTextureMipmap(m_RendererId);
+   uint32_t OpenGLTexture::GetMIPLevels() const {
+      return m_MIPLevels;
+   }
+
+
+   void OpenGLTexture::Commit(const bool generateMipmap) {
+      if (generateMipmap) {
+         glGenerateTextureMipmap(m_RendererId);
+      }
    }
 
 
@@ -165,7 +172,7 @@ namespace Pikzel {
    }
 
 
-   void OpenGLTexture::SetTextureParameters(const TextureSettings& settings, const uint32_t mipLevels) {
+   void OpenGLTexture::SetTextureParameters(const TextureSettings& settings) {
       static glm::vec4 borderColor = {0.0f, 0.0f, 0.0f, 1.0f};
       TextureFilter minFilter = settings.MinFilter;
       TextureFilter magFilter = settings.MagFilter;
@@ -174,7 +181,7 @@ namespace Pikzel {
       TextureWrap wrapW = settings.WrapW;
 
       if (minFilter == TextureFilter::Undefined) {
-         minFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : mipLevels == 1 ? TextureFilter::Linear : TextureFilter::LinearMipmapLinear;
+         minFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : m_MIPLevels == 1 ? TextureFilter::Linear : TextureFilter::LinearMipmapLinear;
       }
       if (magFilter == TextureFilter::Undefined) {
          magFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : TextureFilter::Linear;
@@ -207,30 +214,30 @@ namespace Pikzel {
    OpenGLTexture2D::OpenGLTexture2D(const TextureSettings& settings)
    : m_Path {settings.Path}
    {
-      uint32_t levels = settings.MIPLevels;
+      m_MIPLevels = settings.MIPLevels;
       if (m_Path.empty()) {
          m_Width = settings.Width;
          m_Height = settings.Height;
          m_Format = settings.Format;
-         if (levels == 0) {
-            levels = CalculateMipmapLevels(m_Width, m_Height);
+         if (m_MIPLevels == 0) {
+            m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
          }
 
          glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
-         glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
+         glTextureStorage2D(m_RendererId, m_MIPLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
       } else {
          stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &m_Width, &m_Height, &m_Format);
-         if (levels == 0) {
-            levels = CalculateMipmapLevels(m_Width, m_Height);
+         if (m_MIPLevels == 0) {
+            m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
          }
 
          glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
-         glTextureStorage2D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
+         glTextureStorage2D(m_RendererId, m_MIPLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
          glTextureSubImage2D(m_RendererId, 0, 0, 0, m_Width, m_Height, TextureFormatToDataFormat(m_Format), TextureFormatToDataType(m_Format), data);
-         GenerateMipmap();
+         Commit();
          stbi_image_free(data);
       }
-      SetTextureParameters(settings, levels);
+      SetTextureParameters(settings);
    }
 
 
@@ -250,6 +257,50 @@ namespace Pikzel {
    }
 
 
+   void OpenGLTexture2D::CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings) {
+      if (GetType() != srcTexture.GetType()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same type!")};
+      }
+      if (GetFormat() != srcTexture.GetFormat()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same format!")};
+      }
+      if (settings.srcMipLevel >= srcTexture.GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested mip level!")};
+      }
+      if (settings.dstMipLevel >= GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
+      }
+
+      uint32_t layerCount = settings.layerCount == 0? srcTexture.GetLayers() : settings.layerCount;
+      if (settings.srcLayer + layerCount > srcTexture.GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested layer!")};
+      }
+      if (settings.dstLayer + layerCount > GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested layer!")};
+      }
+
+      uint32_t width = settings.width == 0 ? srcTexture.GetWidth() / (1 << settings.srcMipLevel) : settings.width;
+      uint32_t height = settings.height == 0 ? srcTexture.GetHeight() / (1 << settings.srcMipLevel) : settings.height;
+
+      if (width > GetWidth() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested width is larger than destination texture width!")};
+      }
+      if (height > GetHeight() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested height is larger than destination texture height!")};
+      }
+
+      glCopyImageSubData(
+         static_cast<const OpenGLTexture&>(srcTexture).GetRendererId(),
+         GL_TEXTURE_2D,
+         settings.srcMipLevel, settings.srcX, settings.srcY, settings.srcLayer,
+         GetRendererId(),
+         GL_TEXTURE_2D,
+         settings.dstMipLevel, settings.dstX, settings.dstY, settings.dstLayer,
+         width, height, layerCount
+      );
+   }
+
+
    OpenGLTexture2DArray::OpenGLTexture2DArray(const TextureSettings& settings)
    : m_Layers {settings.Layers}
    {
@@ -257,12 +308,12 @@ namespace Pikzel {
       m_Height = settings.Height;
       m_Format = settings.Format;
       glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_RendererId);
-      uint32_t levels = settings.MIPLevels;
-      if (levels == 0) {
-         levels = CalculateMipmapLevels(m_Width, m_Height);
+      m_MIPLevels = settings.MIPLevels;
+      if (m_MIPLevels == 0) {
+         m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
       }
-      glTextureStorage3D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers);
-      SetTextureParameters(settings, levels);
+      glTextureStorage3D(m_RendererId, m_MIPLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers);
+      SetTextureParameters(settings);
    }
 
 
@@ -282,19 +333,62 @@ namespace Pikzel {
    }
 
 
+   void OpenGLTexture2DArray::CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings) {
+      if (GetType() != srcTexture.GetType()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same type!")};
+      }
+      if (GetFormat() != srcTexture.GetFormat()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same format!")};
+      }
+      if (settings.srcMipLevel >= srcTexture.GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested mip level!")};
+      }
+      if (settings.dstMipLevel >= GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
+      }
+
+      uint32_t layerCount = settings.layerCount == 0 ? srcTexture.GetLayers() : settings.layerCount;
+      if (settings.srcLayer + layerCount > srcTexture.GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested layer!")};
+      }
+      if (settings.dstLayer + layerCount > GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested layer!")};
+      }
+
+      uint32_t width = settings.width == 0 ? srcTexture.GetWidth() / (1 << settings.srcMipLevel) : settings.width;
+      uint32_t height = settings.height == 0 ? srcTexture.GetHeight() / (1 << settings.srcMipLevel) : settings.height;
+
+      if (width > GetWidth() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested width is larger than destination texture width!")};
+      }
+      if (height > GetHeight() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested height is larger than destination texture height!")};
+      }
+
+      glCopyImageSubData(
+         static_cast<const OpenGLTexture&>(srcTexture).GetRendererId(),
+         GL_TEXTURE_2D_ARRAY,
+         settings.srcMipLevel, settings.srcX, settings.srcY, settings.srcLayer,
+         GetRendererId(),
+         GL_TEXTURE_2D_ARRAY,
+         settings.dstMipLevel, settings.dstX, settings.dstY, settings.dstLayer,
+         width, height, layerCount
+      );
+   }
+
    OpenGLTextureCube::OpenGLTextureCube(const TextureSettings& settings)
    : m_Path(settings.Path)
    , m_DataFormat {TextureFormat::Undefined}
    {
-      uint32_t levels = settings.MIPLevels;
+      m_MIPLevels = settings.MIPLevels;
       if (m_Path.empty()) {
          m_Width = settings.Width;
          m_Height = settings.Height;
          m_Format = settings.Format;
-         if (levels == 0) {
-            levels = CalculateMipmapLevels(m_Width, m_Height);
+         if (m_MIPLevels == 0) {
+            m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
          }
-         AllocateStorage(levels);
+         AllocateStorage();
       } else {
          m_Format = TextureFormat::RGBA16F;
          uint32_t width;
@@ -311,14 +405,14 @@ namespace Pikzel {
             m_Width = width / 4;
             m_Height = m_Width;
          }
-         if (levels == 0) {
-            levels = CalculateMipmapLevels(m_Width, m_Height);
+         if (m_MIPLevels == 0) {
+            m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
          }
-         AllocateStorage(levels);
+         AllocateStorage();
          SetData(data, width * height * BPP(m_DataFormat));
          stbi_image_free(data);
       }
-      SetTextureParameters(settings, levels);
+      SetTextureParameters(settings);
    }
 
 
@@ -360,21 +454,65 @@ namespace Pikzel {
 
       compute->Begin();
       compute->Bind(*pipeline);
-      compute->Bind(*tex2d, "uTexture"_hs);
-      compute->Bind(*this, "outCubeMap"_hs);
+      compute->Bind("uTexture"_hs, *tex2d);
+      compute->Bind("outCubeMap"_hs, *this);
       compute->Dispatch(GetWidth() / 32, GetHeight() / 32, 6);
       compute->End();
-      GenerateMipmap();
+      Commit();
    }
 
 
-   void OpenGLTextureCube::AllocateStorage(const uint32_t mipLevels) {
+   void OpenGLTextureCube::CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings) {
+      if (GetType() != srcTexture.GetType()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same type!")};
+      }
+      if (GetFormat() != srcTexture.GetFormat()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same format!")};
+      }
+      if (settings.srcMipLevel >= srcTexture.GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested mip level!")};
+      }
+      if (settings.dstMipLevel >= GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
+      }
+
+      uint32_t layerCount = settings.layerCount == 0 ? srcTexture.GetLayers() : settings.layerCount;
+      if (settings.srcLayer + layerCount > srcTexture.GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested layer!")};
+      }
+      if (settings.dstLayer + layerCount > GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested layer!")};
+      }
+
+      uint32_t width = settings.width == 0 ? srcTexture.GetWidth() / (1 << settings.srcMipLevel) : settings.width;
+      uint32_t height = settings.height == 0 ? srcTexture.GetHeight() / (1 << settings.srcMipLevel) : settings.height;
+
+      if (width > GetWidth() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested width is larger than destination texture width!")};
+      }
+      if (height > GetHeight() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested height is larger than destination texture height!")};
+      }
+
+      glCopyImageSubData(
+         static_cast<const OpenGLTexture&>(srcTexture).GetRendererId(),
+         GL_TEXTURE_CUBE_MAP,
+         settings.srcMipLevel, settings.srcX, settings.srcY, settings.srcLayer,
+         GetRendererId(),
+         GL_TEXTURE_CUBE_MAP,
+         settings.dstMipLevel, settings.dstX, settings.dstY, settings.dstLayer,
+         width, height, layerCount
+      );
+   }
+
+
+   void OpenGLTextureCube::AllocateStorage() {
       if ((GetWidth() % 32)) {
          throw std::runtime_error {"Cube texture size must be a multiple of 32!"};
       }
 
       glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererId);
-      glTextureStorage2D(m_RendererId, mipLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
+      glTextureStorage2D(m_RendererId, m_MIPLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
    }
 
 
@@ -384,9 +522,9 @@ namespace Pikzel {
       m_Width = settings.Width;
       m_Height = settings.Height;
       m_Format = settings.Format;
-      uint32_t levels = settings.MIPLevels;
-      if (levels == 0) {
-         levels = CalculateMipmapLevels(m_Width, m_Height);
+      m_MIPLevels = settings.MIPLevels;
+      if (m_MIPLevels == 0) {
+         m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
       }
 
       if ((GetWidth() % 32)) {
@@ -394,8 +532,8 @@ namespace Pikzel {
       }
 
       glCreateTextures(GL_TEXTURE_CUBE_MAP_ARRAY, 1, &m_RendererId);
-      glTextureStorage3D(m_RendererId, levels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers * 6);
-      SetTextureParameters(settings, levels);
+      glTextureStorage3D(m_RendererId, m_MIPLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height, m_Layers * 6);
+      SetTextureParameters(settings);
    }
 
 
@@ -411,6 +549,49 @@ namespace Pikzel {
 
    void OpenGLTextureCubeArray::SetData(void* data, const uint32_t size) {
       PKZL_NOT_IMPLEMENTED;
+   }
+
+   void OpenGLTextureCubeArray::CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings) {
+      if (GetType() != srcTexture.GetType()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same type!")};
+      }
+      if (GetFormat() != srcTexture.GetFormat()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source and destination textures are not the same format!")};
+      }
+      if (settings.srcMipLevel >= srcTexture.GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested mip level!")};
+      }
+      if (settings.dstMipLevel >= GetMIPLevels()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
+      }
+
+      uint32_t layerCount = settings.layerCount == 0 ? srcTexture.GetLayers() : settings.layerCount;
+      if (settings.srcLayer + layerCount > srcTexture.GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() source texture does not have requested layer!")};
+      }
+      if (settings.dstLayer + layerCount > GetLayers()) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() destination texture does not have requested layer!")};
+      }
+
+      uint32_t width = settings.width == 0 ? srcTexture.GetWidth() / (1 << settings.srcMipLevel) : settings.width;
+      uint32_t height = settings.height == 0 ? srcTexture.GetHeight() / (1 << settings.srcMipLevel) : settings.height;
+
+      if (width > GetWidth() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested width is larger than destination texture width!")};
+      }
+      if (height > GetHeight() / (1 << settings.dstMipLevel)) {
+         throw std::logic_error {fmt::format("Texture::CopyFrom() requested height is larger than destination texture height!")};
+      }
+
+      glCopyImageSubData(
+         static_cast<const OpenGLTexture&>(srcTexture).GetRendererId(),
+         GL_TEXTURE_CUBE_MAP_ARRAY,
+         settings.srcMipLevel, settings.srcX, settings.srcY, settings.srcLayer * 6,
+         GetRendererId(),
+         GL_TEXTURE_CUBE_MAP_ARRAY,
+         settings.dstMipLevel, settings.dstX, settings.dstY, settings.dstLayer * 6,
+         width, height, layerCount * 6
+      );
    }
 
 }

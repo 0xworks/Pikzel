@@ -146,6 +146,27 @@ namespace Pikzel {
    };
 
 
+   struct PKZL_API TextureCopySettings {
+      int32_t srcX = 0;
+      int32_t srcY = 0;
+      int32_t srcZ = 0;
+      uint32_t srcLayer = 0;
+      uint32_t srcMipLevel = 0;
+
+      int32_t dstX = 0;
+      int32_t dstY = 0;
+      int32_t dstZ = 0;
+      uint32_t dstLayer = 0;
+      uint32_t dstMipLevel = 0;
+      
+      uint32_t width = 0;      // 0 means full width
+      uint32_t height = 0;     // 0 means full height
+      uint32_t depth = 0;      // 0 means full depth
+      uint32_t layerCount = 0; // 0 means all layers
+                               // nb: can only copy 1 mip level at a time
+   };
+
+
    class PKZL_API Texture {
    public:
       virtual ~Texture() = default;
@@ -159,9 +180,22 @@ namespace Pikzel {
 
       virtual uint32_t GetLayers() const = 0;
 
+      virtual uint32_t GetMIPLevels() const = 0;
+
       virtual void SetData(void* data, const uint32_t size) = 0;
 
-      virtual void GenerateMipmap() = 0;
+      // See default TextureCopySettings.
+      // By default CopyFrom() will copy the full extent and all array layers of srcTexture, mipLevel 0 into self, mipLevel 0
+      // To copy all miplevels you need multiple calls to CopyFrom()
+      // The srcTexture must be the same type and format as self.
+      // self must have dimensions that are big enough to accommodate the extent of srcTexture that is being copied.
+      // No resizing is done - this is a straight copy.
+      virtual void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) = 0;
+
+      // Textures that are created with .ImageStorage = true need to be Commit()'d before they are able to
+      // be used in shaders. (e.g. in Vulkan, this transitions the image to shader_read_only)
+      // Mipmap levels can optionally also be automatically generated at this point.
+      virtual void Commit(const bool generateMipmap = true) = 0;
 
       virtual bool operator==(const Texture& that) = 0;
 
@@ -173,17 +207,21 @@ namespace Pikzel {
 
    inline uint32_t Texture::BPP(const TextureFormat format) {
       switch (format) {
-         case TextureFormat::RGB8: return 3;
-         case TextureFormat::RGBA8: return 4;
-         case TextureFormat::SRGB8: return 3;
-         case TextureFormat::SRGBA8: return 4;
+         case TextureFormat::R8:      return 1;
+         case TextureFormat::R32F:    return 4;
+         case TextureFormat::RG16F:   return 4;
+         case TextureFormat::RG32F:   return 8;
+         case TextureFormat::RGB8:    return 3;
+         case TextureFormat::RGBA8:   return 4;
+         case TextureFormat::SRGB8:   return 3;
+         case TextureFormat::SRGBA8:  return 4;
          case TextureFormat::RGB16F:  return 6;
          case TextureFormat::RGBA16F: return 8;
-         case TextureFormat::RGB32F: return 12;
+         case TextureFormat::RGB32F:  return 12;
          case TextureFormat::RGBA32F: return 16;
-         case TextureFormat::BGR8: return 3; // warning: with Vulkan back-end this format is actually 4 bytes
-         case TextureFormat::BGRA8: return 4;
-         default: return 0;
+         case TextureFormat::BGR8:    return 3; // warning: with Vulkan back-end this format is actually 4 bytes
+         case TextureFormat::BGRA8:   return 4;
+         default: PKZL_CORE_ASSERT(false, "Unknown texture format!"); return 0;
       }
    }
 

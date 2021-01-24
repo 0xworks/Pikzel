@@ -17,7 +17,7 @@ namespace Pikzel {
    void OpenGLComputeContext::End() {}
 
 
-   void OpenGLComputeContext::Bind(const UniformBuffer& buffer, const entt::id_type resourceId) {
+   void OpenGLComputeContext::Bind(const entt::id_type resourceId, const UniformBuffer& buffer) {
       glBindBufferBase(GL_UNIFORM_BUFFER, m_Pipeline->GetUniformBufferBinding(resourceId), static_cast<const OpenGLUniformBuffer&>(buffer).GetRendererId());
    }
 
@@ -25,14 +25,14 @@ namespace Pikzel {
    void OpenGLComputeContext::Unbind(const UniformBuffer&) {}
 
 
-   void OpenGLComputeContext::Bind(const Texture& texture, const entt::id_type resourceId) {
+   void OpenGLComputeContext::Bind(const entt::id_type resourceId, const Texture& texture, const uint32_t mipLevel) {
       GLuint samplerBinding = m_Pipeline->GetSamplerBinding(resourceId, false);
       if (samplerBinding != ~0) {
          glBindTextureUnit(samplerBinding, static_cast<const OpenGLTexture&>(texture).GetRendererId());
       } else {
          GLuint storageImageBinding = m_Pipeline->GetStorageImageBinding(resourceId, false);
          if (storageImageBinding != ~0) {
-            glBindImageTexture(storageImageBinding, static_cast<const OpenGLTexture&>(texture).GetRendererId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, TextureFormatToInternalFormat(texture.GetFormat()));
+            glBindImageTexture(storageImageBinding, static_cast<const OpenGLTexture&>(texture).GetRendererId(), mipLevel, GL_TRUE, 0, GL_WRITE_ONLY, TextureFormatToInternalFormat(texture.GetFormat()));
          } else {
             throw std::invalid_argument {fmt::format("OpenGLComputeContext::Bind(const Texture&) failed to find binding with id {0}!", resourceId)};
          }

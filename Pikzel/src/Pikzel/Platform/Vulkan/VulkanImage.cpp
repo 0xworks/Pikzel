@@ -100,24 +100,19 @@ namespace Pikzel {
 
 
    VulkanImage::~VulkanImage() {
-      if (m_Device) {
-         if (m_ImageView) {
-            m_Device->GetVkDevice().destroy(m_ImageView);
-            m_ImageView = nullptr;
+      DestroyImageViews();
+      if (m_Device && m_Memory) {
+         //
+         // only destroy the image if it has some memory
+         // i.e. we allocated the image, so we destroy it.
+         // as opposed to images that were created (and are destroyed) by
+         // the swap chain.
+         if (m_Image) {
+            m_Device->GetVkDevice().destroy(m_Image);
+            m_Image = nullptr;
          }
-         if (m_Memory) {
-            //
-            // only destroy the image if it has some memory
-            // i.e. we allocated the image, so we destroy it.
-            // as opposed to images that were created (and are destroyed) by
-            // the swap chain.
-            if (m_Image) {
-               m_Device->GetVkDevice().destroy(m_Image);
-               m_Image = nullptr;
-            }
-            m_Device->GetVkDevice().freeMemory(m_Memory);
-            m_Memory = nullptr;
-         }
+         m_Device->GetVkDevice().freeMemory(m_Memory);
+         m_Memory = nullptr;
       }
    }
 
@@ -157,8 +152,8 @@ namespace Pikzel {
    }
 
 
-   void VulkanImage::CreateImageView(const vk::Format format, const vk::ImageAspectFlags imageAspect) {
-      m_ImageView = m_Device->GetVkDevice().createImageView({
+   void VulkanImage::CreateImageViews(const vk::Format format, const vk::ImageAspectFlags imageAspect) {
+      vk::ImageViewCreateInfo ci = {
          {}            /*flags*/,
          m_Image       /*image*/,
          m_Type        /*viewType*/,
@@ -171,14 +166,26 @@ namespace Pikzel {
             0             /*baseArrayLevel*/,
             m_Layers      /*layerCount*/
          }             /*subresourceRange*/
-      });
+      };
+      m_ImageView = m_Device->GetVkDevice().createImageView(ci);
+      ci.subresourceRange.setLevelCount(1);
+      for (uint32_t level = 0; level < m_MIPLevels; ++level) {
+         ci.subresourceRange.setBaseMipLevel(level);
+         m_MIPImageViews.emplace_back(m_Device->GetVkDevice().createImageView(ci));
+      }
    }
 
 
-   void VulkanImage::DestroyImageView() {
-      if (m_Device && m_ImageView) {
-         m_Device->GetVkDevice().destroy(m_ImageView);
-         m_ImageView = nullptr;
+   void VulkanImage::DestroyImageViews() {
+      if (m_Device) {
+         for (auto& imageView : m_MIPImageViews) {
+            m_Device->GetVkDevice().destroy(imageView);
+         }
+         m_MIPImageViews.clear();
+         if (m_ImageView) {
+            m_Device->GetVkDevice().destroy(m_ImageView);
+            m_ImageView = nullptr;
+         }
       }
    }
 
@@ -188,79 +195,133 @@ namespace Pikzel {
    }
 
 
-   void VulkanImage::TransitionImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout) {
-      m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this, oldLayout, newLayout] (vk::CommandBuffer cmd) {
-         vk::ImageMemoryBarrier barrier = {
-            {}                                  /*srcAccessMask*/,
-            {}                                  /*dstAccessMask*/,
-            oldLayout                           /*oldLayout*/,
-            newLayout                           /*newLayout*/,
-            VK_QUEUE_FAMILY_IGNORED             /*srcQueueFamilyIndex*/,
-            VK_QUEUE_FAMILY_IGNORED             /*dstQueueFamilyIndex*/,
-            m_Image                             /*image*/,
-            {
-               vk::ImageAspectFlagBits::eColor     /*aspectMask*/,
-               0                                   /*baseMipLevel*/,
-               m_MIPLevels                         /*levelCount*/,
-               0                                   /*baseArrayLayer*/,
-               m_Layers                            /*layerCount*/
-            }                                   /*subresourceRange*/
-         };
+   vk::ImageView VulkanImage::GetVkImageView(const uint32_t mipLevel) const {
+      PKZL_CORE_ASSERT(mipLevel < m_MIPImageViews.size(), "Attempted to access image view for invalid mip level!");
+      return m_MIPImageViews[mipLevel];
+   }
 
-         if (
-            (m_Format == vk::Format::eD32Sfloat) ||
-            (m_Format == vk::Format::eD16Unorm)
-         ) {
+
+   vk::ImageMemoryBarrier VulkanImage::Barrier(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout, uint32_t baseMipLevel, uint32_t levelCount, uint32_t baseArrayLayer, uint32_t layerCount) const {
+      vk::ImageMemoryBarrier barrier = {
+         {}                                  /*srcAccessMask*/,
+         {}                                  /*dstAccessMask*/,
+         oldLayout                           /*oldLayout*/,
+         newLayout                           /*newLayout*/,
+         VK_QUEUE_FAMILY_IGNORED             /*srcQueueFamilyIndex*/,
+         VK_QUEUE_FAMILY_IGNORED             /*dstQueueFamilyIndex*/,
+         m_Image                             /*image*/,
+         {
+            vk::ImageAspectFlagBits::eColor          /*aspectMask*/,
+            baseMipLevel                             /*baseMipLevel*/,
+            levelCount == 0? m_MIPLevels: levelCount /*levelCount*/,
+            baseArrayLayer                           /*baseArrayLayer*/,
+            layerCount == 0? m_Layers : layerCount   /*layerCount*/
+         }                                   /*subresourceRange*/
+      };
+
+      switch (m_Format) {
+         case vk::Format::eD32Sfloat:
+         case vk::Format::eD16Unorm:
             barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
-         } else if(
-            (m_Format == vk::Format::eD32SfloatS8Uint) ||
-            (m_Format == vk::Format::eD24UnormS8Uint) ||
-            (m_Format == vk::Format::eD16UnormS8Uint)
-         ) {
+            break;
+         case vk::Format::eD32SfloatS8Uint:
+         case vk::Format::eD24UnormS8Uint:
+         case vk::Format::eD16UnormS8Uint:
             barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-         } else if (m_Format == vk::Format::eS8Uint) {
+            break;
+         case vk::Format::eS8Uint:
             barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eStencil;
-         }
+            break;
+      }
 
-         vk::PipelineStageFlags sourceStage;
-         vk::PipelineStageFlags destinationStage;
+      switch (oldLayout) {
+         case vk::ImageLayout::eUndefined:
+            switch (newLayout) {
+               case vk::ImageLayout::eTransferDstOptimal:
+                  barrier.srcAccessMask = {};
+                  barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+                  break;
+               case vk::ImageLayout::eDepthAttachmentOptimal:
+                  barrier.srcAccessMask = {};
+                  barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+                  break;
+               case vk::ImageLayout::eGeneral:
+                  barrier.srcAccessMask = {};
+                  barrier.dstAccessMask = {};
+                  break;
+               default:
+                  PKZL_CORE_ASSERT(false, "unsupported layout transition!");
+            }
+            break;
 
-         if (oldLayout == (vk::ImageLayout::eUndefined) && (newLayout == vk::ImageLayout::eTransferDstOptimal)) {
-            barrier.srcAccessMask = {};
-            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-            sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
-            destinationStage = vk::PipelineStageFlagBits::eTransfer;
-         } else if ((oldLayout == vk::ImageLayout::eUndefined) && (newLayout == vk::ImageLayout::eGeneral)) {
-            barrier.srcAccessMask = {};
-            barrier.dstAccessMask = {};
-            sourceStage = vk::PipelineStageFlagBits::eAllCommands;
-            destinationStage = vk::PipelineStageFlagBits::eAllCommands;
-         } else if ((oldLayout == vk::ImageLayout::eGeneral) && (newLayout == vk::ImageLayout::eTransferDstOptimal)) {
-            barrier.srcAccessMask = {};
-            barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-            sourceStage = vk::PipelineStageFlagBits::eAllCommands;
-            destinationStage = vk::PipelineStageFlagBits::eTransfer;
-         }  else if ((oldLayout == vk::ImageLayout::eTransferDstOptimal) && (newLayout == vk::ImageLayout::eShaderReadOnlyOptimal)) {
-            barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-            sourceStage = vk::PipelineStageFlagBits::eTransfer;
-            destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
-         } else if ((oldLayout == vk::ImageLayout::eUndefined) && (newLayout == vk::ImageLayout::eDepthAttachmentOptimal)) {
-            barrier.srcAccessMask = {};
-            barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-            sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
-            destinationStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-         } else if ((oldLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) && (newLayout == vk::ImageLayout::eShaderReadOnlyOptimal)) {
-            barrier.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-            barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-            sourceStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
-         } else {
-            throw std::invalid_argument("unsupported layout transition!");
-         }
+         case vk::ImageLayout::eGeneral:
+            switch (newLayout) {
+               case vk::ImageLayout::eTransferDstOptimal:
+                  barrier.srcAccessMask = {};
+                  barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+                  break;
+               case vk::ImageLayout::eShaderReadOnlyOptimal:
+                  barrier.srcAccessMask = {};
+                  barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+                  break;
+               default:
+                  PKZL_CORE_ASSERT(false, "unsupported layout transition!");
+            }
+            break;
 
-         cmd.pipelineBarrier(sourceStage, destinationStage, {}, nullptr, nullptr, barrier);
-      });
+         case vk::ImageLayout::eTransferSrcOptimal:
+            switch (newLayout) {
+               case vk::ImageLayout::eShaderReadOnlyOptimal:
+                  barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+                  barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+                  break;
+               default:
+                  PKZL_CORE_ASSERT(false, "unsupported layout transition!");
+            }
+            break;
+
+         case vk::ImageLayout::eTransferDstOptimal:
+            switch (newLayout) {
+               case vk::ImageLayout::eShaderReadOnlyOptimal:
+                  barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+                  barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+                  break;
+               case vk::ImageLayout::eGeneral:
+                  barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+                  barrier.dstAccessMask = {};
+                  break;
+               default:
+                  PKZL_CORE_ASSERT(false, "unsupported layout transition!");
+            }
+            break;
+
+         case vk::ImageLayout::eDepthStencilAttachmentOptimal:
+            switch (newLayout) {
+               case vk::ImageLayout::eShaderReadOnlyOptimal:
+                  barrier.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+                  barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+                  break;
+               default:
+                  PKZL_CORE_ASSERT(false, "unsupported layout transition!");
+            }
+            break;
+
+         case vk::ImageLayout::eShaderReadOnlyOptimal:
+            switch (newLayout) {
+               case vk::ImageLayout::eTransferSrcOptimal:
+                  barrier.srcAccessMask = {};
+                  barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+                  break;
+               default:
+                  PKZL_CORE_ASSERT(false, "unsupported layout transition!");
+            }
+            break;
+
+         default:
+            PKZL_CORE_ASSERT(false, "unsupported layout transition!");
+      }
+
+      return barrier;
    }
 
 
@@ -281,6 +342,26 @@ namespace Pikzel {
          };
          cmd.copyBufferToImage(buffer, m_Image, vk::ImageLayout::eTransferDstOptimal, region);
       });
+   }
+
+
+   void VulkanImage::CopyFromImage(const VulkanImage& image, const vk::ImageCopy& region) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [this, &image, &region] (vk::CommandBuffer cmd) {
+         std::array<vk::ImageMemoryBarrier, 2> beforeCopyBarriers = {
+            image.Barrier(vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eTransferSrcOptimal, region.srcSubresource.mipLevel, 1, region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount),
+            Barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, region.dstSubresource.mipLevel, 1, region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount)
+         };
+
+         std::array<vk::ImageMemoryBarrier, 2> afterCopyBarriers = {
+            image.Barrier(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, region.srcSubresource.mipLevel, 1, region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount),
+            Barrier(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral, region.dstSubresource.mipLevel, 1, region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount)
+         };
+
+         cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer, {}, nullptr, nullptr, beforeCopyBarriers);
+         cmd.copyImage(image.GetVkImage(), vk::ImageLayout::eTransferSrcOptimal, m_Image, vk::ImageLayout::eTransferDstOptimal, region);
+         cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eFragmentShader, {}, nullptr, nullptr, afterCopyBarriers);
+      });
+
    }
 
 

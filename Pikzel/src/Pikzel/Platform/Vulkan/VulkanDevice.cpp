@@ -269,4 +269,11 @@ namespace Pikzel {
       m_Device.freeCommandBuffers(m_CommandPool, commandBuffers);
    }
 
+
+   void VulkanDevice::PipelineBarrier(vk::PipelineStageFlags srcStageMask, vk::PipelineStageFlags dstStageMask, const vk::ArrayProxy<const vk::ImageMemoryBarrier>& barriers) {
+      // TODO: which queue should this be?
+      SubmitSingleTimeCommands(m_GraphicsQueue, [this, srcStageMask, dstStageMask, &barriers] (vk::CommandBuffer cmd) {
+         cmd.pipelineBarrier(srcStageMask, dstStageMask, {}, nullptr, nullptr, barriers);
+      });
+   }
 }

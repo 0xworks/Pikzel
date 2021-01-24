@@ -19,8 +19,9 @@ namespace Pikzel {
 
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
+      virtual uint32_t GetMIPLevels() const override;
 
-      virtual void GenerateMipmap() override;
+      virtual void Commit(const bool generateMipmap = true) override;
 
       bool operator==(const Texture& that) override;
 
@@ -28,12 +29,13 @@ namespace Pikzel {
       uint32_t GetRendererId() const;
 
    protected:
-      void SetTextureParameters(const TextureSettings& settings, const uint32_t mipLevels);
+      void SetTextureParameters(const TextureSettings& settings);
 
    protected:
       TextureFormat m_Format = {};
       uint32_t m_Width = {};
       uint32_t m_Height = {};
+      uint32_t m_MIPLevels = {};
       uint32_t m_RendererId = {};
    };
 
@@ -47,6 +49,8 @@ namespace Pikzel {
       virtual uint32_t GetLayers() const override;
 
       virtual void SetData(void* data, const uint32_t size) override;
+
+      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
 
    private:
       std::filesystem::path m_Path;
@@ -62,6 +66,8 @@ namespace Pikzel {
       virtual uint32_t GetLayers() const override;
 
       virtual void SetData(void* data, const uint32_t size) override;
+
+      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
 
    private:
       uint32_t m_Layers = {};
@@ -79,8 +85,10 @@ namespace Pikzel {
 
       virtual void SetData(void* data, const uint32_t size) override;
 
+      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
+
    private:
-      void AllocateStorage(const uint32_t mipLevels);
+      void AllocateStorage();
 
    private:
       std::filesystem::path m_Path;
@@ -97,6 +105,8 @@ namespace Pikzel {
       virtual uint32_t GetLayers() const override;
 
       virtual void SetData(void* data, const uint32_t size) override;
+
+      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
 
    private:
       uint32_t m_Layers = {};

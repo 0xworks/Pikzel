@@ -12,6 +12,17 @@ namespace Pikzel {
 
       std::unordered_map<std::string, std::shared_ptr<Texture>> g_TextureCache;
 
+      const uint32_t g_AssimpProcessFlags =
+         aiProcess_Triangulate |
+         aiProcess_JoinIdenticalVertices |
+         aiProcess_GenNormals |
+         aiProcess_GenUVCoords |
+         aiProcess_CalcTangentSpace |
+         aiProcess_OptimizeMeshes |
+         aiProcess_ValidateDataStructure
+      ;
+
+
       std::shared_ptr<Texture> LoadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::filesystem::path& modelDir) {
 
          // for now we support only 0 or 1 texture  TODO: make better
@@ -130,7 +141,7 @@ namespace Pikzel {
          std::unique_ptr model = std::make_unique<Model>();
 
          Assimp::Importer importer;
-         const aiScene* scene = importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+         const aiScene* scene = importer.ReadFile(path.string(), g_AssimpProcessFlags);
 
          if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             throw std::runtime_error {fmt::format("Error when importing model '{0}': {1}", path.string(), importer.GetErrorString())};

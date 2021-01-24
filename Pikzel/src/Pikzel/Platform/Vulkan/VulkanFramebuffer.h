@@ -36,8 +36,6 @@ namespace Pikzel {
       vk::Framebuffer GetVkFramebuffer() const;
       std::vector<vk::AttachmentDescription2>& GetVkAttachments();
 
-      void TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout);
-
    private:
       void CreateAttachments();
       void DestroyAttachments();
