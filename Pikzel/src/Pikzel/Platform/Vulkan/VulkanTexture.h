@@ -21,19 +21,24 @@ namespace Pikzel {
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
       virtual uint32_t GetLayers() const override;
+      virtual uint32_t GetMIPLevels() const override;
 
       virtual TextureFormat GetFormat() const override;
 
-      virtual void GenerateMipmap() override;
+      virtual void Commit(const bool generateMipmap = true) override;
 
       virtual bool operator==(const Texture& that) override;
 
-   public:
-      vk::Sampler GetVkSampler() const;
-      vk::ImageView GetVkImageView() const;
-      vk::Format GetVkFormat() const;
+      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
 
-      void TransitionImageLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+   public:
+      vk::Format GetVkFormat() const;
+      vk::Image GetVkImage() const;
+      vk::ImageView GetVkImageView() const;
+      vk::ImageView GetVkImageView(const uint32_t mipLevel) const;
+      vk::Sampler GetVkSampler() const;
+
+      const VulkanImage& GetImage() const;
 
    protected:
       void CreateImage(const vk::ImageViewType type, const uint32_t width, const uint32_t height, const uint32_t layers, const uint32_t mipLevels, const vk::Format format, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect);

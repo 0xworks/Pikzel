@@ -1184,7 +1184,7 @@ namespace Pikzel {
    void VulkanWindowGC::CreateColorImage() {
       if (m_SampleCount != vk::SampleCountFlagBits::e1) {
          m_ColorImage = std::make_unique<VulkanImage>(m_Device, vk::ImageViewType::e2D, m_Extent.width, m_Extent.height, 1, 1, m_SampleCount, m_Format, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
-         m_ColorImage->CreateImageView(m_Format, vk::ImageAspectFlagBits::eColor);
+         m_ColorImage->CreateImageViews(m_Format, vk::ImageAspectFlagBits::eColor);
       }
    }
 
@@ -1202,7 +1202,7 @@ namespace Pikzel {
          vk::FormatFeatureFlagBits::eDepthStencilAttachment
       );
       m_DepthImage = std::make_unique<VulkanImage>(m_Device, vk::ImageViewType::e2D, m_Extent.width, m_Extent.height, 1, 1, m_SampleCount, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
-      m_DepthImage->CreateImageView(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
+      m_DepthImage->CreateImageViews(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
    }
 
 
@@ -1213,7 +1213,7 @@ namespace Pikzel {
 
    void VulkanWindowGC::CreateImageViews() {
       for (auto& image : m_SwapChainImages) {
-         image.CreateImageView(m_Format, vk::ImageAspectFlagBits::eColor);
+         image.CreateImageViews(m_Format, vk::ImageAspectFlagBits::eColor);
       }
    }
 
@@ -1221,7 +1221,7 @@ namespace Pikzel {
    void VulkanWindowGC::DestroyImageViews() {
       if (m_Device) {
          for (auto& image : m_SwapChainImages) {
-            image.DestroyImageView();
+            image.DestroyImageViews();
          }
       }
    }
@@ -1522,7 +1522,13 @@ namespace Pikzel {
       // with render sub-passes instead.
       // TODO: subpasses
       if(m_Framebuffer->HasDepthAttachment()) {
-         m_Framebuffer->TransitionDepthImageLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+         const auto& depthTexture = static_cast<const VulkanTexture&>(m_Framebuffer->GetDepthTexture());
+         m_Device->PipelineBarrier(
+            vk::PipelineStageFlagBits::eEarlyFragmentTests,
+            vk::PipelineStageFlagBits::eFragmentShader,
+            depthTexture.GetImage().Barrier(vk::ImageLayout::eDepthStencilAttachmentOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 0, 0, 0, 0)
+         );
+
       }
    }
 

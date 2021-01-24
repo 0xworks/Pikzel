@@ -26,13 +26,15 @@ namespace Pikzel {
       uint32_t GetMIPLevels() const;
       uint32_t GetLayers() const;
 
-      void CreateImageView(const vk::Format format, const vk::ImageAspectFlags imageAspect);
-      void DestroyImageView();
+      void CreateImageViews(const vk::Format format, const vk::ImageAspectFlags imageAspect);
+      void DestroyImageViews();
       vk::ImageView GetVkImageView() const;
+      vk::ImageView GetVkImageView(const uint32_t mipLevel) const;
 
-      void TransitionImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout);
+      vk::ImageMemoryBarrier Barrier(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout, uint32_t baseMipLevel, uint32_t levelCount, uint32_t baseArrayLayer, uint32_t layerCount) const;
 
       void CopyFromBuffer(vk::Buffer buffer); // TODO: offsets
+      void CopyFromImage(const VulkanImage& image, const vk::ImageCopy& region);
 
       void GenerateMipmap();
 
@@ -49,7 +51,8 @@ namespace Pikzel {
       vk::Image m_Image;
       vk::DeviceMemory m_Memory;
 
-      vk::ImageView m_ImageView;
+      vk::ImageView m_ImageView;                    // all mip levels
+      std::vector<vk::ImageView> m_MIPImageViews;   // individual mip levels
    };
 
 }

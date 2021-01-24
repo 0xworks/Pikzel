@@ -63,11 +63,13 @@ namespace Pikzel {
       // mark descriptors as not-bound (they might still be in use in some previously submitted frame (check fences)
       void UnbindDescriptorSets();
 
+      vk::Pipeline GetVkPipelineCompute() const;
+
       // TODO: tidy this. It would be better to have just one GetVkPipeline()
       //       but need extended dynamic state for that...
-      vk::Pipeline GetVkPipelineCompute() const;
       vk::Pipeline GetVkPipelineFrontFaceCCW() const;
       vk::Pipeline GetVkPipelineFrontFaceCW() const;
+
       vk::PipelineLayout GetVkPipelineLayout() const;
 
       const VulkanPushConstant& GetPushConstant(const entt::id_type id) const;

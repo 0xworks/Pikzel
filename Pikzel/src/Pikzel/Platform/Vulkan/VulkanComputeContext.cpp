@@ -32,6 +32,7 @@ namespace Pikzel {
 
 
    void VulkanComputeContext::Begin() {
+      m_Device->GetVkDevice().waitForFences(GetFence()->GetVkFence(), true, UINT64_MAX);
       GetVkCommandBuffer().begin({vk::CommandBufferUsageFlagBits::eSimultaneousUse});
    }
 
@@ -47,7 +48,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::Bind(const UniformBuffer& buffer, const entt::id_type resourceId) {
+   void VulkanComputeContext::Bind(const entt::id_type resourceId, const UniformBuffer& buffer) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::DescriptorBufferInfo uniformBufferDescriptor = {
@@ -74,11 +75,11 @@ namespace Pikzel {
    void VulkanComputeContext::Unbind(const UniformBuffer&) {}
 
 
-   void VulkanComputeContext::Bind(const Texture& texture, const entt::id_type resourceId) {
+   void VulkanComputeContext::Bind(const entt::id_type resourceId, const Texture& texture, const uint32_t mipLevel) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::Sampler sampler = static_cast<const VulkanTexture&>(texture).GetVkSampler();
-      vk::ImageView imageView = static_cast<const VulkanTexture&>(texture).GetVkImageView();
+      vk::ImageView imageView = static_cast<const VulkanTexture&>(texture).GetVkImageView(mipLevel);
       vk::DescriptorImageInfo textureImageDescriptor = {
          sampler,
          imageView,

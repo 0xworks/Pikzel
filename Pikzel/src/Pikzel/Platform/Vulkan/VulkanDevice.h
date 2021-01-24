@@ -29,6 +29,8 @@ namespace Pikzel {
 
       void SubmitSingleTimeCommands(vk::Queue queue, const std::function<void(vk::CommandBuffer)>& action);
 
+      void PipelineBarrier(vk::PipelineStageFlags srcStageMask, vk::PipelineStageFlags dstStageMask, const vk::ArrayProxy<const vk::ImageMemoryBarrier>& barriers);
+
    private:
       bool IsPhysicalDeviceSuitable(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
       std::vector<const char*> GetRequiredDeviceExtensions() const;

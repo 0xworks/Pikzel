@@ -126,11 +126,6 @@ namespace Pikzel {
    }
 
 
-   void VulkanFramebuffer::TransitionDepthImageLayout(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout) {
-      static_cast<VulkanTexture*>(m_DepthTexture.get())->TransitionImageLayout(oldLayout, newLayout);
-   }
-
-
    void VulkanFramebuffer::CreateAttachments() {
       bool isMultiSampled = m_Settings.MSAANumSamples > 1;
       vk::SampleCountFlagBits sampleCount = static_cast<vk::SampleCountFlagBits>(GetMSAANumSamples());
@@ -161,7 +156,7 @@ namespace Pikzel {
                         PKZL_CORE_ASSERT(false, "unknown attachment texture type!");
                   }
                   m_MSAAColorImages.emplace_back(std::make_unique<VulkanImage>(m_Device, type, m_Settings.Width, m_Settings.Height, m_Settings.Layers, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal));
-                  m_MSAAColorImages.back()->CreateImageView(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eColor);
+                  m_MSAAColorImages.back()->CreateImageViews(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eColor);
                   m_ImageViews.push_back(m_MSAAColorImages.back()->GetVkImageView());
                   m_Attachments.push_back({
                      {}                                               /*flags*/,
@@ -221,7 +216,7 @@ namespace Pikzel {
                         PKZL_CORE_ASSERT(false, "unknown attachment texture type!");
                   }
                   m_MSAADepthImage = std::make_unique<VulkanImage>(m_Device, type, m_Settings.Width, m_Settings.Height, m_Settings.Layers, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
-                  m_MSAADepthImage->CreateImageView(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eDepth);
+                  m_MSAADepthImage->CreateImageViews(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eDepth);
                   m_ImageViews.push_back(m_MSAADepthImage->GetVkImageView());
                   m_Attachments.push_back({
                      {}                                               /*flags*/,
