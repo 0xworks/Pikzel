@@ -32,7 +32,7 @@ namespace Pikzel {
 
 
    void VulkanComputeContext::Begin() {
-      m_Device->GetVkDevice().waitForFences(GetFence()->GetVkFence(), true, UINT64_MAX);
+      auto result = m_Device->GetVkDevice().waitForFences(GetFence()->GetVkFence(), true, UINT64_MAX);
       GetVkCommandBuffer().begin({vk::CommandBufferUsageFlagBits::eSimultaneousUse});
    }
 
