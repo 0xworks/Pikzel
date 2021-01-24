@@ -29,9 +29,9 @@ namespace Pikzel {
 
 
    void MeshRenderer::Draw(GraphicsContext& gc, const Mesh& mesh) const {
-      gc.Bind(*mesh.DiffuseTexture, "diffuseMap"_hs);
-      gc.Bind(*mesh.SpecularTexture, "specularMap"_hs);
-      gc.Bind(*mesh.NormalTexture, "normalMap"_hs);
+      gc.Bind("diffuseMap"_hs, *mesh.DiffuseTexture);
+      gc.Bind("specularMap"_hs, *mesh.SpecularTexture);
+      gc.Bind("normalMap"_hs, *mesh.NormalTexture);
       gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
    }
 

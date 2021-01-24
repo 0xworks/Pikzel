@@ -44,10 +44,10 @@ public:
       }
       {
          gc.Bind(*m_PipelineLighting);
-         gc.Bind(*m_DiffuseTexture, "diffuseMap"_hs);
-         gc.Bind(*m_SpecularTexture, "specularMap"_hs);
-         gc.Bind(*m_DirectionalLightBuffer, "UBODirectionalLight"_hs);
-         gc.Bind(*m_PointLightBuffer, "UBOPointLights"_hs);
+         gc.Bind("diffuseMap"_hs, *m_DiffuseTexture);
+         gc.Bind("specularMap"_hs, *m_SpecularTexture);
+         gc.Bind("UBODirectionalLight"_hs, *m_DirectionalLightBuffer);
+         gc.Bind("UBOPointLights"_hs, *m_PointLightBuffer);
 
          gc.PushConstant("constants.vp"_hs, projView);
          gc.PushConstant("constants.viewPos"_hs, m_Camera.Position);

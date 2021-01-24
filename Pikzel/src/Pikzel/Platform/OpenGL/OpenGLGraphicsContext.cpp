@@ -67,7 +67,7 @@ namespace Pikzel {
    }
 
 
-   void OpenGLGraphicsContext::Bind(const UniformBuffer& buffer, const entt::id_type resourceId) {
+   void OpenGLGraphicsContext::Bind(const entt::id_type resourceId, const UniformBuffer& buffer) {
       glBindBufferBase(GL_UNIFORM_BUFFER, m_Pipeline->GetUniformBufferBinding(resourceId), static_cast<const OpenGLUniformBuffer&>(buffer).GetRendererId());
    }
 
@@ -75,7 +75,7 @@ namespace Pikzel {
    void OpenGLGraphicsContext::Unbind(const UniformBuffer&) {}
 
 
-   void OpenGLGraphicsContext::Bind(const Texture& texture, const entt::id_type resourceId) {
+   void OpenGLGraphicsContext::Bind(const entt::id_type resourceId, const Texture& texture) {
       glBindTextureUnit(m_Pipeline->GetSamplerBinding(resourceId), static_cast<const OpenGLTexture&>(texture).GetRendererId());
    }
 

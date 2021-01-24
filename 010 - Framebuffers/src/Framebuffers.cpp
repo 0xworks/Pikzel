@@ -65,18 +65,18 @@ protected:
       // Everything else is same as if you're rendering to a window graphics context
       gc.Bind(*m_ScenePipeline);
 
-      gc.Bind(*m_TextureContainer, "uTexture"_hs);
       glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(-1.0f, 0.0f, -1.0f));
       gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.Bind("uTexture"_hs, *m_TextureContainer);
       gc.DrawTriangles(*m_VertexBuffer, 36);
 
       model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, 0.0f, 0.0f));
       gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
       gc.DrawTriangles(*m_VertexBuffer, 36);
 
-      gc.Bind(*m_TextureFloor, "uTexture"_hs);
       model = glm::identity<glm::mat4>();
       gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.Bind("uTexture"_hs, *m_TextureFloor);
       gc.DrawTriangles(*m_VertexBuffer, 6, 36);
 
 #if RENDER_DIRECTLY_TO_WINDOW
@@ -90,10 +90,9 @@ protected:
 
       Pikzel::GraphicsContext& wgc = GetWindow().GetGraphicsContext();
       wgc.Bind(*m_PostProcessingPipeline);
-
-      wgc.Bind(m_Framebuffer->GetColorTexture(0), "uTexture"_hs);
       wgc.PushConstant("constants.postprocess"_hs, postProcess);
       wgc.PushConstant("constants.offset"_hs, offset);
+      wgc.Bind("uTexture"_hs, m_Framebuffer->GetColorTexture(0));
       wgc.DrawTriangles(*m_VertexBuffer, 6, 42);
 
       // Can also render the framebuffer content into ImGui window

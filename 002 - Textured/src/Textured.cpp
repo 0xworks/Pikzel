@@ -15,7 +15,7 @@ public:
    virtual void Render() override {
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       gc.Bind(*m_Pipeline);
-      gc.Bind(*m_Texture, "uTexture"_hs);   // Technically, we don't have to bind the texture every frame (once it's bound, it stays bound).
+      gc.Bind("uTexture"_hs, *m_Texture);   // Technically, we don't have to bind the texture every frame (once it's bound, it stays bound).
       gc.PushConstant("constants.mvp"_hs, glm::identity<glm::mat4>());
       gc.DrawTriangles(*m_VertexBuffer, 3);
    }

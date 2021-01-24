@@ -107,8 +107,8 @@ protected:
             gc.Bind(*m_PipelinePtShadow);
             gc.PushConstant("constants.lightIndex"_hs, i);
             gc.PushConstant("constants.lightRadius"_hs, lightRadius);
-            gc.Bind(*m_BufferLightViews, "UBOLightViews"_hs);
-            gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
+            gc.Bind("UBOLightViews"_hs, *m_BufferLightViews);
+            gc.Bind("UBOPointLights"_hs, *m_BufferPointLights);
 
             // floor
             glm::mat4 model = glm::identity<glm::mat4>();
@@ -147,24 +147,24 @@ protected:
          gc.PushConstant("constants.showDirectionalLight"_hs, m_ShowDirectionalLight ? 1u : 0u);
          gc.PushConstant("constants.showPointLights"_hs, m_ShowPointLights ? 1u : 0u);
          gc.PushConstant("constants.usePCSS"_hs, m_UsePCSS? 1u : 0u);
-         gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
-         gc.Bind(*m_BufferDirectionalLight, "UBODirectionalLight"_hs);
-         gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
-         gc.Bind(m_FramebufferDirShadow->GetDepthTexture(), "dirShadowMap"_hs);
-         gc.Bind(m_FramebufferPtShadow->GetDepthTexture(), "ptShadowMap"_hs);
+         gc.Bind("UBOMatrices"_hs, *m_BufferMatrices);
+         gc.Bind("UBODirectionalLight"_hs, *m_BufferDirectionalLight);
+         gc.Bind("UBOPointLights"_hs, *m_BufferPointLights);
+         gc.Bind("dirShadowMap"_hs, m_FramebufferDirShadow->GetDepthTexture());
+         gc.Bind("ptShadowMap"_hs, m_FramebufferPtShadow->GetDepthTexture());
 
          // floor
          glm::mat4 model = glm::identity<glm::mat4>();
          glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
-         gc.Bind(*m_TextureFloor, "diffuseMap"_hs);
-         gc.Bind(*m_TextureFloorSpecular, "specularMap"_hs);
          gc.PushConstant("constants.model"_hs, model);
          gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
+         gc.Bind("diffuseMap"_hs, *m_TextureFloor);
+         gc.Bind("specularMap"_hs, *m_TextureFloorSpecular);
          gc.DrawTriangles(*m_VertexBuffer, 6, 36);
 
          // cubes
-         gc.Bind(*m_TextureContainer, "diffuseMap"_hs);
-         gc.Bind(*m_TextureContainerSpecular, "specularMap"_hs);
+         gc.Bind("diffuseMap"_hs, *m_TextureContainer);
+         gc.Bind("specularMap"_hs, *m_TextureContainerSpecular);
          for (int i = 0; i < m_CubePositions.size(); ++i) {
             glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
             glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
@@ -181,7 +181,7 @@ protected:
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       gc.Bind(*m_PipelineFullScreenQuad);
 
-      gc.Bind(m_FramebufferScene->GetColorTexture(0), "uTexture"_hs);
+      gc.Bind("uTexture"_hs, m_FramebufferScene->GetColorTexture(0));
       gc.DrawTriangles(*m_VertexBuffer, 6, 42);
 
       GetWindow().BeginImGuiFrame();

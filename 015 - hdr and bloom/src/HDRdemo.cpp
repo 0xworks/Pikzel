@@ -96,8 +96,8 @@ protected:
             gc.Bind(*m_PipelinePtShadow);
             gc.PushConstant("constants.lightIndex"_hs, i);
             gc.PushConstant("constants.lightRadius"_hs, lightRadius);
-            gc.Bind(*m_BufferLightViews, "UBOLightViews"_hs);
-            gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
+            gc.Bind("UBOLightViews"_hs, *m_BufferLightViews);
+            gc.Bind("UBOPointLights"_hs, *m_BufferPointLights);
 
             // floor
             glm::mat4 model = glm::identity<glm::mat4>();
@@ -139,26 +139,26 @@ protected:
          gc.PushConstant("constants.showPointLights"_hs, m_ShowPointLights ? 1u : 0u);
          gc.PushConstant("constants.useNormalMaps"_hs, m_UseNormalMaps ? 1u : 0u);
          gc.PushConstant("constants.useDisplacementMaps"_hs, m_UseDisplacementMaps ? 1u : 0u);
-         gc.Bind(*m_BufferMatrices, "UBOMatrices"_hs);
-         gc.Bind(*m_BufferDirectionalLight, "UBODirectionalLight"_hs);
-         gc.Bind(*m_BufferPointLights, "UBOPointLights"_hs);
-         gc.Bind(m_FramebufferDirShadow->GetDepthTexture(), "dirShadowMap"_hs);
-         gc.Bind(m_FramebufferPtShadow->GetDepthTexture(), "ptShadowMap"_hs);
+         gc.Bind("UBOMatrices"_hs, * m_BufferMatrices);
+         gc.Bind("UBODirectionalLight"_hs, *m_BufferDirectionalLight);
+         gc.Bind("UBOPointLights"_hs, *m_BufferPointLights);
+         gc.Bind("dirShadowMap"_hs, m_FramebufferDirShadow->GetDepthTexture());
+         gc.Bind("ptShadowMap"_hs, m_FramebufferPtShadow->GetDepthTexture());
 
          // floor
          glm::mat4 model = glm::identity<glm::mat4>();
-         gc.Bind(*m_TextureFloor, "diffuseMap"_hs);
-         gc.Bind(*m_TextureFloorSpecular, "specularMap"_hs);
-         gc.Bind(*m_TextureFloorNormal, "normalMap"_hs);
-         gc.Bind(*m_TextureFloorDisplacement, "displacementMap"_hs);
+         gc.Bind("diffuseMap"_hs, *m_TextureFloor);
+         gc.Bind("specularMap"_hs, *m_TextureFloorSpecular);
+         gc.Bind("normalMap"_hs, *m_TextureFloorNormal);
+         gc.Bind("displacementMap"_hs, *m_TextureFloorDisplacement);
          gc.PushConstant("constants.model"_hs, model);
          gc.DrawTriangles(*m_VertexBuffer, 6, 36);
 
          // cubes
-         gc.Bind(*m_TextureContainer, "diffuseMap"_hs);
-         gc.Bind(*m_TextureContainerSpecular, "specularMap"_hs);
-         gc.Bind(*m_TextureContainerNormal, "normalMap"_hs);
-         gc.Bind(*m_TextureContainerDisplacement, "displacementMap"_hs);
+         gc.Bind("diffuseMap"_hs, *m_TextureContainer);
+         gc.Bind("specularMap"_hs, *m_TextureContainerSpecular);
+         gc.Bind("normalMap"_hs, *m_TextureContainerNormal);
+         gc.Bind("displacementMap"_hs, *m_TextureContainerDisplacement);
          for (int i = 0; i < m_CubePositions.size(); ++i) {
             glm::mat4 model = glm::rotate(glm::translate(glm::identity<glm::mat4>(), m_CubePositions[i]), glm::radians(20.0f * i), glm::vec3 {1.0f, 0.3f, 0.5f});
             gc.PushConstant("constants.model"_hs, model);
@@ -183,10 +183,10 @@ protected:
 
             gc.PushConstant("constants.horizontal"_hs, horizontal ? 1u : 0u);
             if (firstIteration) {
-               gc.Bind(m_FramebufferScene->GetColorTexture(1), "uTexture"_hs);
+               gc.Bind("uTexture"_hs, m_FramebufferScene->GetColorTexture(1));
                firstIteration = false;
             } else {
-               gc.Bind(m_FramebufferBlur[!horizontal]->GetColorTexture(0), "uTexture"_hs);
+               gc.Bind("uTexture"_hs, m_FramebufferBlur[!horizontal]->GetColorTexture(0));
             }
             gc.DrawTriangles(*m_QuadVertexBuffer, 6);
 
@@ -202,8 +202,8 @@ protected:
       gc.PushConstant("constants.bloom"_hs, m_Bloom ? 1 : 0);
       gc.PushConstant("constants.tonemap"_hs, m_ToneMap);
       gc.PushConstant("constants.exposure"_hs, m_Exposure);
-      gc.Bind(m_FramebufferScene->GetColorTexture(0), "uTexture"_hs);
-      gc.Bind(m_FramebufferBlur[!horizontal]->GetColorTexture(0), "uBloom"_hs);
+      gc.Bind("uTexture"_hs, m_FramebufferScene->GetColorTexture(0));
+      gc.Bind("uBloom"_hs, m_FramebufferBlur[!horizontal]->GetColorTexture(0));
       gc.DrawTriangles(*m_QuadVertexBuffer, 6);
 
       GetWindow().BeginImGuiFrame();

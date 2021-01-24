@@ -53,28 +53,27 @@ protected:
 
       gc.Bind(*m_ScenePipeline);
 
-      gc.Bind(*m_TextureContainer, "uTexture"_hs);
       glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(-1.0f, 0.0f, -1.0f));
       gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.Bind("uTexture"_hs, *m_TextureContainer);
       gc.DrawTriangles(*m_VertexBuffer, 36, 36);
 
       model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, 0.0f, 0.0f));
       gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
       gc.DrawTriangles(*m_VertexBuffer, 36, 36);
 
-      gc.Bind(*m_TextureFloor, "uTexture"_hs);
       model = glm::identity<glm::mat4>();
       gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.Bind("uTexture"_hs, *m_TextureFloor);
       gc.DrawTriangles(*m_VertexBuffer, 6, 72);
-
 
       view = glm::mat3(view);
       gc.Bind(*m_SkyboxPipeline);
 
-      gc.Bind(*m_Skybox, "uSkybox"_hs);
       gc.PushConstant("constants.vp"_hs, m_Camera.Projection * view);
       gc.PushConstant("constants.lod"_hs, lod);
       gc.PushConstant("constants.tonemap"_hs, tonemap ? 1 : 0);
+      gc.Bind("uSkybox"_hs, *m_Skybox);
       gc.DrawTriangles(*m_VertexBuffer, 36);
 
       GetWindow().BeginImGuiFrame();

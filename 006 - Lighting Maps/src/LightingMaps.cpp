@@ -63,10 +63,10 @@ public:
       }
       {
          gc.Bind(*m_PipelineLighting);
-         gc.Bind(*m_DiffuseTexture, "diffuseMap"_hs);
-         gc.Bind(*m_SpecularTexture, "specularMap"_hs);
-         gc.Bind(*m_MaterialBuffer, "Materials"_hs);
-         gc.Bind(*m_LightBuffer, "Lights"_hs);
+         gc.Bind("diffuseMap"_hs, *m_DiffuseTexture);
+         gc.Bind("specularMap"_hs, *m_SpecularTexture);
+         gc.Bind("Materials"_hs, *m_MaterialBuffer);
+         gc.Bind("Lights"_hs, *m_LightBuffer);
 
          glm::mat4 model = glm::identity<glm::mat4>();
          glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));

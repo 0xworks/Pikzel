@@ -33,10 +33,10 @@ namespace Pikzel {
       virtual void Bind(const IndexBuffer& buffer) override;
       virtual void Unbind(const IndexBuffer& buffer) override;
 
-      virtual void Bind(const UniformBuffer& buffer, const entt::id_type resourceId) override;
+      virtual void Bind(const entt::id_type resourceId, const UniformBuffer& buffer) override;
       virtual void Unbind(const UniformBuffer& buffer) override;
 
-      virtual void Bind(const Texture& texture, const entt::id_type resourceId) override;
+      virtual void Bind(const entt::id_type resourceId, const Texture& texture) override;
       virtual void Unbind(const Texture& texture) override;
 
       virtual std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) override;

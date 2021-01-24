@@ -62,15 +62,14 @@ public:
       }
       {
          gc.Bind(*m_PipelineLighting);
-         gc.Bind(*m_MaterialBuffer, "Materials"_hs);
-         gc.Bind(*m_LightBuffer, "Lights"_hs);
-
          glm::mat4 model = glm::identity<glm::mat4>();
          glm::mat4 modelInvTrans = glm::mat4(glm::transpose(glm::inverse(glm::mat3(model))));
          gc.PushConstant("constants.vp"_hs, projView);
          gc.PushConstant("constants.model"_hs, model);
          gc.PushConstant("constants.modelInvTrans"_hs, modelInvTrans);
          gc.PushConstant("constants.viewPos"_hs, m_CameraPos);
+         gc.Bind("Materials"_hs, *m_MaterialBuffer);
+         gc.Bind("Lights"_hs, *m_LightBuffer);
          gc.DrawTriangles(*m_VertexBuffer, 36);
       }
    }

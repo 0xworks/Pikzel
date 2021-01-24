@@ -42,10 +42,10 @@ namespace Pikzel {
       virtual void Bind(const IndexBuffer& buffer) = 0;
       virtual void Unbind(const IndexBuffer& buffer) = 0;
 
-      virtual void Bind(const UniformBuffer& buffer, const entt::id_type resourceId) = 0;
+      virtual void Bind(const entt::id_type resourceId, const UniformBuffer& buffer) = 0;
       virtual void Unbind(const UniformBuffer& buffer) = 0;
 
-      virtual void Bind(const Texture& texture, const entt::id_type resourceId) = 0;
+      virtual void Bind(const entt::id_type resourceId, const Texture& texture) = 0;
       virtual void Unbind(const Texture& texture) = 0;
 
       virtual void Bind(const Pipeline& pipeline) = 0;

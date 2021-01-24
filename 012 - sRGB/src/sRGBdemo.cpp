@@ -97,7 +97,7 @@ public:
       GetWindow().BeginFrame();
       Pikzel::GraphicsContext& wgc = GetWindow().GetGraphicsContext();
       wgc.Bind(*m_PostProcessingPipeline);
-      wgc.Bind(m_Framebuffer->GetColorTexture(0), "uTexture"_hs);
+      wgc.Bind("uTexture"_hs, m_Framebuffer->GetColorTexture(0));
       wgc.DrawTriangles(*m_VertexBuffer, 6);
 
       GetWindow().BeginImGuiFrame();
