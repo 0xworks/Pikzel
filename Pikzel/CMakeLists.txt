@@ -184,6 +184,9 @@ endif()
 
 set(
    RendererShaderSources
+   "src/Pikzel/Renderer/EnvironmentIrradiance.comp"
+   "src/Pikzel/Renderer/EnvironmentPrefilter.comp"
+   "src/Pikzel/Renderer/EnvironmentSpecularBRDF.comp"
    "src/Pikzel/Renderer/EquirectangularToCubeMap.comp"
    "src/Pikzel/Renderer/SixFacesToCubeMap.comp"
 )

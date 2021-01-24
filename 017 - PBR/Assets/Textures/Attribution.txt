@@ -1,0 +1,1 @@
+The texture files in this folder (with the exception of the "Backdrop" and "Default" ones) came from FreePBR.com

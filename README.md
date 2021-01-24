@@ -40,11 +40,11 @@ This project is mainly a learning exercise for me, and I hope that the code is c
       - [ ] (exponential) variance shadow maps ((E)VSM)
     - [x] Normal maps
     - [x] Bloom
-    - [ ] Deferred rendering
+    - [x] Deferred rendering
     - [ ] Clustered rendering
     - [ ] Screen space ambient occulsion
     - [ ] Screen space reflection
-    - [ ] Physically based rendering (PBR)
+    - [x] Physically based rendering (PBR)
 
   - [ ] Ray traced
     - [ ] Vulkan (VK_KHR_ray_tracing)
@@ -89,4 +89,5 @@ Be aware that the first time you build, it will take a little longer than usual 
 ## Acknowledgements
 - For the OpenGL backend, and inspiration for the demo apps, I relied heavily on Joey de Vries' [learnopengl.com](https://learnopengl.com)
 - Similarly the Vulkan backend would not have been possible without Alexander Overvoorde's [Vulkan Tutorial](https://vulkan-tutorial.com)
+- This repository contains some code from https://github.com/Nadrin/PBR
 - Some of the code in this project is based on The Cherno's [Game Engine Series](https://thecherno.com/engine) youtube channel
