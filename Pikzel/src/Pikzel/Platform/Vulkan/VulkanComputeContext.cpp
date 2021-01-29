@@ -108,7 +108,7 @@ namespace Pikzel {
       const VulkanPipeline& vulkanPipeline = static_cast<const VulkanPipeline&>(pipeline);
       GetVkCommandBuffer().bindPipeline(vk::PipelineBindPoint::eCompute, vulkanPipeline.GetVkPipelineCompute());
       m_Pipeline = const_cast<VulkanPipeline*>(&vulkanPipeline);
-      m_Pipeline->UnbindDescriptorSets(); // *un*bind descriptor sets here.  This allows us to update the descriptors.  The descriptor sets are then bound just before we draw something (e.g. see DrawIndexed())
+      m_Pipeline->UnbindDescriptorSets(); // *un*bind descriptor sets here.  This allows us to update the descriptors.  The descriptor sets are then bound just before we Dispatch()
    }
 
 
