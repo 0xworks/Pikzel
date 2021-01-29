@@ -532,7 +532,7 @@ private:
       .Direction = glm::normalize(glm::vec3{0.0f, -0.5f, -10.0f}),
       .UpVector = {0.0f, 1.0f, 0.0f},
       .FoVRadians = glm::radians(45.f),
-      .MoveSpeed = 2.0f,
+      .MoveSpeed = 4.0f,
       .RotateSpeed = 10.0f
    };
 
