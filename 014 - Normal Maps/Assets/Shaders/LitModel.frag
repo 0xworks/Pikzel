@@ -56,7 +56,7 @@ float BlinnPhong(const vec3 lightDir, const vec3 viewDir, const vec3 normal, con
 
 
 vec3 CalculateDirectionalLight(const DirectionalLight light, const vec3 viewDir, const vec3 normal, const vec3 diffuseColor, const vec3 specularColor) {
-   const vec3 lightDir = normalize(-inTangentLightDir);
+   const vec3 lightDir = normalize(-inTangentLightDir); // POI: we are doing the lighting calulations in tangent space
 
    const float diffuse = max(dot(normal, lightDir), 0.0);
    if(diffuse > 0.0) {
