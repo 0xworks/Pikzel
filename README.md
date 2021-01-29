@@ -24,7 +24,7 @@ This project is mainly a learning exercise for me, and I hope that the code is c
   - [ ] Metal
 
 - [ ] "Renderers"
-  - [ ] Rasterization
+  - [ ] Client-side (e.g. shaders in example apps)
     - [x] Simple shaders
     - [x] Textures
     - [x] Lighting (directional/point lights)
@@ -45,6 +45,8 @@ This project is mainly a learning exercise for me, and I hope that the code is c
     - [ ] Screen space ambient occulsion
     - [ ] Screen space reflection
     - [x] Physically based rendering (PBR)
+  - [ ] In-engine
+    - [ ] Scene renderer
 
   - [ ] Ray traced
     - [ ] Vulkan (VK_KHR_ray_tracing)
@@ -60,6 +62,8 @@ This project is mainly a learning exercise for me, and I hope that the code is c
   - [x] Main loop
   - [x] Event system
   - [x] Basic ImGui integration
+  - [ ] Material system
+  - [ ] Scene serialization
 
 - [ ] Scene editor
 
@@ -78,6 +82,7 @@ This project is C++ and uses CMake to generate build system files.  My developme
   - spdlog  (logging)
   - stb     (image file loading)
   - tracy   (performance profiling)
+  - vma     (Vulkan memory allocator)
 
 ### Build
 - ```git clone --recursive https://github.com/freeman40/Pikzel.git```
