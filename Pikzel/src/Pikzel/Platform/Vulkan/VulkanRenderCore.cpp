@@ -3,6 +3,7 @@
 #include "VulkanBuffer.h"
 #include "VulkanComputeContext.h"
 #include "VulkanGraphicsContext.h"
+#include "VulkanMemoryAllocator.hpp"
 #include "VulkanPipeline.h"
 #include "VulkanTexture.h"
 #include "VulkanUtility.h"
@@ -54,10 +55,13 @@ namespace Pikzel {
       }
       m_Device = std::make_shared<VulkanDevice>(m_Instance, surface);
       m_Instance.destroy(surface);
+
+      VulkanMemoryAllocator::Init(m_Instance, m_Device->GetVkPhysicalDevice(), m_Device->GetVkDevice());
    }
 
 
    VulkanRenderCore::~VulkanRenderCore() {
+      VulkanMemoryAllocator::Get().destroy();
       m_Device = nullptr;
       DestroyInstance();
    }

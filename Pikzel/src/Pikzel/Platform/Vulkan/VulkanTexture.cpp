@@ -306,7 +306,7 @@ namespace Pikzel {
          format,
          vk::ImageTiling::eOptimal,
          usage | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-         vk::MemoryPropertyFlagBits::eDeviceLocal
+         vma::MemoryUsage::eGpuOnly
       );
       m_Image->CreateImageViews(format, aspect);
       if (usage & vk::ImageUsageFlagBits::eStorage) {
@@ -404,7 +404,7 @@ namespace Pikzel {
 
 
    void VulkanTexture2D::SetData(void* data, uint32_t size) {
-      VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+      VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuToGpu);
       stagingBuffer.CopyFromHost(0, size, data);
       m_Device->PipelineBarrier(
          vk::PipelineStageFlagBits::eTopOfPipe,
@@ -429,7 +429,7 @@ namespace Pikzel {
 
 
    void VulkanTexture2DArray::SetData(void* data, const uint32_t size) {
-      VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+      VulkanBuffer stagingBuffer(m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuToGpu);
       stagingBuffer.CopyFromHost(0, size, data);
       m_Device->PipelineBarrier(
          vk::PipelineStageFlagBits::eTopOfPipe,

@@ -27,7 +27,6 @@
 #include "Pikzel/Renderer/ModelRenderer.h"
 #include "Pikzel/Renderer/Pipeline.h"
 #include "Pikzel/Renderer/RenderCore.h"
-#include "Pikzel/Renderer/ShaderUtil.h"
 #include "Pikzel/Renderer/sRGB.h"
 #include "Pikzel/Renderer/Texture.h"
 

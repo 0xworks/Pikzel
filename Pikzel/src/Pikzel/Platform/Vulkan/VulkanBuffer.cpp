@@ -3,27 +3,22 @@
 
 namespace Pikzel {
 
-   VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, const vk::DeviceSize size, const vk::BufferUsageFlags usage, const vk::MemoryPropertyFlags properties)
-   : m_Device {device}
-   , m_Size {size}
-   , m_Usage {usage}
-   , m_Properties {properties}
+   VulkanBuffer::VulkanBuffer(std::shared_ptr<VulkanDevice> device, const vk::DeviceSize size, const vk::BufferUsageFlags usage, const vma::MemoryUsage memoryUsage)
+   : m_Device{ device }
+   , m_Size{ size }
+   , m_Usage{ usage }
    {
-      m_Buffer = m_Device->GetVkDevice().createBuffer({
-         {}                                         /*flags*/,
-         size                                       /*size*/,
-         usage                                      /*usage*/,
-         vk::SharingMode::eExclusive                /*sharingMode*/,
-         0                                          /*queueFamilyIndexCount*/,
-         nullptr                                    /*pQueueFamilyIndices*/
-      });
+      vk::BufferCreateInfo bufferInfo = {};
+      bufferInfo.size = size;
+      bufferInfo.usage = usage;
 
-      const auto requirements = m_Device->GetVkDevice().getBufferMemoryRequirements(m_Buffer);
-      m_Memory = m_Device->GetVkDevice().allocateMemory({
-         requirements.size                                                        /*allocationSize*/,
-         FindMemoryType(m_Device->GetVkPhysicalDevice(), requirements.memoryTypeBits, properties)  /*memoryTypeIndex*/
-      });
-      m_Device->GetVkDevice().bindBufferMemory(m_Buffer, m_Memory, 0);
+      vma::AllocationCreateInfo allocInfo = {};
+      allocInfo.usage = memoryUsage;
+
+      auto [buffer, allocation] = VulkanMemoryAllocator::Get().createBuffer(bufferInfo, allocInfo);
+      m_Buffer = buffer;
+      m_Allocation = allocation;
+
       m_Descriptor.buffer = m_Buffer;
       m_Descriptor.offset = 0;
       m_Descriptor.range = size;
@@ -39,41 +34,34 @@ namespace Pikzel {
       if (this != &that) {
          m_Device = that.m_Device;
          m_Buffer = that.m_Buffer;
-         m_Memory = that.m_Memory;
+         m_Allocation = that.m_Allocation;
          m_Descriptor = that.m_Descriptor;
          m_Size = that.m_Size;
          m_Usage = that.m_Usage;
-         m_Properties = that.m_Properties;
          that.m_Device = nullptr;
          that.m_Buffer = nullptr;
-         that.m_Memory = nullptr;
+         that.m_Allocation = nullptr;
          that.m_Descriptor = vk::DescriptorBufferInfo{};
          that.m_Size = 0;
          that.m_Usage = {};
-         that.m_Properties = {};
       }
       return *this;
    }
 
 
    VulkanBuffer::~VulkanBuffer() {
-      if (m_Device) {
-         if (m_Buffer) {
-            m_Device->GetVkDevice().destroy(m_Buffer);
-            m_Buffer = nullptr;
-         }
-         if (m_Memory) {
-            m_Device->GetVkDevice().freeMemory(m_Memory);
-            m_Memory = nullptr;
-         }
+      if (m_Device && m_Buffer) {
+         VulkanMemoryAllocator::Get().destroyBuffer(m_Buffer, m_Allocation);
+         m_Buffer = nullptr;
+         m_Allocation = nullptr;
       }
    }
 
 
    void VulkanBuffer::CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) {
-      void* pDataDst = m_Device->GetVkDevice().mapMemory(m_Memory, offset, size);
+      void* pDataDst = VulkanMemoryAllocator::Get().mapMemory(m_Allocation);
       memcpy(pDataDst, pData, static_cast<size_t>(size));
-      m_Device->GetVkDevice().unmapMemory(m_Memory);
+      VulkanMemoryAllocator::Get().unmapMemory(m_Allocation);
    }
 
 
@@ -91,13 +79,13 @@ namespace Pikzel {
 
 
    VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const BufferLayout& layout, uint32_t size)
-   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal},
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly},
    m_Layout {layout}
    {}
 
 
    VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const BufferLayout& layout, const uint32_t size, const void* data)
-   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal},
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly},
    m_Layout {layout}
    {
       CopyFromHost(0, size, data);
@@ -105,7 +93,7 @@ namespace Pikzel {
 
 
    void VulkanVertexBuffer::CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) {
-      VulkanBuffer stagingBuffer(m_Buffer.m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+      VulkanBuffer stagingBuffer(m_Buffer.m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuToGpu);
       stagingBuffer.CopyFromHost(0, size, pData);
       m_Buffer.CopyFromBuffer(stagingBuffer.m_Buffer, 0, offset, size);
    }
@@ -128,7 +116,7 @@ namespace Pikzel {
 
 
    VulkanIndexBuffer::VulkanIndexBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t count, const uint32_t* indices)
-   : m_Buffer {device, sizeof(uint32_t) * count, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal}
+   : m_Buffer {device, sizeof(uint32_t) * count, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer, vma::MemoryUsage::eGpuOnly}
    , m_Count {count}
    {
       CopyFromHost(0, sizeof(uint32_t) * count, indices);
@@ -136,7 +124,7 @@ namespace Pikzel {
 
 
    void VulkanIndexBuffer::CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData) {
-      VulkanBuffer stagingBuffer(m_Buffer.m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+      VulkanBuffer stagingBuffer(m_Buffer.m_Device, size, vk::BufferUsageFlagBits::eTransferSrc, vma::MemoryUsage::eCpuToGpu);
       stagingBuffer.CopyFromHost(0, size, pData);
       m_Buffer.CopyFromBuffer(stagingBuffer.m_Buffer, 0, offset, size);
    }
@@ -151,14 +139,14 @@ namespace Pikzel {
       return m_Buffer.m_Buffer;
    }
 
-       
+
    VulkanUniformBuffer::VulkanUniformBuffer(std::shared_ptr<VulkanDevice> device, uint32_t size)
-   : m_Buffer {device, size, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent}
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu}
    {}
 
 
    VulkanUniformBuffer::VulkanUniformBuffer(std::shared_ptr<VulkanDevice> device, const uint32_t size, const void* data)
-   : m_Buffer {device, size, vk::BufferUsageFlagBits::eUniformBuffer, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent}
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eUniformBuffer, vma::MemoryUsage::eCpuToGpu }
    {
       CopyFromHost(0, size, data);
    }
