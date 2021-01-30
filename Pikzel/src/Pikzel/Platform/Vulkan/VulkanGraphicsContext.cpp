@@ -1102,7 +1102,7 @@ namespace Pikzel {
       m_Format = surfaceFormat.format;
       m_Extent = SelectSwapExtent(swapChainSupport.Capabilities);
 
-      uint32_t imageCount = swapChainSupport.Capabilities.minImageCount;// +1;
+      uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
       if ((swapChainSupport.Capabilities.maxImageCount > 0) && (imageCount > swapChainSupport.Capabilities.maxImageCount)) {
          imageCount = swapChainSupport.Capabilities.maxImageCount;
       }
