@@ -3,14 +3,14 @@
 
 namespace Pikzel {
 
-   VulkanImage::VulkanImage(std::shared_ptr<VulkanDevice> device, const vk::ImageViewType type, const uint32_t width, const uint32_t height, const uint32_t layers, const uint32_t mipLevels, vk::SampleCountFlagBits numSamples, const vk::Format format, const vk::ImageTiling tiling, const vk::ImageUsageFlags usage, const vk::MemoryPropertyFlags properties)
-      : m_Device {device}
-      , m_Type {type}
-      , m_Format {format}
-      , m_Width {width}
-      , m_Height {height}
-      , m_Depth {1}
-      , m_MIPLevels {mipLevels}
+   VulkanImage::VulkanImage(std::shared_ptr<VulkanDevice> device, const vk::ImageViewType type, const uint32_t width, const uint32_t height, const uint32_t layers, const uint32_t mipLevels, vk::SampleCountFlagBits numSamples, const vk::Format format, const vk::ImageTiling tiling, const vk::ImageUsageFlags usage, const vma::MemoryUsage memoryUsage)
+   : m_Device {device}
+   , m_Type {type}
+   , m_Format {format}
+   , m_Width {width}
+   , m_Height {height}
+   , m_Depth {1}
+   , m_MIPLevels {mipLevels}
    {
       vk::ImageType imageType = vk::ImageType::e2D;
       switch (type) {
@@ -61,7 +61,7 @@ namespace Pikzel {
             break;
       }
 
-      m_Image = m_Device->GetVkDevice().createImage({
+      vk::ImageCreateInfo imageInfo = {
          flags                         /*flags*/,
          imageType                     /*imageType*/,
          format                        /*format*/,
@@ -75,14 +75,14 @@ namespace Pikzel {
          0                             /*queueFamilyIndexCount*/,
          nullptr                       /*pQueueFamilyIndices*/,
          vk::ImageLayout::eUndefined   /*initialLayout*/
-         });
+      };
 
-      vk::MemoryRequirements memRequirements = m_Device->GetVkDevice().getImageMemoryRequirements(m_Image);
-      m_Memory = m_Device->GetVkDevice().allocateMemory({
-         memRequirements.size                                                                         /*allocationSize*/,
-         FindMemoryType(m_Device->GetVkPhysicalDevice(), memRequirements.memoryTypeBits, properties)  /*memoryTypeIndex*/
-         });
-      m_Device->GetVkDevice().bindImageMemory(m_Image, m_Memory, 0);
+      vma::AllocationCreateInfo allocInfo = {};
+      allocInfo.usage = memoryUsage;
+
+      auto [image, allocation] = VulkanMemoryAllocator::Get().createImage(imageInfo, allocInfo);
+      m_Image = image;
+      m_Allocation = allocation;
    }
 
 
@@ -101,18 +101,14 @@ namespace Pikzel {
 
    VulkanImage::~VulkanImage() {
       DestroyImageViews();
-      if (m_Device && m_Memory) {
-         //
-         // only destroy the image if it has some memory
-         // i.e. we allocated the image, so we destroy it.
-         // as opposed to images that were created (and are destroyed) by
+      if (m_Device && m_Image && m_Allocation) {
+         // Only destroy the image if it has an allocation.
+         // I.e. we allocated the image, so we destroy it.
+         // As opposed to images that were created (and are destroyed) by
          // the swap chain.
-         if (m_Image) {
-            m_Device->GetVkDevice().destroy(m_Image);
-            m_Image = nullptr;
-         }
-         m_Device->GetVkDevice().freeMemory(m_Memory);
-         m_Memory = nullptr;
+         VulkanMemoryAllocator::Get().destroyImage(m_Image, m_Allocation);
+         m_Image = nullptr;
+         m_Allocation = nullptr;
       }
    }
 

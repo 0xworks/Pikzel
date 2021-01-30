@@ -50,7 +50,6 @@ namespace Pikzel {
       vk::PhysicalDeviceProperties m_PhysicalDeviceProperties;
       vk::PhysicalDeviceFeatures m_PhysicalDeviceFeatures;                 // features that are available on the selected physical device
       vk::PhysicalDeviceFeatures m_EnabledPhysicalDeviceFeatures;          // features that have been enabled
-      vk::PhysicalDeviceMemoryProperties m_PhysicalDeviceMemoryProperties;
       QueueFamilyIndices m_QueueFamilyIndices;
 
       vk::Device m_Device;

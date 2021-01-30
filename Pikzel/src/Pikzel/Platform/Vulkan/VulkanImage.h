@@ -1,13 +1,14 @@
 #pragma once
 
 #include "VulkanDevice.h"
+#include "VulkanMemoryAllocator.hpp"
 
 namespace Pikzel {
 
    class VulkanImage {
    public:
 
-      VulkanImage(std::shared_ptr<VulkanDevice> device, const vk::ImageViewType type, const uint32_t width, const uint32_t height, const uint32_t layers, const uint32_t mipLevels, vk::SampleCountFlagBits numSamples, const vk::Format format, const vk::ImageTiling tiling, const vk::ImageUsageFlags usage, const vk::MemoryPropertyFlags properties);
+      VulkanImage(std::shared_ptr<VulkanDevice> device, const vk::ImageViewType type, const uint32_t width, const uint32_t height, const uint32_t layers, const uint32_t mipLevels, vk::SampleCountFlagBits numSamples, const vk::Format format, const vk::ImageTiling tiling, const vk::ImageUsageFlags usage, const vma::MemoryUsage memoryUsage);
       VulkanImage(std::shared_ptr<VulkanDevice> device, const vk::Image& image, vk::Format format, vk::Extent2D extent);
       VulkanImage(const VulkanImage&) = delete;   // You cannot copy Image wrapper object
       VulkanImage(VulkanImage&& that) noexcept = default;   // but you can move it (i.e. move the underlying vulkan resources to another Image wrapper)
@@ -49,7 +50,7 @@ namespace Pikzel {
       uint32_t m_Layers;
 
       vk::Image m_Image;
-      vk::DeviceMemory m_Memory;
+      vma::Allocation m_Allocation;
 
       vk::ImageView m_ImageView;                    // all mip levels
       std::vector<vk::ImageView> m_MIPImageViews;   // individual mip levels

@@ -1183,7 +1183,7 @@ namespace Pikzel {
 
    void VulkanWindowGC::CreateColorImage() {
       if (m_SampleCount != vk::SampleCountFlagBits::e1) {
-         m_ColorImage = std::make_unique<VulkanImage>(m_Device, vk::ImageViewType::e2D, m_Extent.width, m_Extent.height, 1, 1, m_SampleCount, m_Format, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+         m_ColorImage = std::make_unique<VulkanImage>(m_Device, vk::ImageViewType::e2D, m_Extent.width, m_Extent.height, 1, 1, m_SampleCount, m_Format, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vma::MemoryUsage::eGpuOnly);
          m_ColorImage->CreateImageViews(m_Format, vk::ImageAspectFlagBits::eColor);
       }
    }
@@ -1201,7 +1201,7 @@ namespace Pikzel {
          vk::ImageTiling::eOptimal,
          vk::FormatFeatureFlagBits::eDepthStencilAttachment
       );
-      m_DepthImage = std::make_unique<VulkanImage>(m_Device, vk::ImageViewType::e2D, m_Extent.width, m_Extent.height, 1, 1, m_SampleCount, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal);
+      m_DepthImage = std::make_unique<VulkanImage>(m_Device, vk::ImageViewType::e2D, m_Extent.width, m_Extent.height, 1, 1, m_SampleCount, m_DepthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vma::MemoryUsage::eGpuOnly);
       m_DepthImage->CreateImageViews(m_DepthFormat, vk::ImageAspectFlagBits::eDepth);
    }
 

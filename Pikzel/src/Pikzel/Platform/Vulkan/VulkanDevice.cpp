@@ -74,7 +74,6 @@ namespace Pikzel {
             m_PhysicalDevice = physicalDevice;
             m_PhysicalDeviceProperties = m_PhysicalDevice.getProperties();
             m_PhysicalDeviceFeatures = m_PhysicalDevice.getFeatures();
-            m_PhysicalDeviceMemoryProperties = m_PhysicalDevice.getMemoryProperties();
             m_QueueFamilyIndices = FindQueueFamilies(m_PhysicalDevice, surface);
             break;
          }

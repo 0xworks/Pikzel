@@ -2,13 +2,14 @@
 
 #include "Pikzel/Renderer/Buffer.h"
 #include "VulkanDevice.h"
+#include "VulkanMemoryAllocator.hpp"
 
 namespace Pikzel {
 
    class VulkanBuffer {
    public:
 
-      VulkanBuffer(std::shared_ptr<VulkanDevice> device, const vk::DeviceSize size, const vk::BufferUsageFlags usage, const vk::MemoryPropertyFlags properties);
+      VulkanBuffer(std::shared_ptr<VulkanDevice> device, const vk::DeviceSize size, const vk::BufferUsageFlags usage, const vma::MemoryUsage memoryUsage);
       VulkanBuffer(const VulkanBuffer&) = delete;   // You cannot copy Buffer wrapper object
       VulkanBuffer(VulkanBuffer&& that) noexcept;   // but you can move it (i.e. move the underlying vulkan resources to another Buffer wrapper)
 
@@ -18,7 +19,7 @@ namespace Pikzel {
       virtual ~VulkanBuffer();
 
       // Copy memory from host (pData) to the GPU buffer
-      // You can do this only if buffer was created with host visible property
+      // You can do this only if buffer was created with memory usage = eCpuToGpu
       void CopyFromHost(const uint64_t offset, const uint64_t size, const void* pData);
 
    public:
@@ -31,9 +32,8 @@ namespace Pikzel {
       std::shared_ptr<VulkanDevice> m_Device;
       vk::DeviceSize m_Size;
       vk::BufferUsageFlags m_Usage;
-      vk::MemoryPropertyFlags m_Properties;
       vk::Buffer m_Buffer;
-      vk::DeviceMemory m_Memory;
+      vma::Allocation m_Allocation;
    };
 
 

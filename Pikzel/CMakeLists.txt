@@ -62,6 +62,9 @@ set(
    "src/Pikzel/Scene/ModelSerializer.cpp"
 )
 
+# These at the "public" includes
+# i.e. any other project referencing Pikzel will also get these includes
+# There are additional "private" includes set below
 set(
    ProjectIncludes
    "src"
@@ -70,12 +73,14 @@ set(
    "vendor/glm"
    "vendor/imgui"
    "vendor/spdlog/include"
-   "vendor/SPIRV-cross"
-   "vendor/stb"
    "vendor/tracy"
    ${CMRC_INCLUDE_DIR}
 )
 
+
+# These at the "public" defines
+# i.e. any other project referencing Pikzel will also get these defines
+# There are additional "private" defines set below
 set(
    ProjectDefines
    PKZL_VERSION="${PROJECT_VERSION}"
@@ -142,6 +147,11 @@ target_compile_definitions(
 target_include_directories(
    ${PROJECT_NAME} PUBLIC
    ${ProjectIncludes}
+)
+
+target_include_directories(
+   ${PROJECT_NAME} PRIVATE
+   "vendor/SPIRV-cross"
 )
 
 target_precompile_headers(
@@ -285,16 +295,15 @@ target_compile_features(
 )
 
 target_compile_definitions(
-   "PlatformOpenGL" PUBLIC
-   ${ProjectDefines}
+   "PlatformOpenGL" PRIVATE
 )
 
 target_include_directories(
    "PlatformOpenGL" PRIVATE
-   ${ProjectIncludes}
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
+   "vendor/stb"
+   "vendor/SPIRV-cross"
 )
-
 
 target_link_libraries(
    "PlatformOpenGL" PRIVATE
@@ -353,6 +362,8 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanGraphicsContext.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanImage.h"
       "src/Pikzel/Platform/Vulkan/VulkanImage.cpp"
+      "src/Pikzel/Platform/Vulkan/VulkanMemoryAllocator.hpp"
+      "src/Pikzel/Platform/Vulkan/VulkanMemoryAllocator.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanMeshRenderer.h"
       "src/Pikzel/Platform/Vulkan/VulkanMeshRenderer.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanPipeline.h"
@@ -377,12 +388,13 @@ if(${Vulkan_FOUND})
    target_compile_definitions(
       "PlatformVulkan" PRIVATE
        VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
-       ${ProjectDefines}
    )
 
    target_include_directories(
       "PlatformVulkan" PRIVATE
-      ${ProjectIncludes}
+      "vendor/stb"
+      "vendor/SPIRV-cross"
+      "vendor/VulkanMemoryAllocator-Hpp"
       ${Vulkan_INCLUDE_DIRS}
    )
 
