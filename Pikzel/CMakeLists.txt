@@ -41,10 +41,6 @@ set(
    "src/Pikzel/Renderer/Framebuffer.h"
    "src/Pikzel/Renderer/Framebuffer.cpp"
    "src/Pikzel/Renderer/GraphicsContext.h"
-   "src/Pikzel/Renderer/MeshRenderer.h"
-   "src/Pikzel/Renderer/MeshRenderer.cpp"
-   "src/Pikzel/Renderer/ModelRenderer.h"
-   "src/Pikzel/Renderer/ModelRenderer.cpp"
    "src/Pikzel/Renderer/Pipeline.h"
    "src/Pikzel/Renderer/RenderCore.h"
    "src/Pikzel/Renderer/RenderCore.cpp"
@@ -56,10 +52,6 @@ set(
    "src/Pikzel/Scene/Camera.h"
    "src/Pikzel/Scene/Camera.cpp"
    "src/Pikzel/Scene/Light.h"
-   "src/Pikzel/Scene/Mesh.h"
-   "src/Pikzel/Scene/Model.h"
-   "src/Pikzel/Scene/ModelSerializer.h"
-   "src/Pikzel/Scene/ModelSerializer.cpp"
 )
 
 # These at the "public" includes
@@ -205,19 +197,10 @@ set(
 
 set(
    SceneShaderSources
-   "src/Pikzel/Scene/Shaders/Depth.vert"
-   "src/Pikzel/Scene/Shaders/Depth.frag"
-   "src/Pikzel/Scene/Shaders/DepthCube.vert"
-   "src/Pikzel/Scene/Shaders/DepthCube.geom"
-   "src/Pikzel/Scene/Shaders/DepthCube.frag"
-   "src/Pikzel/Scene/Shaders/LitModel.vert"
-   "src/Pikzel/Scene/Shaders/LitModel.frag"
 )
 
 set(
    SceneShaderHeaders
-   "src/Pikzel/Scene/Shaders/Lights.glsl"
-   "src/Pikzel/Scene/Shaders/Matrices.glsl"
 )
 
 compile_shaders(RendererShaderSources RendererShaderHeaders ${CMAKE_CURRENT_BINARY_DIR}/Renderer CompiledRendererShaders)
@@ -273,7 +256,7 @@ add_library(
    "src/Pikzel/Platform/OpenGL/OpenGLFramebuffer.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.h"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.cpp"
-   "src/Pikzel/Platform/OpenGL/OpenGLMeshRenderer.cpp"
+   
    "src/Pikzel/Platform/OpenGL/OpenGLPipeline.h"
    "src/Pikzel/Platform/OpenGL/OpenGLPipeline.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLRenderCore.h"
@@ -364,8 +347,6 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanImage.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanMemoryAllocator.hpp"
       "src/Pikzel/Platform/Vulkan/VulkanMemoryAllocator.cpp"
-      "src/Pikzel/Platform/Vulkan/VulkanMeshRenderer.h"
-      "src/Pikzel/Platform/Vulkan/VulkanMeshRenderer.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanPipeline.h"
       "src/Pikzel/Platform/Vulkan/VulkanPipeline.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanRenderCore.h"

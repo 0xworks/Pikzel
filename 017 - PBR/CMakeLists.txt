@@ -8,6 +8,10 @@ project (
 
 set(
    ProjectSources
+   "src/Mesh.h"
+   "src/Model.h"
+   "src/ModelSerializer.h"
+   "src/ModelSerializer.cpp"
    "src/PBRdemo.cpp"
 )
 
@@ -19,6 +23,7 @@ set(
    ProjectLibs
    "Pikzel"
    "ImGui"
+   "assimp"  # Note: eventually client apps will not need to directly link to assimp
 )
 
 set(

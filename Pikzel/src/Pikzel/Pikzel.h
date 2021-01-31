@@ -23,8 +23,6 @@
 #include "Pikzel/Renderer/ComputeContext.h"
 #include "Pikzel/Renderer/Framebuffer.h"
 #include "Pikzel/Renderer/GraphicsContext.h"
-#include "Pikzel/Renderer/MeshRenderer.h"
-#include "Pikzel/Renderer/ModelRenderer.h"
 #include "Pikzel/Renderer/Pipeline.h"
 #include "Pikzel/Renderer/RenderCore.h"
 #include "Pikzel/Renderer/sRGB.h"
@@ -32,9 +30,6 @@
 
 #include "Pikzel/Scene/Camera.h"
 #include "Pikzel/Scene/Light.h"
-#include "Pikzel/Scene/Mesh.h"
-#include "Pikzel/Scene/Model.h"
-#include "Pikzel/Scene/ModelSerializer.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

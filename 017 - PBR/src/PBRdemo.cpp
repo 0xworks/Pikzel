@@ -1,3 +1,5 @@
+#include "ModelSerializer.h"
+
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
@@ -5,9 +7,9 @@
 constexpr float nearPlane = 50.0f;
 constexpr float farPlane = 0.1f;
 
-class PBRdemo final : public Pikzel::Application {
+class PBRdemoApp final : public Pikzel::Application {
 public:
-   PBRdemo()
+   PBRdemoApp()
    : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = true}}
    , m_Input {GetWindow()}
    {
@@ -158,7 +160,7 @@ protected:
          ImGui::Text("Depth buffer:");
          ImVec2 size = ImGui::GetContentRegionAvail();
          ImGui::Image(m_FramebufferDirShadow->GetImGuiDepthTextureId(), size, ImVec2 {0, 1}, ImVec2 {1, 0});
-          ImGui::End();
+         ImGui::End();
       }
       GetWindow().EndImGuiFrame();
       GetWindow().EndFrame();
@@ -245,8 +247,8 @@ private:
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices);
 
       // POI: we load the backdrop and shader ball from .obj files that were exported from Blender
-      m_ModelBackdrop = Pikzel::ModelSerializer::Import("Assets/" APP_NAME "/Models/Backdrop.obj");
-      m_ModelShaderBall = Pikzel::ModelSerializer::Import("Assets/" APP_NAME "/Models/ShaderBall.obj");
+      m_ModelBackdrop = PBRdemo::ModelSerializer::Import("Assets/" APP_NAME "/Models/Backdrop.obj");
+      m_ModelShaderBall = PBRdemo::ModelSerializer::Import("Assets/" APP_NAME "/Models/ShaderBall.obj");
    }
 
 
@@ -547,8 +549,8 @@ private:
    };
    glm::mat4 m_LightSpace;
 
-   std::unique_ptr<Pikzel::Model> m_ModelBackdrop;
-   std::unique_ptr<Pikzel::Model> m_ModelShaderBall;
+   std::unique_ptr<PBRdemo::Model> m_ModelBackdrop;
+   std::unique_ptr<PBRdemo::Model> m_ModelShaderBall;
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferMatrices;
    std::unique_ptr<Pikzel::UniformBuffer> m_BufferDirectionalLight;
@@ -668,5 +670,5 @@ private:
 
 
 std::unique_ptr<Pikzel::Application> CreateApplication(int argc, const char* argv[]) {
-   return std::make_unique<PBRdemo>();
+   return std::make_unique<PBRdemoApp>();
 }
