@@ -1,5 +1,4 @@
 #include "RenderCore.h"
-#include "MeshRenderer.h"
 
 namespace Pikzel {
 
@@ -21,7 +20,6 @@ namespace Pikzel {
             gAPILib = LoadLibrary("PlatformOpenGL.dll");
             if (gAPILib) {
                CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(gAPILib, "CreateRenderCore");
-               MeshRenderer::CreateMeshRenderer = (MeshRenderer::MESHRENDERERCREATEPROC)GetProcAddress(gAPILib, "CreateMeshRenderer");
             }
 #else
             PKZL_CORE_ASSERT(false, "You havent written non-windows shared library loading code, yet");
@@ -33,7 +31,6 @@ namespace Pikzel {
             gAPILib = LoadLibrary("PlatformVulkan.dll");
             if (gAPILib) {
                CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(gAPILib, "CreateRenderCore");
-               MeshRenderer::CreateMeshRenderer = (MeshRenderer::MESHRENDERERCREATEPROC)GetProcAddress(gAPILib, "CreateMeshRenderer");
             }
 #else
             PKZL_CORE_ASSERT(false, "You havent written non-windows shared library loading code, yet");
@@ -45,9 +42,6 @@ namespace Pikzel {
       }
       if (!CreateRenderCore) {
          throw std::runtime_error {"RenderCore api could not be loaded: failed to locate CreateRenderCore proc!"};
-      }
-      if (!MeshRenderer::CreateMeshRenderer) {
-         throw std::runtime_error {"RenderCore api could not be loaded: failed to locate CreateMeshRenderer proc!"};
       }
    }
 

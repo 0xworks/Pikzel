@@ -94,13 +94,12 @@ vec4 CalculatePointLight(PointLight light, vec4 viewDir, vec4 normal, vec3 diffu
 
 void main() {
    vec4 viewDir = normalize(vec4(constants.viewPos, 1.0) - inFragPos);
-   vec4 normal = normalize(inNormal);
    vec3 diffuseColor = texture(diffuseMap, inTexCoords).rgb;
    vec3 specularColor = texture(specularMap, inTexCoords).rgb;
 
-   outFragColor = CalculateDirectionalLight(directionalLight.light, viewDir, normal, diffuseColor, specularColor);
+   outFragColor = CalculateDirectionalLight(directionalLight.light, viewDir, inNormal, diffuseColor, specularColor);
 
    for(int i = 0; i < 4; ++i) {
-      outFragColor += CalculatePointLight(pointLights.light[i], viewDir, normal, diffuseColor, specularColor);
+      outFragColor += CalculatePointLight(pointLights.light[i], viewDir, inNormal, diffuseColor, specularColor);
    }
 }

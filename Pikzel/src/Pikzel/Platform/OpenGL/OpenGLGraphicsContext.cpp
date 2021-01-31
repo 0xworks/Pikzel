@@ -477,18 +477,20 @@ namespace Pikzel {
       }
       {
          PKZL_PROFILE_SCOPE("glClear");
-         glm::vec4 clearColor = GetClearColorValue();
          if (operation != BeginFrameOp::ClearNone) {
             glm::vec4 clearColor = GetClearColorValue();
-            glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
             switch (operation) {
                case BeginFrameOp::ClearDepth:
+                  glClearDepth(GetClearDepthValue());
                   glClear(GL_DEPTH_BUFFER_BIT);
                   break;
                case BeginFrameOp::ClearColor:
+                  glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
                   glClear(GL_COLOR_BUFFER_BIT);
                   break;
                case BeginFrameOp::ClearAll:
+                  glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+                  glClearDepth(GetClearDepthValue());
                   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                   break;
                default:

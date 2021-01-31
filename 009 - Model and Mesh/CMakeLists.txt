@@ -8,7 +8,11 @@ project (
 
 set(
    ProjectSources
+   "src/Mesh.h"
+   "src/Model.h"
    "src/ModelAndMesh.cpp"
+   "src/ModelSerializer.h"
+   "src/ModelSerializer.cpp"
 )
 
 set(
@@ -19,12 +23,15 @@ set(
    ProjectLibs
    "Pikzel"
    "ImGui"
+   "assimp"  # Note: eventually client apps will not need to directly link to assimp
 )
 
 set(
    ShaderSources
-   "Assets/Shaders/Light.vert"
    "Assets/Shaders/Light.frag"
+   "Assets/Shaders/Light.vert"
+   "Assets/Shaders/Lighting.frag"
+   "Assets/Shaders/Lighting.vert"
 )
 
 set(

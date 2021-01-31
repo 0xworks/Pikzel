@@ -1,7 +1,6 @@
 #include "Application.h"
 #include "Log.h"
 #include "Pikzel/Events/EventDispatcher.h"
-#include "Pikzel/Scene/ModelSerializer.h"
 
 namespace Pikzel {
 
@@ -34,7 +33,6 @@ namespace Pikzel {
    Application::~Application() {
       EventDispatcher::Disconnect<WindowCloseEvent, &Application::OnWindowClose>(*this);
       EventDispatcher::Disconnect<WindowResizeEvent, &Application::OnWindowResize>(*this);
-      ModelSerializer::ClearTextureCache();
    }
 
 

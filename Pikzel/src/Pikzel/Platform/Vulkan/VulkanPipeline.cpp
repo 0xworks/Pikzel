@@ -568,10 +568,10 @@ namespace Pikzel {
 
 
    void VulkanPipeline::CreateDescriptorPool() {
-      constexpr uint32_t howMany = 10; // We don't really know at this point how many descriptor sets might end up being needed.
-                                       // We just create "some" here, to allow toy examples to work (TODO: may need to provide a way to set this amount)
-                                       // For more complicated rendering tasks, Pikzel provides various "Renderer" classes which manage their own descriptor
-                                       // sets.
+      constexpr uint32_t howMany = 100; // We don't really know at this point how many descriptor sets might end up being needed.
+                                        // We just create "some" here, to allow toy examples to work (TODO: may need to provide a way to set this amount)
+                                        // For more complicated rendering tasks, Pikzel provides various "Renderer" classes which manage their own descriptor
+                                        // sets.
 
       std::unordered_map<vk::DescriptorType, uint32_t> descriptorTypeCount;
       for (const auto& [id, resource] : m_Resources) {

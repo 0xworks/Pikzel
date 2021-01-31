@@ -1,14 +1,18 @@
 cmake_minimum_required (VERSION 3.16)
 
 project (
-   "013Shadows"
+   "013.2SponzaShadows"
    VERSION 0.1
-   DESCRIPTION "Pikzel Demo 013 - Shadows"
+   DESCRIPTION "Pikzel Demo 013.2 - Sponza Shadows"
 )
 
 set(
    ProjectSources
-   "src/Shadows.cpp"
+   "src/Mesh.h"
+   "src/Model.h"
+   "src/SponzaShadows.cpp"
+   "src/ModelSerializer.h"
+   "src/ModelSerializer.cpp"
 )
 
 set(
@@ -19,21 +23,20 @@ set(
    ProjectLibs
    "Pikzel"
    "ImGui"
+   "assimp"  # Note: eventually client apps will not need to directly link to assimp
 )
 
 set(
    ShaderSources
-   "Assets/Shaders/ColoredModel.vert"
-   "Assets/Shaders/ColoredModel.frag"
-   "Assets/Shaders/Depth.vert"
    "Assets/Shaders/Depth.frag"
-   "Assets/Shaders/DepthCube.vert"
-   "Assets/Shaders/DepthCube.geom"
+   "Assets/Shaders/Depth.vert"
    "Assets/Shaders/DepthCube.frag"
-   "Assets/Shaders/FullScreenQuad.vert"
-   "Assets/Shaders/FullScreenQuad.frag"
-   "Assets/Shaders/LitModel.vert"
+   "Assets/Shaders/DepthCube.geom"
+   "Assets/Shaders/DepthCube.vert"
+   "Assets/Shaders/Light.frag"
+   "Assets/Shaders/Light.vert"
    "Assets/Shaders/LitModel.frag"
+   "Assets/Shaders/LitModel.vert"
 )
 
 set(
@@ -42,24 +45,12 @@ set(
    "Assets/Shaders/Matrices.glsl"
 )
 
-set(
-   Textures
-   "Assets/Textures/Container.png"
-   "Assets/Textures/ContainerSpecular.png"
-   "Assets/Textures/Floor.png"
-   "Assets/Textures/FloorSpecular.png"
-)
-
 source_group("src" FILES ${ProjectSources})
 source_group("Assets/Shaders" FILES ${ShaderSources} ${ShaderHeaders})
-source_group("Assets/Textures" FILES ${Textures})
 
 add_executable(
    ${PROJECT_NAME}
    ${ProjectSources}
-   ${ShaderSources}
-   ${ShaderHeaders}
-   ${Textures}
 )
 
 target_compile_features(
@@ -86,17 +77,19 @@ target_link_libraries(
    ${ProjectLibs}
 )
 
+add_dependencies(
+   ${PROJECT_NAME}
+   "Data"
+)
+
 compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)
-copy_assets(Textures Assets/${PROJECT_NAME}/Textures CopiedTextures)
 
 # These arent really "source" files.
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)
 # The correct way to do this is to add_custom_target() and then add_dependencies() on the custom target.
 # I do not want to clutter up the project with a whole load of custom targets, however.
 set_source_files_properties(${CompiledShaders} PROPERTIES GENERATED TRUE)
-set_source_files_properties(${CopiedTextures} PROPERTIES GENERATED TRUE)
 target_sources(
    ${PROJECT_NAME} PRIVATE
    ${CompiledShaders}
-   ${CopiedTextures}
 )
