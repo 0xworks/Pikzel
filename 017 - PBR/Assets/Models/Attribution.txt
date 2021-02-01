@@ -1,2 +1,0 @@
-Backdrop model by me, 0x
-ShaderBall model by Mat Makin (a reimagination of Epic's original) (https://github.com/derkreature/ShaderBall)
