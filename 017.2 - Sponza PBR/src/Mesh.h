@@ -1,11 +1,15 @@
 #pragma once
 
 #include "Pikzel/Renderer/Buffer.h"
+#include "Pikzel/Renderer/Texture.h"
+
 #include <glm/glm.hpp>
 #include <memory>
 
-namespace PBRdemo {
+namespace SponzaPBR {
 
+   // Eventually, the Pikzel engine will have its own mesh component.
+   // In the meantime, this demo uses this definition of mesh
    struct Mesh {
 
       struct Vertex {
@@ -19,6 +23,11 @@ namespace PBRdemo {
       std::pair<glm::vec3, glm::vec3> AABB = { glm::vec3{FLT_MAX}, glm::vec3{-FLT_MAX} };
       std::shared_ptr<Pikzel::VertexBuffer> VertexBuffer;
       std::shared_ptr<Pikzel::IndexBuffer> IndexBuffer;
+      std::shared_ptr<Pikzel::Texture> AlbedoTexture;
+      std::shared_ptr<Pikzel::Texture> MetallicRoughnessTexture;
+      std::shared_ptr<Pikzel::Texture> AmbientOcclusionTexture;
+      std::shared_ptr<Pikzel::Texture> NormalTexture;
+      std::shared_ptr<Pikzel::Texture> HeightTexture;
       uint32_t Index;
    };
 

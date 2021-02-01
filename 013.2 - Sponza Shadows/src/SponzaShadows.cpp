@@ -266,12 +266,14 @@ private:
          });
       }
 
-      m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
-         .Width = shadowMapWidth / 2,
-         .Height = shadowMapHeight / 2,
-         .Layers = 4,
-         .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F, Pikzel::TextureType::TextureCubeArray}}
-      });
+      if (!m_FramebufferPtShadow) {
+         m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
+            .Width = shadowMapWidth / 2,
+            .Height = shadowMapHeight / 2,
+            .Layers = 4,
+            .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F, Pikzel::TextureType::TextureCubeArray}}
+         });
+      }
    }
 
 
@@ -301,9 +303,9 @@ private:
 
       m_PipelinePtShadow = m_FramebufferPtShadow->GetGraphicsContext().CreatePipeline({
          .Shaders = {
-            { Pikzel::ShaderType::Vertex, "Scene/Shaders/DepthCube.vert.spv" },
-            { Pikzel::ShaderType::Geometry, "Scene/Shaders/DepthCube.geom.spv" },
-            { Pikzel::ShaderType::Fragment, "Scene/Shaders/DepthCube.frag.spv" }
+            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/DepthCube.vert.spv" },
+            { Pikzel::ShaderType::Geometry, "Assets/" APP_NAME "/Shaders/DepthCube.geom.spv" },
+            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/DepthCube.frag.spv" }
          },
          .BufferLayout = layout,
       });

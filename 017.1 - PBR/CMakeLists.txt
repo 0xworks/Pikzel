@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 3.16)
 
 project (
-   "017PBRdemo"
+   "017.1PBRdemo"
    VERSION 0.1
-   DESCRIPTION "Pikzel Demo 017 - Physically Based Rendering"
+   DESCRIPTION "Pikzel Demo 017.1 - Physically Based Rendering"
 )
 
 set(
