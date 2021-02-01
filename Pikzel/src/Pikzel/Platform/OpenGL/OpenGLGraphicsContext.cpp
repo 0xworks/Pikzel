@@ -392,10 +392,11 @@ namespace Pikzel {
       ImGui::Render();
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
       if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-         GLFWwindow* currentContext = glfwGetCurrentContext();
          ImGui::UpdatePlatformWindows();
          ImGui::RenderPlatformWindowsDefault();
-         glfwMakeContextCurrent(currentContext);
+         if (glfwGetCurrentContext() != m_WindowHandle) {
+            glfwMakeContextCurrent(m_WindowHandle);
+         }
       }
    }
 
@@ -405,10 +406,6 @@ namespace Pikzel {
       {
          PKZL_PROFILE_SCOPE("glBindFramebuffer");
          glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      }
-      {
-         PKZL_PROFILE_SCOPE("glfwMakeContextCurrent");
-         glfwMakeContextCurrent(m_WindowHandle);
       }
       {
          PKZL_PROFILE_SCOPE("glViewport");
