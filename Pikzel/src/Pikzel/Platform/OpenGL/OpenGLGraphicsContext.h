@@ -116,6 +116,7 @@ namespace Pikzel {
 
    private:
       GLFWwindow* m_WindowHandle;
+      bool m_InitializedImGui = false;
    };
 
 

@@ -883,7 +883,10 @@ namespace Pikzel {
 
    void VulkanWindowGC::InitializeImGui() {
       IMGUI_CHECKVERSION();
-
+      if (m_InitializedImGui) {
+         PKZL_CORE_LOG_WARN("ImGui already initialised!");
+         return;
+      }
       m_DescriptorPoolImGui = CreateDescriptorPool(DescriptorBinding {0, 1, vk::DescriptorType::eCombinedImageSampler, {}}, 10);
 
       std::vector<vk::AttachmentDescription2> attachments;
@@ -978,6 +981,7 @@ namespace Pikzel {
       };
       ImGui_ImplVulkan_Init(&init_info, m_RenderPassImGui);
       __super::InitializeImGui();
+      m_InitializedImGui = true;
    }
 
 
