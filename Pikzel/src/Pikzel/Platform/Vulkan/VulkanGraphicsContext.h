@@ -217,6 +217,7 @@ namespace Pikzel {
 
       bool m_IsVSync = false;
       bool m_WantResize = false;
+      bool m_InitializedImGui = false;
       bool m_ImGuiFrameStarted = false;
    };
 

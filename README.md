@@ -1,6 +1,6 @@
 # Pikzel
 
-A simple graphics rendering engine.  To be clear, this is not a "game engine" - it does only graphics.  You can render a scene, move the camera around with keyboard/mouse, and tweak settings (via ImGui).  There is no audio, no physics, no route finding, no networking, etc. There will be a scene "editor" at some point.
+A simple rendering engine for OpenGL and Vulkan.  This is not (yet) a "game engine".  So far it does only graphics.  There is no audio, no physics, no AI, no networking, etc. Scene "editor" is in development.
 
 This project is mainly a learning exercise for me, and I hope that the code is clear and simple enough to be accessible to other developers out there that are just starting on a graphics programing journey.
 
@@ -17,14 +17,27 @@ This project is mainly a learning exercise for me, and I hope that the code is c
   - [ ] Mobile
 
 - [ ] Rendering APIs
-  - [ ] Software (unlikely)
   - [x] OpenGL
   - [x] Vulkan
   - [ ] DirectX
   - [ ] Metal
 
-- [ ] "Renderers"
-  - [ ] Client-side (e.g. shaders in example apps)
+- [ ] Application Framework
+  - [x] Entry point
+  - [x] Logging
+  - [x] Tracy integration (performance profiling)
+  - [x] Runtime load of selected rendering API
+  - [x] Main window management
+  - [x] Main loop
+  - [x] Event system
+  - [x] Basic ImGui integration
+  - [ ] Material system
+  - [ ] Scene serialization
+  - [ ] Scene renderer
+
+- [ ] Scene editor (in development)
+
+- [ ] Example apps (using low-level engine)
     - [x] Simple shaders
     - [x] Textures
     - [x] Lighting (directional/point lights)
@@ -45,27 +58,12 @@ This project is mainly a learning exercise for me, and I hope that the code is c
     - [ ] Screen space ambient occulsion
     - [ ] Screen space reflection
     - [x] Physically based rendering (PBR)
-  - [ ] In-engine
-    - [ ] Scene renderer
+    - [ ] Ray/Path tracing
+      - [ ] Vulkan (VK_KHR_ray_tracing)
+      - [ ] Nvidia Optix
+      - [ ] other (e.g. non-nvidia specific)
 
-  - [ ] Ray traced
-    - [ ] Vulkan (VK_KHR_ray_tracing)
-    - [ ] Nvidia Optix
-    - [ ] other (e.g. non-nvidia specific)
 
-- [ ] Application Framework
-  - [x] Entry point
-  - [x] Logging
-  - [x] Tracy integration (performance profiling)
-  - [x] Runtime load of selected rendering API
-  - [x] Main window management
-  - [x] Main loop
-  - [x] Event system
-  - [x] Basic ImGui integration
-  - [ ] Material system
-  - [ ] Scene serialization
-
-- [ ] Scene editor
 
 ## Building
 This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2019 on Win10.  Others are untested, but may work (with hopefully only minor changes).

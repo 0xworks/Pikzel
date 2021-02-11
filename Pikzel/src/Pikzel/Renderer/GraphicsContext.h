@@ -28,6 +28,7 @@ namespace Pikzel {
          // This is a bit nasty.
          // The thing is, ImGui is initialised by the back-end renderer's graphics context.  That's in a different shared library, which effectively has its own copy of ImGui.
          // We need to make sure Pikzel's copy of ImGui shares the same context
+         // This here sets the context (in *this* shared library) to be equal to the ImGui context that was initialied in the back-end renderer's shared library
          ImGui::SetCurrentContext(GetImGuiContext());
       }
       virtual ImGuiContext* GetImGuiContext() = 0;

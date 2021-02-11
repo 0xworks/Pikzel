@@ -72,7 +72,7 @@ target_link_libraries(
 
 add_dependencies(
    ${PROJECT_NAME}
-   "Data"
+   "Assets"
 )
 
 compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)

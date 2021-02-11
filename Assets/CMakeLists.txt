@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 3.16)
 
 project (
-   "Data"
+   "Assets"
    VERSION 0.1
-   DESCRIPTION "Pikzel Shared Data"
+   DESCRIPTION "Pikzel Shared Assets"
 )
 
 file(GLOB BackpackModel RELATIVE ${PROJECT_SOURCE_DIR} Models/Backpack/*)

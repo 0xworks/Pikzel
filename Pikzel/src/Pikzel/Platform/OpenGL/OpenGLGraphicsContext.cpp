@@ -368,6 +368,10 @@ namespace Pikzel {
 
    void OpenGLWindowGC::InitializeImGui() {
       IMGUI_CHECKVERSION();
+      if (m_InitializedImGui) {
+         PKZL_CORE_LOG_WARN("ImGui already initialised!");
+         return;
+      }
       ImGui::CreateContext();
       ImGuiIO& io = ImGui::GetIO();
       io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -376,6 +380,7 @@ namespace Pikzel {
       ImGui_ImplOpenGL3_Init();
       ImGui_ImplGlfw_InitForOpenGL(m_WindowHandle, true);
       __super::InitializeImGui();
+      m_InitializedImGui = true;
    }
 
 
