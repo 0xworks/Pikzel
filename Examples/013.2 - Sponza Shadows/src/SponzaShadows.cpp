@@ -23,7 +23,7 @@ public:
       CreatePipelines();
 
       // POI: We use the ModelSerializer to load the model from an asset file.  In this case "sponza.gltf"
-      m_Model = SponzaShadows::ModelSerializer::Import("Assets/Models/Sponza/sponza.gltf");
+      m_Model = SponzaShadows::ModelSerializer::Import("Assets/Models/Sponza/Sponza.gltf");
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
