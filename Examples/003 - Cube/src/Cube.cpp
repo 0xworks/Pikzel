@@ -4,7 +4,7 @@
 class Cube final : public Pikzel::Application {
 public:
    Cube()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.2f, 0.3f, 0.3f}}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.2f, 0.3f, 0.3f}}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
@@ -123,17 +123,17 @@ private:
 
 
    void CreateTextures() {
-      m_Texture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.jpg"});
+      m_Texture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Container.jpg"});
    }
 
 
    void CreatePipeline() {
       Pikzel::PipelineSettings settings {
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Cube.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Cube.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .bufferLayout = m_VertexBuffer->GetLayout(),
       };
       m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
    }

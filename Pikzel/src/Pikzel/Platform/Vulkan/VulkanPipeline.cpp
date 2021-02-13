@@ -59,8 +59,8 @@ namespace Pikzel {
          attributeDescriptions.emplace_back(
             location++                            /*location*/,
             0                                     /*binding*/,
-            DataTypeToVkFormat(element.Type)      /*format*/,
-            static_cast<uint32_t>(element.Offset) /*offset*/
+            DataTypeToVkFormat(element.dataType)  /*format*/,
+            element.offset                        /*offset*/
          );
       }
       return attributeDescriptions;
@@ -244,11 +244,11 @@ namespace Pikzel {
 
 
    void VulkanPipeline::CreateDescriptorSetLayouts(const PipelineSettings& settings) {
-      for (const auto& [shaderType, path] : settings.Shaders) {
+      for (const auto& [shaderType, path] : settings.shaders) {
          m_ShaderSrcs.emplace_back(shaderType, ReadFile<uint32_t>(path));
       }
 
-      ReflectShaders(settings.SpecializationConstants);
+      ReflectShaders(settings.specializationConstants);
 
       std::vector<std::vector<vk::DescriptorSetLayoutBinding>> layoutBindings;
       for (const auto& [id, resource] : m_Resources) {
@@ -395,7 +395,7 @@ namespace Pikzel {
       colorBlendAttachmentStates.reserve(gc.GetNumColorAttachments());
       for (uint32_t i = 0; i < gc.GetNumColorAttachments(); ++i) {
          colorBlendAttachmentStates.emplace_back(
-            settings.EnableBlend                     /*blendEnable*/,
+            settings.enableBlend                     /*blendEnable*/,
             vk::BlendFactor::eSrcAlpha               /*srcColorBlendFactor*/,
             vk::BlendFactor::eOneMinusSrcAlpha       /*dstColorBlendFactor*/,
             vk::BlendOp::eAdd                        /*colorBlendOp*/,
@@ -504,11 +504,11 @@ namespace Pikzel {
       // Specifies the vertex input parameters for a pipeline
       auto bindingDescription = vk::VertexInputBindingDescription {
          0,
-         settings.BufferLayout.GetStride(),
+         settings.bufferLayout.GetStride(),
          vk::VertexInputRate::eVertex
       };
 
-      auto attributeDescriptions = GetAttributeDescriptions(settings.BufferLayout);
+      auto attributeDescriptions = GetAttributeDescriptions(settings.bufferLayout);
 
       // Vertex input state used for pipeline creation
       vk::PipelineVertexInputStateCreateInfo vertexInputState = {
@@ -521,7 +521,7 @@ namespace Pikzel {
       pipelineCI.pVertexInputState = &vertexInputState;
 
       std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-      shaderStages.reserve(settings.Shaders.size());
+      shaderStages.reserve(settings.shaders.size());
       uint32_t index = 0;
       for (const auto& [shaderType, src] : m_ShaderSrcs) {
          shaderStages.emplace_back(

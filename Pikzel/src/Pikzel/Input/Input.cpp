@@ -74,8 +74,8 @@ namespace Pikzel {
          double x;
          double y;
          glfwGetCursorPos(m_Window, &x, &y);
-         m_Axes["MouseX"_hs] = static_cast<float>(x -  m_MouseX) * m_Settings.MouseSensitivity / event.deltaTime.count();
-         m_Axes["MouseY"_hs] = static_cast<float>(m_MouseY - y) * m_Settings.MouseSensitivity / event.deltaTime.count(); // nb: cursor Y axis is inverted relative to world Y axis
+         m_Axes["MouseX"_hs] = static_cast<float>(x -  m_MouseX) * m_Settings.mouseSensitivity / event.deltaTime.count();
+         m_Axes["MouseY"_hs] = static_cast<float>(m_MouseY - y) * m_Settings.mouseSensitivity / event.deltaTime.count(); // nb: cursor Y axis is inverted relative to world Y axis
          m_Axes["MouseZ"_hs] = m_MouseDeltaZ / event.deltaTime.count();
          m_MouseX = x;
          m_MouseY = y;
@@ -87,7 +87,7 @@ namespace Pikzel {
 
    void Input::OnKeyPressed(const KeyPressedEvent& event) {
       for (auto [keyCode, axis] : m_MappedKeys) {
-         if (event.KeyCode == keyCode) {
+         if (event.keyCode == keyCode) {
             if (m_KeyState[keyCode] == KeyState::Up) {
                auto [id, delta] = axis;
                m_Axes[id] += delta; // Floating point issues here?
@@ -101,7 +101,7 @@ namespace Pikzel {
 
    void Input::OnKeyReleased(const KeyReleasedEvent& event) {
       for (auto [keyCode, axis] : m_MappedKeys) {
-         if (event.KeyCode == keyCode) {
+         if (event.keyCode == keyCode) {
             if (m_KeyState[keyCode] == KeyState::Down) {
                auto [id, delta] = axis;
                m_Axes[id] -= delta; // Floating point issues here?
@@ -114,9 +114,9 @@ namespace Pikzel {
 
 
    void Input::OnMouseScrolled(const MouseScrolledEvent& event) {
-      if (event.Sender == m_Window) {
-         m_MouseDeltaZ = event.YOffset;
-         m_MouseDeltaW = event.XOffset;
+      if (event.sender == m_Window) {
+         m_MouseDeltaZ = event.yOffset;
+         m_MouseDeltaW = event.xOffset;
       }
    }
 }

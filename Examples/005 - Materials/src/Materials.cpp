@@ -4,7 +4,7 @@
 class Materials final : public Pikzel::Application {
 public:
    Materials()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
@@ -168,18 +168,18 @@ private:
 
    void CreatePipelines() {
       m_PipelineLight = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Light.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Light.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .bufferLayout = m_VertexBuffer->GetLayout(),
       });
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Lighting.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Lighting.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .bufferLayout = m_VertexBuffer->GetLayout(),
       });
    }
 

@@ -22,7 +22,7 @@ namespace Pikzel {
 
       // later we might have some other things in here... such as choice of input "scheme" to use...
       struct Settings {
-         float MouseSensitivity = 0.01f;
+         float mouseSensitivity = 0.01f;
       };
 
       Input(const Window& window, const Input::Settings& settings = {});

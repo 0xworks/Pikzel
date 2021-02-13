@@ -4,7 +4,7 @@
 class LightingMaps final : public Pikzel::Application {
 public:
    LightingMaps()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
@@ -143,12 +143,12 @@ private:
 
 
    void CreateTextures() {
-      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Diffuse.png"});
+      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Diffuse.png"});
 
       // Here, we create the specular map using a linear color space texture format.
       // This ensures that the R,G,B values in the image file asset are interpreted exactly as they are.
       // No mapping from sRGB non-linear is performed.
-      m_SpecularTexture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Specular.png", .Format = Pikzel::TextureFormat::RGBA8});
+      m_SpecularTexture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Specular.png", .format = Pikzel::TextureFormat::RGBA8});
    }
 
 
@@ -182,18 +182,18 @@ private:
 
    void CreatePipelines() {
       m_PipelineLight = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Light.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Light.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Lighting.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Lighting.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
    }
 

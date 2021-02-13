@@ -11,14 +11,14 @@ const float farPlane = 0.1f;
 class Skybox final : public Pikzel::Application {
 public:
    Skybox()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.2f}, .IsVSync = true}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.1f, 0.1f, 0.2f}, .isVSync = true}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
       CreateTextures();
       CreatePipelines();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
@@ -47,30 +47,30 @@ protected:
       static bool tonemap = false;
 
       glm::mat4 transform = glm::identity<glm::mat4>();
-      glm::mat4 view = glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
+      glm::mat4 view = glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.direction, m_Camera.upVector);
 
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
 
       gc.Bind(*m_ScenePipeline);
 
       glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(-1.0f, 0.0f, -1.0f));
-      gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.PushConstant("constants.mvp"_hs, m_Camera.projection * view * model);
       gc.Bind("uTexture"_hs, *m_TextureContainer);
       gc.DrawTriangles(*m_VertexBuffer, 36, 36);
 
       model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, 0.0f, 0.0f));
-      gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.PushConstant("constants.mvp"_hs, m_Camera.projection * view * model);
       gc.DrawTriangles(*m_VertexBuffer, 36, 36);
 
       model = glm::identity<glm::mat4>();
-      gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.PushConstant("constants.mvp"_hs, m_Camera.projection * view * model);
       gc.Bind("uTexture"_hs, *m_TextureFloor);
       gc.DrawTriangles(*m_VertexBuffer, 6, 72);
 
       view = glm::mat3(view);
       gc.Bind(*m_SkyboxPipeline);
 
-      gc.PushConstant("constants.vp"_hs, m_Camera.Projection * view);
+      gc.PushConstant("constants.vp"_hs, m_Camera.projection * view);
       gc.PushConstant("constants.lod"_hs, lod);
       gc.PushConstant("constants.tonemap"_hs, tonemap ? 1 : 0);
       gc.Bind("uSkybox"_hs, *m_Skybox);
@@ -90,7 +90,7 @@ protected:
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
       __super::OnWindowResize(event);
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
    }
 
 
@@ -218,32 +218,32 @@ private:
 
 
    void CreateTextures() {
-      m_TextureContainer = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.jpg"});
-      m_TextureFloor = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Floor.png"});
+      m_TextureContainer = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Container.jpg"});
+      m_TextureFloor = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Floor.png"});
       m_NewSkyboxPath = "Assets/Skyboxes/Skybox.jpg";
    }
 
 
    void LoadSkybox(const std::filesystem::path& path) {
-      m_Skybox = Pikzel::RenderCore::CreateTexture({.Type = Pikzel::TextureType::TextureCube, .Path = path});
+      m_Skybox = Pikzel::RenderCore::CreateTexture({.textureType = Pikzel::TextureType::TextureCube, .path = path});
    }
 
 
    void CreatePipelines() {
       m_ScenePipeline = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/TexturedModel.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/TexturedModel.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
 
       m_SkyboxPipeline = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Skybox.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Skybox.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
    }
 
@@ -255,12 +255,12 @@ private:
 
 
    Camera m_Camera = {
-      .Position = {0.0f, 0.0f, 0.0f},
-      .Direction = glm::normalize(glm::vec3{0.0f, 0.0f, -1.0f}),
-      .UpVector = {0.0f, 1.0f, 0.0f},
-      .FoVRadians = glm::radians(60.f),
-      .MoveSpeed = 2.5f,
-      .RotateSpeed = 10.0f
+      .position = {0.0f, 0.0f, 0.0f},
+      .direction = glm::normalize(glm::vec3{0.0f, 0.0f, -1.0f}),
+      .upVector = {0.0f, 1.0f, 0.0f},
+      .fovRadians = glm::radians(60.f),
+      .moveSpeed = 2.5f,
+      .rotateSpeed = 10.0f
    };
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;

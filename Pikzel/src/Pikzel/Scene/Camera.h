@@ -12,14 +12,14 @@
 
 struct PKZL_API Camera {
 
-   glm::vec3 Position {0.0f, 0.0f, 0.0f};
-   glm::vec3 Direction = {0.0f, 0.0f, -1.0f};
-   glm::vec3 UpVector = {0.0f, 1.0f, 0.0f};
-   float FoVRadians = glm::radians(45.0f);
-   float MoveSpeed = 2.5f; // TODO: should be in camera controller
-   float RotateSpeed = 2.5f;
+   glm::vec3 position {0.0f, 0.0f, 0.0f};
+   glm::vec3 direction = {0.0f, 0.0f, -1.0f};
+   glm::vec3 upVector = {0.0f, 1.0f, 0.0f};
+   float fovRadians = glm::radians(45.0f);
+   float moveSpeed = 2.5f; // TODO: should be in camera controller
+   float rotateSpeed = 2.5f;
 
-   glm::mat4 Projection = glm::identity<glm::mat4>();
+   glm::mat4 projection = glm::identity<glm::mat4>();
 
    void Update(const Pikzel::Input& input, const Pikzel::DeltaTime deltaTime);
 

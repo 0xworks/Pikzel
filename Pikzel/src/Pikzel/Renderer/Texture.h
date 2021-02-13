@@ -129,20 +129,20 @@ namespace Pikzel {
 
 
    struct PKZL_API TextureSettings {
-      TextureType Type = TextureType::Texture2D;
-      std::filesystem::path Path;
-      uint32_t Width = 1;
-      uint32_t Height = 1;
-      uint32_t Depth = 1;
-      uint32_t Layers = 1;
-      TextureFormat Format = TextureFormat::SRGBA8;
-      TextureFilter MinFilter = TextureFilter::LinearMipmapLinear;
-      TextureFilter MagFilter = TextureFilter::Linear;
-      TextureWrap WrapU = TextureWrap::Repeat;
-      TextureWrap WrapV = TextureWrap::Repeat;
-      TextureWrap WrapW = TextureWrap::Repeat;
-      uint32_t MIPLevels = 0; // 0 = auto calculate
-      bool ImageStorage = false;  // true = allow writing to this image in shaders (via imagestore(...))
+      TextureType textureType = TextureType::Texture2D;
+      std::filesystem::path path;
+      uint32_t width = 1;
+      uint32_t height = 1;
+      uint32_t depth = 1;
+      uint32_t layers = 1;
+      TextureFormat format = TextureFormat::SRGBA8;
+      TextureFilter minFilter = TextureFilter::LinearMipmapLinear;
+      TextureFilter magFilter = TextureFilter::Linear;
+      TextureWrap wrapU = TextureWrap::Repeat;
+      TextureWrap wrapV = TextureWrap::Repeat;
+      TextureWrap wrapW = TextureWrap::Repeat;
+      uint32_t mipLevels = 0; // 0 = auto calculate
+      bool imageStorage = false;  // true = allow writing to this image in shaders (via imagestore(...))
    };
 
 

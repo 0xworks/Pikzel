@@ -1345,15 +1345,15 @@ namespace Pikzel {
 
 
    void VulkanWindowGC::OnWindowResize(const WindowResizeEvent& event) {
-      if (event.Sender == m_Window) {
+      if (event.sender == m_Window) {
          m_WantResize = true;
       }
    }
 
 
    void VulkanWindowGC::OnWindowVSyncChanged(const WindowVSyncChangedEvent& event) {
-      if (event.Sender == m_Window) {
-         m_IsVSync = event.IsVSync;
+      if (event.sender == m_Window) {
+         m_IsVSync = event.isVSync;
          m_WantResize = true; // force swapchain recreate
       }
    }

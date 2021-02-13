@@ -4,18 +4,18 @@
 class LightCasters final : public Pikzel::Application {
 public:
    LightCasters()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}, .IsVSync = false}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}, .isVSync = false}}
    , m_Input {GetWindow()}
    , m_Light {
-      .Position = m_CameraPos,
-      .Direction = m_CameraDirection,
-      .CutOff = glm::cos(glm::radians(12.5f)),
-      .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
-      .Diffuse = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-      .Specular = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-      .Constant = 1.0f,
-      .Linear = 0.09f,
-      .Quadratic = 0.032f
+      .position = m_CameraPos,
+      .direction = m_CameraDirection,
+      .cutoff = glm::cos(glm::radians(12.5f)),
+      .ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
+      .diffuse = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+      .specular = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+      .constant = 1.0f,
+      .linear = 0.09f,
+      .quadratic = 0.032f
    }
    {
       CreateVertexBuffer();
@@ -57,8 +57,8 @@ public:
          m_CameraUp = glm::rotate(m_CameraUp, dPitchRadians, right);
       }
 
-      m_Light.Position = m_CameraPos;
-      m_Light.Direction = m_CameraDirection;
+      m_Light.position = m_CameraPos;
+      m_Light.direction = m_CameraDirection;
    }
 
 
@@ -157,33 +157,33 @@ private:
 
 
    void CreateTextures() {
-      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Diffuse.png"});
-      m_SpecularTexture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Specular.png", .Format = Pikzel::TextureFormat::RGBA8});
+      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Diffuse.png"});
+      m_SpecularTexture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Specular.png", .format = Pikzel::TextureFormat::RGBA8});
    }
 
 
    struct Material {
-      alignas(4)  float Shininess;
+      alignas(4)  float shininess;
    };
 
 
    struct Light {
-      alignas(16) glm::vec3 Position;
-      alignas(16) glm::vec3 Direction;
-      alignas(4) float CutOff;
-      alignas(16) glm::vec3 Ambient;
-      alignas(16) glm::vec3 Diffuse;
-      alignas(16) glm::vec3 Specular;
-      alignas(4) float Constant;
-      alignas(4) float Linear;
-      alignas(4) float Quadratic;
+      alignas(16) glm::vec3 position;
+      alignas(16) glm::vec3 direction;
+      alignas(4) float cutoff;
+      alignas(16) glm::vec3 ambient;
+      alignas(16) glm::vec3 diffuse;
+      alignas(16) glm::vec3 specular;
+      alignas(4) float constant;
+      alignas(4) float linear;
+      alignas(4) float quadratic;
 
    };
 
 
    void CreateUniformBuffers() {
       Material materials[] = {
-         {.Shininess{32.0f}}
+         {.shininess{32.0f}}
       };
       m_MaterialBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(materials), materials);
       m_LightBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(Light));
@@ -192,11 +192,11 @@ private:
 
    void CreatePipelines() {
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Lighting.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Lighting.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
    }
 

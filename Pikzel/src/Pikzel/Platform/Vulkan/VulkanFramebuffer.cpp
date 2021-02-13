@@ -34,12 +34,12 @@ namespace Pikzel {
 
 
    uint32_t VulkanFramebuffer::GetWidth() const {
-      return m_Settings.Width;
+      return m_Settings.width;
    }
 
 
    uint32_t VulkanFramebuffer::GetHeight() const {
-      return m_Settings.Height;
+      return m_Settings.height;
    }
 
 
@@ -49,8 +49,8 @@ namespace Pikzel {
       DestroyAttachments();
       DestroyFramebuffer();
 
-      m_Settings.Width = width;
-      m_Settings.Height = height;
+      m_Settings.width = width;
+      m_Settings.height = height;
 
       CreateAttachments();
       CreateFramebuffer();
@@ -58,17 +58,17 @@ namespace Pikzel {
 
 
    uint32_t VulkanFramebuffer::GetMSAANumSamples() const {
-      return m_Settings.MSAANumSamples;
+      return m_Settings.msaaNumSamples;
    }
 
 
    const glm::vec4& VulkanFramebuffer::GetClearColorValue() const {
-      return m_Settings.ClearColorValue;
+      return m_Settings.clearColorValue;
    }
 
 
    double VulkanFramebuffer::GetClearDepthValue() const {
-      return m_Settings.ClearDepthValue;
+      return m_Settings.clearDepthValue;
    }
 
 
@@ -127,21 +127,21 @@ namespace Pikzel {
 
 
    void VulkanFramebuffer::CreateAttachments() {
-      bool isMultiSampled = m_Settings.MSAANumSamples > 1;
+      bool isMultiSampled = m_Settings.msaaNumSamples > 1;
       vk::SampleCountFlagBits sampleCount = static_cast<vk::SampleCountFlagBits>(GetMSAANumSamples());
 
       m_ImageViews.clear();
-      m_ImageViews.reserve(m_Settings.Attachments.size() * (isMultiSampled? 2 : 1));
+      m_ImageViews.reserve(m_Settings.attachments.size() * (isMultiSampled? 2 : 1));
       uint32_t numColorAttachments = 0;
       uint32_t numDepthAttachments = 0;
       m_LayerCount = 1;
-      for (const auto attachment : m_Settings.Attachments) {
-         switch (attachment.AttachmentType) {
+      for (const auto attachment : m_Settings.attachments) {
+         switch (attachment.attachmentType) {
             case AttachmentType::Color: {
                PKZL_CORE_ASSERT(numColorAttachments < 4, "Framebuffer can have a maximum of four color attachments!");
                if (isMultiSampled) {
                   vk::ImageViewType type;
-                  switch (attachment.TextureType) {
+                  switch (attachment.textureType) {
                      case TextureType::Texture2D:
                         type = vk::ImageViewType::e2D;
                         break;
@@ -155,12 +155,12 @@ namespace Pikzel {
                      default:
                         PKZL_CORE_ASSERT(false, "unknown attachment texture type!");
                   }
-                  m_MSAAColorImages.emplace_back(std::make_unique<VulkanImage>(m_Device, type, m_Settings.Width, m_Settings.Height, m_Settings.Layers, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vma::MemoryUsage::eGpuOnly));
-                  m_MSAAColorImages.back()->CreateImageViews(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eColor);
+                  m_MSAAColorImages.emplace_back(std::make_unique<VulkanImage>(m_Device, type, m_Settings.width, m_Settings.height, m_Settings.layers, 1, sampleCount, TextureFormatToVkFormat(attachment.format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment, vma::MemoryUsage::eGpuOnly));
+                  m_MSAAColorImages.back()->CreateImageViews(TextureFormatToVkFormat(attachment.format), vk::ImageAspectFlagBits::eColor);
                   m_ImageViews.push_back(m_MSAAColorImages.back()->GetVkImageView());
                   m_Attachments.push_back({
                      {}                                               /*flags*/,
-                     TextureFormatToVkFormat(attachment.Format)       /*format*/,
+                     TextureFormatToVkFormat(attachment.format)       /*format*/,
                      sampleCount                                      /*samples*/,
                      vk::AttachmentLoadOp::eClear                     /*loadOp*/,
                      vk::AttachmentStoreOp::eDontCare                 /*storeOp*/,
@@ -171,20 +171,20 @@ namespace Pikzel {
                   });
                }
                m_ColorTextures.emplace_back(RenderCore::CreateTexture({
-                  .Type = attachment.TextureType,
-                  .Width = m_Settings.Width,
-                  .Height = m_Settings.Height,
-                  .Layers = m_Settings.Layers,
-                  .Format = attachment.Format,
-                  .WrapU = TextureWrap::ClampToEdge,
-                  .WrapV = TextureWrap::ClampToEdge,
-                  .MIPLevels = 1
+                  .textureType = attachment.textureType,
+                  .width = m_Settings.width,
+                  .height = m_Settings.height,
+                  .layers = m_Settings.layers,
+                  .format = attachment.format,
+                  .wrapU = TextureWrap::ClampToEdge,
+                  .wrapV = TextureWrap::ClampToEdge,
+                  .mipLevels = 1
                }));
                m_ImageViews.push_back(static_cast<VulkanTexture*>(m_ColorTextures.back().get())->GetVkImageView());
                m_LayerCount = m_ColorTextures.back()->GetLayers();
                m_Attachments.push_back({
                   {}                                                                              /*flags*/,
-                  TextureFormatToVkFormat(attachment.Format)                                      /*format*/,
+                  TextureFormatToVkFormat(attachment.format)                                      /*format*/,
                   vk::SampleCountFlagBits::e1                                                     /*samples*/,
                   isMultiSampled? vk::AttachmentLoadOp::eDontCare : vk::AttachmentLoadOp::eClear  /*loadOp*/,
                   vk::AttachmentStoreOp::eStore                                                   /*storeOp*/,
@@ -201,7 +201,7 @@ namespace Pikzel {
                PKZL_CORE_ASSERT(numDepthAttachments < 1, "Framebuffer can only have one depth attachment!");
                if (isMultiSampled) {
                   vk::ImageViewType type;
-                  switch (attachment.TextureType) {
+                  switch (attachment.textureType) {
                      case TextureType::Texture2D:
                         type = vk::ImageViewType::e2D;
                         break;
@@ -215,12 +215,12 @@ namespace Pikzel {
                      default:
                         PKZL_CORE_ASSERT(false, "unknown attachment texture type!");
                   }
-                  m_MSAADepthImage = std::make_unique<VulkanImage>(m_Device, type, m_Settings.Width, m_Settings.Height, m_Settings.Layers, 1, sampleCount, TextureFormatToVkFormat(attachment.Format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eDepthStencilAttachment, vma::MemoryUsage::eGpuOnly);
-                  m_MSAADepthImage->CreateImageViews(TextureFormatToVkFormat(attachment.Format), vk::ImageAspectFlagBits::eDepth);
+                  m_MSAADepthImage = std::make_unique<VulkanImage>(m_Device, type, m_Settings.width, m_Settings.height, m_Settings.layers, 1, sampleCount, TextureFormatToVkFormat(attachment.format), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eDepthStencilAttachment, vma::MemoryUsage::eGpuOnly);
+                  m_MSAADepthImage->CreateImageViews(TextureFormatToVkFormat(attachment.format), vk::ImageAspectFlagBits::eDepth);
                   m_ImageViews.push_back(m_MSAADepthImage->GetVkImageView());
                   m_Attachments.push_back({
                      {}                                               /*flags*/,
-                     TextureFormatToVkFormat(attachment.Format)       /*format*/,
+                     TextureFormatToVkFormat(attachment.format)       /*format*/,
                      sampleCount                                      /*samples*/,
                      vk::AttachmentLoadOp::eClear                     /*loadOp*/,
                      vk::AttachmentStoreOp::eDontCare                 /*storeOp*/,
@@ -231,20 +231,20 @@ namespace Pikzel {
                   });
                }
                m_DepthTexture = RenderCore::CreateTexture({
-                  .Type = attachment.TextureType,
-                  .Width = m_Settings.Width,
-                  .Height = m_Settings.Height,
-                  .Layers = m_Settings.Layers,
-                  .Format = attachment.Format,
-                  .WrapU = TextureWrap::ClampToBorder,
-                  .WrapV = TextureWrap::ClampToBorder,
-                  .MIPLevels = 1
+                  .textureType = attachment.textureType,
+                  .width = m_Settings.width,
+                  .height = m_Settings.height,
+                  .layers = m_Settings.layers,
+                  .format = attachment.format,
+                  .wrapU = TextureWrap::ClampToBorder,
+                  .wrapV = TextureWrap::ClampToBorder,
+                  .mipLevels = 1
                });
                m_ImageViews.push_back(static_cast<VulkanTexture*>(m_DepthTexture.get())->GetVkImageView());
                m_LayerCount = m_DepthTexture->GetLayers();
                m_Attachments.push_back({
                   {}                                                                              /*flags*/,
-                  TextureFormatToVkFormat(attachment.Format)                                      /*format*/,
+                  TextureFormatToVkFormat(attachment.format)                                      /*format*/,
                   vk::SampleCountFlagBits::e1                                                     /*samples*/,
                   isMultiSampled ? vk::AttachmentLoadOp::eDontCare : vk::AttachmentLoadOp::eClear  /*loadOp*/,
                   vk::AttachmentStoreOp::eStore                                                   /*storeOp*/,
@@ -287,8 +287,8 @@ namespace Pikzel {
          static_cast<VulkanFramebufferGC&>(*m_Context).GetVkRenderPass(BeginFrameOp::ClearAll)  /*renderPass*/,
          static_cast<uint32_t>(m_ImageViews.size())                                             /*attachmentCount*/,
          m_ImageViews.data()                                                                    /*pAttachments*/,
-         m_Settings.Width                                                                       /*width*/,
-         m_Settings.Height                                                                      /*height*/,
+         m_Settings.width                                                                       /*width*/,
+         m_Settings.height                                                                      /*height*/,
          m_LayerCount                                                                           /*layers*/
       };
       m_Framebuffer = m_Device->GetVkDevice().createFramebuffer(ci);

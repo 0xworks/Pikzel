@@ -13,7 +13,7 @@ const float farPlane = 0.1f;
 class Framebuffers final : public Pikzel::Application {
 public:
    Framebuffers()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.5f, 0.5f, 0.5f}, .IsVSync = true}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.5f, 0.5f, 0.5f}, .isVSync = true}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
@@ -21,7 +21,7 @@ public:
       CreateFramebuffer();
       CreatePipelines();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
@@ -48,7 +48,7 @@ protected:
       static float offset = 1.0 / 300.0f;
 
       glm::mat4 transform = glm::identity<glm::mat4>();
-      glm::mat4 view = glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
+      glm::mat4 view = glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.direction, m_Camera.upVector);
 
       // Conceptually, there is a "context" for each render target
       // Although in practice, OpenGL only has one "context", and if you try and mix rendering commands between different GraphicsContext instances it wont work
@@ -66,16 +66,16 @@ protected:
       gc.Bind(*m_ScenePipeline);
 
       glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(-1.0f, 0.0f, -1.0f));
-      gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.PushConstant("constants.mvp"_hs, m_Camera.projection * view * model);
       gc.Bind("uTexture"_hs, *m_TextureContainer);
       gc.DrawTriangles(*m_VertexBuffer, 36);
 
       model = glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, 0.0f, 0.0f));
-      gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.PushConstant("constants.mvp"_hs, m_Camera.projection * view * model);
       gc.DrawTriangles(*m_VertexBuffer, 36);
 
       model = glm::identity<glm::mat4>();
-      gc.PushConstant("constants.mvp"_hs, m_Camera.Projection * view * model);
+      gc.PushConstant("constants.mvp"_hs, m_Camera.projection * view * model);
       gc.Bind("uTexture"_hs, *m_TextureFloor);
       gc.DrawTriangles(*m_VertexBuffer, 6, 36);
 
@@ -120,7 +120,7 @@ protected:
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
       __super::OnWindowResize(event);
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       // recreate framebuffer with new size
       CreateFramebuffer();
@@ -207,34 +207,34 @@ private:
 
 
    void CreateTextures() {
-      m_TextureContainer = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.jpg"});
-      m_TextureFloor = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Floor.png"});
+      m_TextureContainer = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Container.jpg"});
+      m_TextureFloor = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Floor.png"});
    }
 
 
    void CreateFramebuffer() {
-      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColorValue = GetWindow().GetClearColor()});
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = GetWindow().GetWidth(), .height = GetWindow().GetHeight(), .msaaNumSamples = 4, .clearColorValue = GetWindow().GetClearColor()});
    }
 
 
    void CreatePipelines() {
       m_PostProcessingPipeline = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/PostProcess.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/PostProcess.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .bufferLayout = m_VertexBuffer->GetLayout(),
       });
 #if RENDER_DIRECTLY_TO_WINDOW
       m_ScenePipeline = GetWindow().GetGraphicsContext().CreatePipeline({
 #else
       m_ScenePipeline = m_Framebuffer->GetGraphicsContext().CreatePipeline({
 #endif
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/TexturedModel.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/TexturedModel.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .bufferLayout = m_VertexBuffer->GetLayout(),
       });
    }
 
@@ -243,12 +243,12 @@ private:
    Pikzel::Input m_Input;
 
    Camera m_Camera = {
-      .Position = {0.0f, 0.0f, 3.0f},
-      .Direction = glm::normalize(glm::vec3{0.0f, 0.0f, -1.0f}),
-      .UpVector = {0.0f, 1.0f, 0.0f},
-      .FoVRadians = glm::radians(60.f),
-      .MoveSpeed = 2.5f,
-      .RotateSpeed = 10.0f
+      .position = {0.0f, 0.0f, 3.0f},
+      .direction = glm::normalize(glm::vec3{0.0f, 0.0f, -1.0f}),
+      .upVector = {0.0f, 1.0f, 0.0f},
+      .fovRadians = glm::radians(60.f),
+      .moveSpeed = 2.5f,
+      .rotateSpeed = 10.0f
    };
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;

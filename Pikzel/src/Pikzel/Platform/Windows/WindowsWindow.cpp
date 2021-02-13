@@ -22,8 +22,8 @@ namespace Pikzel {
       m_Settings = settings;
 
       PKZL_CORE_LOG_INFO("Platform Windows:");
-      PKZL_CORE_LOG_INFO("  Title: {0}", m_Settings.Title);
-      PKZL_CORE_LOG_INFO("  Size: ({0}, {1})", m_Settings.Width, m_Settings.Height);
+      PKZL_CORE_LOG_INFO("  Title: {0}", m_Settings.title);
+      PKZL_CORE_LOG_INFO("  Size: ({0}, {1})", m_Settings.width, m_Settings.height);
 
       if (s_GLFWWindowCount == 0) {
          if (!glfwInit()) {
@@ -35,7 +35,7 @@ namespace Pikzel {
       }
 
       {
-         const auto monitor = m_Settings.IsFullScreen ? glfwGetPrimaryMonitor() : nullptr;
+         const auto monitor = m_Settings.isFullScreen ? glfwGetPrimaryMonitor() : nullptr;
 
          int clientAPI = GLFW_NO_API;
          if (RenderCore::GetAPI() == RenderCore::API::OpenGL) {
@@ -50,29 +50,29 @@ namespace Pikzel {
             }
          }
          glfwWindowHint(GLFW_CLIENT_API, clientAPI);
-         glfwWindowHint(GLFW_RESIZABLE, m_Settings.IsResizable ? GLFW_TRUE : GLFW_FALSE);
+         glfwWindowHint(GLFW_RESIZABLE, m_Settings.isResizable ? GLFW_TRUE : GLFW_FALSE);
 
          if (!(
-            (settings.MSAANumSamples == 1) ||
-            (settings.MSAANumSamples == 2) ||
-            (settings.MSAANumSamples == 4) ||
-            (settings.MSAANumSamples == 8)
+            (settings.msaaNumSamples == 1) ||
+            (settings.msaaNumSamples == 2) ||
+            (settings.msaaNumSamples == 4) ||
+            (settings.msaaNumSamples == 8)
          )) {
             throw std::runtime_error {"Invalid MSAA sample count.  Must be 1, 2, 4, or 8"};
          }
-         glfwWindowHint(GLFW_SAMPLES, m_Settings.MSAANumSamples);
-         m_Window = glfwCreateWindow((int)m_Settings.Width, (int)m_Settings.Height, m_Settings.Title, monitor, nullptr);
+         glfwWindowHint(GLFW_SAMPLES, m_Settings.msaaNumSamples);
+         m_Window = glfwCreateWindow((int)m_Settings.width, (int)m_Settings.height, m_Settings.title, monitor, nullptr);
          if (!m_Window) {
             throw std::runtime_error {"failed to create window"};
          }
          glfwSetWindowSizeLimits(
             m_Window,
-            m_Settings.MinWidth ? (int)m_Settings.MinWidth : GLFW_DONT_CARE,
-            m_Settings.MinHeight ? (int)m_Settings.MinHeight : GLFW_DONT_CARE,
-            m_Settings.MaxWidth ? (int)m_Settings.MaxWidth : GLFW_DONT_CARE,
-            m_Settings.MaxHeight ? (int)m_Settings.MaxHeight : GLFW_DONT_CARE
+            m_Settings.minWidth ? (int)m_Settings.minWidth : GLFW_DONT_CARE,
+            m_Settings.minHeight ? (int)m_Settings.minHeight : GLFW_DONT_CARE,
+            m_Settings.maxWidth ? (int)m_Settings.maxWidth : GLFW_DONT_CARE,
+            m_Settings.maxHeight ? (int)m_Settings.maxHeight : GLFW_DONT_CARE
          );
-         if (!m_Settings.IsCursorEnabled) {
+         if (!m_Settings.isCursorEnabled) {
             glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
          }
          ++s_GLFWWindowCount;
@@ -168,23 +168,23 @@ namespace Pikzel {
 
 
    uint32_t WindowsWindow::GetMSAANumSamples() const {
-      return m_Settings.MSAANumSamples;
+      return m_Settings.msaaNumSamples;
    }
 
 
    glm::vec4 WindowsWindow::GetClearColor() const {
-      return m_Settings.ClearColor;
+      return m_Settings.clearColor;
    }
 
 
    void WindowsWindow::SetVSync(bool enabled) {
-      m_Settings.IsVSync = enabled;
+      m_Settings.isVSync = enabled;
       EventDispatcher::Send<WindowVSyncChangedEvent>(this, enabled);
    }
 
 
    bool WindowsWindow::IsVSync() const {
-      return m_Settings.IsVSync;
+      return m_Settings.isVSync;
    }
 
 

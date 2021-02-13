@@ -23,11 +23,11 @@ public:
       m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices);
 
       Pikzel::PipelineSettings settings {
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Triangle.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Triangle.frag.spv" }
          },
-         .BufferLayout = layout,
+         .bufferLayout = layout,
       };
       m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
    }

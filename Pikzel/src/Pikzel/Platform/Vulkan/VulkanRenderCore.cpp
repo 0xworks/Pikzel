@@ -125,15 +125,15 @@ namespace Pikzel {
    std::unique_ptr<Texture> VulkanRenderCore::CreateTexture(const TextureSettings& settings) {
       vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment;
       vk::ImageAspectFlags aspect = vk::ImageAspectFlagBits::eColor;
-      if (IsDepthFormat(settings.Format)) {
+      if (IsDepthFormat(settings.format)) {
          usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
          aspect = vk::ImageAspectFlagBits::eDepth;
       }
-      if (settings.ImageStorage) {
+      if (settings.imageStorage) {
          usage |= vk::ImageUsageFlagBits::eStorage;
       }
 
-      switch (settings.Type) {
+      switch (settings.textureType) {
          case TextureType::Texture2D:        return std::make_unique<VulkanTexture2D>(m_Device, settings, usage, aspect);
          case TextureType::Texture2DArray:   return std::make_unique<VulkanTexture2DArray>(m_Device, settings, usage, aspect);
          case TextureType::TextureCube:      return std::make_unique<VulkanTextureCube>(m_Device, settings, usage, aspect);

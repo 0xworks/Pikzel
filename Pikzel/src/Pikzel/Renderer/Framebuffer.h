@@ -14,20 +14,20 @@ namespace Pikzel {
 
 
    struct PKZL_API FramebufferAttachmentSettings {
-      AttachmentType AttachmentType = AttachmentType::Color;
-      TextureFormat Format = TextureFormat::SRGBA8;
-      TextureType TextureType = TextureType::Texture2D;
+      AttachmentType attachmentType = AttachmentType::Color;
+      TextureFormat format = TextureFormat::SRGBA8;
+      TextureType textureType = TextureType::Texture2D;
    };
 
 
    struct PKZL_API FramebufferSettings {
-      uint32_t Width = 1920;
-      uint32_t Height = 1080;
-      uint32_t Layers = 1;
-      uint32_t MSAANumSamples = 1;
-      glm::vec4 ClearColorValue = {};
-      double ClearDepthValue = 0.0;
-      std::vector<FramebufferAttachmentSettings> Attachments = {
+      uint32_t width = 1920;
+      uint32_t height = 1080;
+      uint32_t layers = 1;
+      uint32_t msaaNumSamples = 1;
+      glm::vec4 clearColorValue = {};
+      double clearDepthValue = 0.0;
+      std::vector<FramebufferAttachmentSettings> attachments = {
          {AttachmentType::Color, TextureFormat::SRGBA8, TextureType::Texture2D},
          {AttachmentType::Depth, TextureFormat::D32F, TextureType::Texture2D}
       };
