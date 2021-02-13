@@ -31,3 +31,6 @@
 [submodule "Pikzel/vendor/VulkanMemoryAllocator-Hpp"]
 	path = Pikzel/vendor/VulkanMemoryAllocator-Hpp
 	url = https://github.com/malte-v/VulkanMemoryAllocator-Hpp.git
+[submodule "Pikzel/vendor/tinyfiledialogs"]
+	path = Pikzel/vendor/tinyfiledialogs
+	url = https://github.com/native-toolkit/tinyfiledialogs.git

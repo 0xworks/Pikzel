@@ -27,6 +27,7 @@ set(
    "src/Pikzel/Core/Log.h"
    "src/Pikzel/Core/Log.cpp"
    "src/Pikzel/Core/PlatformUtility.h"
+   "src/Pikzel/Core/PlatformUtility.cpp"
    "src/Pikzel/Core/Utility.h"
    "src/Pikzel/Core/Window.h"
    "src/Pikzel/Events/ApplicationEvents.h"
@@ -56,6 +57,7 @@ set(
    "src/Pikzel/Scene/Camera.h"
    "src/Pikzel/Scene/Camera.cpp"
    "src/Pikzel/Scene/Light.h"
+   "vendor/tinyfiledialogs/tinyfiledialogs.c"
 )
 
 # These at the "public" includes
@@ -93,20 +95,8 @@ set(
 
 if(WIN32)
    list(
-      APPEND ProjectSources
-      "src/Pikzel/Platform/Windows/WindowsPlatformUtility.cpp"
-   )
-
-   list(
       APPEND ProjectDefines
       WIN32_LEAN_AND_MEAN
-   )
-endif()
-
-if(UNIX)
-   list(
-      APPEND ProjectSources
-      "src/Pikzel/Platform/Linux/LinuxPlatformUtility.cpp"
    )
 endif()
 
@@ -154,6 +144,7 @@ target_include_directories(
 target_include_directories(
    ${PROJECT_NAME} PRIVATE
    "vendor/SPIRV-Cross"
+   "vendor/tinyfiledialogs"
 )
 
 target_precompile_headers(
@@ -327,9 +318,10 @@ target_precompile_headers(
    <glm/glm.hpp>
 )
 
-# no precompiled header for GLAD
+# no precompiled header for these files
 set_source_files_properties(
    "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
+   "vendor/tinyfiledialogs/tinyfiledialogs.c"
    PROPERTIES
    SKIP_PRECOMPILE_HEADERS ON
 )
