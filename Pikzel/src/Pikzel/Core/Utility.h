@@ -28,7 +28,7 @@ namespace Pikzel {
 
          return buffer;
 
-      } catch (std::system_error) {
+      } catch (const std::system_error&) {
          throw std::runtime_error {fmt::format("Could not access file '{0}'!", path)};
       }
    }
