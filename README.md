@@ -12,7 +12,7 @@ This project is mainly a learning exercise for me, and I hope that the code is c
 ## Features
 - [ ] Supported platforms
   - [x] Windows 10
-  - [ ] Linux
+  - [x] Linux
   - [ ] Mac
   - [ ] Mobile
 
@@ -66,11 +66,21 @@ This project is mainly a learning exercise for me, and I hope that the code is c
 
 
 ## Building
-This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2019 on Win10.  Others are untested, but may work (with hopefully only minor changes).
+This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2019 on Win10.
+I have also tested on Ubuntu 20.10 using gcc.  Others are untested, but may work (with hopefully only minor changes).
 
 ### Prerequisites
+- A c++20 compiler (or at least the compiler must support designated initializers)
+- cmake 3.16+
 - [Vulkan SDK](https://vulkan.lunarg.com/) (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).  Currently built against Vulkan SDK v1.2.162.0.
-- All other dependencies are brought in via git submodules, so there is no need to pre-install anything.  The other dependencies are:
+- On linux you will need the following packages installed:
+  - libosmesa6-dev
+  - libxrandr-dev
+  - libxinerama-dev
+  - libxcursor-dev
+  - libxi-dev
+
+- All other dependencies are brought in via git submodules to try and minimize the need to pre-install things.  The other dependencies are:
   - assimp  (asset (aka 3d models) importing)
   - cmrc    (for embedding resources (such as shader binaries) into the compiled application)
   - entt    (Entity Component System, plus this is also used for the event system, and compile time string hashing)
@@ -84,10 +94,15 @@ This project is C++ and uses CMake to generate build system files.  My developme
 
 ### Build
 - ```git clone --recursive https://github.com/freeman40/Pikzel.git```
-- Open cloned folder in Visual Studio
-- Build (using Visual Studio built-in cmake support)
+- ```cd Pikzel```
+- ```mkdir build```
+- ```cmake ../ && cmake --build .```
 
-Be aware that the first time you build, it will take a little longer than usual (a couple of minutes maybe) as it builds all of the dependencies.
+Or on Windows you can just open the cloned folder in Visual Studio, and build using VS built-in cmake support.
+
+Or on both Windows and Linux, using VS Code with suitable C++ and CMake extensions also works.
+
+
 
 ## Screenshots
 ![17.1 PBR](Assets/Screenshots/17.1-PBR.jpg)
