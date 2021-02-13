@@ -5,7 +5,7 @@
 class MultipleLights final : public Pikzel::Application {
 public:
    MultipleLights()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.05f, 0.05f, 0.05f}, .IsVSync = true}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.05f, 0.05f, 0.05f}, .isVSync = true}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
@@ -14,7 +14,7 @@ public:
       CreatePipelines();
 
       // note: Pikzel uses reverse-Z so near and far planes are swapped
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 100.0f, 0.1f);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), 100.0f, 0.1f);
    }
 
 
@@ -30,15 +30,15 @@ public:
    virtual void Render() override {
       PKZL_PROFILE_FUNCTION();
 
-      glm::mat4 projView = m_Camera.Projection * glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
+      glm::mat4 projView = m_Camera.projection * glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.direction, m_Camera.upVector);
 
       Pikzel::GraphicsContext& gc = GetWindow().GetGraphicsContext();
       {
          gc.Bind(*m_PipelineLight);
          for (const auto& pointLight : m_PointLights) {
-            glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), pointLight.Position), {0.2f, 0.2f, 0.2f});
+            glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), pointLight.position), {0.2f, 0.2f, 0.2f});
             gc.PushConstant("constants.mvp"_hs, projView * model);
-            gc.PushConstant("constants.lightColor"_hs, pointLight.Color);
+            gc.PushConstant("constants.lightColor"_hs, pointLight.color);
             gc.DrawTriangles(*m_VertexBuffer, 36);
          }
       }
@@ -50,7 +50,7 @@ public:
          gc.Bind("UBOPointLights"_hs, *m_PointLightBuffer);
 
          gc.PushConstant("constants.vp"_hs, projView);
-         gc.PushConstant("constants.viewPos"_hs, m_Camera.Position);
+         gc.PushConstant("constants.viewPos"_hs, m_Camera.position);
          gc.PushConstant("constants.shininess"_hs, 32.0f);
 
          for (int i = 0; i < 10; ++i) {
@@ -127,8 +127,8 @@ private:
 
 
    void CreateTextures() {
-      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Diffuse.png"});
-      m_SpecularTexture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Specular.png", .Format = Pikzel::TextureFormat::RGBA8});
+      m_DiffuseTexture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Diffuse.png"});
+      m_SpecularTexture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Specular.png", .format = Pikzel::TextureFormat::RGBA8});
    }
 
 
@@ -136,9 +136,9 @@ private:
       // note: shader expects exactly 1
       Pikzel::DirectionalLight directionalLights[] = {
          {
-            .Direction = {-0.2f, -1.0f, -0.3f},
-            .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-            .Ambient = Pikzel::sRGB{0.01f, 0.01f, 0.01f}
+            .direction = {-0.2f, -1.0f, -0.3f},
+            .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+            .ambient = Pikzel::sRGB{0.01f, 0.01f, 0.01f}
          }
       };
 
@@ -149,18 +149,18 @@ private:
 
    void CreatePipelines() {
       m_PipelineLight = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Light.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Light.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Lighting.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Lighting.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .bufferLayout = m_VertexBuffer->GetLayout(),
       });
    }
 
@@ -183,31 +183,31 @@ private:
    // note: shader expects exactly 4
    Pikzel::PointLight m_PointLights[4] = {
       {
-         .Position = {0.7f, 0.2f, 2.0f},
-         .Color = Pikzel::sRGB{0.0f, 0.0f, 1.0f},
-         .Power = 30.0f
+         .position = {0.7f, 0.2f, 2.0f},
+         .color = Pikzel::sRGB{0.0f, 0.0f, 1.0f},
+         .power = 30.0f
       },
       {
-         .Position = {2.3f, -3.3f, -4.0f},
-         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
-         .Power = 30.0f
+         .position = {2.3f, -3.3f, -4.0f},
+         .color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
+         .power = 30.0f
       },
       {
-         .Position = {-4.0f, 2.0f, -12.0f},
-         .Color = Pikzel::sRGB{1.0f, 0.0f, 0.0f},
-         .Power = 30.0f
+         .position = {-4.0f, 2.0f, -12.0f},
+         .color = Pikzel::sRGB{1.0f, 0.0f, 0.0f},
+         .power = 30.0f
       },
       {
-         .Position = {0.0f, 0.0f, -3.0f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 0.0f},
-         .Power = 30.0f
+         .position = {0.0f, 0.0f, -3.0f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 0.0f},
+         .power = 30.0f
       }
    };
 
    Pikzel::Input m_Input;
 
    Camera m_Camera = {
-      .Position = {0.0f, 0.0f, 3.0f}
+      .position = {0.0f, 0.0f, 3.0f}
    };
 
    std::unique_ptr<Pikzel::VertexBuffer> m_VertexBuffer;

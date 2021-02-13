@@ -8,7 +8,7 @@
 class SRGBDemo final : public Pikzel::Application {
 public:
    SRGBDemo()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{1.0f, 1.0f, 1.0f}}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{1.0f, 1.0f, 1.0f}}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffer();
@@ -159,17 +159,17 @@ private:
 
 
    void CreateFramebuffer() {
-      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.Width = GetWindow().GetWidth(), .Height = GetWindow().GetHeight(), .MSAANumSamples = 4, .ClearColorValue = GetWindow().GetClearColor()});
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = GetWindow().GetWidth(), .height = GetWindow().GetHeight(), .msaaNumSamples = 4, .clearColorValue = GetWindow().GetClearColor()});
    }
 
 
    void CreatePipelines() {
       m_PostProcessingPipeline = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/PostProcess.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/PostProcess.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
 
 #if RENDER_DIRECTLY_TO_WINDOW
@@ -177,11 +177,11 @@ private:
 #else
       m_ScenePipeline = m_Framebuffer->GetGraphicsContext().CreatePipeline({
 #endif
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/sRGB.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/sRGB.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .bufferLayout = m_VertexBuffer->GetLayout(),
       });
    }
 

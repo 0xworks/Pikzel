@@ -33,7 +33,7 @@ namespace SponzaPBR {
             std::filesystem::path texturePath = modelDir / str.C_Str();
             if (g_TextureCache.find(texturePath.string()) == g_TextureCache.end()) {
                bool isSRGB = (type == aiTextureType_DIFFUSE);
-               g_TextureCache[texturePath.string()] = Pikzel::RenderCore::CreateTexture({ .Path = texturePath, .Format = (type == aiTextureType_DIFFUSE ? Pikzel::TextureFormat::SRGBA8 : Pikzel::TextureFormat::RGBA8) });
+               g_TextureCache[texturePath.string()] = Pikzel::RenderCore::CreateTexture({ .path = texturePath, .format = (type == aiTextureType_DIFFUSE ? Pikzel::TextureFormat::SRGBA8 : Pikzel::TextureFormat::RGBA8) });
             }
             return g_TextureCache[texturePath.string()];
          }

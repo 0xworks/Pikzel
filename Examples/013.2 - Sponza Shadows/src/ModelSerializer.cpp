@@ -37,7 +37,7 @@ namespace SponzaShadows {
                // Make an assumption that DIFFUSE is non-linear, and SPECULAR is linear
                // TODO: when we come to needing other texture types (eg. Normals) then this needs to be revisited
                bool isSRGB = (type == aiTextureType_DIFFUSE);
-               g_TextureCache[texturePath.string()] = Pikzel::RenderCore::CreateTexture({.Path = texturePath, .Format = (type == aiTextureType_DIFFUSE ? Pikzel::TextureFormat::SRGBA8 : Pikzel::TextureFormat::RGBA8)});
+               g_TextureCache[texturePath.string()] = Pikzel::RenderCore::CreateTexture({.path = texturePath, .format = (type == aiTextureType_DIFFUSE ? Pikzel::TextureFormat::SRGBA8 : Pikzel::TextureFormat::RGBA8)});
             }
             return g_TextureCache[texturePath.string()];
          }
