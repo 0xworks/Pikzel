@@ -5,7 +5,7 @@ class Materials final : public Pikzel::Application {
 public:
    Materials()
    : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.1f, 0.1f, 0.1f}}}
-   , m_Input {GetWindow()}
+   , m_Input {GetWindow(), {}}
    {
       CreateVertexBuffer();
       CreateUniformBuffers();

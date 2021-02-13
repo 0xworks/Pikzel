@@ -1,4 +1,4 @@
-#include "WindowsWindow.h"
+#include "GLFWWindow.h"
 
 #include "Pikzel/Events/EventDispatcher.h"
 #include "Pikzel/Events/KeyEvents.h"
@@ -10,15 +10,19 @@
 
 namespace Pikzel {
 
+   std::unique_ptr<Window> Window::Create() {
+      return std::make_unique<GLFWWindow>(Settings{});
+   }
+
    std::unique_ptr<Window> Window::Create(const Settings& settings) {
-      return std::make_unique<WindowsWindow>(settings);
+      return std::make_unique<GLFWWindow>(settings);
    }
 
 
    static uint8_t s_GLFWWindowCount = 0;
 
 
-   WindowsWindow::WindowsWindow(const Settings& settings) {
+   GLFWWindow::GLFWWindow(const Settings& settings) {
       m_Settings = settings;
 
       PKZL_CORE_LOG_INFO("Platform Windows:");
@@ -136,7 +140,7 @@ namespace Pikzel {
    }
 
 
-   WindowsWindow::~WindowsWindow() {
+   GLFWWindow::~GLFWWindow() {
       m_Context.reset();
       glfwDestroyWindow(m_Window);
       m_Window = nullptr;
@@ -146,12 +150,12 @@ namespace Pikzel {
    }
 
 
-   void* WindowsWindow::GetNativeWindow() const {
+   void* GLFWWindow::GetNativeWindow() const {
       return m_Window;
    }
 
 
-   uint32_t WindowsWindow::GetWidth() const {
+   uint32_t GLFWWindow::GetWidth() const {
       int width;
       int height;
       glfwGetWindowSize(m_Window, &width, &height);
@@ -159,7 +163,7 @@ namespace Pikzel {
    }
 
 
-   uint32_t WindowsWindow::GetHeight() const {
+   uint32_t GLFWWindow::GetHeight() const {
       int width;
       int height;
       glfwGetWindowSize(m_Window, &width, &height);
@@ -167,28 +171,28 @@ namespace Pikzel {
    }
 
 
-   uint32_t WindowsWindow::GetMSAANumSamples() const {
+   uint32_t GLFWWindow::GetMSAANumSamples() const {
       return m_Settings.msaaNumSamples;
    }
 
 
-   glm::vec4 WindowsWindow::GetClearColor() const {
+   glm::vec4 GLFWWindow::GetClearColor() const {
       return m_Settings.clearColor;
    }
 
 
-   void WindowsWindow::SetVSync(bool enabled) {
+   void GLFWWindow::SetVSync(bool enabled) {
       m_Settings.isVSync = enabled;
       EventDispatcher::Send<WindowVSyncChangedEvent>(this, enabled);
    }
 
 
-   bool WindowsWindow::IsVSync() const {
+   bool GLFWWindow::IsVSync() const {
       return m_Settings.isVSync;
    }
 
 
-   float WindowsWindow::ContentScale() const {
+   float GLFWWindow::ContentScale() const {
       float xscale;
       float yscale;
       glfwGetWindowContentScale(m_Window, &xscale, &yscale);
@@ -196,40 +200,40 @@ namespace Pikzel {
    }
 
 
-   void WindowsWindow::InitializeImGui() {
+   void GLFWWindow::InitializeImGui() {
       m_Context->InitializeImGui();
    }
 
 
-   void WindowsWindow::BeginFrame() {
+   void GLFWWindow::BeginFrame() {
       m_Context->BeginFrame();
    }
 
 
-   void WindowsWindow::EndFrame() {
+   void GLFWWindow::EndFrame() {
       PKZL_PROFILE_FUNCTION();
       m_Context->EndFrame();     // i.e. "submit"
       m_Context->SwapBuffers();  // i.e. "present"
    }
 
 
-   void WindowsWindow::BeginImGuiFrame() {
+   void GLFWWindow::BeginImGuiFrame() {
       m_Context->BeginImGuiFrame();
    }
 
 
-   void WindowsWindow::EndImGuiFrame() {
+   void GLFWWindow::EndImGuiFrame() {
       m_Context->EndImGuiFrame();
    }
 
 
-   Pikzel::GraphicsContext& WindowsWindow::GetGraphicsContext() {
+   Pikzel::GraphicsContext& GLFWWindow::GetGraphicsContext() {
       PKZL_CORE_ASSERT(m_Context, "Accessing null graphics context!");
       return *m_Context;
    }
 
 
-   glm::vec2 WindowsWindow::GetCursorPos() const {
+   glm::vec2 GLFWWindow::GetCursorPos() const {
       double x;
       double y;
       glfwGetCursorPos(m_Window, &x, &y);

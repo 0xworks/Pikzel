@@ -7,9 +7,15 @@
 
 #include <glm/ext/matrix_transform.hpp>
 
+#if defined(PKZL_PLATFORM_WINDOWS)
+   #define PLATFORM_API __declspec(dllexport)
+#else
+   #define PLATFORM_API
+#endif
+
 namespace Pikzel {
 
-   extern "C" __declspec(dllexport) IRenderCore* _cdecl CreateRenderCore(const Window* window) {
+   extern "C" PLATFORM_API IRenderCore* CDECL CreateRenderCore(const Window* window) {
       PKZL_CORE_ASSERT(window, "Window is null in call to CreateRenderCore!");
       return new OpenGLRenderCore {*window};
    }

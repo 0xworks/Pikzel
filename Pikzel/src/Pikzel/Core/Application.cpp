@@ -4,6 +4,10 @@
 
 namespace Pikzel {
 
+   Application::Application(const RenderCore::API api)
+   : Application{Window::Settings{}, api}
+   {}
+   
    Application::Application(const Window::Settings& settings, const RenderCore::API api)
    {
       if (s_TheApplication) {

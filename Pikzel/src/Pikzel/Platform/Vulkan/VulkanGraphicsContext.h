@@ -17,6 +17,7 @@ namespace Pikzel {
    class VulkanPipeline;
 
    class VulkanGraphicsContext : public GraphicsContext {
+   using super = GraphicsContext;
    protected:
       VulkanGraphicsContext(std::shared_ptr<VulkanDevice> device);
       virtual ~VulkanGraphicsContext();
@@ -136,6 +137,7 @@ namespace Pikzel {
 
 
    class VulkanWindowGC : public VulkanGraphicsContext {
+   using super = VulkanGraphicsContext;
    public:
       VulkanWindowGC(std::shared_ptr<VulkanDevice> device, const Window& window);
       virtual ~VulkanWindowGC();
@@ -223,6 +225,7 @@ namespace Pikzel {
 
 
    class VulkanFramebufferGC : public VulkanGraphicsContext {
+   using super = VulkanGraphicsContext;
    public:
       VulkanFramebufferGC(std::shared_ptr<VulkanDevice> device, VulkanFramebuffer* framebuffer); // raw pointer is fine here.  We know the VulkanFramebufferGC lifetime is nested inside the framebuffer's lifetime
       virtual ~VulkanFramebufferGC();

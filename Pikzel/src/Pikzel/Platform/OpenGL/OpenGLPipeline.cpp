@@ -120,12 +120,12 @@ namespace Pikzel {
             }
          }
 
-         const auto resource = resourceMap.find(id);
-         if (resource == resourceMap.end()) {
+         const auto openGLResource = resourceMap.find(id);
+         if (openGLResource == resourceMap.end()) {
             resourceMap.emplace(entt::hashed_string(name.data()), OpenGLResourceDeclaration {name, openGLBinding, shape});
          } else {
             // already seen this name, check that binding is the same
-            if (resource->second.Binding != openGLBinding) {
+            if (openGLResource->second.Binding != openGLBinding) {
                throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different bindings!", name)};
             }
          }

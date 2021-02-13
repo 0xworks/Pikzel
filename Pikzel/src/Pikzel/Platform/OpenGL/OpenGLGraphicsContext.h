@@ -17,6 +17,7 @@ namespace Pikzel {
    class OpenGLPipeline;
 
    class OpenGLGraphicsContext : public GraphicsContext {
+   using super = GraphicsContext;
    protected:
       OpenGLGraphicsContext(const glm::vec4& clearColorValue, const GLdouble clearDepthValue);
       virtual ~OpenGLGraphicsContext() = default;
@@ -98,6 +99,7 @@ namespace Pikzel {
 
 
    class OpenGLWindowGC : public OpenGLGraphicsContext {
+   using super = OpenGLGraphicsContext;
    public:
       OpenGLWindowGC(const Window& window);
       ~OpenGLWindowGC();
@@ -121,6 +123,7 @@ namespace Pikzel {
 
 
    class OpenGLFramebufferGC : public OpenGLGraphicsContext {
+   using super = OpenGLGraphicsContext;
    public:
       OpenGLFramebufferGC(OpenGLFramebuffer* framebuffer); // raw pointer is fine here.  We know the OpenGLFramebufferGC lifetime is nested inside the framebuffer's lifetime
 

@@ -26,25 +26,25 @@ namespace Pikzel {
       }
 
       // Connect Event to a candidate free function
-      template<typename Event, auto Candidate>
+      template<typename Event, typename Candidate>
       static void Connect() {
-         s_Dispatcher->sink<Event>().connect<Candidate>();
+         s_Dispatcher->sink<Event>().template connect<Candidate>();
       }
 
       template<typename Event, auto Candidate>
       static void Disconnect() {
-         s_Dispatcher->sink<Event>().disconnect<Candidate>();
+         s_Dispatcher->sink<Event>().template disconnect<Candidate>();
       }
 
       // Connect Event to a candidate that is a member function of Type
       template<typename Event, auto Candidate, typename Type>
       static void Connect(Type&& instance) {
-         s_Dispatcher->sink<Event>().connect<Candidate>(instance);
+         s_Dispatcher->sink<Event>().template connect<Candidate>(instance);
       }
 
       template<typename Event, auto Candidate, typename Type>
       static void Disconnect(Type&& instance) {
-         s_Dispatcher->sink<Event>().disconnect<Candidate>(instance);
+         s_Dispatcher->sink<Event>().template disconnect<Candidate>(instance);
       }
 
    private:

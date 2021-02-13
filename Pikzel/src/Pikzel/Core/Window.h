@@ -59,7 +59,8 @@ namespace Pikzel {
 
 
    public:
-      static std::unique_ptr<Window> Create(const Settings& settings = {});
+      static std::unique_ptr<Window> Create();  // nb: GCC cannot cope with const Settings& settings = {}
+      static std::unique_ptr<Window> Create(const Settings& settings);
    };
 
 }

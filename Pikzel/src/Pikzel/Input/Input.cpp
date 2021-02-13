@@ -10,6 +10,10 @@ namespace Pikzel {
 
    using DeltaTime = std::chrono::duration<float, std::chrono::seconds::period>;
 
+   Input::Input(const Window& window)
+   : Input{window, Settings{}}
+   {}
+
    Input::Input(const Window& window, const Settings& settings)
    : m_Window {static_cast<GLFWwindow*>(window.GetNativeWindow())}
    , m_Settings(settings)

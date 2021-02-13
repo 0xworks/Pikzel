@@ -14,7 +14,8 @@ namespace Pikzel {
 
    class PKZL_API Application {
    public:
-      Application(const Window::Settings& settings = {}, const RenderCore::API api = RenderCore::API::Undefined);
+      Application(const RenderCore::API api = RenderCore::API::Undefined); // nb: GCC cannot cope with Window::Settings& settings = {}
+      Application(const Window::Settings& settings, const RenderCore::API api = RenderCore::API::Undefined);
 
       virtual ~Application();
 
