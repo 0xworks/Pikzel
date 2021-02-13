@@ -349,7 +349,7 @@ private:
 
 
       // POI: load model
-      m_Model = SponzaPBR::ModelSerializer::Import("Assets/Models/Sponza/sponza.gltf");
+      m_Model = SponzaPBR::ModelSerializer::Import("Assets/Models/Sponza/Sponza.gltf");
    }
 
 
