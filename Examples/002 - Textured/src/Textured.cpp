@@ -4,7 +4,7 @@
 class Textured final : public Pikzel::Application {
 public:
    Textured()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.2f, 0.3f, 0.3f}}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.2f, 0.3f, 0.3f}}}
    {
       CreateVertexBuffer();
       CreateTextures();
@@ -49,17 +49,17 @@ private:
       // There are many different parameters for creating a texture.
       // The simplest is to provide the path to an image file asset.
       // This creates a 2D texture and will automatically set the width, height, texture format, and mip map levels.
-      m_Texture = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.jpg"});
+      m_Texture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Container.jpg"});
    }
 
 
    void CreatePipeline() {
       Pikzel::PipelineSettings settings {
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Textured.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Textured.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       };
       m_Pipeline = GetWindow().GetGraphicsContext().CreatePipeline(settings);
    }

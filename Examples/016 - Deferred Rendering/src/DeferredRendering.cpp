@@ -22,7 +22,7 @@ constexpr float farPlane = 0.1f;
 class DeferredRendering final : public Pikzel::Application {
 public:
    DeferredRendering()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = true}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .isVSync = true}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffers();
@@ -31,7 +31,7 @@ public:
       CreateFramebuffers();
       CreatePipelines();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
@@ -60,9 +60,9 @@ protected:
 
       // update buffers
       Matrices matrices;
-      matrices.viewProjection = m_Camera.Projection * glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
+      matrices.viewProjection = m_Camera.projection * glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.direction, m_Camera.upVector);
       matrices.lightSpace = m_LightSpace;
-      matrices.eyePosition = m_Camera.Position;
+      matrices.eyePosition = m_Camera.position;
       m_BufferMatrices->CopyFromHost(0, sizeof(Matrices), &matrices);
       m_BufferPointLights->CopyFromHost(0, sizeof(Pikzel::PointLight) * m_PointLights.size(), m_PointLights.data());
 
@@ -147,7 +147,7 @@ protected:
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
       __super::OnWindowResize(event);
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       // recreate framebuffer with new size
       CreateFramebuffers();
@@ -264,25 +264,25 @@ private:
 
 
    void CreateTextures() {
-      m_TextureContainer = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Container.png"});
-      m_TextureContainerSpecular = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/ContainerSpecular.png", .Format = Pikzel::TextureFormat::RGBA8});
-      m_TextureContainerNormal = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/ContainerNormal.png", .Format = Pikzel::TextureFormat::RGBA8});
-      m_TextureContainerDisplacement = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/ContainerDisplacement.png", .Format = Pikzel::TextureFormat::RGBA8});
+      m_TextureContainer = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Container.png"});
+      m_TextureContainerSpecular = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/ContainerSpecular.png", .format = Pikzel::TextureFormat::RGBA8});
+      m_TextureContainerNormal = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/ContainerNormal.png", .format = Pikzel::TextureFormat::RGBA8});
+      m_TextureContainerDisplacement = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/ContainerDisplacement.png", .format = Pikzel::TextureFormat::RGBA8});
 
-      m_TextureFloor = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/Floor.jpg"});
-      m_TextureFloorSpecular = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/FloorSpecular.jpg", .Format = Pikzel::TextureFormat::RGBA8});
-      m_TextureFloorNormal = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/FloorNormal.jpg", .Format = Pikzel::TextureFormat::RGBA8});
-      m_TextureFloorDisplacement = Pikzel::RenderCore::CreateTexture({.Path = "Assets/" APP_NAME "/Textures/FloorDisplacement.jpg", .Format = Pikzel::TextureFormat::RGBA8});
+      m_TextureFloor = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Floor.jpg"});
+      m_TextureFloorSpecular = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/FloorSpecular.jpg", .format = Pikzel::TextureFormat::RGBA8});
+      m_TextureFloorNormal = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/FloorNormal.jpg", .format = Pikzel::TextureFormat::RGBA8});
+      m_TextureFloorDisplacement = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/FloorDisplacement.jpg", .format = Pikzel::TextureFormat::RGBA8});
    }
 
 
    void CreateFramebuffers() {
       m_GBuffer = Pikzel::RenderCore::CreateFramebuffer({
-         .Width = GetWindow().GetWidth(),
-         .Height = GetWindow().GetHeight(),
-         .MSAANumSamples = 1,                                                              // POI: no MSAA with deferred rendering
-         .ClearColorValue = GetWindow().GetClearColor(),
-         .Attachments = {
+         .width = GetWindow().GetWidth(),
+         .height = GetWindow().GetHeight(),
+         .msaaNumSamples = 1,                                                              // POI: no MSAA with deferred rendering
+         .clearColorValue = GetWindow().GetClearColor(),
+         .attachments = {
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},               // POI: position color buffer. 16 bit floating point
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},               // POI: normals color buffer. 16 bit floating point
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA8},                 // POI: diffuse color + specular.  This can go in an RGBA 8-bit buffer
@@ -297,23 +297,23 @@ private:
    void CreatePipelines() {
       // POI: We have a pipeline for the "geometry pass".  This renders the vertices into the G-buffer
       m_PipelineGeometry = m_GBuffer->GetGraphicsContext().CreatePipeline({
-         .EnableBlend = false,  // POI: blending must be disabled for the G-Buffer to work properly
-         .Shaders = {
+         .enableBlend = false,  // POI: blending must be disabled for the G-Buffer to work properly
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/GeometryPass.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/GeometryPass.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
 
       // POI: and another pipeline for the "lighting pass". This pipeline is used to render a full screen quad,
       // and the fragment shader does the (expensive) lighting calculations for each screen pixel using
       // information taken from the G-buffer
       m_PipelineLighting = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/LightingPass.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/LightingPass.frag.spv" }
          },
-         .BufferLayout = m_QuadVertexBuffer->GetLayout(),
+         .bufferLayout = m_QuadVertexBuffer->GetLayout(),
       });
    }
 
@@ -322,10 +322,10 @@ private:
    static void ImGuiDrawPointLight(const char* label, Pikzel::PointLight& pointLight) {
       ImGui::PushID(label);
       if (ImGui::TreeNode(label)) {
-         Pikzel::ImGuiEx::EditVec3("Position", &pointLight.Position);
-         Pikzel::ImGuiEx::EditVec3Color("Color", &pointLight.Color);
-         Pikzel::ImGuiEx::EditFloat("Size", &pointLight.Size);
-         Pikzel::ImGuiEx::EditFloat("Power", &pointLight.Power);
+         Pikzel::ImGuiEx::EditVec3("Position", &pointLight.position);
+         Pikzel::ImGuiEx::EditVec3Color("Color", &pointLight.color);
+         Pikzel::ImGuiEx::EditFloat("Size", &pointLight.size);
+         Pikzel::ImGuiEx::EditFloat("Power", &pointLight.power);
          ImGui::TreePop();
       }
       ImGui::PopID();
@@ -336,49 +336,49 @@ private:
    Pikzel::Input m_Input;
 
    Camera m_Camera = {
-      .Position = {-10.0f, 5.0f, 0.0f},
-      .Direction = glm::normalize(glm::vec3{1.0f, -0.5f, 0.0f}),
-      .UpVector = {0.0f, 1.0f, 0.0f},
-      .FoVRadians = glm::radians(45.f),
-      .MoveSpeed = 2.0f,
-      .RotateSpeed = 10.0f
+      .position = {-10.0f, 5.0f, 0.0f},
+      .direction = glm::normalize(glm::vec3{1.0f, -0.5f, 0.0f}),
+      .upVector = {0.0f, 1.0f, 0.0f},
+      .fovRadians = glm::radians(45.f),
+      .moveSpeed = 2.0f,
+      .rotateSpeed = 10.0f
    };
 
    // note: shader expects exactly 1
    Pikzel::DirectionalLight m_DirectionalLights[1] = {
       {
-         .Direction = { -2.0f, -4.0f, 2.0f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
-         .Size = 0.02
+         .direction = { -2.0f, -4.0f, 2.0f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
+         .size = 0.02
       }
    };
 
    // note: shader expects 1 to 16
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
-         .Position = {-2.8f, 2.8f, -1.7f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 0.02,
-         .Power = 20.0f
+         .position = {-2.8f, 2.8f, -1.7f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 0.02,
+         .power = 20.0f
       }
       ,{
-         .Position = {2.3f, 3.3f, -4.0f},
-         .Color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
-         .Size = 0.02,
-         .Power = 20.0f
+         .position = {2.3f, 3.3f, -4.0f},
+         .color = Pikzel::sRGB{0.0f, 1.0f, 0.0f},
+         .size = 0.02,
+         .power = 20.0f
       }
    };
 //       {
-//          .Position = {-4.0f, 2.0f, -12.0f},
-//          .Color = Pikzel::sRGB{1.0f, 0.0f, 0.0f},
+//          .position = {-4.0f, 2.0f, -12.0f},
+//          .color = Pikzel::sRGB{1.0f, 0.0f, 0.0f},
 //          .Constant = 1.0f,
 //          .Linear = 0.09f,
 //          .Quadratic = 0.032f
 //       },
 //       {
-//          .Position = {0.0f, 0.0f, -3.0f},
-//          .Color = Pikzel::sRGB{1.0f, 1.0f, 0.0f},
+//          .position = {0.0f, 0.0f, -3.0f},
+//          .color = Pikzel::sRGB{1.0f, 1.0f, 0.0f},
 //          .Constant = 1.0f,
 //          .Linear = 0.09f,
 //          .Quadratic = 0.032f

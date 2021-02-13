@@ -10,11 +10,11 @@ const float farPlane = 1.f;
 class ModelAndMeshApp final : public Pikzel::Application {
 public:
    ModelAndMeshApp()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.1f, 0.1f, 0.2f}, .IsVSync = true}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.1f, 0.1f, 0.2f}, .isVSync = true}}
    , m_Input {GetWindow()}
    {
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       CreateVertexBuffer();  // for rendering point lights as cubes
       CreateUniformBuffers();
@@ -46,8 +46,8 @@ public:
       PKZL_PROFILE_FUNCTION();
 
       // update buffers
-      glm::mat4 view = glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
-      glm::mat4 projView = m_Camera.Projection * view;
+      glm::mat4 view = glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.direction, m_Camera.upVector);
+      glm::mat4 projView = m_Camera.projection * view;
       m_BufferDirectionalLight->CopyFromHost(0, sizeof(Pikzel::DirectionalLight) * m_DirectionalLights.size(), m_DirectionalLights.data());
       m_BufferPointLights->CopyFromHost(0, sizeof(Pikzel::PointLight) * m_PointLights.size(), m_PointLights.data());
 
@@ -63,7 +63,7 @@ public:
          gc.PushConstant("constants.vp"_hs, projView);
          gc.PushConstant("constants.model"_hs, transform);
          gc.PushConstant("constants.modelInvTrans"_hs, glm::mat4(glm::transpose(glm::inverse(glm::mat3(transform)))));
-         gc.PushConstant("constants.viewPos"_hs, m_Camera.Position);
+         gc.PushConstant("constants.viewPos"_hs, m_Camera.position);
          gc.PushConstant("constants.shininess"_hs, 32.0f);
 
          // POI: To render, we can iterate over the model's meshes, and draw each one
@@ -82,9 +82,9 @@ public:
          {
             gc.Bind(*m_PipelineLight);
             for (const auto& pointLight : m_PointLights) {
-               glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), pointLight.Position);
+               glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), pointLight.position);
                gc.PushConstant("constants.mvp"_hs, projView * model);
-               gc.PushConstant("constants.lightColor"_hs, pointLight.Color);
+               gc.PushConstant("constants.lightColor"_hs, pointLight.color);
                gc.DrawTriangles(*m_VertexBuffer, 36);
             }
          }
@@ -172,19 +172,19 @@ private:
 
    void CreatePipelines() {
       m_PipelineLight = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Light.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Light.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
 
       m_PipelineScene = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Lighting.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Lighting.frag.spv" }
          },
-         .BufferLayout = {
+         .bufferLayout = {
             { "inPos",    Pikzel::DataType::Vec3 },
             { "inNormal", Pikzel::DataType::Vec3 },
             { "inUV",     Pikzel::DataType::Vec2 }
@@ -196,10 +196,10 @@ private:
    static void ImGuiDrawPointLight(const char* label, Pikzel::PointLight& pointLight) {
       ImGui::PushID(label);
       if (ImGui::TreeNode(label)) {
-         Pikzel::ImGuiEx::EditVec3("Position", &pointLight.Position);
-         Pikzel::ImGuiEx::EditVec3Color("Color", &pointLight.Color); 
-         Pikzel::ImGuiEx::EditFloat("Size", &pointLight.Size);
-         Pikzel::ImGuiEx::EditFloat("Power", &pointLight.Power);
+         Pikzel::ImGuiEx::EditVec3("Position", &pointLight.position);
+         Pikzel::ImGuiEx::EditVec3Color("Color", &pointLight.color); 
+         Pikzel::ImGuiEx::EditFloat("Size", &pointLight.size);
+         Pikzel::ImGuiEx::EditFloat("Power", &pointLight.power);
          ImGui::TreePop();
       }
       ImGui::PopID();
@@ -208,7 +208,7 @@ private:
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
       __super::OnWindowResize(event);
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
    }
 
 
@@ -217,21 +217,21 @@ private:
    Pikzel::Input m_Input;
 
    Camera m_Camera = {
-      .Position = {-900.0f, 100.0f, 0.0f},
-      .Direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
-      .UpVector = {0.0f, 1.0f, 0.0f},
-      .FoVRadians = glm::radians(45.f),
-      .MoveSpeed = 200.0f,
-      .RotateSpeed = 20.0f
+      .position = {-900.0f, 100.0f, 0.0f},
+      .direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
+      .upVector = {0.0f, 1.0f, 0.0f},
+      .fovRadians = glm::radians(45.f),
+      .moveSpeed = 200.0f,
+      .rotateSpeed = 20.0f
    };
 
    // note: currently shader expects exactly 1 directional light
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
-         .Direction = {250.0f, -1750.0f, 250.0f},
-         .Color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
-         .Ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
-         .Size = 0.002f
+         .direction = {250.0f, -1750.0f, 250.0f},
+         .color = Pikzel::sRGB{0.5f, 0.5f, 0.5f},
+         .ambient = Pikzel::sRGB{0.1f, 0.1f, 0.1f},
+         .size = 0.002f
       }
    };
 
@@ -241,28 +241,28 @@ private:
    // You can turn them off by setting power to 0
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
-         .Position = {-619.3f, 130.3f, -219.5f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 1.0f,
-         .Power = 30000.0f
+         .position = {-619.3f, 130.3f, -219.5f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 1.0f,
+         .power = 30000.0f
       },
       {
-         .Position = {487.3f, 130.3f, -219.5f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 1.0f,
-         .Power = 30000.0f
+         .position = {487.3f, 130.3f, -219.5f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 1.0f,
+         .power = 30000.0f
       },
       {
-         .Position = {487.3f, 130.3f, 141.1f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 1.0f,
-         .Power = 30000.0f
+         .position = {487.3f, 130.3f, 141.1f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 1.0f,
+         .power = 30000.0f
       },
       {
-         .Position = {-619.3f, 130.3f, 141.1f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 1.0f,
-         .Power = 30000.0f
+         .position = {-619.3f, 130.3f, 141.1f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 1.0f,
+         .power = 30000.0f
       }
    };
 
