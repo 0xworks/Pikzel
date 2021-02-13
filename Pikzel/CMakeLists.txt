@@ -189,6 +189,13 @@ if(MSVC)
    )
 endif()
 
+if(UNIX)
+   target_link_options(
+      ${PROJECT_NAME} PUBLIC
+      "-Wl,-rpath=$ORIGIN/Pikzel/"
+   )
+endif()
+
 
 ##################################################################
 

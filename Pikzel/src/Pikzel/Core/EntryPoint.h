@@ -70,7 +70,7 @@ int main(int argc, const char* argv[]) {
 
       app.reset();
 
-   } catch (std::exception err) {
+   } catch (const std::exception& err) {
       PKZL_CORE_LOG_FATAL(err.what());
       return EXIT_FAILURE;
    }
