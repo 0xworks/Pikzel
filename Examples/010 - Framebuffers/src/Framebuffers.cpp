@@ -11,6 +11,7 @@ const float farPlane = 0.1f;
 
 
 class Framebuffers final : public Pikzel::Application {
+using super = Pikzel::Application;
 public:
    Framebuffers()
    : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.5f, 0.5f, 0.5f}, .isVSync = true}}
@@ -119,7 +120,7 @@ protected:
 
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
-      __super::OnWindowResize(event);
+      super::OnWindowResize(event);
       m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       // recreate framebuffer with new size

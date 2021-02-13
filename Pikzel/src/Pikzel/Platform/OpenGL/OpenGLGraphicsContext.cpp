@@ -32,7 +32,7 @@ namespace Pikzel {
 
 
    void OpenGLGraphicsContext::InitializeImGui() {
-      __super::InitializeImGui();
+      super::InitializeImGui();
    }
 
 
@@ -379,7 +379,7 @@ namespace Pikzel {
       io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
       ImGui_ImplOpenGL3_Init();
       ImGui_ImplGlfw_InitForOpenGL(m_WindowHandle, true);
-      __super::InitializeImGui();
+      super::InitializeImGui();
       m_InitializedImGui = true;
    }
 

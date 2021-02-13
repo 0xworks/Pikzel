@@ -2,8 +2,11 @@
 
 namespace Pikzel {
 
-#ifdef PKZL_PLATFORM_WINDOWS
+#if defined(PKZL_PLATFORM_WINDOWS)
    HINSTANCE gAPILib;
+#elif defined(PKZL_PLATFORM_LINUX)
+   #include <dlfcn.h>
+   void* gAPILib;
 #endif
 
    void RenderCore::SetAPI(API api) {
@@ -16,24 +19,34 @@ namespace Pikzel {
       s_API = api;
       switch (s_API) {
          case API::OpenGL: {
-#ifdef PKZL_PLATFORM_WINDOWS
+#if defined(PKZL_PLATFORM_WINDOWS)
             gAPILib = LoadLibrary("PlatformOpenGL.dll");
             if (gAPILib) {
                CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(gAPILib, "CreateRenderCore");
             }
+#elif defined(PKZL_PLATFORM_LINUX)
+            gAPILib = dlopen("PlatformOpenGL.so", RTLD_LAZY);
+            if (gAPILib) {
+               CreateRenderCore = (RENDERCORECREATEPROC)dlsym(gAPILib, "CreateRenderCore");
+            }
 #else
-            PKZL_CORE_ASSERT(false, "You havent written non-windows shared library loading code, yet");
+            PKZL_CORE_ASSERT(false, "Shared library load not implemented for current platform!");
 #endif
             break;
          }
          case API::Vulkan: {
-#ifdef PKZL_PLATFORM_WINDOWS
+#if defined(PKZL_PLATFORM_WINDOWS)
             gAPILib = LoadLibrary("PlatformVulkan.dll");
             if (gAPILib) {
                CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(gAPILib, "CreateRenderCore");
             }
+#elif defined(PKZL_PLATFORM_LINUX)
+            gAPILib = dlopen("PlatformVulkan.so", RTLD_LAZY);
+            if (gAPILib) {
+               CreateRenderCore = (RENDERCORECREATEPROC)dlsym(gAPILib, "CreateRenderCore");
+            }
 #else
-            PKZL_CORE_ASSERT(false, "You havent written non-windows shared library loading code, yet");
+            PKZL_CORE_ASSERT(false, "Shared library load not implemented for current platform!");
 #endif
             break;
          }
@@ -67,6 +80,9 @@ namespace Pikzel {
       s_RenderCore.reset(nullptr);
 #ifdef PKZL_PLATFORM_WINDOWS
       FreeLibrary(gAPILib);
+#elif defined(PKZL_PLATFORM_LINUX)
+#else
+      PKZL_CORE_ASSERT(false, "Shared library unload not implemented for current platform!");
 #endif
    }
 

@@ -25,7 +25,8 @@ namespace Pikzel {
          float mouseSensitivity = 0.01f;
       };
 
-      Input(const Window& window, const Input::Settings& settings = {});
+      Input(const Window& window); // nb: const Input::Settings& settings = {} does not compile under GCC
+      Input(const Window& window, const Input::Settings& settings);
       virtual ~Input();
 
       float GetAxis(entt::id_type id) const;

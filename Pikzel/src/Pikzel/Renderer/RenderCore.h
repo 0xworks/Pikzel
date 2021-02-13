@@ -88,7 +88,7 @@ namespace Pikzel {
       inline static API s_API = API::Undefined;
       inline static std::unique_ptr<IRenderCore> s_RenderCore;
 
-      using RENDERCORECREATEPROC = IRenderCore * (__cdecl*)(const Window*);
+      using RENDERCORECREATEPROC = IRenderCore* (CDECL*)(const Window*);
       inline static RENDERCORECREATEPROC CreateRenderCore;
    };
 

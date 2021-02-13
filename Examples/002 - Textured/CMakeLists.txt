@@ -32,7 +32,7 @@ set(
 
 set(
    Textures
-   "Assets/Textures/Container.jpg"
+   "Assets/Textures/container.jpg"
 )
 
 source_group("src" FILES ${ProjectSources})

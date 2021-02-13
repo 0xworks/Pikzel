@@ -1,55 +1,59 @@
 #pragma once
 
 // Platform detection
-#ifdef _WIN32
-	/* Windows x64/x86 */
-#ifdef _WIN64
-	/* Windows x64  */
-#define PKZL_PLATFORM_WINDOWS
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+   #define PKZL_PLATFORM_WINDOWS
+   #ifdef _WIN64
+   #else
+      #error "x86 Builds are not supported!"
+   #endif
+#elif __APPLE__
+   #error "Apple platforms are not currently supported!"
+#elif __linux__
+   #define PKZL_PLATFORM_LINUX
 #else
-	/* Windows x86 */
-#error "x86 Builds are not supported!"
-#endif
+   #error "Unrecognised platform!"
 #endif
 
-// TODO: other platforms here...
-
-#ifndef PKZL_PLATFORM_WINDOWS
-#error "Pikzel is not supported on non-windows platforms yet!"
-#endif
-
-#ifdef PKZL_PLATFORM_WINDOWS
-#ifdef PKZL_BUILD_DLL
-#define PKZL_API __declspec(dllexport)
+#if defined(PKZL_PLATFORM_WINDOWS)
+   #ifdef PKZL_BUILD_DLL
+      #define PKZL_API __declspec(dllexport)
+   #else
+      #define PKZL_API __declspec(dllimport)
+   #endif
+   #define CDECL __cdecl      
 #else
-#define PKZL_API __declspec(dllimport)
-#endif
+   #define PKZL_API
+   #define CDECL
 #endif
 
-#ifdef PKZL_DEBUG
-#ifdef PKZL_PLATFORM_WINDOWS
-#define PKZL_DEBUG_BREAK __debugbreak()
-#else
-#define PKZL_DEBUG_BREAK
-#endif
-#define PKZL_ENABLE_ASSERTS
+#if defined(PKZL_DEBUG)
+   #if defined(PKZL_PLATFORM_WINDOWS)
+      #define PKZL_DEBUG_BREAK __debugbreak()
+   #elif defined(PKZL_PLATFORM_LINUX)
+		#include <signal.h>
+		#define PKZL_DEBUG_BREAK raise(SIGTRAP)
+   #else
+      #define PKZL_DEBUG_BREAK
+   #endif
+   #define PKZL_ENABLE_ASSERTS
 #endif
 
 #include "Log.h"
 #include "Instrumentor.h"
 
-#ifdef PKZL_ENABLE_ASSERTS
-#define PKZL_CORE_ASSERT(x, ...) { if(!(x)) { PKZL_CORE_LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }
-#define PKZL_ASSERT(x, ...) { if(!(x)) { PKZL_LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }
+#if defined(PKZL_ENABLE_ASSERTS)
+   #define PKZL_CORE_ASSERT(x, ...) { if(!(x)) { PKZL_CORE_LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }
+   #define PKZL_ASSERT(x, ...) { if(!(x)) { PKZL_LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }
 #else
-#define PKZL_CORE_ASSERT(x, ...)
-#define PKZL_ASSERT(x, ...)
+   #define PKZL_CORE_ASSERT(x, ...)
+   #define PKZL_ASSERT(x, ...)
 #endif
 
-#ifdef _MSC_VER
-#define PKZL_FUNCSIG __FUNCSIG__
+#if defined(_MSC_VER)
+   #define PKZL_FUNCSIG __FUNCSIG__
 #else
-#define PKZL_FUNCSIG __func__
+   #define PKZL_FUNCSIG __func__
 #endif
 
 #define PKZL_NOT_IMPLEMENTED throw std::logic_error {PKZL_FUNCSIG + std::string(" is not implemented")}

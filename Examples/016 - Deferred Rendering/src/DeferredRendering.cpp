@@ -20,6 +20,7 @@ constexpr float nearPlane = 30.0f;
 constexpr float farPlane = 0.1f;
 
 class DeferredRendering final : public Pikzel::Application {
+using super = Pikzel::Application;
 public:
    DeferredRendering()
    : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .isVSync = true}}
@@ -146,7 +147,7 @@ protected:
 
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
-      __super::OnWindowResize(event);
+      super::OnWindowResize(event);
       m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       // recreate framebuffer with new size

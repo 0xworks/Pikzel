@@ -124,7 +124,7 @@ public:
 
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
-      __super::OnWindowResize(event);
+      Pikzel::Application::OnWindowResize(event);
 
       // recreate framebuffer with new size
       CreateFramebuffer();

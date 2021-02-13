@@ -14,6 +14,9 @@ option(
    PKZL_PROFILE "Performance profiling instrumentation is compiled in to the code" OFF
 )
 
+# note: at the moment, GLFW is the only supported windowing system
+#       and so the platform/GLFW files are included here
+#       Later, we might support something else (dont hold your breath)
 set(
    ProjectSources
    "src/Pikzel/Core/Application.h"
@@ -35,6 +38,7 @@ set(
    "src/Pikzel/Input/Input.cpp"
    "src/Pikzel/Input/KeyCodes.h"
    "src/Pikzel/Input/MouseButtons.h"
+   "src/Pikzel/Platform/GLFW/GLFWWindow.cpp"
    "src/Pikzel/Renderer/Buffer.h"
    "src/Pikzel/Renderer/Buffer.cpp"
    "src/Pikzel/Renderer/ComputeContext.h"
@@ -91,12 +95,18 @@ if(WIN32)
    list(
       APPEND ProjectSources
       "src/Pikzel/Platform/Windows/WindowsPlatformUtility.cpp"
-      "src/Pikzel/Platform/Windows/WindowsWindow.cpp"
    )
 
    list(
       APPEND ProjectDefines
       WIN32_LEAN_AND_MEAN
+   )
+endif()
+
+if(UNIX)
+   list(
+      APPEND ProjectSources
+      "src/Pikzel/Platform/Linux/LinuxPlatformUtility.cpp"
    )
 endif()
 
@@ -143,7 +153,7 @@ target_include_directories(
 
 target_include_directories(
    ${PROJECT_NAME} PRIVATE
-   "vendor/SPIRV-cross"
+   "vendor/SPIRV-Cross"
 )
 
 target_precompile_headers(
@@ -211,6 +221,7 @@ cmrc_add_resource_library(
    ${CompiledRendererShaders}
    ${CompiledSceneShaders}
 )
+set_property(TARGET PikzelResources PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 ##################################################################
 add_library(
@@ -222,6 +233,7 @@ add_library(
    "vendor/imgui/imgui_tables.cpp"
    "vendor/imgui/imgui_widgets.cpp"
 )
+set_property(TARGET ImGui PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_compile_features(
    "ImGui" PRIVATE
@@ -434,25 +446,24 @@ target_include_directories(
 
 ##################################################################
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
-set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "Inject debug postfix in .a/.so/.dll lib names" FORCE)
 
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "Inject debug postfix in .a/.so/.dll lib names" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library." FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library." FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "Disable this if you want to use assimp as a submodule." FORCE)
+add_subdirectory("vendor/assimp")
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
-set(SPIRV_CROSS_SKIP_INSTALL ON CACHE BOOL "Skips installation targets." FORCE)
-set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "Enable SPIRV-Cross tests." FORCE)
-set(SPIRV_CROSS_CLI OFF CACHE BOOL "Build the CLI binary. Requires SPIRV_CROSS_STATIC." FORCE)
-
-add_subdirectory("vendor/assimp")
-
 set(BUILD_SHARED_LIBS ON)
 add_subdirectory("vendor/glfw")
 set(BUILD_SHARED_LIBS OFF)
 
-add_subdirectory("vendor/glm")
+set(SPIRV_CROSS_SKIP_INSTALL ON CACHE BOOL "Skips installation targets." FORCE)
+set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "Enable SPIRV-Cross tests." FORCE)
+set(SPIRV_CROSS_CLI OFF CACHE BOOL "Build the CLI binary. Requires SPIRV_CROSS_STATIC." FORCE)
+set(SPIRV_CROSS_FORCE_PIC ON CACHE BOOL "Force position-independent code for all targets." FORCE)
 add_subdirectory("vendor/SPIRV-Cross")
+
+add_subdirectory("vendor/glm")

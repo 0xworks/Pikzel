@@ -8,6 +8,7 @@ constexpr float nearPlane = 10000.0f;
 constexpr float farPlane = 1.f;
 
 class SponzaPBRApp final : public Pikzel::Application {
+using super = Pikzel::Application;
 public:
    SponzaPBRApp()
    : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .isVSync = true}}
@@ -204,7 +205,7 @@ protected:
 
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
-      __super::OnWindowResize(event);
+      super::OnWindowResize(event);
       m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       // recreate framebuffer with new size

@@ -22,7 +22,7 @@ namespace Pikzel {
 
 
    void VulkanGraphicsContext::InitializeImGui() {
-       __super::InitializeImGui();
+      super::InitializeImGui();
    }
 
 
@@ -980,7 +980,7 @@ namespace Pikzel {
          }
       };
       ImGui_ImplVulkan_Init(&init_info, m_RenderPassImGui);
-      __super::InitializeImGui();
+      super::InitializeImGui();
       m_InitializedImGui = true;
    }
 

@@ -8,10 +8,10 @@ struct GLFWwindow;
 
 namespace Pikzel {
 
-   class PKZL_API WindowsWindow : public Window {
+   class PKZL_API GLFWWindow : public Window {
    public:
-      WindowsWindow(const Settings& settings);
-      virtual ~WindowsWindow();
+      GLFWWindow(const Settings& settings);
+      virtual ~GLFWWindow();
 
       virtual void* GetNativeWindow() const override;
 
