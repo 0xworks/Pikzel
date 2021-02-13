@@ -8,21 +8,21 @@ namespace Pikzel {
    // TODO: key codes...
 
    struct PKZL_API KeyPressedEvent {
-      void* Sender;
-      KeyCode KeyCode;
-      int RepeatCount;
+      void* sender;
+      KeyCode keyCode;
+      int repeatCount;
    };
 
 
    struct PKZL_API KeyReleasedEvent {
-      void* Sender;
-      KeyCode KeyCode;
+      void* sender;
+      KeyCode keyCode;
    };
 
 
    struct PKZL_API KeyTypedEvent {
-      void* Sender;
-      KeyCode KeyCode;
+      void* sender;
+      KeyCode keyCode;
    };
 
 }

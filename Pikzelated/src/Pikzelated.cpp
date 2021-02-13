@@ -6,7 +6,7 @@
 class Pikzelated final : public Pikzel::Application {
 public:
    Pikzelated()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = {0.0f, 0.0f, 0.0f, 1.0f}, .IsVSync = true}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = {0.0f, 0.0f, 0.0f, 1.0f}, .isVSync = true}}
    {
       PKZL_PROFILE_FUNCTION();
 
@@ -17,7 +17,7 @@ public:
          ImGui::LoadIniSettingsFromDisk("EditorImGui.ini");
       }
 
-      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.Width = 800, .Height = 600, .MSAANumSamples = 4, .ClearColorValue = glm::vec4{1.0f, 1.0f, 1.0f, 1.0f}});
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = 800, .height = 600, .msaaNumSamples = 4, .clearColorValue = glm::vec4{1.0f, 1.0f, 1.0f, 1.0f}});
       CreateVertexBuffer();
       CreatePipelines();
    }
@@ -158,11 +158,11 @@ private:
 
    void CreatePipelines() {
       m_ScenePipeline = m_Framebuffer->GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Triangle.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Triangle.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
    }
 

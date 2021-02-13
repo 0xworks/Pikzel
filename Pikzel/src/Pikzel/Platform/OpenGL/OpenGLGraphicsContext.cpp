@@ -449,8 +449,8 @@ namespace Pikzel {
 
 
    void OpenGLWindowGC::OnWindowVSyncChanged(const WindowVSyncChangedEvent& event) {
-      if (event.Sender == m_WindowHandle) {
-         glfwSwapInterval(event.IsVSync ? 1 : 0);
+      if (event.sender == m_WindowHandle) {
+         glfwSwapInterval(event.isVSync ? 1 : 0);
       }
    }
 

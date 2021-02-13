@@ -52,11 +52,11 @@ namespace Pikzel {
 
 
    struct PKZL_API BufferElement {
-      std::string Name;
-      DataType Type;
-      uint32_t Size;
-      size_t Offset;
-      bool Normalized;
+      std::string name;
+      DataType dataType;
+      uint32_t size;
+      uint32_t offset;
+      bool normalized;
 
       BufferElement(const std::string& name, DataType type);
 

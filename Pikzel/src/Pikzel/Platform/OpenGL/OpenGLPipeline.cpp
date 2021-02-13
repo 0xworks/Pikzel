@@ -173,11 +173,11 @@ namespace Pikzel {
 
 
    OpenGLPipeline::OpenGLPipeline(const PipelineSettings& settings)
-   : m_EnableBlend {settings.EnableBlend}
+   : m_EnableBlend {settings.enableBlend}
    {
       std::vector<GLuint> shaders;
-      for (const auto& [shaderType, src] : settings.Shaders) {
-         AppendShader(shaderType, src, settings.SpecializationConstants);
+      for (const auto& [shaderType, src] : settings.shaders) {
+         AppendShader(shaderType, src, settings.specializationConstants);
       }
 
       LinkShaderProgram();
@@ -188,8 +188,8 @@ namespace Pikzel {
       glBindVertexArray(m_VAORendererId);
 
       GLuint vertexAttributeIndex = 0;
-      for (const auto& element : settings.BufferLayout) {
-         switch (element.Type) {
+      for (const auto& element : settings.bufferLayout) {
+         switch (element.dataType) {
             case DataType::Bool:
             case DataType::Int:
             case DataType::UInt:
@@ -212,7 +212,7 @@ namespace Pikzel {
             case DataType::DVec4:
             {
                glEnableVertexAttribArray(vertexAttributeIndex);
-               glVertexAttribFormat(vertexAttributeIndex, element.GetComponentCount(), DataTypeToOpenGLType(element.Type), element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLuint>(element.Offset));
+               glVertexAttribFormat(vertexAttributeIndex, element.GetComponentCount(), DataTypeToOpenGLType(element.dataType), element.normalized ? GL_TRUE : GL_FALSE, element.offset);
                glVertexAttribBinding(vertexAttributeIndex, 0);
                ++vertexAttributeIndex;
                break;
@@ -239,7 +239,7 @@ namespace Pikzel {
                uint8_t count = element.GetComponentCount();
                for (uint8_t i = 0; i < count; i++) {
                   glEnableVertexAttribArray(vertexAttributeIndex);
-                  glVertexAttribFormat(vertexAttributeIndex, count, DataTypeToOpenGLType(element.Type), element.Normalized ? GL_TRUE : GL_FALSE, static_cast<GLuint>(sizeof(float) * count * i));
+                  glVertexAttribFormat(vertexAttributeIndex, count, DataTypeToOpenGLType(element.dataType), element.normalized ? GL_TRUE : GL_FALSE, static_cast<GLuint>(sizeof(float) * count * i));
                   glVertexAttribDivisor(vertexAttributeIndex, 1);
                   glVertexAttribBinding(vertexAttributeIndex, 0);
                   ++vertexAttributeIndex;

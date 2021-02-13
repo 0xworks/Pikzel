@@ -104,15 +104,15 @@ namespace Pikzel {
 
 
    void Application::OnWindowClose(const Pikzel::WindowCloseEvent& event) {
-      if (event.Sender == m_Window->GetNativeWindow()) {
+      if (event.sender == m_Window->GetNativeWindow()) {
          Exit();
       }
    }
 
 
    void Application::OnWindowResize(const Pikzel::WindowResizeEvent& event) {
-      if (event.Sender == m_Window->GetNativeWindow()) {
-         Pikzel::RenderCore::SetViewport(0, 0, event.Width, event.Height);
+      if (event.sender == m_Window->GetNativeWindow()) {
+         Pikzel::RenderCore::SetViewport(0, 0, event.width, event.height);
       }
    }
 

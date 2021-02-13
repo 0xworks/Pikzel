@@ -8,28 +8,28 @@ namespace Pikzel {
    // TODO: mouse button codes
 
    struct PKZL_API MouseMovedEvent {
-      void* Sender;
-      float X;
-      float Y;
+      void* sender;
+      float x;
+      float y;
    };
 
 
    struct PKZL_API MouseScrolledEvent {
-      void* Sender;
-      float XOffset;
-      float YOffset;
+      void* sender;
+      float xOffset;
+      float yOffset;
    };
 
 
    struct PKZL_API MouseButtonPressedEvent {
-      void* Sender;
-      MouseButton Button;
+      void* sender;
+      MouseButton button;
    };
 
 
    struct PKZL_API MouseButtonReleasedEvent {
-      void* Sender;
-      MouseButton Button;
+      void* sender;
+      MouseButton button;
    };
 
 }

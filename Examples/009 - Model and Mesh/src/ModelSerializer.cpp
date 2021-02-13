@@ -35,7 +35,7 @@ namespace ModelAndMeshDemo {
                // For now we are only loading DIFFUSE and SPECULAR texture types.
                // Make an assumption that DIFFUSE is non-linear, and SPECULAR is linear
                bool isSRGB = (type == aiTextureType_DIFFUSE);
-               g_TextureCache[texturePath.string()] = Pikzel::RenderCore::CreateTexture({.Path = texturePath, .Format = (type == aiTextureType_DIFFUSE ? Pikzel::TextureFormat::SRGBA8 : Pikzel::TextureFormat::RGBA8)});
+               g_TextureCache[texturePath.string()] = Pikzel::RenderCore::CreateTexture({.path = texturePath, .format = (type == aiTextureType_DIFFUSE ? Pikzel::TextureFormat::SRGBA8 : Pikzel::TextureFormat::RGBA8)});
             }
             return g_TextureCache[texturePath.string()];
          }

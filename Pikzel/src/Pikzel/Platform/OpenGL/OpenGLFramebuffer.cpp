@@ -37,7 +37,7 @@ namespace Pikzel {
    : m_Settings(settings)
    {
       glGenFramebuffers(1, &m_RendererId);
-      if (settings.MSAANumSamples > 1) {
+      if (settings.msaaNumSamples > 1) {
          glGenFramebuffers(1, &m_ResolveRendererId);
       }
       CreateAttachments();
@@ -59,17 +59,17 @@ namespace Pikzel {
 
 
    uint32_t OpenGLFramebuffer::GetWidth() const {
-      return m_Settings.Width;
+      return m_Settings.width;
    }
 
 
    uint32_t OpenGLFramebuffer::GetHeight() const {
-      return m_Settings.Height;
+      return m_Settings.height;
    }
 
 
    void OpenGLFramebuffer::Resize(const uint32_t width, const uint32_t height) {
-      if ((m_Settings.Width != width) || (m_Settings.Height != height)) {
+      if ((m_Settings.width != width) || (m_Settings.height != height)) {
          glBindFramebuffer(GL_FRAMEBUFFER, 0);  // The idea here is to make sure the GPU isnt still rendering to the attachments we are about to destroy
                                                 // but is just binding to the default framebuffer sufficient to ensure that?
          if (m_MSAADepthStencilAttachmentRendererId) {
@@ -82,8 +82,8 @@ namespace Pikzel {
          m_MSAAColorAttachmentRendererIds.clear();
          m_ColorTextures.clear();
 
-         m_Settings.Width = width;
-         m_Settings.Height = height;
+         m_Settings.width = width;
+         m_Settings.height = height;
 
          CreateAttachments();
       }
@@ -91,17 +91,17 @@ namespace Pikzel {
 
 
    uint32_t OpenGLFramebuffer::GetMSAANumSamples() const {
-      return m_Settings.MSAANumSamples;
+      return m_Settings.msaaNumSamples;
    }
 
 
    const glm::vec4& OpenGLFramebuffer::GetClearColorValue() const {
-      return m_Settings.ClearColorValue;
+      return m_Settings.clearColorValue;
    }
 
 
    double OpenGLFramebuffer::GetClearDepthValue() const {
-      return m_Settings.ClearDepthValue;
+      return m_Settings.clearDepthValue;
    }
 
    uint32_t OpenGLFramebuffer::GetNumColorAttachments() const {
@@ -149,33 +149,33 @@ namespace Pikzel {
    void OpenGLFramebuffer::CreateAttachments() {
       glBindFramebuffer(GL_FRAMEBUFFER, m_RendererId);
 
-      bool isMultiSampled = m_Settings.MSAANumSamples > 1;
+      bool isMultiSampled = m_Settings.msaaNumSamples > 1;
 
       int numColorAttachments = 0;
       int numDepthAttachments = 0;
       GLenum depthAttachmentType = GL_DEPTH_STENCIL_ATTACHMENT;
-      for (const auto attachment : m_Settings.Attachments) {
-         switch(attachment.AttachmentType) {
+      for (const auto attachment : m_Settings.attachments) {
+         switch(attachment.attachmentType) {
             case AttachmentType::Color: {
                PKZL_CORE_ASSERT(numColorAttachments < 4, "Framebuffer can have a maximum of four color attachments!");
                if (isMultiSampled) {
-                  PKZL_CORE_ASSERT(attachment.TextureType == TextureType::Texture2D, "Framebuffer MSAA not supported for cube map texture color attachment");
+                  PKZL_CORE_ASSERT(attachment.textureType == TextureType::Texture2D, "Framebuffer MSAA not supported for cube map texture color attachment");
                   m_MSAAColorAttachmentRendererIds.emplace_back(0);
                   glGenTextures(1, &m_MSAAColorAttachmentRendererIds.back());
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_MSAAColorAttachmentRendererIds.back());
-                  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Settings.MSAANumSamples, TextureFormatToInternalFormat(attachment.Format), m_Settings.Width, m_Settings.Height, GL_TRUE);
+                  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Settings.msaaNumSamples, TextureFormatToInternalFormat(attachment.format), m_Settings.width, m_Settings.height, GL_TRUE);
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-                  glFramebufferTexture2D(GL_FRAMEBUFFER, OpenGLAttachmentType(attachment.AttachmentType, numColorAttachments), GL_TEXTURE_2D_MULTISAMPLE, m_MSAAColorAttachmentRendererIds.back(), 0);
+                  glFramebufferTexture2D(GL_FRAMEBUFFER, OpenGLAttachmentType(attachment.attachmentType, numColorAttachments), GL_TEXTURE_2D_MULTISAMPLE, m_MSAAColorAttachmentRendererIds.back(), 0);
                }
                m_ColorTextures.emplace_back(RenderCore::CreateTexture({
-                  .Type = attachment.TextureType,
-                  .Width = m_Settings.Width,
-                  .Height = m_Settings.Height,
-                  .Layers = m_Settings.Layers,
-                  .Format = attachment.Format,
-                  .WrapU = TextureWrap::ClampToEdge,
-                  .WrapV = TextureWrap::ClampToEdge,
-                  .MIPLevels = 1
+                  .textureType = attachment.textureType,
+                  .width = m_Settings.width,
+                  .height = m_Settings.height,
+                  .layers = m_Settings.layers,
+                  .format = attachment.format,
+                  .wrapU = TextureWrap::ClampToEdge,
+                  .wrapV = TextureWrap::ClampToEdge,
+                  .mipLevels = 1
                }));
                ++numColorAttachments;
                break;
@@ -183,24 +183,24 @@ namespace Pikzel {
             case AttachmentType::Depth:
             case AttachmentType::DepthStencil: {
                PKZL_CORE_ASSERT(numDepthAttachments == 0, "Framebuffer can have a maximum of one depth attachment!");
-               depthAttachmentType = OpenGLAttachmentType(attachment.AttachmentType, numDepthAttachments);
+               depthAttachmentType = OpenGLAttachmentType(attachment.attachmentType, numDepthAttachments);
                if (isMultiSampled) {
-                  PKZL_CORE_ASSERT(attachment.TextureType == TextureType::Texture2D, "Framebuffer MSAA not supported for cube map texture depth attachment");
+                  PKZL_CORE_ASSERT(attachment.textureType == TextureType::Texture2D, "Framebuffer MSAA not supported for cube map texture depth attachment");
                   glGenTextures(1, &m_MSAADepthStencilAttachmentRendererId);
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_MSAADepthStencilAttachmentRendererId);
-                  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Settings.MSAANumSamples, TextureFormatToInternalFormat(attachment.Format), m_Settings.Width, m_Settings.Height, GL_TRUE);
+                  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_Settings.msaaNumSamples, TextureFormatToInternalFormat(attachment.format), m_Settings.width, m_Settings.height, GL_TRUE);
                   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
                   glFramebufferTexture2D(GL_FRAMEBUFFER, depthAttachmentType, GL_TEXTURE_2D_MULTISAMPLE, m_MSAADepthStencilAttachmentRendererId, 0);
                }
                m_DepthTexture = RenderCore::CreateTexture({
-                  .Type = attachment.TextureType,
-                  .Width = m_Settings.Width,
-                  .Height = m_Settings.Height,
-                  .Layers = m_Settings.Layers,
-                  .Format = attachment.Format,
-                  .WrapU = TextureWrap::ClampToBorder,
-                  .WrapV = TextureWrap::ClampToBorder,
-                  .MIPLevels = 1
+                  .textureType = attachment.textureType,
+                  .width = m_Settings.width,
+                  .height = m_Settings.height,
+                  .layers = m_Settings.layers,
+                  .format = attachment.format,
+                  .wrapU = TextureWrap::ClampToBorder,
+                  .wrapV = TextureWrap::ClampToBorder,
+                  .mipLevels = 1
                });
                ++numDepthAttachments;
                break;

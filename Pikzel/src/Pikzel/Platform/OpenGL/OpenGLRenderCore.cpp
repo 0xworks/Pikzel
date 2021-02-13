@@ -143,7 +143,7 @@ namespace Pikzel {
 
 
    std::unique_ptr<Texture> OpenGLRenderCore::CreateTexture(const TextureSettings& settings) {
-      switch (settings.Type) {
+      switch (settings.textureType) {
          case TextureType::Texture2D: return std::make_unique<OpenGLTexture2D>(settings);
          case TextureType::Texture2DArray: return std::make_unique<OpenGLTexture2DArray>(settings);
          case TextureType::TextureCube: return std::make_unique<OpenGLTextureCube>(settings);

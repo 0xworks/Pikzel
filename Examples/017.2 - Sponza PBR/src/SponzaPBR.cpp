@@ -10,7 +10,7 @@ constexpr float farPlane = 1.f;
 class SponzaPBRApp final : public Pikzel::Application {
 public:
    SponzaPBRApp()
-   : Pikzel::Application {{.Title = APP_DESCRIPTION, .ClearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .IsVSync = true}}
+   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = Pikzel::sRGB{0.01f, 0.01f, 0.01f}, .isVSync = true}}
    , m_Input {GetWindow()}
    {
       CreateVertexBuffers();
@@ -19,7 +19,7 @@ public:
       CreateFramebuffers();
       CreatePipelines();
 
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
@@ -53,12 +53,12 @@ protected:
       PKZL_PROFILE_FUNCTION();
 
       // update buffers
-      glm::mat4 view = glm::lookAt(m_Camera.Position, m_Camera.Position + m_Camera.Direction, m_Camera.UpVector);
+      glm::mat4 view = glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.direction, m_Camera.upVector);
 
       Matrices matrices;
-      matrices.viewProjection = m_Camera.Projection * view;
+      matrices.viewProjection = m_Camera.projection * view;
       matrices.lightSpace = m_LightSpace;
-      matrices.eyePosition = m_Camera.Position;
+      matrices.eyePosition = m_Camera.position;
       m_BufferMatrices->CopyFromHost(0, sizeof(Matrices), &matrices);
       m_BufferDirectionalLight->CopyFromHost(0, sizeof(Pikzel::DirectionalLight) * m_DirectionalLights.size(), m_DirectionalLights.data());
       m_BufferPointLights->CopyFromHost(0, sizeof(Pikzel::PointLight) * m_PointLights.size(), m_PointLights.data());
@@ -86,12 +86,12 @@ protected:
          for (int i = 0; i < m_PointLights.size(); ++i) {
             auto& light = m_PointLights[i];
             std::array<glm::mat4, 6> lightViews = {
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 { 1.0f,  0.0f,  0.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 {-1.0f,  0.0f,  0.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 { 0.0f,  1.0f,  0.0f}, glm::vec3 {0.0f,  0.0f,  1.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 { 0.0f, -1.0f,  0.0f}, glm::vec3 {0.0f,  0.0f, -1.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 { 0.0f,  0.0f,  1.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
-               lightProjection * glm::lookAt(light.Position, light.Position + glm::vec3 { 0.0f,  0.0f, -1.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
+               lightProjection * glm::lookAt(light.position, light.position + glm::vec3 { 1.0f,  0.0f,  0.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
+               lightProjection * glm::lookAt(light.position, light.position + glm::vec3 {-1.0f,  0.0f,  0.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
+               lightProjection * glm::lookAt(light.position, light.position + glm::vec3 { 0.0f,  1.0f,  0.0f}, glm::vec3 {0.0f,  0.0f,  1.0f}),
+               lightProjection * glm::lookAt(light.position, light.position + glm::vec3 { 0.0f, -1.0f,  0.0f}, glm::vec3 {0.0f,  0.0f, -1.0f}),
+               lightProjection * glm::lookAt(light.position, light.position + glm::vec3 { 0.0f,  0.0f,  1.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
+               lightProjection * glm::lookAt(light.position, light.position + glm::vec3 { 0.0f,  0.0f, -1.0f}, glm::vec3 {0.0f, -1.0f,  0.0f}),
             };
             m_BufferLightViews->CopyFromHost(0, sizeof(glm::mat4) * lightViews.size(), lightViews.data());
 
@@ -148,9 +148,9 @@ protected:
          // render point lights as little cubes
          gc.Bind(*m_PipelineLight);
          for (const auto& pointLight : m_PointLights) {
-            glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), pointLight.Position);
+            glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), pointLight.position);
             gc.PushConstant("constants.mvp"_hs, matrices.viewProjection * model);
-            gc.PushConstant("constants.lightColor"_hs, pointLight.Color);
+            gc.PushConstant("constants.lightColor"_hs, pointLight.color);
             gc.DrawTriangles(*m_VertexBufferCube, 36);
          }
 
@@ -158,7 +158,7 @@ protected:
          view = glm::mat3(view);
          gc.Bind(*m_PipelineSkybox);
          gc.Bind("uSkybox"_hs, *m_Skybox);
-         gc.PushConstant("constants.vp"_hs, m_Camera.Projection * view);
+         gc.PushConstant("constants.vp"_hs, m_Camera.projection * view);
          gc.PushConstant("constants.lod"_hs, skyboxLod);
          gc.DrawTriangles(*m_VertexBuffer, 36, 6);
 
@@ -205,7 +205,7 @@ protected:
 
    virtual void OnWindowResize(const Pikzel::WindowResizeEvent& event) override {
       __super::OnWindowResize(event);
-      m_Camera.Projection = glm::perspective(m_Camera.FoVRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(GetWindow().GetWidth()) / static_cast<float>(GetWindow().GetHeight()), nearPlane, farPlane);
 
       // recreate framebuffer with new size
       CreateFramebuffers();
@@ -215,10 +215,10 @@ protected:
    static void ImGuiDrawPointLight(const char* label, Pikzel::PointLight& pointLight) {
       ImGui::PushID(label);
       if (ImGui::TreeNode(label)) {
-         Pikzel::ImGuiEx::EditVec3("Position", &pointLight.Position);
-         Pikzel::ImGuiEx::EditVec3Color("Color", &pointLight.Color);
-         Pikzel::ImGuiEx::EditFloat("Size", &pointLight.Size);
-         Pikzel::ImGuiEx::EditFloat("Power", &pointLight.Power);
+         Pikzel::ImGuiEx::EditVec3("Position", &pointLight.position);
+         Pikzel::ImGuiEx::EditVec3Color("Color", &pointLight.color);
+         Pikzel::ImGuiEx::EditFloat("Size", &pointLight.size);
+         Pikzel::ImGuiEx::EditFloat("Power", &pointLight.power);
          ImGui::TreePop();
       }
       ImGui::PopID();
@@ -360,7 +360,7 @@ private:
 
    void CreateUniformBuffers() {
       glm::mat4 lightProjection = glm::ortho(-2100.0f, 2100.0f, -2000.0f, 2000.0f, 2000.0f, 50.0f);  // TODO: need to automatically determine correct parameters here (+ cascades...)
-      glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].Direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
+      glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
       m_LightSpace = lightProjection * lightView;
 
       m_BufferMatrices = Pikzel::RenderCore::CreateUniformBuffer(sizeof(Matrices));
@@ -371,21 +371,21 @@ private:
 
 
    void CreateTextures() {
-      m_Skybox = Pikzel::RenderCore::CreateTexture({.Type = Pikzel::TextureType::TextureCube, .Path = "Assets/Skyboxes/dikhololo_night_4k.hdr"});
+      m_Skybox = Pikzel::RenderCore::CreateTexture({.textureType = Pikzel::TextureType::TextureCube, .path = "Assets/Skyboxes/dikhololo_night_4k.hdr"});
 
       // POI: We use compute shaders to bake lighting from the skybox image into diffuse and specular "Irradiance maps"
 
       // diffuse irradiance
       m_Irradiance = Pikzel::RenderCore::CreateTexture({
-         .Type = Pikzel::TextureType::TextureCube,
-         .Width = 32,                                // POI: The diffuse irradiance map does not need to be very big
-         .Height = 32,
-         .Format = Pikzel::TextureFormat::RGBA16F,
-         .ImageStorage = true                        // POI: Textures that will be written to in a shader need this flag set (because Vulkan), and also need to be Commit()'d before you use them in shader
+         .textureType = Pikzel::TextureType::TextureCube,
+         .width = 32,                                // POI: The diffuse irradiance map does not need to be very big
+         .height = 32,
+         .format = Pikzel::TextureFormat::RGBA16F,
+         .imageStorage = true                        // POI: Textures that will be written to in a shader need this flag set (because Vulkan), and also need to be Commit()'d before you use them in shader
       });
       std::unique_ptr<Pikzel::ComputeContext> compute = Pikzel::RenderCore::CreateComputeContext();
       std::unique_ptr<Pikzel::Pipeline> pipelineIrradiance = compute->CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Compute, "Renderer/EnvironmentIrradiance.comp.spv"}
          }
       });
@@ -400,11 +400,11 @@ private:
 
       // specular irradiance
       m_SpecularIrradiance = Pikzel::RenderCore::CreateTexture({
-         .Type = Pikzel::TextureType::TextureCube,
-         .Width = m_Skybox->GetWidth(),                              // POI: The specular irradiance map cannot be as small as the diffuse one, otherwise details will be lost in reflections off highly reflective materials.
-         .Height = m_Skybox->GetHeight(),
-         .Format = Pikzel::TextureFormat::RGBA16F,
-         .ImageStorage = true
+         .textureType = Pikzel::TextureType::TextureCube,
+         .width = m_Skybox->GetWidth(),                              // POI: The specular irradiance map cannot be as small as the diffuse one, otherwise details will be lost in reflections off highly reflective materials.
+         .height = m_Skybox->GetHeight(),
+         .format = Pikzel::TextureFormat::RGBA16F,
+         .imageStorage = true
       });
 
       // POI: specular irradiance mip level 0 is a straight copy of the skybox.
@@ -414,7 +414,7 @@ private:
       // POI: specular irradiance mip levels 1..N are computed by pre-filtering the skybox
       //      per Epic Games split sum approximation.
       std::unique_ptr<Pikzel::Pipeline> pipelinePrefilter = compute->CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Compute, "Renderer/EnvironmentPrefilter.comp.spv"}
          }
       });
@@ -440,16 +440,16 @@ private:
       //      * don't need to distribute yet another texture with the compiled binaries
       //      * can easily vary the parameters (in particular the size of the texture) here
       m_SpecularBRDF_LUT = Pikzel::RenderCore::CreateTexture({
-         .Width = 512,
-         .Height = 512,
-         .Format = Pikzel::TextureFormat::RG16F,      // POI: The lookup table only needs two dimensions. Which we store as 16-bit floats in the Red and Green channels.
-         .WrapU = Pikzel::TextureWrap::ClampToEdge,   // POI: The lookup table must clamp to edge, otherwise there will be artefacts when looking up the table for values near the edges
-         .WrapV = Pikzel::TextureWrap::ClampToEdge,
-         .MIPLevels = 1,
-         .ImageStorage = true
+         .width = 512,
+         .height = 512,
+         .format = Pikzel::TextureFormat::RG16F,      // POI: The lookup table only needs two dimensions. Which we store as 16-bit floats in the Red and Green channels.
+         .wrapU = Pikzel::TextureWrap::ClampToEdge,   // POI: The lookup table must clamp to edge, otherwise there will be artefacts when looking up the table for values near the edges
+         .wrapV = Pikzel::TextureWrap::ClampToEdge,
+         .mipLevels = 1,
+         .imageStorage = true
       });
       std::unique_ptr<Pikzel::Pipeline> pipelineSpecularBRDF = compute->CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Compute, "Renderer/EnvironmentSpecularBRDF.comp.spv"}
          }
       });
@@ -467,11 +467,11 @@ private:
       const uint32_t shadowMapHeight = 4096;
 
       m_FramebufferScene = Pikzel::RenderCore::CreateFramebuffer({
-         .Width = GetWindow().GetWidth(),
-         .Height = GetWindow().GetHeight(),
-         .MSAANumSamples = 4,
-         .ClearColorValue = GetWindow().GetClearColor(),
-         .Attachments = {
+         .width = GetWindow().GetWidth(),
+         .height = GetWindow().GetHeight(),
+         .msaaNumSamples = 4,
+         .clearColorValue = GetWindow().GetClearColor(),
+         .attachments = {
             {Pikzel::AttachmentType::Color, Pikzel::TextureFormat::RGBA16F},
             {Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}
          }
@@ -479,18 +479,18 @@ private:
 
       if (!m_FramebufferDirShadow) {
          m_FramebufferDirShadow = Pikzel::RenderCore::CreateFramebuffer({
-            .Width = shadowMapWidth,
-            .Height = shadowMapHeight,
-            .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}}
+            .width = shadowMapWidth,
+            .height = shadowMapHeight,
+            .attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F}}
          });
       }
 
       if (!m_FramebufferPtShadow) {
          m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
-            .Width = shadowMapWidth / 2,
-            .Height = shadowMapHeight / 2,
-            .Layers = 4,
-            .Attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F, Pikzel::TextureType::TextureCubeArray}}
+            .width = shadowMapWidth / 2,
+            .height = shadowMapHeight / 2,
+            .layers = 4,
+            .attachments = {{Pikzel::AttachmentType::Depth, Pikzel::TextureFormat::D32F, Pikzel::TextureType::TextureCubeArray}}
          });
       }
    }
@@ -498,19 +498,19 @@ private:
 
    void CreatePipelines() {
       m_PipelineSkybox = m_FramebufferScene->GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Skybox.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Skybox.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout()
+         .bufferLayout = m_VertexBuffer->GetLayout()
       });
 
       m_PipelineLight = m_FramebufferScene->GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Light.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Light.frag.spv" }
          },
-         .BufferLayout = m_VertexBufferCube->GetLayout(),
+         .bufferLayout = m_VertexBufferCube->GetLayout(),
       });
 
       Pikzel::BufferLayout layout = {
@@ -521,37 +521,37 @@ private:
       };
 
       m_PipelineDirShadow = m_FramebufferDirShadow->GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Depth.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Depth.frag.spv" }
          },
-         .BufferLayout = layout
+         .bufferLayout = layout
       });
 
       m_PipelinePtShadow = m_FramebufferPtShadow->GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/DepthCube.vert.spv" },
             { Pikzel::ShaderType::Geometry, "Assets/" APP_NAME "/Shaders/DepthCube.geom.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/DepthCube.frag.spv" }
          },
-         .BufferLayout = layout,
+         .bufferLayout = layout,
       });
 
       // POI: here is the PBR pipeline
       m_PipelinePBR = m_FramebufferScene->GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/PBR.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/PBR.frag.spv" }
          },
-         .BufferLayout = layout
+         .bufferLayout = layout
       });
 
       m_PipelinePostProcess = GetWindow().GetGraphicsContext().CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/PostProcess.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/PostProcess.frag.spv" }
          },
-         .BufferLayout = m_VertexBuffer->GetLayout(),
+         .bufferLayout = m_VertexBuffer->GetLayout(),
       });
    }
 
@@ -560,21 +560,21 @@ private:
    Pikzel::Input m_Input;
 
    Camera m_Camera = {
-      .Position = {-900.0f, 100.0f, 0.0f},
-      .Direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
-      .UpVector = {0.0f, 1.0f, 0.0f},
-      .FoVRadians = glm::radians(45.f),
-      .MoveSpeed = 200.0f,
-      .RotateSpeed = 20.0f
+      .position = {-900.0f, 100.0f, 0.0f},
+      .direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
+      .upVector = {0.0f, 1.0f, 0.0f},
+      .fovRadians = glm::radians(45.f),
+      .moveSpeed = 200.0f,
+      .rotateSpeed = 20.0f
    };
 
    // note: currently shader expects exactly 1 directional light
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
-         .Direction = {250.0f, -1750.0f, 250.0f},
-         .Color = {0.0f, 0.0f, 0.0f},           // POI: The PBR pipeline is HDR, so there is no reason why we need to limit ourselves to light intensities in range 0 to 1
-         .Ambient = {1.0, 1.0, 1.0},            // POI: The ambient light (from environment map) is multiplied by this amount.  This allows us to tone down what might otherwise be too bright environments
-         .Size = 0.002f
+         .direction = {250.0f, -1750.0f, 250.0f},
+         .color = {0.0f, 0.0f, 0.0f},           // POI: The PBR pipeline is HDR, so there is no reason why we need to limit ourselves to light intensities in range 0 to 1
+         .ambient = {1.0, 1.0, 1.0},            // POI: The ambient light (from environment map) is multiplied by this amount.  This allows us to tone down what might otherwise be too bright environments
+         .size = 0.002f
       }
    };
 
@@ -584,28 +584,28 @@ private:
    // for zero points lights, pass in one, with power set to 0
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
-         .Position = {-619.3f, 130.3f, -219.5f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 1.0f,
-         .Power = 30000.0f
+         .position = {-619.3f, 130.3f, -219.5f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 1.0f,
+         .power = 30000.0f
       },
       {
-         .Position = {487.3f, 130.3f, -219.5f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 1.0f,
-         .Power = 30000.0f
+         .position = {487.3f, 130.3f, -219.5f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 1.0f,
+         .power = 30000.0f
       },
       {
-         .Position = {487.3f, 130.3f, 141.1f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 1.0f,
-         .Power = 30000.0f
+         .position = {487.3f, 130.3f, 141.1f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 1.0f,
+         .power = 30000.0f
       },
       {
-         .Position = {-619.3f, 130.3f, 141.1f},
-         .Color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .Size = 1.0f,
-         .Power = 30000.0f
+         .position = {-619.3f, 130.3f, 141.1f},
+         .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
+         .size = 1.0f,
+         .power = 30000.0f
       }
    };
 

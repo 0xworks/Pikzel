@@ -12,19 +12,19 @@ namespace Pikzel {
    public:
 
       struct Settings {
-         const char* Title = "Pikzel Engine";
-         uint32_t Width = 1280;
-         uint32_t Height = 720;
-         glm::vec4 ClearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-         bool IsResizable = true;
-         bool IsFullScreen = false;
-         bool IsCursorEnabled = true;
-         bool IsVSync = true;
-         uint32_t MinWidth = 0;
-         uint32_t MinHeight = 0;
-         uint32_t MaxWidth = 0;
-         uint32_t MaxHeight = 0;
-         uint32_t MSAANumSamples = 1;
+         const char* title = "Pikzel Engine";
+         uint32_t width = 1280;
+         uint32_t height = 720;
+         glm::vec4 clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+         bool isResizable = true;
+         bool isFullScreen = false;
+         bool isCursorEnabled = true;
+         bool isVSync = true;
+         uint32_t minWidth = 0;
+         uint32_t minHeight = 0;
+         uint32_t maxWidth = 0;
+         uint32_t maxHeight = 0;
+         uint32_t msaaNumSamples = 1;
       };
 
       virtual ~Window() = default;

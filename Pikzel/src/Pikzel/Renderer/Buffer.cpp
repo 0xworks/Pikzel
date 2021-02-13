@@ -96,14 +96,14 @@ namespace Pikzel {
 
 
    BufferElement::BufferElement(const std::string& name, DataType type)
-   : Name {name}
-   , Type {type}
-   , Size {DataTypeSize(type)}
+   : name {name}
+   , dataType {type}
+   , size {DataTypeSize(type)}
    {}
 
 
    uint32_t BufferElement::GetComponentCount() const {
-      switch (Type) {
+      switch (dataType) {
          case DataType::Bool:     return 1;
          case DataType::Int:      return 1;
          case DataType::UInt:     return 1;
@@ -187,9 +187,9 @@ namespace Pikzel {
       size_t offset = 0;
       m_Stride = 0;
       for (auto& element : m_Elements) {
-         element.Offset = offset;
-         offset += element.Size;
-         m_Stride += element.Size;
+         element.offset = offset;
+         offset += element.size;
+         m_Stride += element.size;
       }
    }
 

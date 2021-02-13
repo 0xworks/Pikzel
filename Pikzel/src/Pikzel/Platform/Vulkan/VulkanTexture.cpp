@@ -326,11 +326,11 @@ namespace Pikzel {
 
 
    void VulkanTexture::CreateSampler(const TextureSettings& settings) {
-      TextureFilter minFilter = settings.MinFilter;
-      TextureFilter magFilter = settings.MagFilter;
-      TextureWrap wrapU = settings.WrapU;
-      TextureWrap wrapV = settings.WrapV;
-      TextureWrap wrapW = settings.WrapW;
+      TextureFilter minFilter = settings.minFilter;
+      TextureFilter magFilter = settings.magFilter;
+      TextureWrap wrapU = settings.wrapU;
+      TextureWrap wrapV = settings.wrapV;
+      TextureWrap wrapW = settings.wrapW;
 
       if (minFilter == TextureFilter::Undefined) {
          minFilter = IsDepthFormat(GetFormat()) ? TextureFilter::Nearest : m_Image->GetMIPLevels() == 1 ? TextureFilter::Linear : TextureFilter::LinearMipmapLinear;
@@ -379,17 +379,17 @@ namespace Pikzel {
 
 
    VulkanTexture2D::VulkanTexture2D(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect)
-   : m_Path {settings.Path}
+   : m_Path {settings.path}
    {
       m_Device = device;
       if (m_Path.empty()) {
-         CreateImage(vk::ImageViewType::e2D, settings.Width, settings.Height, 1, settings.MIPLevels, TextureFormatToVkFormat(settings.Format), usage, aspect);
+         CreateImage(vk::ImageViewType::e2D, settings.width, settings.height, 1, settings.mipLevels, TextureFormatToVkFormat(settings.format), usage, aspect);
       } else {
          uint32_t width;
          uint32_t height;
          TextureFormat format;
-         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &width, &height, &format);
-         CreateImage(vk::ImageViewType::e2D, width, height, 1, settings.MIPLevels, TextureFormatToVkFormat(format), usage, aspect);
+         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.format), &width, &height, &format);
+         CreateImage(vk::ImageViewType::e2D, width, height, 1, settings.mipLevels, TextureFormatToVkFormat(format), usage, aspect);
          PKZL_CORE_ASSERT(BPP(format) != 3, "VulkanTexture2D format cannot be 24-bits per texel");
          SetData(data, width * height * BPP(format));
          stbi_image_free(data);
@@ -418,7 +418,7 @@ namespace Pikzel {
 
    VulkanTexture2DArray::VulkanTexture2DArray(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
       m_Device = device;
-      CreateImage(vk::ImageViewType::e2DArray, settings.Width, settings.Height, settings.Layers, settings.MIPLevels, TextureFormatToVkFormat(settings.Format), usage, aspect);
+      CreateImage(vk::ImageViewType::e2DArray, settings.width, settings.height, settings.layers, settings.mipLevels, TextureFormatToVkFormat(settings.format), usage, aspect);
       CreateSampler(settings);
    }
 
@@ -442,15 +442,15 @@ namespace Pikzel {
 
 
    VulkanTextureCube::VulkanTextureCube(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect)
-   : m_Path {settings.Path}
+   : m_Path {settings.path}
    {
       m_Device = device;
       if (m_Path.empty()) {
-         CreateImage(vk::ImageViewType::eCube, settings.Width, settings.Height, 1, settings.MIPLevels, TextureFormatToVkFormat(settings.Format), usage, aspect);
+         CreateImage(vk::ImageViewType::eCube, settings.width, settings.height, 1, settings.mipLevels, TextureFormatToVkFormat(settings.format), usage, aspect);
       } else {
          uint32_t width;
          uint32_t height;
-         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &width, &height, &m_DataFormat);
+         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.format), &width, &height, &m_DataFormat);
 
          // guess whether the data is the 6-faces of a cube, or whether it's equirectangular
          // width is twice the height -> equirectangular (probably)
@@ -461,7 +461,7 @@ namespace Pikzel {
          } else {
             size = width / 4;
          }
-         CreateImage(vk::ImageViewType::eCube, size, size, 1, settings.MIPLevels, TextureFormatToVkFormat(TextureFormat::RGBA16F), usage | vk::ImageUsageFlagBits::eStorage, aspect);
+         CreateImage(vk::ImageViewType::eCube, size, size, 1, settings.mipLevels, TextureFormatToVkFormat(TextureFormat::RGBA16F), usage | vk::ImageUsageFlagBits::eStorage, aspect);
          PKZL_CORE_ASSERT(BPP(m_DataFormat) != 3, "VulkanTextureCube format cannot be 24-bits per texel");
          SetData(data, width * height * BPP(m_DataFormat));
          stbi_image_free(data);
@@ -490,12 +490,12 @@ namespace Pikzel {
          throw std::runtime_error("Data must be entire texture!");
       }
 
-      std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, TextureSettings{.Width = width, .Height = height, .Format = m_DataFormat, .MIPLevels = 1});
+      std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, TextureSettings{.width = width, .height = height, .format = m_DataFormat, .mipLevels = 1});
       tex2d->SetData(data, size);
 
       std::unique_ptr<ComputeContext> compute = std::make_unique<VulkanComputeContext>(m_Device);
       std::unique_ptr<Pipeline> pipeline = compute->CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Compute, shader }
          }
       });
@@ -511,7 +511,7 @@ namespace Pikzel {
 
    VulkanTextureCubeArray::VulkanTextureCubeArray(std::shared_ptr<VulkanDevice> device, const TextureSettings& settings, vk::ImageUsageFlags usage, vk::ImageAspectFlags aspect) {
       m_Device = device;
-      CreateImage(vk::ImageViewType::eCubeArray, settings.Width, settings.Height, settings.Layers, settings.MIPLevels, TextureFormatToVkFormat(settings.Format), usage, aspect);
+      CreateImage(vk::ImageViewType::eCubeArray, settings.width, settings.height, settings.layers, settings.mipLevels, TextureFormatToVkFormat(settings.format), usage, aspect);
       CreateSampler(settings);
    }
 

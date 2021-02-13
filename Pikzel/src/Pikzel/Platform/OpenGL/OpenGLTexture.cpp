@@ -174,11 +174,11 @@ namespace Pikzel {
 
    void OpenGLTexture::SetTextureParameters(const TextureSettings& settings) {
       static glm::vec4 borderColor = {0.0f, 0.0f, 0.0f, 1.0f};
-      TextureFilter minFilter = settings.MinFilter;
-      TextureFilter magFilter = settings.MagFilter;
-      TextureWrap wrapU = settings.WrapU;
-      TextureWrap wrapV = settings.WrapV;
-      TextureWrap wrapW = settings.WrapW;
+      TextureFilter minFilter = settings.minFilter;
+      TextureFilter magFilter = settings.magFilter;
+      TextureWrap wrapU = settings.wrapU;
+      TextureWrap wrapV = settings.wrapV;
+      TextureWrap wrapW = settings.wrapW;
 
       if (minFilter == TextureFilter::Undefined) {
          minFilter = IsDepthFormat(m_Format) ? TextureFilter::Nearest : m_MIPLevels == 1 ? TextureFilter::Linear : TextureFilter::LinearMipmapLinear;
@@ -212,13 +212,13 @@ namespace Pikzel {
 
 
    OpenGLTexture2D::OpenGLTexture2D(const TextureSettings& settings)
-   : m_Path {settings.Path}
+   : m_Path {settings.path}
    {
-      m_MIPLevels = settings.MIPLevels;
+      m_MIPLevels = settings.mipLevels;
       if (m_Path.empty()) {
-         m_Width = settings.Width;
-         m_Height = settings.Height;
-         m_Format = settings.Format;
+         m_Width = settings.width;
+         m_Height = settings.height;
+         m_Format = settings.format;
          if (m_MIPLevels == 0) {
             m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
          }
@@ -226,7 +226,7 @@ namespace Pikzel {
          glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererId);
          glTextureStorage2D(m_RendererId, m_MIPLevels, TextureFormatToInternalFormat(m_Format), m_Width, m_Height);
       } else {
-         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &m_Width, &m_Height, &m_Format);
+         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.format), &m_Width, &m_Height, &m_Format);
          if (m_MIPLevels == 0) {
             m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
          }
@@ -302,13 +302,13 @@ namespace Pikzel {
 
 
    OpenGLTexture2DArray::OpenGLTexture2DArray(const TextureSettings& settings)
-   : m_Layers {settings.Layers}
+   : m_Layers {settings.layers}
    {
-      m_Width = settings.Width;
-      m_Height = settings.Height;
-      m_Format = settings.Format;
+      m_Width = settings.width;
+      m_Height = settings.height;
+      m_Format = settings.format;
       glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_RendererId);
-      m_MIPLevels = settings.MIPLevels;
+      m_MIPLevels = settings.mipLevels;
       if (m_MIPLevels == 0) {
          m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
       }
@@ -377,14 +377,14 @@ namespace Pikzel {
    }
 
    OpenGLTextureCube::OpenGLTextureCube(const TextureSettings& settings)
-   : m_Path(settings.Path)
+   : m_Path(settings.path)
    , m_DataFormat {TextureFormat::Undefined}
    {
-      m_MIPLevels = settings.MIPLevels;
+      m_MIPLevels = settings.mipLevels;
       if (m_Path.empty()) {
-         m_Width = settings.Width;
-         m_Height = settings.Height;
-         m_Format = settings.Format;
+         m_Width = settings.width;
+         m_Height = settings.height;
+         m_Format = settings.format;
          if (m_MIPLevels == 0) {
             m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
          }
@@ -393,7 +393,7 @@ namespace Pikzel {
          m_Format = TextureFormat::RGBA16F;
          uint32_t width;
          uint32_t height;
-         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.Format), &width, &height, &m_DataFormat);
+         stbi_uc* data = STBILoad(m_Path, !IsLinearColorSpace(settings.format), &width, &height, &m_DataFormat);
 
          // guess whether the data is the 6-faces of a cube, or whether it's equirectangular
          // width is twice the height -> equirectangular (probably)
@@ -441,13 +441,13 @@ namespace Pikzel {
          throw std::runtime_error("Data must be entire texture!");
       }
 
-      std::unique_ptr<Texture> tex2d = std::make_unique<OpenGLTexture2D>(TextureSettings{.Width = width, .Height = height, .Format = m_DataFormat, .MIPLevels = 1});
+      std::unique_ptr<Texture> tex2d = std::make_unique<OpenGLTexture2D>(TextureSettings{.width = width, .height = height, .format = m_DataFormat, .mipLevels = 1});
       tex2d->SetData(data, size);
 
       std::unique_ptr<ComputeContext> compute = std::make_unique<OpenGLComputeContext>();
 
       std::unique_ptr<Pipeline> pipeline = compute->CreatePipeline({
-         .Shaders = {
+         .shaders = {
             { Pikzel::ShaderType::Compute, shader }
          }
       });
@@ -517,12 +517,12 @@ namespace Pikzel {
 
 
    OpenGLTextureCubeArray::OpenGLTextureCubeArray(const TextureSettings& settings)
-   : m_Layers {settings.Layers}
+   : m_Layers {settings.layers}
    {
-      m_Width = settings.Width;
-      m_Height = settings.Height;
-      m_Format = settings.Format;
-      m_MIPLevels = settings.MIPLevels;
+      m_Width = settings.width;
+      m_Height = settings.height;
+      m_Format = settings.format;
+      m_MIPLevels = settings.mipLevels;
       if (m_MIPLevels == 0) {
          m_MIPLevels = CalculateMipmapLevels(m_Width, m_Height);
       }

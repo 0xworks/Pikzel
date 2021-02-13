@@ -5,20 +5,20 @@
 namespace Pikzel {
 
    struct PKZL_API WindowResizeEvent {
-      void* Sender;
-      int Width;
-      int Height;
+      void* sender;
+      int width;
+      int height;
    };
 
 
    struct PKZL_API WindowVSyncChangedEvent {
-      void* Sender;
-      bool IsVSync;
+      void* sender;
+      bool isVSync;
    };
 
 
    struct PKZL_API WindowCloseEvent {
-      void* Sender;
+      void* sender;
    };
 
 }
