@@ -25,7 +25,7 @@ namespace Pikzel {
    GLFWWindow::GLFWWindow(const Settings& settings) {
       m_Settings = settings;
 
-      PKZL_CORE_LOG_INFO("Platform Windows:");
+      PKZL_CORE_LOG_INFO("Platform GLFW:");
       PKZL_CORE_LOG_INFO("  Title: {0}", m_Settings.title);
       PKZL_CORE_LOG_INFO("  Size: ({0}, {1})", m_Settings.width, m_Settings.height);
 
