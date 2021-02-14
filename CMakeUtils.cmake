@@ -9,6 +9,39 @@ find_program(Vulkan_GLSLANG_VALIDATOR
    PATH_SUFFIXES bin
 )
 
+
+# initialize the variables defining output directories
+#
+# Sets the following variables:
+#
+# - :cmake:data:`CMAKE_ARCHIVE_OUTPUT_DIRECTORY`
+# - :cmake:data:`CMAKE_LIBRARY_OUTPUT_DIRECTORY`
+# - :cmake:data:`CMAKE_RUNTIME_OUTPUT_DIRECTORY`
+#
+# plus the per-config variants, ``*_$<CONFIG>``
+#
+# @public
+#
+macro(init_output_directories)
+  # Directory for output files
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib 
+    CACHE PATH "Output directory for static libraries.")
+
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib
+    CACHE PATH "Output directory for shared libraries.")
+
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bin
+    CACHE PATH "Output directory for executables and DLL's.")
+
+  foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+    string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
+    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bin" CACHE PATH "" FORCE)
+    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib" CACHE PATH "" FORCE)
+    set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} "${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib" CACHE PATH "" FORCE)
+  endforeach()
+endmacro()
+
+
 # Shader compilation
 macro(compile_shaders shader_src_files shader_header_files dir_name compiled_shaders)
    set(${compiled_shaders})

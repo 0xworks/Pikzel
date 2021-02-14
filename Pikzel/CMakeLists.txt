@@ -85,20 +85,13 @@ set(
    PKZL_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
    PKZL_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
    PKZL_DESCRIPTION="${PROJECT_DESCRIPTION}"
-   "$<$<CONFIG:DEBUG>:PKZL_DEBUG>"
+   $<$<CONFIG:DEBUG>:PKZL_DEBUG>
    NOMINMAX
    GLFW_INCLUDE_NONE
    GLM_FORCE_DEPTH_ZERO_TO_ONE
    GLM_FORCE_RADIANS
    TRACY_IMPORTS
 )
-
-if(WIN32)
-   list(
-      APPEND ProjectDefines
-      WIN32_LEAN_AND_MEAN
-   )
-endif()
 
 if(PKZL_PROFILE)
    list(
@@ -155,12 +148,23 @@ target_precompile_headers(
    <imgui.h>
 )
 
+# no precompiled header for tinyfiledialogs
+set_source_files_properties(
+   "vendor/tinyfiledialogs/tinyfiledialogs.c"
+   PROPERTIES
+   SKIP_PRECOMPILE_HEADERS ON
+)
+
 if(MSVC)
    target_compile_options(
       ${PROJECT_NAME} PUBLIC
       "$<$<CONFIG:Release>:/GL>"
    )
 endif()
+
+
+
+
 
 target_link_libraries(
    ${PROJECT_NAME} PRIVATE
@@ -318,10 +322,9 @@ target_precompile_headers(
    <glm/glm.hpp>
 )
 
-# no precompiled header for these files
+# no precompiled header for glad
 set_source_files_properties(
    "src/Pikzel/Platform/OpenGL/vendor/glad/src/glad.c"
-   "vendor/tinyfiledialogs/tinyfiledialogs.c"
    PROPERTIES
    SKIP_PRECOMPILE_HEADERS ON
 )
