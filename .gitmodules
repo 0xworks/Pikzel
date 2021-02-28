@@ -34,3 +34,6 @@
 [submodule "Pikzel/vendor/tinyfiledialogs"]
 	path = Pikzel/vendor/tinyfiledialogs
 	url = https://github.com/native-toolkit/tinyfiledialogs.git
+[submodule "Pikzel/vendor/dds-ktx"]
+	path = Pikzel/vendor/dds-ktx
+	url = https://github.com/septag/dds-ktx.git
