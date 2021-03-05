@@ -81,16 +81,18 @@ I have also tested on Ubuntu 20.10 using gcc.  Others are untested, but may work
   - libxi-dev
 
 - All other dependencies are brought in via git submodules to try and minimize the need to pre-install things.  The other dependencies are:
-  - assimp  (asset (aka 3d models) importing)
-  - cmrc    (for embedding resources (such as shader binaries) into the compiled application)
-  - entt    (Entity Component System, plus this is also used for the event system, and compile time string hashing)
-  - glfw    (Window management)
-  - glm     (maths)
-  - imgui   (gui components)
-  - spdlog  (logging)
-  - stb     (image file loading)
-  - tracy   (performance profiling)
-  - vma     (Vulkan memory allocator)
+  - assimp          (asset (aka 3d models) importing)
+  - cmrc            (for embedding resources (such as shader binaries) into the compiled application)
+  - entt            (Entity Component System, plus this is also used for the event system, and compile time string hashing)
+  - glfw            (Window management)
+  - glm             (maths)
+  - imgui           (gui components)
+  - spdlog          (logging)
+  - stb             (image file loading)
+  - dds-ktx         (dds and ktx image file loading)
+  - tinyfiledialogs (cross platform file load/save dialogs)
+  - tracy           (performance profiling)
+  - vma             (Vulkan memory allocator)
 
 ### Build
 - ```git clone --recursive https://github.com/freeman40/Pikzel.git```

@@ -16,12 +16,17 @@ namespace Pikzel {
       virtual ~OpenGLTexture();
 
       virtual TextureFormat GetFormat() const override;
+      virtual TextureType GetType() const override;
 
       virtual uint32_t GetWidth() const override;
       virtual uint32_t GetHeight() const override;
+      virtual uint32_t GetDepth() const override;
+      virtual uint32_t GetLayers() const override;
       virtual uint32_t GetMIPLevels() const override;
 
-      virtual void Commit(const bool generateMipmap = true) override;
+      virtual void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
+
+      virtual void Commit(const uint32_t generateMipmapAfterLevel) override;
 
       bool operator==(const Texture& that) override;
 
@@ -29,12 +34,24 @@ namespace Pikzel {
       uint32_t GetRendererId() const;
 
    protected:
+      void Init(const TextureSettings& settings);
       void SetTextureParameters(const TextureSettings& settings);
 
+      virtual void SetDepth(const uint32_t depth) = 0;
+      virtual void SetLayers(const uint32_t layers) = 0;
+
+      virtual void GLTextureStorage() = 0;
+      virtual void GLCompressedTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const uint32_t size, const void* data) = 0;
+      virtual void GLTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const void* data) = 0;
+
    protected:
+      std::filesystem::path m_Path;
       TextureFormat m_Format = {};
+      TextureFormat m_DataFormat = {}; // temporary, only used during upload of cubemap texture from a 2D texture (this is the 2D texture's format)
       uint32_t m_Width = {};
       uint32_t m_Height = {};
+      uint32_t m_Depth = {};
+      uint32_t m_Layers = {};
       uint32_t m_MIPLevels = {};
       uint32_t m_RendererId = {};
    };
@@ -46,14 +63,15 @@ namespace Pikzel {
 
       virtual TextureType GetType() const override;
 
-      virtual uint32_t GetLayers() const override;
+      virtual void SetData(const void* data, const uint32_t size) override;
 
-      virtual void SetData(void* data, const uint32_t size) override;
+   protected:
+      virtual void SetDepth(const uint32_t depth) override;
+      virtual void SetLayers(const uint32_t layers) override;
 
-      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
-
-   private:
-      std::filesystem::path m_Path;
+      virtual void GLTextureStorage() override;
+      virtual void GLCompressedTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const uint32_t size, const void* data) override;
+      virtual void GLTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const void* data) override;
    };
 
 
@@ -63,14 +81,15 @@ namespace Pikzel {
 
       virtual TextureType GetType() const override;
 
-      virtual uint32_t GetLayers() const override;
+      virtual void SetData(const void* data, const uint32_t size) override;
 
-      virtual void SetData(void* data, const uint32_t size) override;
+   protected:
+      virtual void SetDepth(const uint32_t depth) override;
+      virtual void SetLayers(const uint32_t layers) override;
 
-      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
-
-   private:
-      uint32_t m_Layers = {};
+      virtual void GLTextureStorage() override;
+      virtual void GLCompressedTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const uint32_t size, const void* data) override;
+      virtual void GLTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const void* data) override;
    };
 
 
@@ -81,18 +100,15 @@ namespace Pikzel {
 
       virtual TextureType GetType() const override;
 
-      virtual uint32_t GetLayers() const override;
+      virtual void SetData(const void* data, const uint32_t size) override;
 
-      virtual void SetData(void* data, const uint32_t size) override;
+   protected:
+      virtual void SetDepth(const uint32_t depth) override;
+      virtual void SetLayers(const uint32_t layers) override;
 
-      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
-
-   private:
-      void AllocateStorage();
-
-   private:
-      std::filesystem::path m_Path;
-      TextureFormat m_DataFormat = {}; // format of the data texture was originally loaded from
+      virtual void GLTextureStorage() override;
+      virtual void GLCompressedTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const uint32_t size, const void* data) override;
+      virtual void GLTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const void* data) override;
    };
 
 
@@ -102,14 +118,15 @@ namespace Pikzel {
 
       virtual TextureType GetType() const override;
 
-      virtual uint32_t GetLayers() const override;
+      virtual void SetData(const void* data, const uint32_t size) override;
 
-      virtual void SetData(void* data, const uint32_t size) override;
+   protected:
+      virtual void SetDepth(const uint32_t depth) override;
+      virtual void SetLayers(const uint32_t layers) override;
 
-      void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) override;
-
-   private:
-      uint32_t m_Layers = {};
+      virtual void GLTextureStorage() override;
+      virtual void GLCompressedTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const uint32_t size, const void* data) override;
+      virtual void GLTextureSubImage(const uint32_t layer, const uint32_t slice, const int mipLevel, const int xOffset, const int yOffset, const void* data) override;
    };
 
 }

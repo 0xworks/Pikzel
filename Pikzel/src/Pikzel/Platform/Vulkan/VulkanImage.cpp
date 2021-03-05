@@ -321,54 +321,47 @@ namespace Pikzel {
    }
 
 
-   void VulkanImage::CopyFromBuffer(vk::Buffer buffer) {
-      m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [this, buffer] (vk::CommandBuffer cmd) {
-         vk::BufferImageCopy region = {
-            0                                    /*bufferOffset*/,
-            0                                    /*bufferRowLength*/,
-            0                                    /*bufferImageHeight*/,
-            vk::ImageSubresourceLayers {
-               vk::ImageAspectFlagBits::eColor      /*aspectMask*/,
-               0                                    /*mipLevel*/,
-               0                                    /*baseArrayLayer*/,
-               m_Layers                             /*layerCount*/
-            }                                    /*imageSubresource*/,
-            {0, 0, 0}                            /*imageOffset*/,
-            {m_Width, m_Height, m_Depth}         /*imageExtent*/
-         };
-         cmd.copyBufferToImage(buffer, m_Image, vk::ImageLayout::eTransferDstOptimal, region);
+   void VulkanImage::CopyFromBuffer(vk::Buffer buffer, const vk::ArrayProxy<const vk::BufferImageCopy>& regions) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [this, buffer, &regions] (vk::CommandBuffer cmd) {
+         std::vector<vk::ImageMemoryBarrier> beforeCopyBarriers;
+         beforeCopyBarriers.reserve(regions.size());
+         for (const auto& region : regions) {
+            beforeCopyBarriers.emplace_back(Barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, region.imageSubresource.mipLevel, 1, region.imageSubresource.baseArrayLayer, region.imageSubresource.layerCount));
+         }
+         cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer, {}, nullptr, nullptr, beforeCopyBarriers);
+         cmd.copyBufferToImage(buffer, m_Image, vk::ImageLayout::eTransferDstOptimal, regions);
       });
    }
 
 
-   void VulkanImage::CopyFromImage(const VulkanImage& image, const vk::ImageCopy& region) {
-      m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [this, &image, &region] (vk::CommandBuffer cmd) {
-         std::array<vk::ImageMemoryBarrier, 2> beforeCopyBarriers = {
-            image.Barrier(vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eTransferSrcOptimal, region.srcSubresource.mipLevel, 1, region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount),
-            Barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, region.dstSubresource.mipLevel, 1, region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount)
-         };
-
-         std::array<vk::ImageMemoryBarrier, 2> afterCopyBarriers = {
-            image.Barrier(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, region.srcSubresource.mipLevel, 1, region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount),
-            Barrier(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral, region.dstSubresource.mipLevel, 1, region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount)
+   void VulkanImage::CopyFromImage(const VulkanImage& image, const vk::ArrayProxy<const vk::ImageCopy>& regions) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [this, &image, &regions] (vk::CommandBuffer cmd) {
+         std::vector<vk::ImageMemoryBarrier> beforeCopyBarriers;
+         std::vector<vk::ImageMemoryBarrier> afterCopyBarriers;
+         beforeCopyBarriers.reserve(regions.size() * 2);
+         afterCopyBarriers.reserve(regions.size() * 2);
+         for (const auto& region : regions) {
+            beforeCopyBarriers.emplace_back(image.Barrier(vk::ImageLayout::eShaderReadOnlyOptimal, vk::ImageLayout::eTransferSrcOptimal, region.srcSubresource.mipLevel, 1, region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount));
+            beforeCopyBarriers.emplace_back(Barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, region.dstSubresource.mipLevel, 1, region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount));
+            afterCopyBarriers.emplace_back(image.Barrier(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, region.srcSubresource.mipLevel, 1, region.srcSubresource.baseArrayLayer, region.srcSubresource.layerCount));
+            afterCopyBarriers.emplace_back(Barrier(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral, region.dstSubresource.mipLevel, 1, region.dstSubresource.baseArrayLayer, region.dstSubresource.layerCount));
          };
 
          cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer, {}, nullptr, nullptr, beforeCopyBarriers);
-         cmd.copyImage(image.GetVkImage(), vk::ImageLayout::eTransferSrcOptimal, m_Image, vk::ImageLayout::eTransferDstOptimal, region);
+         cmd.copyImage(image.GetVkImage(), vk::ImageLayout::eTransferSrcOptimal, m_Image, vk::ImageLayout::eTransferDstOptimal, regions);
          cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eFragmentShader, {}, nullptr, nullptr, afterCopyBarriers);
       });
-
    }
 
 
-   void VulkanImage::GenerateMipmap() {
+   void VulkanImage::GenerateMipmap(const uint32_t baseMipLevel) {
       // Check if image format supports linear blitting
       vk::FormatProperties formatProperties = m_Device->GetVkPhysicalDevice().getFormatProperties(m_Format);
       if (!(formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eSampledImageFilterLinear)) {
          throw std::runtime_error {"texture image format does not support linear blitting!"};
       }
 
-      m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this] (vk::CommandBuffer cmd) {
+      m_Device->SubmitSingleTimeCommands(m_Device->GetComputeQueue(), [this, baseMipLevel] (vk::CommandBuffer cmd) {
          vk::ImageMemoryBarrier barrier = {
             {}                                   /*srcAccessMask*/,
             {}                                   /*dstAccessMask*/,
@@ -398,21 +391,22 @@ namespace Pikzel {
             barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
             cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, {}, nullptr, nullptr, barrier);
 
-            vk::ImageBlit blit;
-            blit.srcOffsets[0] = vk::Offset3D {0, 0, 0};
-            blit.srcOffsets[1] = vk::Offset3D {mipWidth, mipHeight, mipDepth};
-            blit.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-            blit.srcSubresource.mipLevel = i - 1;
-            blit.srcSubresource.baseArrayLayer = 0;
-            blit.srcSubresource.layerCount = m_Layers;;
-            blit.dstOffsets[0] = vk::Offset3D {0, 0, 0};
-            blit.dstOffsets[1] = vk::Offset3D {mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, mipDepth > 1 ? mipDepth / 2 : 1};
-            blit.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-            blit.dstSubresource.mipLevel = i;
-            blit.dstSubresource.baseArrayLayer = 0;
-            blit.dstSubresource.layerCount = m_Layers;;
-            cmd.blitImage(m_Image, vk::ImageLayout::eTransferSrcOptimal, m_Image, vk::ImageLayout::eTransferDstOptimal, blit, vk::Filter::eLinear);
-
+            if (i > baseMipLevel) {
+               vk::ImageBlit blit;
+               blit.srcOffsets[0] = vk::Offset3D{ 0, 0, 0 };
+               blit.srcOffsets[1] = vk::Offset3D{ mipWidth, mipHeight, mipDepth };
+               blit.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+               blit.srcSubresource.mipLevel = i - 1;
+               blit.srcSubresource.baseArrayLayer = 0;
+               blit.srcSubresource.layerCount = m_Layers;
+               blit.dstOffsets[0] = vk::Offset3D{ 0, 0, 0 };
+               blit.dstOffsets[1] = vk::Offset3D{ mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, mipDepth > 1 ? mipDepth / 2 : 1 };
+               blit.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+               blit.dstSubresource.mipLevel = i;
+               blit.dstSubresource.baseArrayLayer = 0;
+               blit.dstSubresource.layerCount = m_Layers;;
+               cmd.blitImage(m_Image, vk::ImageLayout::eTransferSrcOptimal, m_Image, vk::ImageLayout::eTransferDstOptimal, blit, vk::Filter::eLinear);
+            }
             barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
             barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;

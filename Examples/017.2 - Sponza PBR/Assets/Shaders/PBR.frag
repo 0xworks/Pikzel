@@ -367,7 +367,14 @@ void main() {
       discard;
    }
 
-   vec3 normal = normalize(inTangentBasis * (texture(uNormals, texCoords).xyz * 2.0 - 1.0));
+   // Unpack normals from just the red and green components of normal map
+   // This works both with a "normal" normal map, and also if the normal map happens
+   // to be a BC5 compressed texture
+   // This comes at the expense of the sqrt().
+   vec2 normalXY = texture(uNormals, texCoords).xy * 2.0 - 1.0;
+   float normalZ = sqrt(clamp(1.0f - dot(normalXY, normalXY), 0.0, 1.0));
+   vec3 normal = normalize(inTangentBasis * vec3(normalXY, normalZ));
+
    vec3 metallicRoughness = texture(uMetallicRoughness, texCoords).rgb;
    float metalness = metallicRoughness.b;
    float roughness = metallicRoughness.g;

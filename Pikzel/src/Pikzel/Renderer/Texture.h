@@ -3,11 +3,12 @@
 #include "Pikzel/Core/Core.h"
 
 #include <filesystem>
+#include <utility>
 
 namespace Pikzel {
 
    enum class TextureFormat {
-      Undefined        /* determine automatically from supplied data (e.g. image file) */,
+      Undefined        /* determine automatically from supplied data (e.g. image file), if possible */,
       RGB8             /* linear RGB, 8 bits per component */,
       RGBA8            /* linear RGBA, 8 bits per component */,
       SRGB8            /* non-linear sRGB, 8 bits per component */,
@@ -24,11 +25,23 @@ namespace Pikzel {
       R32F             /* linear single channel, 32-bit floating point */,
       D32F             /* linear depth component, 32-bit floating point */,
       D24S8            /* 24-bit depth component packed with 8-bit stencil component */,
-      D32S8            /* 32-bit depth component, 8-bit stencil component */
+      D32S8            /* 32-bit depth component, 8-bit stencil component */,
+      DXT1RGBA         /* Block compressed RGBA */,
+      DXT1SRGBA        /* Block compressed SRGBA */,
+      DXT3RGBA         /* Block compressed RGBA */,
+      DXT3SRGBA        /* Block compressed SRGBA */,
+      DXT5RGBA         /* Block compressed RGBA */,
+      DXT5SRGBA        /* Block compressed SRGBA */,
+      RGTC1R           /* Red Green compressed R */,
+      RGTC1SR          /* Red Green compressed signed R */,
+      RGTC2RG          /* Red Green compressed RG */,
+      RGTC2SRG         /* Red Green compressed signed RG */,
    };
 
 
+   // TODO: 1D and 3D textures...
    enum class TextureType {
+      Undefined,
       Texture2D,
       Texture2DArray,
       TextureCube,
@@ -37,7 +50,7 @@ namespace Pikzel {
 
 
    enum class TextureFilter {
-      Undefined  /* means guess an appropriate setting from other supplied data */,
+      Undefined     /* means guess an appropriate setting from other supplied data */,
       Nearest,
       NearestMipmapNearest,
       NearestMipmapLinear,
@@ -48,7 +61,7 @@ namespace Pikzel {
 
 
    enum class TextureWrap {
-      Undefined  /* means guess an appropriate setting from other supplied data */,
+      Undefined     /* means guess an appropriate setting from other supplied data */,
       ClampToEdge,
       ClampToBorder /* border is always opaque black for now */,
       Repeat,
@@ -58,23 +71,33 @@ namespace Pikzel {
 
    inline bool IsColorFormat(const TextureFormat format) {
       switch (format) {
-         case TextureFormat::RGB8:    return true;
-         case TextureFormat::RGBA8:   return true;
-         case TextureFormat::SRGB8:   return true;
-         case TextureFormat::SRGBA8:  return true;
-         case TextureFormat::RG16F:   return true;
-         case TextureFormat::RGB16F:  return true;
-         case TextureFormat::RGBA16F: return true;
-         case TextureFormat::RG32F:   return true;
-         case TextureFormat::RGB32F:  return true;
-         case TextureFormat::RGBA32F: return true;
-         case TextureFormat::BGR8:    return true;
-         case TextureFormat::BGRA8:   return true;
-         case TextureFormat::R8:      return true;
-         case TextureFormat::R32F:    return true;
-         case TextureFormat::D32F:    return false;
-         case TextureFormat::D24S8:   return false;
-         case TextureFormat::D32S8:   return false;
+         case TextureFormat::RGB8:      return true;
+         case TextureFormat::RGBA8:     return true;
+         case TextureFormat::SRGB8:     return true;
+         case TextureFormat::SRGBA8:    return true;
+         case TextureFormat::RG16F:     return true;
+         case TextureFormat::RGB16F:    return true;
+         case TextureFormat::RGBA16F:   return true;
+         case TextureFormat::RG32F:     return true;
+         case TextureFormat::RGB32F:    return true;
+         case TextureFormat::RGBA32F:   return true;
+         case TextureFormat::BGR8:      return true;
+         case TextureFormat::BGRA8:     return true;
+         case TextureFormat::R8:        return true;
+         case TextureFormat::R32F:      return true;
+         case TextureFormat::D32F:      return false;
+         case TextureFormat::D24S8:     return false;
+         case TextureFormat::D32S8:     return false;
+         case TextureFormat::DXT1RGBA:  return true;
+         case TextureFormat::DXT1SRGBA: return true;
+         case TextureFormat::DXT3RGBA:  return true;
+         case TextureFormat::DXT3SRGBA: return true;
+         case TextureFormat::DXT5RGBA:  return true;
+         case TextureFormat::DXT5SRGBA: return true;
+         case TextureFormat::RGTC1R:    return true;
+         case TextureFormat::RGTC1SR:   return true;
+         case TextureFormat::RGTC2RG:   return true;
+         case TextureFormat::RGTC2SRG:  return true;
       }
       return false;
    }
@@ -82,23 +105,33 @@ namespace Pikzel {
 
    inline bool IsDepthFormat(const TextureFormat format) {
       switch (format) {
-         case TextureFormat::RGB8:    return false;
-         case TextureFormat::RGBA8:   return false;
-         case TextureFormat::SRGB8:   return false;
-         case TextureFormat::SRGBA8:  return false;
-         case TextureFormat::RG16F:   return false;
-         case TextureFormat::RGB16F:  return false;
-         case TextureFormat::RGBA16F: return false;
-         case TextureFormat::RG32F:   return false;
-         case TextureFormat::RGB32F:  return false;
-         case TextureFormat::RGBA32F: return false;
-         case TextureFormat::BGR8:    return false;
-         case TextureFormat::BGRA8:   return false;
-         case TextureFormat::R8:      return false;
-         case TextureFormat::R32F:    return false;
-         case TextureFormat::D32F:    return true;
-         case TextureFormat::D24S8:   return true;
-         case TextureFormat::D32S8:   return true;
+         case TextureFormat::RGB8:      return false;
+         case TextureFormat::RGBA8:     return false;
+         case TextureFormat::SRGB8:     return false;
+         case TextureFormat::SRGBA8:    return false;
+         case TextureFormat::RG16F:     return false;
+         case TextureFormat::RGB16F:    return false;
+         case TextureFormat::RGBA16F:   return false;
+         case TextureFormat::RG32F:     return false;
+         case TextureFormat::RGB32F:    return false;
+         case TextureFormat::RGBA32F:   return false;
+         case TextureFormat::BGR8:      return false;
+         case TextureFormat::BGRA8:     return false;
+         case TextureFormat::R8:        return false;
+         case TextureFormat::R32F:      return false;
+         case TextureFormat::D32F:      return true;
+         case TextureFormat::D24S8:     return true;
+         case TextureFormat::D32S8:     return true;
+         case TextureFormat::DXT1RGBA:  return false;
+         case TextureFormat::DXT1SRGBA: return false;
+         case TextureFormat::DXT3RGBA:  return false;
+         case TextureFormat::DXT3SRGBA: return false;
+         case TextureFormat::DXT5RGBA:  return false;
+         case TextureFormat::DXT5SRGBA: return false;
+         case TextureFormat::RGTC1R:    return false;
+         case TextureFormat::RGTC1SR:   return false;
+         case TextureFormat::RGTC2RG:   return false;
+         case TextureFormat::RGTC2SRG:  return false;
       }
       return false;
    }
@@ -106,23 +139,33 @@ namespace Pikzel {
 
    inline bool IsLinearColorSpace(const TextureFormat format) {
       switch (format) {
-         case TextureFormat::RGB8:    return true;
-         case TextureFormat::RGBA8:   return true;
-         case TextureFormat::SRGB8:   return false;
-         case TextureFormat::SRGBA8:  return false;
-         case TextureFormat::RG16F:   return true;
-         case TextureFormat::RGB16F:  return true;
-         case TextureFormat::RGBA16F: return true;
-         case TextureFormat::RG32F:   return true;
-         case TextureFormat::RGB32F:  return true;
-         case TextureFormat::RGBA32F: return true;
-         case TextureFormat::BGR8:    return true;
-         case TextureFormat::BGRA8:   return true;
-         case TextureFormat::R8:      return true;
-         case TextureFormat::R32F:    return true;
-         case TextureFormat::D32F:    return true;
-         case TextureFormat::D24S8:   return true;
-         case TextureFormat::D32S8:   return true;
+         case TextureFormat::RGB8:      return true;
+         case TextureFormat::RGBA8:     return true;
+         case TextureFormat::SRGB8:     return false;
+         case TextureFormat::SRGBA8:    return false;
+         case TextureFormat::RG16F:     return true;
+         case TextureFormat::RGB16F:    return true;
+         case TextureFormat::RGBA16F:   return true;
+         case TextureFormat::RG32F:     return true;
+         case TextureFormat::RGB32F:    return true;
+         case TextureFormat::RGBA32F:   return true;
+         case TextureFormat::BGR8:      return true;
+         case TextureFormat::BGRA8:     return true;
+         case TextureFormat::R8:        return true;
+         case TextureFormat::R32F:      return true;
+         case TextureFormat::D32F:      return true;
+         case TextureFormat::D24S8:     return true;
+         case TextureFormat::D32S8:     return true;
+         case TextureFormat::DXT1RGBA:  return true;
+         case TextureFormat::DXT1SRGBA: return false;
+         case TextureFormat::DXT3RGBA:  return true;
+         case TextureFormat::DXT3SRGBA: return false;
+         case TextureFormat::DXT5RGBA:  return true;
+         case TextureFormat::DXT5SRGBA: return false;
+         case TextureFormat::RGTC1R:    return true;
+         case TextureFormat::RGTC1SR:   return true;
+         case TextureFormat::RGTC2RG:   return true;
+         case TextureFormat::RGTC2SRG:  return true;
       }
       return false;
    }
@@ -141,7 +184,7 @@ namespace Pikzel {
       TextureWrap wrapU = TextureWrap::Repeat;
       TextureWrap wrapV = TextureWrap::Repeat;
       TextureWrap wrapW = TextureWrap::Repeat;
-      uint32_t mipLevels = 0; // 0 = auto calculate
+      uint32_t mipLevels = 0;     // 0 = auto calculate
       bool imageStorage = false;  // true = allow writing to this image in shaders (via imagestore(...))
    };
 
@@ -178,11 +221,23 @@ namespace Pikzel {
       virtual uint32_t GetWidth() const = 0;
       virtual uint32_t GetHeight() const = 0;
 
+      // We dont have support for 3D textures yet, and so all
+      // texture types in Pikzel have depth = 1 (incl. cubemaps).
+      virtual uint32_t GetDepth() const = 0;
+
+      // A texture typically has 1 layer.  A texture with *Array type can have more than 1 layer
+      // A cubemap array has depth = 1, and layers = N
       virtual uint32_t GetLayers() const = 0;
 
       virtual uint32_t GetMIPLevels() const = 0;
 
-      virtual void SetData(void* data, const uint32_t size) = 0;
+      // Set data for base mip level for entire texture extent (incl. layers)
+      // For uncompressed texture format only (TODO: may need SetCompressedData())
+      // Only does base mip level (TODO: may need to support SetData for other mip levels)
+      // For cubemap texture, this assumes that the data is a 2d image either unrolled into 6-faces,
+      // or an equirectangular projection.  A compute shader will be dispatched to copy the 2d
+      // data into the cubemap
+      virtual void SetData(const void* data, const uint32_t size) = 0;
 
       // See default TextureCopySettings.
       // By default CopyFrom() will copy the full extent and all array layers of srcTexture, mipLevel 0 into self, mipLevel 0
@@ -192,10 +247,12 @@ namespace Pikzel {
       // No resizing is done - this is a straight copy.
       virtual void CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings = {}) = 0;
 
-      // Textures that are created with .ImageStorage = true need to be Commit()'d before they are able to
-      // be used in shaders. (e.g. in Vulkan, this transitions the image to shader_read_only)
-      // Mipmap levels can optionally also be automatically generated at this point.
-      virtual void Commit(const bool generateMipmap = true) = 0;
+      // Textures need to be Commit()'d before they are able to be used in shaders.
+      // (e.g. in Vulkan, this transitions the image to shader_read_only)
+      // This will automatically generate mipmap levels after the specified level (up to however many the texture has).
+      // Level 0 is the base mipmap
+      // Pass GetMIPLevels() (or any number larger than that) to generate no mipmaps
+      virtual void Commit(const uint32_t baseMipLevel) = 0;
 
       virtual bool operator==(const Texture& that) = 0;
 
@@ -233,5 +290,55 @@ namespace Pikzel {
       }
       return levels;
    }
+
+
+   // Manages load of texture resources from file
+   // Constructor loads and parses the file into memory buffer and from there it can be uploaded to GPU
+   // Destructor frees that memory
+   class PKZL_API TextureLoader {
+   public:
+      PKZL_NOT_COPYABLE(TextureLoader);
+      TextureLoader(const std::filesystem::path& path);
+      ~TextureLoader();
+
+      bool IsLoaded() const;
+
+      uint32_t GetWidth() const;
+      uint32_t GetHeight() const;
+      uint32_t GetDepth() const;
+      uint32_t GetLayers() const;
+      uint32_t GetSlices() const;
+      uint32_t GetMIPLevels() const;
+
+
+      TextureFormat GetFormat() const;
+
+      bool IsCubeMap() const;
+      bool IsCompressed() const;
+
+      std::pair<const void*, const uint32_t> GetData(const uint32_t layer, const uint32_t slice, const uint32_t mipLevel) const;
+
+   private:
+      bool TrySTBI();
+      bool TryDDSKTX();
+
+      void Flip();
+      void Flip(const uint32_t layer, const uint32_t slice, const uint32_t mipLevel);
+
+
+
+   private:
+      std::vector<uint8_t> m_FileData;
+      void* m_Data;
+      uint32_t m_Width;
+      uint32_t m_Height;
+      uint32_t m_Depth;
+      uint32_t m_Layers;
+      uint32_t m_MIPLevels;
+      TextureFormat m_Format;
+      bool m_IsCubeMap;
+      bool m_IsDDSKTX;
+      bool m_IsCompressed;
+   };
 
 }

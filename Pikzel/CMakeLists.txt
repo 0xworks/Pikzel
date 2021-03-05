@@ -23,6 +23,8 @@ set(
    "src/Pikzel/Core/Application.cpp"
    "src/Pikzel/Core/Core.h"
    "src/Pikzel/Core/EntryPoint.h"
+   "src/Pikzel/Core/FileSystem.h"
+   "src/Pikzel/Core/FileSystem.cpp"
    "src/Pikzel/Core/Instrumentor.h"
    "src/Pikzel/Core/Log.h"
    "src/Pikzel/Core/Log.cpp"
@@ -54,6 +56,7 @@ set(
    "src/Pikzel/Renderer/sRGB.h"
    "src/Pikzel/Renderer/sRGB.cpp"
    "src/Pikzel/Renderer/Texture.h"
+   "src/Pikzel/Renderer/Texture.cpp"
    "src/Pikzel/Scene/Camera.h"
    "src/Pikzel/Scene/Camera.cpp"
    "src/Pikzel/Scene/Light.h"
@@ -107,6 +110,7 @@ set(
    "glfw"
    "glm"
    "ImGui"
+   "PikzelResources"
 )
 
 add_library(
@@ -136,7 +140,9 @@ target_include_directories(
 
 target_include_directories(
    ${PROJECT_NAME} PRIVATE
+   "vendor/dds-ktx"
    "vendor/SPIRV-Cross"
+   "vendor/stb"
    "vendor/tinyfiledialogs"
 )
 
@@ -270,7 +276,6 @@ add_library(
    "src/Pikzel/Platform/OpenGL/OpenGLFramebuffer.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.h"
    "src/Pikzel/Platform/OpenGL/OpenGLGraphicsContext.cpp"
-   
    "src/Pikzel/Platform/OpenGL/OpenGLPipeline.h"
    "src/Pikzel/Platform/OpenGL/OpenGLPipeline.cpp"
    "src/Pikzel/Platform/OpenGL/OpenGLRenderCore.h"
@@ -298,13 +303,11 @@ target_compile_definitions(
 target_include_directories(
    "PlatformOpenGL" PRIVATE
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
-   "vendor/stb"
    "vendor/SPIRV-cross"
 )
 
 target_link_libraries(
    "PlatformOpenGL" PRIVATE
-   "PikzelResources"
    "Pikzel"
    "glfw"
    "glm"
@@ -387,7 +390,6 @@ if(${Vulkan_FOUND})
 
    target_include_directories(
       "PlatformVulkan" PRIVATE
-      "vendor/stb"
       "vendor/SPIRV-cross"
       "vendor/VulkanMemoryAllocator-Hpp"
       ${Vulkan_INCLUDE_DIRS}
@@ -408,7 +410,6 @@ if(${Vulkan_FOUND})
 
    target_link_libraries(
       "PlatformVulkan" PRIVATE
-      "PikzelResources"
       "Pikzel"
       "glfw"
       "glm"
