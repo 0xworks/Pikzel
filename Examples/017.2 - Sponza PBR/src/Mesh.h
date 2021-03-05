@@ -4,6 +4,8 @@
 #include "Pikzel/Renderer/Texture.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <memory>
 
 namespace SponzaPBR {
@@ -20,6 +22,7 @@ namespace SponzaPBR {
          glm::vec2 UV;
       };
 
+      glm::mat4 Transform = glm::identity<glm::mat4>();
       std::pair<glm::vec3, glm::vec3> AABB = { glm::vec3{FLT_MAX}, glm::vec3{-FLT_MAX} };
       std::shared_ptr<Pikzel::VertexBuffer> VertexBuffer;
       std::shared_ptr<Pikzel::IndexBuffer> IndexBuffer;
