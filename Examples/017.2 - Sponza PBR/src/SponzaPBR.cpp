@@ -4,8 +4,8 @@
 #include "Pikzel/Core/EntryPoint.h"
 
 // note: Pikzel uses reverse-Z so near and far planes are swapped
-constexpr float nearPlane = 10000.0f;
-constexpr float farPlane = 1.f;
+constexpr float nearPlane = 100.0f;
+constexpr float farPlane = 0.01f;
 
 class SponzaPBRApp final : public Pikzel::Application {
 using super = Pikzel::Application;
@@ -47,8 +47,8 @@ protected:
 
 
    virtual void Render() override {
-      static float lightRadius = 1000.0f; // TODO: set light radius appropriately
-      static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, lightRadius, 1.0f);  // note: Pikzel uses reverse-Z so near and far planes are swapped
+      static float lightRadius = 10.0f; // TODO: set light radius appropriately
+      static glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), 1.0f, lightRadius, 0.01f);  // note: Pikzel uses reverse-Z so near and far planes are swapped
       static int skyboxLod = 1;
 
       PKZL_PROFILE_FUNCTION();
@@ -74,6 +74,7 @@ protected:
          glm::mat4 transform = glm::identity<glm::mat4>();
          gc.PushConstant("constants.mvp"_hs, m_LightSpace * transform);
          for (const auto& mesh : m_Model->Meshes) {
+            gc.PushConstant("constants.mvp"_hs, m_LightSpace * transform * mesh.Transform);
             gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
          }
 
@@ -106,6 +107,7 @@ protected:
             glm::mat4 transform = glm::identity<glm::mat4>();
             gcPtShadows.PushConstant("constants.model"_hs, transform);
             for (const auto& mesh : m_Model->Meshes) {
+               gcPtShadows.PushConstant("constants.model"_hs, transform * mesh.Transform);
                gcPtShadows.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
             }
 
@@ -138,6 +140,7 @@ protected:
          glm::mat4 transform = glm::identity<glm::mat4>();
          gc.PushConstant("constants.model"_hs, transform);
          for (const auto& mesh : m_Model->Meshes) {
+            gc.PushConstant("constants.model"_hs, transform * mesh.Transform);
             gc.Bind("uAlbedo"_hs, *mesh.AlbedoTexture);
             gc.Bind("uMetallicRoughness"_hs, *mesh.MetallicRoughnessTexture);
             gc.Bind("uNormals"_hs, *mesh.NormalTexture);
@@ -149,7 +152,7 @@ protected:
          // render point lights as little cubes
          gc.Bind(*m_PipelineLight);
          for (const auto& pointLight : m_PointLights) {
-            glm::mat4 model = glm::translate(glm::identity<glm::mat4>(), pointLight.position);
+            glm::mat4 model = glm::scale(glm::translate(glm::identity<glm::mat4>(), pointLight.position), glm::vec3{ pointLight.size });
             gc.PushConstant("constants.mvp"_hs, matrices.viewProjection * model);
             gc.PushConstant("constants.lightColor"_hs, pointLight.color);
             gc.DrawTriangles(*m_VertexBufferCube, 36);
@@ -360,7 +363,7 @@ private:
    };
 
    void CreateUniformBuffers() {
-      glm::mat4 lightProjection = glm::ortho(-2100.0f, 2100.0f, -2000.0f, 2000.0f, 2000.0f, 50.0f);  // TODO: need to automatically determine correct parameters here (+ cascades...)
+      glm::mat4 lightProjection = glm::ortho(-21.0f, 21.0f, -20.0f, 20.0f, 20.0f, -10.0f);  // TODO: need to automatically determine correct parameters here (+ cascades...)
       glm::mat4 lightView = glm::lookAt(-m_DirectionalLights[0].direction, glm::vec3 {0.0f, 0.0f, 0.0f}, glm::vec3 {0.0f, 1.0f, 0.0f});
       m_LightSpace = lightProjection * lightView;
 
@@ -397,7 +400,7 @@ private:
       compute->Bind("outputTexture"_hs, *m_Irradiance);
       compute->Dispatch(m_Irradiance->GetWidth() / 32, m_Irradiance->GetHeight() / 32, 6);  // POI: width and height divided by 32 because the shader works in 32x32 blocks.  z is 6 for the six faces of the cube
       compute->End();
-      m_Irradiance->Commit();
+      m_Irradiance->Commit(0);
 
       // specular irradiance
       m_SpecularIrradiance = Pikzel::RenderCore::CreateTexture({
@@ -459,7 +462,7 @@ private:
       compute->Bind("LUT"_hs, *m_SpecularBRDF_LUT);
       compute->Dispatch(m_SpecularBRDF_LUT->GetWidth() / 32, m_SpecularBRDF_LUT->GetHeight() / 32, 1);
       compute->End();
-      m_SpecularBRDF_LUT->Commit();
+      m_SpecularBRDF_LUT->Commit(0);
    }
 
 
@@ -486,7 +489,7 @@ private:
          });
       }
 
-      if (!m_FramebufferPtShadow) {
+       if (!m_FramebufferPtShadow) {
          m_FramebufferPtShadow = Pikzel::RenderCore::CreateFramebuffer({
             .width = shadowMapWidth / 2,
             .height = shadowMapHeight / 2,
@@ -561,19 +564,19 @@ private:
    Pikzel::Input m_Input;
 
    Camera m_Camera = {
-      .position = {-900.0f, 100.0f, 0.0f},
-      .direction = glm::normalize(glm::vec3{900.0f, -100.0f, 0.0f}),
+      .position = {-9.0f, 1.0f, 0.0f},
+      .direction = glm::normalize(glm::vec3{9.0f, -1.0f, 0.0f}),
       .upVector = {0.0f, 1.0f, 0.0f},
       .fovRadians = glm::radians(45.f),
-      .moveSpeed = 200.0f,
+      .moveSpeed = 2.0f,
       .rotateSpeed = 20.0f
    };
 
    // note: currently shader expects exactly 1 directional light
    std::vector<Pikzel::DirectionalLight> m_DirectionalLights = {
       {
-         .direction = {250.0f, -1750.0f, 250.0f},
-         .color = {0.0f, 0.0f, 0.0f},           // POI: The PBR pipeline is HDR, so there is no reason why we need to limit ourselves to light intensities in range 0 to 1
+         .direction = {5.00f, -13.5f, 7.00f},
+         .color = {1.0f, 1.0f, 1.0f},           // POI: The PBR pipeline is HDR, so there is no reason why we need to limit ourselves to light intensities in range 0 to 1
          .ambient = {1.0, 1.0, 1.0},            // POI: The ambient light (from environment map) is multiplied by this amount.  This allows us to tone down what might otherwise be too bright environments
          .size = 0.002f
       }
@@ -585,28 +588,28 @@ private:
    // for zero points lights, pass in one, with power set to 0
    std::vector<Pikzel::PointLight> m_PointLights = {
       {
-         .position = {-619.3f, 130.3f, -219.5f},
+         .position = {-4.96f, 1.1f, -1.76f},
          .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .size = 1.0f,
-         .power = 30000.0f
+         .size = 0.01f,
+         .power = 1.0f
       },
       {
-         .position = {487.3f, 130.3f, -219.5f},
+         .position = {3.9f, 1.1f, -1.76f},
          .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .size = 1.0f,
-         .power = 30000.0f
+         .size = 0.01f,
+         .power = 1.0f
       },
       {
-         .position = {487.3f, 130.3f, 141.1f},
+         .position = {3.9f, 1.1f, 1.15f},
          .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .size = 1.0f,
-         .power = 30000.0f
+         .size = 0.01f,
+         .power = 1.0f
       },
       {
-         .position = {-619.3f, 130.3f, 141.1f},
+         .position = {-4.96f, 1.1f, 1.15f},
          .color = Pikzel::sRGB{1.0f, 1.0f, 1.0f},
-         .size = 1.0f,
-         .power = 30000.0f
+         .size = 0.01f,
+         .power = 1.0f
       }
    };
 
