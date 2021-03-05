@@ -58,6 +58,11 @@
 
 #define PKZL_NOT_IMPLEMENTED throw std::logic_error {PKZL_FUNCSIG + std::string(" is not implemented")}
 
+#define PKZL_NOT_COPYABLE(T) T(const T&) = delete;            \
+                             T(T&&) = delete;                 \
+                             T& operator=(const T&) = delete; \
+                             T& operator=(T&&) = delete;
+
 #include <entt/core/hashed_string.hpp>
 using namespace entt::literals;
 

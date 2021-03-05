@@ -1,21 +1,18 @@
 #pragma once
 
 #include "Pikzel/Core/Application.h"
-
-#include <cmrc/cmrc.hpp>
+#include "Pikzel/Core/FileSystem.h"
 
 #include <filesystem>
 #include <fstream>
 #include <vector>
-
-CMRC_DECLARE(PikzelResources);
 
 namespace Pikzel {
 
    template<typename T>
    std::vector<T> ReadCMRCFile(const std::string& path) {
       try {
-         auto fs = cmrc::PikzelResources::get_filesystem();
+         auto fs = GetEmbeddedFileSystem();
          auto file = fs.open(path);
 
          size_t fileSize = file.size();

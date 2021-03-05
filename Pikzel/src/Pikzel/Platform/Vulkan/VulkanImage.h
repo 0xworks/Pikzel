@@ -34,10 +34,10 @@ namespace Pikzel {
 
       vk::ImageMemoryBarrier Barrier(const vk::ImageLayout oldLayout, const vk::ImageLayout newLayout, uint32_t baseMipLevel, uint32_t levelCount, uint32_t baseArrayLayer, uint32_t layerCount) const;
 
-      void CopyFromBuffer(vk::Buffer buffer); // TODO: offsets
-      void CopyFromImage(const VulkanImage& image, const vk::ImageCopy& region);
+      void CopyFromBuffer(vk::Buffer buffer, const vk::ArrayProxy<const vk::BufferImageCopy>& regions);
+      void CopyFromImage(const VulkanImage& image, const vk::ArrayProxy<const vk::ImageCopy>& regions);
 
-      void GenerateMipmap();
+      void GenerateMipmap(const uint32_t baseMipLevel);
 
    protected:
       std::shared_ptr<VulkanDevice> m_Device;
