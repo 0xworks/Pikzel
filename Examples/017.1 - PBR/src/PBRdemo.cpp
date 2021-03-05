@@ -299,7 +299,7 @@ private:
       compute->Bind("outputTexture"_hs, *m_Irradiance);
       compute->Dispatch(m_Irradiance->GetWidth() / 32, m_Irradiance->GetHeight() / 32, 6);  // POI: width and height divided by 32 because the shader works in 32x32 blocks.  z is 6 for the six faces of the cube
       compute->End();
-      m_Irradiance->Commit();
+      m_Irradiance->Commit(0);
 
       // specular irradiance
       m_SpecularIrradiance = Pikzel::RenderCore::CreateTexture({
@@ -335,7 +335,7 @@ private:
          );
          compute->End();
       }
-      m_SpecularIrradiance->Commit(/*generateMipmap = */false);
+      m_SpecularIrradiance->Commit(m_SpecularIrradiance->GetMIPLevels());
 
       // POI: We also use a compute shader to pre-calculate the specular BRDF values and store them in a lookup table (packed into a texture)
       //      These values do not depend on the skybox and could just be loaded from a texture stored on disk.
@@ -361,7 +361,7 @@ private:
       compute->Bind("LUT"_hs, *m_SpecularBRDF_LUT);
       compute->Dispatch(m_SpecularBRDF_LUT->GetWidth() / 32, m_SpecularBRDF_LUT->GetHeight() / 32, 1);
       compute->End();
-      m_SpecularBRDF_LUT->Commit();
+      m_SpecularBRDF_LUT->Commit(m_SpecularBRDF_LUT->GetMIPLevels());
    }
 
 
