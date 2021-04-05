@@ -3,10 +3,16 @@
 
 #include <imgui_internal.h>
 
+// TODO: get these from the scene
+const float nearPlane = 1000.f;
+const float farPlane = 0.1f;
+
 class Pikzelated final : public Pikzel::Application {
+using super = Pikzel::Application; 
 public:
    Pikzelated()
    : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = {0.0f, 0.0f, 0.0f, 1.0f}, .isVSync = true}}
+   , m_Input{ GetWindow() }
    {
       PKZL_PROFILE_FUNCTION();
 
@@ -17,19 +23,35 @@ public:
          ImGui::LoadIniSettingsFromDisk("EditorImGui.ini");
       }
 
-      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = 800, .height = 600, .msaaNumSamples = 4, .clearColorValue = glm::vec4{1.0f, 1.0f, 1.0f, 1.0f}});
+      CreateFramebuffer();
       CreateVertexBuffer();
       CreatePipelines();
+
+      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(m_ViewportSize.x) / static_cast<float>(m_ViewportSize.y), nearPlane, farPlane);
+
    }
 
 
+protected:
+
    virtual void Update(Pikzel::DeltaTime deltaTime) override {
-      // TODO
+      PKZL_PROFILE_FUNCTION();
+      if (m_Input.IsKeyPressed(Pikzel::KeyCode::Escape)) {
+         Exit();
+      }
+      m_Camera.Update(m_Input, deltaTime);
    }
 
 
    virtual void RenderBegin() override {
-      ;
+      PKZL_PROFILE_FUNCTION();
+      if(
+         (m_ViewportSize.x != m_Framebuffer->GetWidth()) ||
+         (m_ViewportSize.y != m_Framebuffer->GetHeight())
+      ) {
+         CreateFramebuffer();
+         m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(m_ViewportSize.x) / static_cast<float>(m_ViewportSize.y), nearPlane, farPlane);
+      }
    }
 
 
@@ -54,11 +76,13 @@ public:
 
       PKZL_PROFILE_FUNCTION();
 
+      glm::mat4 view = glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.direction, m_Camera.upVector);
+
       Pikzel::GraphicsContext& gc = m_Framebuffer->GetGraphicsContext();
       gc.BeginFrame();
       {
          gc.Bind(*m_ScenePipeline);
-         gc.PushConstant("constants.mvp"_hs, m_Projection * m_View);
+         gc.PushConstant("constants.mvp"_hs, m_Camera.projection * view);
          gc.DrawTriangles(*m_VertexBuffer, 3);
       }
       gc.EndFrame();
@@ -141,6 +165,12 @@ private:
       glm::vec3 Color;
    };
 
+
+   void CreateFramebuffer() {
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({ .width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f} });
+   }
+
+
    void CreateVertexBuffer() {
       Vertex vertices[] = {
          {.Pos{-0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{1.0f, 0.0f, 0.0f}}},
@@ -168,12 +198,21 @@ private:
 
 
 private:
-   glm::mat4 m_View = glm::identity<glm::mat4>();
-   glm::mat4 m_Projection = glm::ortho(-16.0f, 16.0f, -9.0f, 9.0f);
+   Pikzel::Input m_Input;
+
+   Camera m_Camera = {
+      .position = {0.0f, 0.0f, 3.0f},
+      .direction = glm::normalize(glm::vec3{0.0f, 0.0f, -1.0f}),
+      .upVector = {0.0f, 1.0f, 0.0f},
+      .fovRadians = glm::radians(60.f),
+      .moveSpeed = 2.5f,
+      .rotateSpeed = 10.0f
+   };
+
    std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
    std::unique_ptr<Pikzel::Framebuffer> m_Framebuffer;
    std::unique_ptr<Pikzel::Pipeline> m_ScenePipeline;
-   glm::vec2 m_ViewportSize = {};
+   glm::u32vec2 m_ViewportSize = {800, 600};
 
 };
 
