@@ -62,14 +62,14 @@ macro(compile_shaders shader_src_files shader_header_files dir_name compiled_sha
       if (WIN32)
          add_custom_command(
             OUTPUT ${output_file}
-            COMMAND ${Vulkan_GLSLANG_VALIDATOR} -V ${full_path} -o ${output_file}
+            COMMAND ${Vulkan_GLSLANG_VALIDATOR} --target-env vulkan1.2 ${full_path} -o ${output_file}
             DEPENDS ${full_path}
             DEPENDS ${${shader_header_files}}  # this makes all shaders depend on all shader_header_files... but I cant think of a better way
          )
       else()
          add_custom_command(
             OUTPUT ${output_file}
-            COMMAND mkdir --parents ${output_dir} && ${Vulkan_GLSLANG_VALIDATOR} -V ${full_path} -o ${output_file}
+            COMMAND mkdir --parents ${output_dir} && ${Vulkan_GLSLANG_VALIDATOR} --target-env vulkan1.2 ${full_path} -o ${output_file}
             DEPENDS ${full_path}
          )
       endif()
