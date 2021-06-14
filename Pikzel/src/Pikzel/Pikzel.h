@@ -4,6 +4,9 @@
 // If you prefer, you can bring in just the bits that you know you will use.
 // (for possibly faster compile times - your mileage may vary)
 
+#include "Pikzel/Components/Mesh.h"
+#include "Pikzel/Components/Transform.h"
+
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/PlatformUtility.h"
 #include "Pikzel/Core/Utility.h"
@@ -30,6 +33,8 @@
 
 #include "Pikzel/Scene/Camera.h"
 #include "Pikzel/Scene/Light.h"
+#include "Pikzel/Scene/Scene.h"
+#include "Pikzel/Scene/SceneRenderer.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -18,10 +18,12 @@
 #if defined(PKZL_PLATFORM_WINDOWS)
    #ifdef PKZL_BUILD_DLL
       #define PKZL_API __declspec(dllexport)
+      #define ENTT_API_EXPORT
    #else
       #define PKZL_API __declspec(dllimport)
+      #define ENTT_API_IMPORT
    #endif
-   #define CDECL __cdecl      
+   #define CDECL __cdecl
 #else
    #define PKZL_API
    #define CDECL
@@ -31,8 +33,8 @@
    #if defined(PKZL_PLATFORM_WINDOWS)
       #define PKZL_DEBUG_BREAK __debugbreak()
    #elif defined(PKZL_PLATFORM_LINUX)
-		#include <signal.h>
-		#define PKZL_DEBUG_BREAK raise(SIGTRAP)
+      #include <signal.h>
+      #define PKZL_DEBUG_BREAK raise(SIGTRAP)
    #else
       #define PKZL_DEBUG_BREAK
    #endif

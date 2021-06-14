@@ -97,7 +97,7 @@ namespace Pikzel {
    }
 
 
-   std::unique_ptr<Pikzel::Pipeline> OpenGLGraphicsContext::CreatePipeline(const PipelineSettings& settings) {
+   std::unique_ptr<Pikzel::Pipeline> OpenGLGraphicsContext::CreatePipeline(const PipelineSettings& settings) const {
       return std::make_unique<OpenGLPipeline>(settings);
    }
 
