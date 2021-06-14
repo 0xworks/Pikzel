@@ -47,7 +47,7 @@ namespace Pikzel {
       virtual void Bind(const Pipeline& pipeline) override;
       virtual void Unbind(const Pipeline& pipeline) override;
 
-      virtual std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) override;
+      virtual std::unique_ptr<Pipeline> CreatePipeline(const PipelineSettings& settings) const override;
 
       virtual void PushConstant(const entt::id_type id, bool value) override;
       virtual void PushConstant(const entt::id_type id, int value) override;

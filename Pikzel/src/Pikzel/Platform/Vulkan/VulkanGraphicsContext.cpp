@@ -109,7 +109,7 @@ namespace Pikzel {
    void VulkanGraphicsContext::Unbind(const Texture&) {}
 
 
-   std::unique_ptr<Pikzel::Pipeline> VulkanGraphicsContext::CreatePipeline(const PipelineSettings& settings) {
+   std::unique_ptr<Pikzel::Pipeline> VulkanGraphicsContext::CreatePipeline(const PipelineSettings& settings) const {
       return std::make_unique<VulkanPipeline>(m_Device, *this, settings);
    }
 

@@ -3,16 +3,16 @@
 
 #include <imgui_internal.h>
 
-// TODO: get these from the scene
+// TODO: get these from somewhere
 const float nearPlane = 1000.f;
 const float farPlane = 0.1f;
 
 class Pikzelated final : public Pikzel::Application {
-using super = Pikzel::Application; 
+   using super = Pikzel::Application;
 public:
    Pikzelated()
-   : Pikzel::Application {{.title = APP_DESCRIPTION, .clearColor = {0.0f, 0.0f, 0.0f, 1.0f}, .isVSync = true}}
-   , m_Input{ GetWindow() }
+   : Pikzel::Application{{.title = APP_DESCRIPTION, .clearColor = {0.0f, 0.0f, 0.0f, 1.0f}, .isVSync = true}}
+   , m_Input{GetWindow()}
    {
       PKZL_PROFILE_FUNCTION();
 
@@ -23,12 +23,10 @@ public:
          ImGui::LoadIniSettingsFromDisk("EditorImGui.ini");
       }
 
-      CreateFramebuffer();
-      CreateVertexBuffer();
-      CreatePipelines();
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f}});
+      m_SceneRenderer = Pikzel::CreateSceneRenderer(m_Framebuffer->GetGraphicsContext());
 
       m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(m_ViewportSize.x) / static_cast<float>(m_ViewportSize.y), nearPlane, farPlane);
-
    }
 
 
@@ -43,15 +41,56 @@ protected:
    }
 
 
+   void OnFileNew() {
+      m_Scene = std::make_unique<Pikzel::Scene>();
+
+      Vertex vertices[] = {
+         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{1.0f, 0.0f, 0.0f}}},
+         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 1.0f, 0.0f}}},
+         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 0.0f, 1.0f}}}
+      };
+
+      Pikzel::BufferLayout layout{
+         {"inPos",   Pikzel::DataType::Vec3},
+         {"inColor", Pikzel::DataType::Vec3}
+      };
+
+      std::vector<uint32_t> indices = {0, 1, 2};
+
+      Pikzel::Entity triangle = m_Scene->CreateEntity();
+      m_Scene->AddComponent<Pikzel::Transform>(triangle, glm::identity<glm::mat4>());
+      m_Scene->AddComponent<Pikzel::Mesh>(
+         triangle,
+         Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices),
+         Pikzel::RenderCore::CreateIndexBuffer(indices.size(), indices.data())
+      );
+   }
+
+
+   void OnFileOpen() {}
+
+
+   void OnFileSave() {}
+
+
+   void OnFileSaveAs() {}
+
+
+   void OnFileExit() {
+      Exit();
+   }
+
+
    virtual void RenderBegin() override {
       PKZL_PROFILE_FUNCTION();
       if(
          (m_ViewportSize.x != m_Framebuffer->GetWidth()) ||
          (m_ViewportSize.y != m_Framebuffer->GetHeight())
       ) {
-         CreateFramebuffer();
+         m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f}});
          m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(m_ViewportSize.x) / static_cast<float>(m_ViewportSize.y), nearPlane, farPlane);
       }
+      m_SceneRenderer->RenderBegin();
    }
 
 
@@ -76,16 +115,13 @@ protected:
 
       PKZL_PROFILE_FUNCTION();
 
-      glm::mat4 view = glm::lookAt(m_Camera.position, m_Camera.position + m_Camera.direction, m_Camera.upVector);
-
       Pikzel::GraphicsContext& gc = m_Framebuffer->GetGraphicsContext();
-      gc.BeginFrame();
       {
-         gc.Bind(*m_ScenePipeline);
-         gc.PushConstant("constants.mvp"_hs, m_Camera.projection * view);
-         gc.DrawTriangles(*m_VertexBuffer, 3);
+         PKZL_PROFILE_SCOPE("render scene");
+         if (m_Scene) {
+            m_SceneRenderer->Render(gc, m_Camera, *m_Scene);
+         }
       }
-      gc.EndFrame();
 
       GetWindow().BeginFrame();
       GetWindow().BeginImGuiFrame();
@@ -107,14 +143,26 @@ protected:
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
          }
 
-         if (ImGui::BeginMenuBar()) {
+         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
-               if (ImGui::MenuItem("Exit")) {
+               if (ImGui::MenuItem("New...", "Ctrl+N")) {
+                  OnFileNew();
+               }
+               if (ImGui::MenuItem("Open...", "Ctrl+O")) {
+                  OnFileOpen();
+               }
+               if (ImGui::MenuItem("Save", "Ctrl+S")) {
+                  OnFileSave();
+               }
+               if (ImGui::MenuItem("Save As...")) {
+                  OnFileSaveAs();
+               }
+               if (ImGui::MenuItem("Exit", "Alt+F4")) {
                   Exit();
                }
                ImGui::EndMenu();
             }
-            ImGui::EndMenuBar();
+            ImGui::EndMainMenuBar();
          }
 
          {
@@ -125,6 +173,16 @@ protected:
             ImGui::Text("Quads: XXX");      // % d", stats.QuadCount);
             ImGui::Text("Vertices: XXX");   // % d", stats.GetTotalVertexCount());
             ImGui::Text("Indices: XXX");    // % d", stats.GetTotalIndexCount());
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            static float frameRates[90] = {};
+            static int frameOffset = 0;
+            static double refresh = ImGui::GetTime();
+            while (refresh <= ImGui::GetTime()) {
+               frameRates[frameOffset] = 1000.0f / io.Framerate;
+               frameOffset = (frameOffset + 1) % IM_ARRAYSIZE(frameRates);
+               refresh += 1.0f / 60.0f;
+            }
+
             ImGui::End();
          }
 
@@ -154,52 +212,21 @@ protected:
 
 
    virtual void RenderEnd() override {
-      ;
+      PKZL_PROFILE_FUNCTION();
+      m_SceneRenderer->RenderEnd();
    }
 
 
 private:
 
+   // TODO: get rid of this in favor of Pikzel::Mesh::Vertex
    struct Vertex {
       glm::vec3 Pos;
       glm::vec3 Color;
    };
 
 
-   void CreateFramebuffer() {
-      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({ .width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f} });
-   }
-
-
-   void CreateVertexBuffer() {
-      Vertex vertices[] = {
-         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{1.0f, 0.0f, 0.0f}}},
-         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 1.0f, 0.0f}}},
-         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 0.0f, 1.0f}}}
-      };
-
-      Pikzel::BufferLayout layout{
-         {"inPos",   Pikzel::DataType::Vec3},
-         {"inColor", Pikzel::DataType::Vec3}
-      };
-      m_VertexBuffer = Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices);
-   }
-
-
-   void CreatePipelines() {
-      m_ScenePipeline = m_Framebuffer->GetGraphicsContext().CreatePipeline({
-         .shaders = {
-            { Pikzel::ShaderType::Vertex, "Assets/" APP_NAME "/Shaders/Triangle.vert.spv" },
-            { Pikzel::ShaderType::Fragment, "Assets/" APP_NAME "/Shaders/Triangle.frag.spv" }
-         },
-         .bufferLayout = m_VertexBuffer->GetLayout()
-      });
-   }
-
-
 private:
-   Pikzel::Input m_Input;
-
    Camera m_Camera = {
       .position = {0.0f, 0.0f, 3.0f},
       .direction = glm::normalize(glm::vec3{0.0f, 0.0f, -1.0f}),
@@ -209,10 +236,11 @@ private:
       .rotateSpeed = 10.0f
    };
 
-   std::shared_ptr<Pikzel::VertexBuffer> m_VertexBuffer;
-   std::unique_ptr<Pikzel::Framebuffer> m_Framebuffer;
-   std::unique_ptr<Pikzel::Pipeline> m_ScenePipeline;
+   Pikzel::Input m_Input;
    glm::u32vec2 m_ViewportSize = {800, 600};
+   std::unique_ptr<Pikzel::Scene> m_Scene;
+   std::unique_ptr<Pikzel::SceneRenderer> m_SceneRenderer;
+   std::unique_ptr<Pikzel::Framebuffer> m_Framebuffer;
 
 };
 

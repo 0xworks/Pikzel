@@ -76,7 +76,7 @@ namespace Pikzel {
    }
 
 
-   VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings)
+   VulkanPipeline::VulkanPipeline(std::shared_ptr<VulkanDevice> device, const VulkanGraphicsContext& gc, const PipelineSettings& settings)
    : m_Device {device}
    {
       CreateDescriptorSetLayouts(settings);

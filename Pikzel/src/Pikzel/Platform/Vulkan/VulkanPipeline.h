@@ -45,7 +45,7 @@ namespace Pikzel {
       VulkanPipeline(std::shared_ptr<VulkanDevice> device, const PipelineSettings& settings);
 
       // construct graphics pipeline with context and settings
-      VulkanPipeline(std::shared_ptr<VulkanDevice> device, VulkanGraphicsContext& gc, const PipelineSettings& settings);
+      VulkanPipeline(std::shared_ptr<VulkanDevice> device, const VulkanGraphicsContext& gc, const PipelineSettings& settings);
 
       virtual ~VulkanPipeline();
 

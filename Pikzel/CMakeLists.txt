@@ -19,6 +19,8 @@ option(
 #       Later, we might support something else (dont hold your breath)
 set(
    ProjectSources
+   "src/Pikzel/Components/Mesh.h"
+   "src/Pikzel/Components/Transform.h"
    "src/Pikzel/Core/Application.h"
    "src/Pikzel/Core/Application.cpp"
    "src/Pikzel/Core/Core.h"
@@ -60,6 +62,10 @@ set(
    "src/Pikzel/Scene/Camera.h"
    "src/Pikzel/Scene/Camera.cpp"
    "src/Pikzel/Scene/Light.h"
+   "src/Pikzel/Scene/Scene.h"
+   "src/Pikzel/Scene/Scene.cpp"
+   "src/Pikzel/Scene/SceneRenderer.h"
+   "src/Pikzel/Scene/SceneRenderer.cpp"
    "vendor/tinyfiledialogs/tinyfiledialogs.c"
 )
 
@@ -202,11 +208,13 @@ endif()
 
 set(
    RendererShaderSources
-   "src/Pikzel/Renderer/EnvironmentIrradiance.comp"
-   "src/Pikzel/Renderer/EnvironmentPrefilter.comp"
-   "src/Pikzel/Renderer/EnvironmentSpecularBRDF.comp"
-   "src/Pikzel/Renderer/EquirectangularToCubeMap.comp"
-   "src/Pikzel/Renderer/SixFacesToCubeMap.comp"
+   "src/Pikzel/Renderer/Shaders/EnvironmentIrradiance.comp"
+   "src/Pikzel/Renderer/Shaders/EnvironmentPrefilter.comp"
+   "src/Pikzel/Renderer/Shaders/EnvironmentSpecularBRDF.comp"
+   "src/Pikzel/Renderer/Shaders/EquirectangularToCubeMap.comp"
+   "src/Pikzel/Renderer/Shaders/SixFacesToCubeMap.comp"
+   "src/Pikzel/Renderer/Shaders/Triangle.frag"
+   "src/Pikzel/Renderer/Shaders/Triangle.vert"
 )
 
 set(
@@ -237,6 +245,7 @@ add_library(
    "src/Pikzel/ImGui/ImGuiEx.h"
    "src/Pikzel/ImGui/ImGuiEx.cpp"
    "vendor/imgui/imgui.cpp"
+   "vendor/imgui/imgui_demo.cpp"
    "vendor/imgui/imgui_draw.cpp"
    "vendor/imgui/imgui_tables.cpp"
    "vendor/imgui/imgui_widgets.cpp"
