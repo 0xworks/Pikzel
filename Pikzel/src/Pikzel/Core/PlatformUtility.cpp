@@ -4,13 +4,13 @@
 
 namespace Pikzel {
 
-   std::optional<std::filesystem::path> OpenFileDialog(const char* filter /*= nullptr*/) {
+   std::optional<std::filesystem::path> OpenFileDialog(const char* filter, const char* fileDescription) {
       const char* file = tinyfd_openFileDialog(
          "",
          "",
          filter? 1 : 0,
-         filter? nullptr : &filter,
-         nullptr,
+         filter? &filter : nullptr,
+         fileDescription,
          0
       );
       if(file) {
@@ -20,13 +20,13 @@ namespace Pikzel {
    }
 
 
-   std::optional<std::filesystem::path> SaveFileDialog(const char* filter /* = nullptr*/) {
+   std::optional<std::filesystem::path> SaveFileDialog(const char* filter, const char* fileDescription) {
       const char* file = tinyfd_saveFileDialog(
          "",
          "",
          filter? 1 : 0,
-         filter? nullptr : &filter,
-         nullptr
+         filter? &filter : nullptr,
+         fileDescription
       );
       if(file) {
          return file;
