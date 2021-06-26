@@ -6,6 +6,7 @@
 
 #include "Pikzel/Components/Mesh.h"
 #include "Pikzel/Components/Transform.h"
+#include "Pikzel/Components/ObjectId.h"
 
 #include "Pikzel/Core/Application.h"
 #include "Pikzel/Core/PlatformUtility.h"
@@ -35,6 +36,7 @@
 #include "Pikzel/Scene/Light.h"
 #include "Pikzel/Scene/Scene.h"
 #include "Pikzel/Scene/SceneRenderer.h"
+#include "Pikzel/Scene/SceneSerializer.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -1,4 +1,4 @@
-#include "Pikzel/Scene/SceneRenderer.h"
+#include "SceneRenderer.h"
 
 #include "Pikzel/Components/Mesh.h"
 #include "Pikzel/Components/Transform.h"
@@ -25,12 +25,7 @@ namespace Pikzel {
    }
 
 
-   void SceneRenderer::RenderBegin() {
-   }
-
-
    void SceneRenderer::Render(GraphicsContext& gc, Camera& camera, Scene& scene) {
-      gc.BeginFrame();
       gc.Bind(*m_Pipeline);
 
       glm::mat4 vp = camera.projection * glm::lookAt(camera.position, camera.position + camera.direction, camera.upVector);
@@ -40,12 +35,7 @@ namespace Pikzel {
          gc.PushConstant("constants.mvp"_hs, vp * transform.Matrix);
          gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
       }
-
-      gc.EndFrame();
    }
 
-
-   void SceneRenderer::RenderEnd() {
-   }
 
 }

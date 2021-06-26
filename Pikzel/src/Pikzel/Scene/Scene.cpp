@@ -2,13 +2,13 @@
 
 namespace Pikzel {
 
-   Entity Scene::CreateEntity() {
+   Object Scene::CreateObject() {
       return m_Registry.create();
    }
 
 
-   void Scene::DestroyEntity(Entity entity) {
-      m_Registry.destroy(entity);
+   void Scene::DestroyObject(Object object) {
+      m_Registry.destroy(object);
    }
 
 

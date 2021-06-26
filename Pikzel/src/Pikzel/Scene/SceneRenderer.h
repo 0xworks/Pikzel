@@ -13,9 +13,7 @@ namespace Pikzel {
       SceneRenderer(const GraphicsContext& gc);
       virtual ~SceneRenderer() = default;
 
-      void RenderBegin();
       void Render(GraphicsContext& gc, Camera& camera, Scene& scene);
-      void RenderEnd();
 
    private:
       std::unique_ptr<Pipeline> m_Pipeline;

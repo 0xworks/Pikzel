@@ -10,36 +10,42 @@
 
 namespace Pikzel {
 
-   using Entity = entt::entity;
+   using Object = entt::entity;
 
    class PKZL_API Scene {
    public:
       virtual ~Scene() = default;
 
-      Entity CreateEntity();
-      void DestroyEntity(Entity entity);
+      Object CreateObject();
+      void DestroyObject(Object entity);
 
       template<typename T, typename... Args>
-      T& AddComponent(Entity entity, Args&&... args) {
-         PKZL_CORE_ASSERT(!HasComponent<T>(entity), "Entity already has component!");
-         return m_Registry.emplace<T>(entity, std::forward<Args>(args)...);
+      T& AddComponent(const Object object, Args&&... args) {
+         PKZL_CORE_ASSERT(!HasComponent<T>(object), "Object already has component!");
+         return m_Registry.emplace<T>(object, std::forward<Args>(args)...);
       }
 
       template<typename T>
-      T& GetComponent(Entity entity) {
-         PKZL_CORE_ASSERT(HasComponent<T>(entity), "Entity does not have component!");
-         return m_Registry.get<T>(entity);
+      T& GetComponent(const Object object) {
+         PKZL_CORE_ASSERT(HasComponent<T>(object), "Object does not have component!");
+         return m_Registry.get<T>(object);
       }
 
       template<typename T>
-      bool HasComponent(Entity entity) {
-         return m_Registry.all_of<T>(entity);
+      const T& GetComponent(const Object object) const {
+         PKZL_CORE_ASSERT(HasComponent<T>(object), "Object does not have component!");
+         return m_Registry.get<T>(object);
       }
 
       template<typename T>
-      void RemoveComponent(Entity entity) {
-         PKZL_CORE_ASSERT(HasComponent<T>(entity), "Entity does not have component!");
-         m_Registry.erase<T>(entity);
+      bool HasComponent(const Object object) const {
+         return m_Registry.all_of<T>(object);
+      }
+
+      template<typename T>
+      void RemoveComponent(const Object object) {
+         PKZL_CORE_ASSERT(HasComponent<T>(object), "Object does not have component!");
+         m_Registry.erase<T>(object);
       }
 
       void OnUpdate(DeltaTime dt);
