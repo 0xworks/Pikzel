@@ -20,6 +20,7 @@ option(
 set(
    ProjectSources
    "src/Pikzel/Components/Mesh.h"
+   "src/Pikzel/Components/ObjectId.h"
    "src/Pikzel/Components/Transform.h"
    "src/Pikzel/Core/Application.h"
    "src/Pikzel/Core/Application.cpp"
@@ -66,6 +67,8 @@ set(
    "src/Pikzel/Scene/Scene.cpp"
    "src/Pikzel/Scene/SceneRenderer.h"
    "src/Pikzel/Scene/SceneRenderer.cpp"
+   "src/Pikzel/Scene/SceneSerializer.h"
+   "src/Pikzel/Scene/SceneSerializer.cpp"
    "vendor/tinyfiledialogs/tinyfiledialogs.c"
 )
 
@@ -75,6 +78,7 @@ set(
 set(
    ProjectIncludes
    "src"
+   "vendor/cereal/include"
    "vendor/entt/src"
    "vendor/glfw/include"
    "vendor/glm"
@@ -113,6 +117,7 @@ endif()
 set(
    ProjectLibs
    "assimp"
+   "cereal"
    "glfw"
    "glm"
    "ImGui"
@@ -479,3 +484,6 @@ set(SPIRV_CROSS_FORCE_PIC ON CACHE BOOL "Force position-independent code for all
 add_subdirectory("vendor/SPIRV-Cross")
 
 add_subdirectory("vendor/glm")
+
+set(SKIP_PERFORMANCE_COMPARISON ON CACHE BOOL "Skip building performance comparison (requires boost)" FORCE)
+add_subdirectory("vendor/cereal")

@@ -57,10 +57,20 @@ protected:
 
       std::vector<uint32_t> indices = {0, 1, 2};
 
-      Pikzel::Entity triangle = m_Scene->CreateEntity();
-      m_Scene->AddComponent<Pikzel::Transform>(triangle, glm::identity<glm::mat4>());
+      Pikzel::Object triangle = m_Scene->CreateObject();
+      m_Scene->AddComponent<Pikzel::ObjectId>(triangle, 1234ul);
+      m_Scene->AddComponent<Pikzel::Transform>(triangle, glm::translate(glm::identity<glm::mat4>(), {0.5, 0.5, 0.0}));
       m_Scene->AddComponent<Pikzel::Mesh>(
          triangle,
+         Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices),
+         Pikzel::RenderCore::CreateIndexBuffer(indices.size(), indices.data())
+      );
+
+      Pikzel::Object triangle2 = m_Scene->CreateObject();
+      m_Scene->AddComponent<Pikzel::ObjectId>(triangle2, 9999ul);
+      m_Scene->AddComponent<Pikzel::Transform>(triangle2, glm::scale(glm::identity<glm::mat4>(), {0.5, 0.5, 0.0}));
+      m_Scene->AddComponent<Pikzel::Mesh>(
+         triangle2,
          Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices),
          Pikzel::RenderCore::CreateIndexBuffer(indices.size(), indices.data())
       );
@@ -73,7 +83,18 @@ protected:
    void OnFileSave() {}
 
 
-   void OnFileSaveAs() {}
+   void OnFileSaveAs() {
+      if (m_Scene) {
+         auto path = Pikzel::SaveFileDialog("*.pkzl", "Pikzel Scene File (*.pkzl)");
+         if (path.has_value()) {
+            if (path.value().extension() != ".pkzl") {
+               path.value() += ".pkzl";
+            }
+            Pikzel::SceneSerializerJSON json({.Path = path.value()});
+            json.Serialize(*m_Scene);
+         }
+      }
+   }
 
 
    void OnFileExit() {
@@ -90,7 +111,6 @@ protected:
          m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f}});
          m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(m_ViewportSize.x) / static_cast<float>(m_ViewportSize.y), nearPlane, farPlane);
       }
-      m_SceneRenderer->RenderBegin();
    }
 
 
@@ -116,12 +136,12 @@ protected:
       PKZL_PROFILE_FUNCTION();
 
       Pikzel::GraphicsContext& gc = m_Framebuffer->GetGraphicsContext();
-      {
+      gc.BeginFrame();
+      if (m_Scene) {
          PKZL_PROFILE_SCOPE("render scene");
-         if (m_Scene) {
-            m_SceneRenderer->Render(gc, m_Camera, *m_Scene);
-         }
+         m_SceneRenderer->Render(gc, m_Camera, *m_Scene);
       }
+      gc.EndFrame();
 
       GetWindow().BeginFrame();
       GetWindow().BeginImGuiFrame();
@@ -188,16 +208,10 @@ protected:
 
          {
             ImGui::Begin("Viewport", nullptr, viewport_window_flags);
-
-            // m_ViewportFocused = ImGui::IsWindowFocused();
-            // m_ViewportHovered = ImGui::IsWindowHovered();
-            // Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportFocused || !m_ViewportHovered);
-
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
-
             gc.SwapBuffers();
-            ImGui::Image(m_Framebuffer->GetImGuiColorTextureId(0), viewportPanelSize, ImVec2 {0, 1}, ImVec2 {1, 0});
+            ImGui::Image(m_Framebuffer->GetImGuiColorTextureId(0), viewportPanelSize, ImVec2{0, 1}, ImVec2{1, 0});
             ImGui::End();
          }
 
@@ -213,7 +227,6 @@ protected:
 
    virtual void RenderEnd() override {
       PKZL_PROFILE_FUNCTION();
-      m_SceneRenderer->RenderEnd();
    }
 
 
