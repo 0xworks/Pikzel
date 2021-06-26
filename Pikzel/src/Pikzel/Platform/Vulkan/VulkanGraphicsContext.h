@@ -125,7 +125,7 @@ namespace Pikzel {
       std::unique_ptr<VulkanImage> m_DepthImage;
 
       // We need a different render pass for each possible "BeginFrameOp".
-      // This is less that ideal!
+      // This is less than ideal!
       std::unordered_map<BeginFrameOp, vk::RenderPass> m_RenderPasses;
 
       vk::CommandPool m_CommandPool;

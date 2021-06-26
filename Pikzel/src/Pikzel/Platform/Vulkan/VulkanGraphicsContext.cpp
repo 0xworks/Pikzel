@@ -962,21 +962,23 @@ namespace Pikzel {
       io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
       ImGui_ImplGlfw_InitForVulkan(m_Window, true);
-      ImGui_ImplVulkan_InitInfo init_info = {};
-      init_info.Instance = m_Device->GetVkInstance();
-      init_info.PhysicalDevice = m_Device->GetVkPhysicalDevice();
-      init_info.Device = m_Device->GetVkDevice();
-      init_info.QueueFamily = m_Device->GetGraphicsQueueFamilyIndex();
-      init_info.Queue = m_Device->GetGraphicsQueue();
-      init_info.PipelineCache = m_PipelineCache;
-      init_info.DescriptorPool = m_DescriptorPoolImGui;
-      init_info.Allocator = nullptr; // TODO: proper allocator...
-      init_info.MinImageCount = static_cast<uint32_t>(m_SwapChainImages.size());
-      init_info.ImageCount = static_cast<uint32_t>(m_SwapChainImages.size());
-      init_info.MSAASamples = static_cast<VkSampleCountFlagBits>(GetNumSamples());
-      init_info.CheckVkResultFn = [] (const VkResult err) {
-         if (err != VK_SUCCESS) {
-            throw std::runtime_error {"ImGui Vulkan error!"};
+      ImGui_ImplVulkan_InitInfo init_info = {
+         .Instance        = m_Device->GetVkInstance(),
+         .PhysicalDevice  = m_Device->GetVkPhysicalDevice(),
+         .Device          = m_Device->GetVkDevice(),
+         .QueueFamily     = m_Device->GetGraphicsQueueFamilyIndex(),
+         .Queue           = m_Device->GetGraphicsQueue(),
+         .PipelineCache   = m_PipelineCache,
+         .DescriptorPool  = m_DescriptorPoolImGui,
+         .Subpass         = 0,
+         .MinImageCount   = static_cast<uint32_t>(m_SwapChainImages.size()),
+         .ImageCount      = static_cast<uint32_t>(m_SwapChainImages.size()),
+         .MSAASamples     = static_cast<VkSampleCountFlagBits>(GetNumSamples()),
+         .Allocator       = nullptr, // TODO: proper allocator...
+         .CheckVkResultFn = [](const VkResult err) {
+            if (err != VK_SUCCESS) {
+               throw std::runtime_error {"ImGui Vulkan error!"};
+            }
          }
       };
       ImGui_ImplVulkan_Init(&init_info, m_RenderPassImGui);
@@ -1532,7 +1534,6 @@ namespace Pikzel {
             vk::PipelineStageFlagBits::eFragmentShader,
             depthTexture.GetImage().Barrier(vk::ImageLayout::eDepthStencilAttachmentOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 0, 0, 0, 0)
          );
-
       }
    }
 
