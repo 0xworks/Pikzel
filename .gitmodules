@@ -37,3 +37,6 @@
 [submodule "Pikzel/vendor/dds-ktx"]
 	path = Pikzel/vendor/dds-ktx
 	url = https://github.com/septag/dds-ktx.git
+[submodule "Pikzel/vendor/cereal"]
+	path = Pikzel/vendor/cereal
+	url = https://github.com/USCiLab/cereal.git
