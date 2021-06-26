@@ -39,4 +39,4 @@
 	url = https://github.com/septag/dds-ktx.git
 [submodule "Pikzel/vendor/cereal"]
 	path = Pikzel/vendor/cereal
-	url = https://github.com/USCiLab/cereal.git
+	url = https://github.com/0xworks/cereal.git
