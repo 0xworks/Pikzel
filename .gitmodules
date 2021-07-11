@@ -37,3 +37,6 @@
 [submodule "Pikzel/vendor/dds-ktx"]
 	path = Pikzel/vendor/dds-ktx
 	url = https://github.com/septag/dds-ktx.git
+[submodule "Pikzel/vendor/yaml-cpp"]
+	path = Pikzel/vendor/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp
