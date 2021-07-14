@@ -60,13 +60,25 @@
 
 #define PKZL_NOT_IMPLEMENTED throw std::logic_error {PKZL_FUNCSIG + std::string(" is not implemented")}
 
-#define PKZL_NOT_COPYABLE(T) T(const T&) = delete;            \
-                             T(T&&) = delete;                 \
-                             T& operator=(const T&) = delete; \
-                             T& operator=(T&&) = delete;
+#define PKZL_NO_COPY(T) T(const T&) = delete;            \
+                        T& operator=(const T&) = delete;
 
+#define PKZL_NO_MOVE(T) T(T&&) = delete;            \
+                        T& operator=(T&&) = delete;
+
+#define PKZL_NO_COPYMOVE(T) T(const T&) = delete;            \
+                            T(T&&) = delete;                 \
+                            T& operator=(const T&) = delete; \
+                            T& operator=(T&&) = delete;
+
+#include <entt/core/fwd.hpp>
 #include <entt/core/hashed_string.hpp>
+
 using namespace entt::literals;
+
+namespace Pikzel {
+   using Id = entt::id_type;
+}
 
 namespace std {
    template<typename T1, typename T2>

@@ -112,7 +112,7 @@ namespace Pikzel {
          compiler.set_decoration(resource.id, spv::DecorationBinding, openGLBinding);
          numResources += count;
 
-         const entt::id_type id = entt::hashed_string(name.data());
+         const Id id = entt::hashed_string(name.data());
          for (const auto otherResourceMap : otherResourceMaps) {
             const auto otherResource = otherResourceMap->find(id);
             if (otherResource != otherResourceMap->end()) {
@@ -269,236 +269,236 @@ namespace Pikzel {
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, bool value) {
+   void OpenGLPipeline::PushConstant(const Id id, bool value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Bool, "Uniform '{0}' type mismatch.  Bool given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform1i(m_PushConstants.at(id).Location, value);
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, int value) {
+   void OpenGLPipeline::PushConstant(const Id id, int value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Int, "Uniform '{0}' type mismatch.  Int given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform1i(m_PushConstants.at(id).Location, value);
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, uint32_t value) {
+   void OpenGLPipeline::PushConstant(const Id id, uint32_t value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::UInt, "Uniform '{0}' type mismatch.  UInt given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform1ui(m_PushConstants.at(id).Location, value);
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, float value) {
+   void OpenGLPipeline::PushConstant(const Id id, float value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Float, "Uniform '{0}' type mismatch.  Float given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform1f(m_PushConstants.at(id).Location, value);
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, double value) {
+   void OpenGLPipeline::PushConstant(const Id id, double value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Double, "Uniform '{0}' type mismatch.  Double given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform1d(m_PushConstants.at(id).Location, value);
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::bvec2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::bvec2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::BVec2, "Uniform '{0}' type mismatch.  BVec2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform2i(m_PushConstants.at(id).Location, value.x, value.y);
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::bvec3& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::bvec3& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::BVec3, "Uniform '{0}' type mismatch.  BVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform3i(m_PushConstants.at(id).Location, value.x, value.y, value.z);
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::bvec4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::bvec4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::BVec4, "Uniform '{0}' type mismatch.  BVec4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform4i(m_PushConstants.at(id).Location, value.x, value.y, value.z, value.w);
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::ivec2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::ivec2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::IVec2, "Uniform '{0}' type mismatch.  IVec2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform2iv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::ivec3& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::ivec3& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::IVec3, "Uniform '{0}' type mismatch.  IVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform3iv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::ivec4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::ivec4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::IVec4, "Uniform '{0}' type mismatch.  IVec4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform2iv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::uvec2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::uvec2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::UVec2, "Uniform '{0}' type mismatch.  UVec2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform2uiv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
 
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::uvec3& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::uvec3& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::UVec3, "Uniform '{0}' type mismatch.  UVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform3uiv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::uvec4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::uvec4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::UVec4, "Uniform '{0}' type mismatch.  UVec4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform4uiv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::vec2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::vec2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Vec2, "Uniform '{0}' type mismatch.  Vec2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform2fv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::vec3& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::vec3& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Vec3, "Uniform '{0}' type mismatch.  Vec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform3fv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::vec4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::vec4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Vec4, "Uniform '{0}' type mismatch.  Vec4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform4fv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dvec2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dvec2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DVec2, "Uniform '{0}' type mismatch.  DVec2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform2dv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dvec3& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dvec3& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DVec3, "Uniform '{0}' type mismatch.  DVec3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform3dv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dvec4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dvec4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DVec4, "Uniform '{0}' type mismatch.  DVec4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniform4dv(m_PushConstants.at(id).Location, 1, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::mat2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat2, "Uniform '{0}' type mismatch.  Mat2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix2fv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat2x3& value) {
+   //void OpenGLPipeline::PushConstant(const Id id, const glm::mat2x3& value) {
    //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat2x3, "Uniform '{0}' type mismatch.  Mat2x3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
    //   glUniformMatrix2x3fv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    //}
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat2x4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::mat2x4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat2x4, "Uniform '{0}' type mismatch.  Mat2x4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix2x4fv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat3x2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::mat3x2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat3x2, "Uniform '{0}' type mismatch.  Mat3x2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix3x2fv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat3& value) {
+   //void OpenGLPipeline::PushConstant(const Id id, const glm::mat3& value) {
    //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat3, "Uniform '{0}' type mismatch.  Mat3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
    //   glUniformMatrix3fv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    //}
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat3x4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::mat3x4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat3x4, "Uniform '{0}' type mismatch.  Mat3x4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix3x4fv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat4x2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::mat4x2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat4x2, "Uniform '{0}' type mismatch.  Mat4x2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix4x2fv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat4x3& value) {
+   //void OpenGLPipeline::PushConstant(const Id id, const glm::mat4x3& value) {
    //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat4x3, "Uniform '{0}' type mismatch.  Mat4x3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
    //   glUniformMatrix4x3fv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    //}
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::mat4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::mat4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::Mat4, "Uniform '{0}' type mismatch.  Mat4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix4fv(m_PushConstants.at(id).Location, 1, GL_FALSE, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dmat2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat2, "Uniform '{0}' type mismatch.  DMat2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix2dv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat2x3& value) {
+   //void OpenGLPipeline::PushConstant(const Id id, const glm::dmat2x3& value) {
    //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat2x3, "Uniform '{0}' type mismatch.  DMat2x3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
    //   glUniformMatrix2x3dv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    //}
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat2x4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dmat2x4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat2x4, "Uniform '{0}' type mismatch.  DMat2x4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix2x4dv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat3x2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dmat3x2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat3x2, "Uniform '{0}' type mismatch.  DMat3x2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix3x2dv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat3& value) {
+   //void OpenGLPipeline::PushConstant(const Id id, const glm::dmat3& value) {
    //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat3, "Uniform '{0}' type mismatch.  DMat3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
    //   glUniformMatrix3dv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    //}
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat3x4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dmat3x4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat3x4, "Uniform '{0}' type mismatch.  DMat3x4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix3x4dv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat4x2& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dmat4x2& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat4x2, "Uniform '{0}' type mismatch.  DMat4x2 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix4x2dv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    }
 
 
-   //void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat4x3& value) {
+   //void OpenGLPipeline::PushConstant(const Id id, const glm::dmat4x3& value) {
    //   PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat4x3, "Uniform '{0}' type mismatch.  DMat4x3 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
    //   glUniformMatrix4x3dv(m_PushConstants.at(id).Location, 1, false, glm::value_ptr(value));
    //}
 
 
-   void OpenGLPipeline::PushConstant(const entt::id_type id, const glm::dmat4& value) {
+   void OpenGLPipeline::PushConstant(const Id id, const glm::dmat4& value) {
       PKZL_CORE_ASSERT(m_PushConstants.at(id).Type == DataType::DMat4, "Uniform '{0}' type mismatch.  DMat4 given, expected {1}!", m_PushConstants.at(id).Name, DataTypeToString(m_PushConstants.at(id).Type));
       glUniformMatrix4dv(m_PushConstants.at(id).Location, 1, GL_FALSE, glm::value_ptr(value));
    }
 
 
-   GLuint OpenGLPipeline::GetSamplerBinding(const entt::id_type resourceId, const bool exceptionIfNotFound) const {
+   GLuint OpenGLPipeline::GetSamplerBinding(const Id resourceId, const bool exceptionIfNotFound) const {
       const auto resource = m_SamplerResources.find(resourceId);
       GLuint retVal = (resource == m_SamplerResources.end()) ? ~0 : resource->second.Binding;
       if (exceptionIfNotFound && retVal == ~0) {
@@ -508,7 +508,7 @@ namespace Pikzel {
    }
 
 
-   GLuint OpenGLPipeline::GetStorageImageBinding(const entt::id_type resourceId, bool exceptionIfNotFound) const {
+   GLuint OpenGLPipeline::GetStorageImageBinding(const Id resourceId, bool exceptionIfNotFound) const {
       const auto resource = m_StorageImageResources.find(resourceId);
       GLuint retVal = (resource == m_StorageImageResources.end()) ? ~0 : resource->second.Binding;
       if (exceptionIfNotFound && retVal == ~0) {
@@ -518,7 +518,7 @@ namespace Pikzel {
    }
 
 
-   GLuint OpenGLPipeline::GetUniformBufferBinding(const entt::id_type resourceId, bool exceptionIfNotFound) const {
+   GLuint OpenGLPipeline::GetUniformBufferBinding(const Id resourceId, bool exceptionIfNotFound) const {
       const auto resource = m_UniformBufferResources.find(resourceId);
       GLuint retVal = (resource == m_UniformBufferResources.end()) ? ~0 : resource->second.Binding;
       if (exceptionIfNotFound && retVal == ~0) {

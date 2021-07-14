@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Pikzel/Core/Core.h"
+
 #include <glm/glm.hpp>
 
 namespace Pikzel {

@@ -17,7 +17,7 @@ namespace Pikzel {
    void OpenGLComputeContext::End() {}
 
 
-   void OpenGLComputeContext::Bind(const entt::id_type resourceId, const UniformBuffer& buffer) {
+   void OpenGLComputeContext::Bind(const Id resourceId, const UniformBuffer& buffer) {
       glBindBufferBase(GL_UNIFORM_BUFFER, m_Pipeline->GetUniformBufferBinding(resourceId), static_cast<const OpenGLUniformBuffer&>(buffer).GetRendererId());
    }
 
@@ -25,7 +25,7 @@ namespace Pikzel {
    void OpenGLComputeContext::Unbind(const UniformBuffer&) {}
 
 
-   void OpenGLComputeContext::Bind(const entt::id_type resourceId, const Texture& texture, const uint32_t mipLevel) {
+   void OpenGLComputeContext::Bind(const Id resourceId, const Texture& texture, const uint32_t mipLevel) {
       GLuint samplerBinding = m_Pipeline->GetSamplerBinding(resourceId, false);
       if (samplerBinding != ~0) {
          glBindTextureUnit(samplerBinding, static_cast<const OpenGLTexture&>(texture).GetRendererId());
@@ -62,229 +62,229 @@ namespace Pikzel {
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, bool value) {
+   void OpenGLComputeContext::PushConstant(const Id id, bool value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, int value) {
+   void OpenGLComputeContext::PushConstant(const Id id, int value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, uint32_t value) {
+   void OpenGLComputeContext::PushConstant(const Id id, uint32_t value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, float value) {
+   void OpenGLComputeContext::PushConstant(const Id id, float value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, double value) {
+   void OpenGLComputeContext::PushConstant(const Id id, double value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::bvec2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::bvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
    
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::bvec3& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::bvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::bvec4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::bvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::ivec2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::ivec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::ivec3& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::ivec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::ivec4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::ivec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::uvec2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::uvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::uvec3& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::uvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::uvec4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::uvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::vec2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::vec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::vec3& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::vec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::vec4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::vec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dvec2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dvec3& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dvec4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::mat2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   //void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat2x3& value) {
+   //void OpenGLComputeContext::PushConstant(const Id id, const glm::mat2x3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   m_Pipeline->PushConstant(id, value);
    //}
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat2x4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::mat2x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat3x2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::mat3x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   //void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat3& value) {
+   //void OpenGLComputeContext::PushConstant(const Id id, const glm::mat3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   m_Pipeline->PushConstant(id, value);
    //}
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat3x4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::mat3x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat4x2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::mat4x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   //void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat4x3& value) {
+   //void OpenGLComputeContext::PushConstant(const Id id, const glm::mat4x3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   m_Pipeline->PushConstant(id, value);
    //}
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::mat4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::mat4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   //void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat2x3& value) {
+   //void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat2x3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   m_Pipeline->PushConstant(id, value);
    //}
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat2x4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat2x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat3x2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat3x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   //void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat3& value) {
+   //void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   m_Pipeline->PushConstant(id, value);
    //}
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat3x4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat3x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat4x2& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat4x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }
 
 
-   //void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat4x3& value) {
+   //void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat4x3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   m_Pipeline->PushConstant(id, value);
    //}
 
 
-   void OpenGLComputeContext::PushConstant(const entt::id_type id, const glm::dmat4& value) {
+   void OpenGLComputeContext::PushConstant(const Id id, const glm::dmat4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       m_Pipeline->PushConstant(id, value);
    }

@@ -44,40 +44,31 @@ protected:
    void OnFileNew() {
       m_Scene = std::make_unique<Pikzel::Scene>();
 
-      Vertex vertices[] = {
-         {.Pos{-0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{1.0f, 0.0f, 0.0f}}},
-         {.Pos{ 0.5f, -0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 1.0f, 0.0f}}},
-         {.Pos{ 0.0f,  0.5f, 0.0f}, .Color{Pikzel::sRGB{0.0f, 0.0f, 1.0f}}}
-      };
-
-      Pikzel::BufferLayout layout{
-         {"inPos",   Pikzel::DataType::Vec3},
-         {"inColor", Pikzel::DataType::Vec3}
-      };
-
-      std::vector<uint32_t> indices = {0, 1, 2};
+      auto model = m_Scene->LoadModelResource("Assets/Pikzelated/Models/Triangle.obj");
 
       Pikzel::Object triangle = m_Scene->CreateObject();
-      m_Scene->AddComponent<Pikzel::ObjectId>(triangle, 1234ul);
-      m_Scene->AddComponent<Pikzel::Transform>(triangle, glm::translate(glm::identity<glm::mat4>(), {0.5, 0.5, 0.0}));
-      m_Scene->AddComponent<Pikzel::Mesh>(
-         triangle,
-         Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices),
-         Pikzel::RenderCore::CreateIndexBuffer(indices.size(), indices.data())
-      );
+      m_Scene->AddComponent<Pikzel::Id>(triangle, 1234u);
+      m_Scene->AddComponent<Pikzel::Transform>(triangle, glm::translate(glm::identity<glm::mat4>(), { 0.5, 0.5, 0.0 }));
+      m_Scene->AddComponent<Pikzel::Model>(triangle, model);
+
 
       Pikzel::Object triangle2 = m_Scene->CreateObject();
-      m_Scene->AddComponent<Pikzel::ObjectId>(triangle2, 9999ul);
-      m_Scene->AddComponent<Pikzel::Transform>(triangle2, glm::scale(glm::identity<glm::mat4>(), {0.5, 0.5, 0.0}));
-      m_Scene->AddComponent<Pikzel::Mesh>(
-         triangle2,
-         Pikzel::RenderCore::CreateVertexBuffer(layout, sizeof(vertices), vertices),
-         Pikzel::RenderCore::CreateIndexBuffer(indices.size(), indices.data())
-      );
+      m_Scene->AddComponent<Pikzel::Id>(triangle2, 9999u);
+      m_Scene->AddComponent<Pikzel::Transform>(triangle2, glm::scale(glm::identity<glm::mat4>(), {0.5, 0.5, 1.0}));
+      m_Scene->AddComponent<Pikzel::Model>(triangle2, model);
    }
 
 
-   void OnFileOpen() {}
+   void OnFileOpen() {
+//      auto path = Pikzel::OpenFileDialog("*.pkzl", "Pikzel Scene File (*.pkzl)");
+//      if (path.has_value()) {
+//         Pikzel::SceneSerializerJSON json({ .Path = path.value() });
+//         m_Scene = json.Deserialise();
+//         if (!m_Scene) {
+//            PKZL_LOG_ERROR("Failed to load scene '{0}'", path.value().string());
+//         }
+//      }
+   }
 
 
    void OnFileSave() {}
@@ -90,8 +81,8 @@ protected:
             if (path.value().extension() != ".pkzl") {
                path.value() += ".pkzl";
             }
-            Pikzel::SceneSerializerJSON json({.Path = path.value()});
-            json.Serialize(*m_Scene);
+            Pikzel::SceneSerializerYAML yaml({.Path = path.value()});
+            yaml.Serialize(*m_Scene);
          }
       }
    }

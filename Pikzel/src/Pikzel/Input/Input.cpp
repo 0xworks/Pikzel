@@ -56,7 +56,7 @@ namespace Pikzel {
    }
 
 
-   float Input::GetAxis(entt::id_type id) const {
+   float Input::GetAxis(Id id) const {
       return m_Axes.at(id);
    }
 

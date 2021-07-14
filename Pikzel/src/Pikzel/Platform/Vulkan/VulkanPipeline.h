@@ -72,8 +72,8 @@ namespace Pikzel {
 
       vk::PipelineLayout GetVkPipelineLayout() const;
 
-      const VulkanPushConstant& GetPushConstant(const entt::id_type id) const;
-      const VulkanResource& GetResource(const entt::id_type id) const;
+      const VulkanPushConstant& GetPushConstant(const Id id) const;
+      const VulkanResource& GetResource(const Id id) const;
 
    private:
 
@@ -117,8 +117,8 @@ namespace Pikzel {
       std::vector<vk::SpecializationInfo> m_ShaderSpecializations;
       std::vector<std::vector<vk::SpecializationMapEntry>> m_SpecializationMap;
       std::vector<std::vector<int32_t>> m_SpecializationData;
-      std::unordered_map<entt::id_type, VulkanPushConstant> m_PushConstants;
-      std::unordered_map<entt::id_type, VulkanResource> m_Resources;
+      std::unordered_map<Id, VulkanPushConstant> m_PushConstants;
+      std::unordered_map<Id, VulkanResource> m_Resources;
    };
 
 }

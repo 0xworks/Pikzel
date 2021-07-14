@@ -29,7 +29,7 @@ namespace Pikzel {
       Input(const Window& window, const Input::Settings& settings);
       virtual ~Input();
 
-      float GetAxis(entt::id_type id) const;
+      float GetAxis(Id id) const;
 
       bool IsKeyPressed(KeyCode key) const;
 
@@ -52,8 +52,8 @@ namespace Pikzel {
 
       // The intent here is that (one day) clients will be able to create their own axes (and map keys to them).
       // For instance a "pitch" or "yaw" axis...
-      std::unordered_map<entt::id_type, float> m_Axes;
-      std::unordered_map<KeyCode, std::pair<entt::id_type, float>> m_MappedKeys;
+      std::unordered_map<Id, float> m_Axes;
+      std::unordered_map<KeyCode, std::pair<Id, float>> m_MappedKeys;
 
       std::unordered_map<KeyCode, KeyState> m_KeyState;
 

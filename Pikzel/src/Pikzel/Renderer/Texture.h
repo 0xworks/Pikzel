@@ -297,7 +297,7 @@ namespace Pikzel {
    // Destructor frees that memory
    class PKZL_API TextureLoader {
    public:
-      PKZL_NOT_COPYABLE(TextureLoader);
+      PKZL_NO_COPYMOVE(TextureLoader);
       TextureLoader(const std::filesystem::path& path);
       ~TextureLoader();
 
