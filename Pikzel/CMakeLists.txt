@@ -19,8 +19,6 @@ option(
 #       Later, we might support something else (dont hold your breath)
 set(
    ProjectSources
-   "src/Pikzel/Components/Mesh.h"
-   "src/Pikzel/Components/ObjectId.h"
    "src/Pikzel/Components/Transform.h"
    "src/Pikzel/Core/Application.h"
    "src/Pikzel/Core/Application.cpp"
@@ -63,6 +61,10 @@ set(
    "src/Pikzel/Scene/Camera.h"
    "src/Pikzel/Scene/Camera.cpp"
    "src/Pikzel/Scene/Light.h"
+   "src/Pikzel/Scene/Mesh.h"
+   "src/Pikzel/Scene/ModelResource.h"
+   "src/Pikzel/Scene/ModelResourceLoader.h"
+   "src/Pikzel/Scene/ModelResourceLoader.cpp"
    "src/Pikzel/Scene/Scene.h"
    "src/Pikzel/Scene/Scene.cpp"
    "src/Pikzel/Scene/SceneRenderer.h"
@@ -78,13 +80,13 @@ set(
 set(
    ProjectIncludes
    "src"
-   "vendor/cereal/include"
    "vendor/entt/src"
    "vendor/glfw/include"
    "vendor/glm"
    "vendor/imgui"
    "vendor/spdlog/include"
    "vendor/tracy"
+   "vendor/yaml-cpp/include"
    ${CMRC_INCLUDE_DIR}
 )
 
@@ -117,11 +119,11 @@ endif()
 set(
    ProjectLibs
    "assimp"
-   "cereal"
    "glfw"
    "glm"
    "ImGui"
    "PikzelResources"
+   "yaml-cpp"
 )
 
 add_library(
@@ -485,5 +487,4 @@ add_subdirectory("vendor/SPIRV-Cross")
 
 add_subdirectory("vendor/glm")
 
-set(SKIP_PERFORMANCE_COMPARISON ON CACHE BOOL "Skip building performance comparison (requires boost)" FORCE)
-add_subdirectory("vendor/cereal")
+add_subdirectory("vendor/yaml-cpp")

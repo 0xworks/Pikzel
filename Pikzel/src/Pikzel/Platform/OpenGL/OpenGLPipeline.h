@@ -27,9 +27,9 @@ namespace Pikzel {
    };
 
 
-   using OpenGLUniformMap = std::unordered_map<entt::id_type, OpenGLUniform>;
+   using OpenGLUniformMap = std::unordered_map<Id, OpenGLUniform>;
    using OpenGLBindingMap = std::unordered_map < std::pair<uint32_t, uint32_t>, std::pair<uint32_t, uint32_t>>; // maps(descriptor set, binding number) -> (open GL binding number, resource count)
-   using OpenGLResourceMap = std::unordered_map<entt::id_type, OpenGLResourceDeclaration>;
+   using OpenGLResourceMap = std::unordered_map<Id, OpenGLResourceDeclaration>;
 
 
    class OpenGLPipeline : public Pipeline {
@@ -40,48 +40,48 @@ namespace Pikzel {
       GLuint GetRendererId() const;
       GLuint GetVAORendererId() const;
 
-      void PushConstant(const entt::id_type name, bool value);
-      void PushConstant(const entt::id_type name, int value);
-      void PushConstant(const entt::id_type name, uint32_t value);
-      void PushConstant(const entt::id_type name, float value);
-      void PushConstant(const entt::id_type name, double value);
-      void PushConstant(const entt::id_type name, const glm::bvec2& value);
-      void PushConstant(const entt::id_type name, const glm::bvec3& value);
-      void PushConstant(const entt::id_type name, const glm::bvec4& value);
-      void PushConstant(const entt::id_type name, const glm::ivec2& value);
-      void PushConstant(const entt::id_type name, const glm::ivec3& value);
-      void PushConstant(const entt::id_type name, const glm::ivec4& value);
-      void PushConstant(const entt::id_type name, const glm::uvec2& value);
-      void PushConstant(const entt::id_type name, const glm::uvec3& value);
-      void PushConstant(const entt::id_type name, const glm::uvec4& value);
-      void PushConstant(const entt::id_type name, const glm::vec2& value);
-      void PushConstant(const entt::id_type name, const glm::vec3& value);
-      void PushConstant(const entt::id_type name, const glm::vec4& value);
-      void PushConstant(const entt::id_type name, const glm::dvec2& value);
-      void PushConstant(const entt::id_type name, const glm::dvec3& value);
-      void PushConstant(const entt::id_type name, const glm::dvec4& value);
-      void PushConstant(const entt::id_type name, const glm::mat2& value);
-      //void PushConstant(const entt::id_type name, const glm::mat2x3& value);
-      void PushConstant(const entt::id_type name, const glm::mat2x4& value);
-      void PushConstant(const entt::id_type name, const glm::mat3x2& value);
-      //void PushConstant(const entt::id_type name, const glm::mat3& value);
-      void PushConstant(const entt::id_type name, const glm::mat3x4& value);
-      void PushConstant(const entt::id_type name, const glm::mat4x2& value);
-      //void PushConstant(const entt::id_type name, const glm::mat4x3& value);
-      void PushConstant(const entt::id_type name, const glm::mat4& value);
-      void PushConstant(const entt::id_type name, const glm::dmat2& value);
-      //void PushConstant(const entt::id_type name, const glm::dmat2x3& value);
-      void PushConstant(const entt::id_type name, const glm::dmat2x4& value);
-      void PushConstant(const entt::id_type name, const glm::dmat3x2& value);
-      //void PushConstant(const entt::id_type name, const glm::dmat3& value);
-      void PushConstant(const entt::id_type name, const glm::dmat3x4& value);
-      void PushConstant(const entt::id_type name, const glm::dmat4x2& value);
-      //void PushConstant(const entt::id_type name, const glm::dmat4x3& value);
-      void PushConstant(const entt::id_type name, const glm::dmat4& value);
+      void PushConstant(const Id name, bool value);
+      void PushConstant(const Id name, int value);
+      void PushConstant(const Id name, uint32_t value);
+      void PushConstant(const Id name, float value);
+      void PushConstant(const Id name, double value);
+      void PushConstant(const Id name, const glm::bvec2& value);
+      void PushConstant(const Id name, const glm::bvec3& value);
+      void PushConstant(const Id name, const glm::bvec4& value);
+      void PushConstant(const Id name, const glm::ivec2& value);
+      void PushConstant(const Id name, const glm::ivec3& value);
+      void PushConstant(const Id name, const glm::ivec4& value);
+      void PushConstant(const Id name, const glm::uvec2& value);
+      void PushConstant(const Id name, const glm::uvec3& value);
+      void PushConstant(const Id name, const glm::uvec4& value);
+      void PushConstant(const Id name, const glm::vec2& value);
+      void PushConstant(const Id name, const glm::vec3& value);
+      void PushConstant(const Id name, const glm::vec4& value);
+      void PushConstant(const Id name, const glm::dvec2& value);
+      void PushConstant(const Id name, const glm::dvec3& value);
+      void PushConstant(const Id name, const glm::dvec4& value);
+      void PushConstant(const Id name, const glm::mat2& value);
+      //void PushConstant(const Id name, const glm::mat2x3& value);
+      void PushConstant(const Id name, const glm::mat2x4& value);
+      void PushConstant(const Id name, const glm::mat3x2& value);
+      //void PushConstant(const Id name, const glm::mat3& value);
+      void PushConstant(const Id name, const glm::mat3x4& value);
+      void PushConstant(const Id name, const glm::mat4x2& value);
+      //void PushConstant(const Id name, const glm::mat4x3& value);
+      void PushConstant(const Id name, const glm::mat4& value);
+      void PushConstant(const Id name, const glm::dmat2& value);
+      //void PushConstant(const Id name, const glm::dmat2x3& value);
+      void PushConstant(const Id name, const glm::dmat2x4& value);
+      void PushConstant(const Id name, const glm::dmat3x2& value);
+      //void PushConstant(const Id name, const glm::dmat3& value);
+      void PushConstant(const Id name, const glm::dmat3x4& value);
+      void PushConstant(const Id name, const glm::dmat4x2& value);
+      //void PushConstant(const Id name, const glm::dmat4x3& value);
+      void PushConstant(const Id name, const glm::dmat4& value);
 
-      GLuint GetSamplerBinding(const entt::id_type resourceId, const bool exceptionIfNotFound = true) const;
-      GLuint GetStorageImageBinding(const entt::id_type resourceId, const bool exceptionIfNotFound = true) const;
-      GLuint GetUniformBufferBinding(const entt::id_type resourceId, const bool exceptionIfNotFound = true) const;
+      GLuint GetSamplerBinding(const Id resourceId, const bool exceptionIfNotFound = true) const;
+      GLuint GetStorageImageBinding(const Id resourceId, const bool exceptionIfNotFound = true) const;
+      GLuint GetUniformBufferBinding(const Id resourceId, const bool exceptionIfNotFound = true) const;
 
       void SetGLState() const;
 

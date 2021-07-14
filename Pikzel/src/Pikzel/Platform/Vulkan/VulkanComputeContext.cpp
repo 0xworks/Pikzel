@@ -48,7 +48,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::Bind(const entt::id_type resourceId, const UniformBuffer& buffer) {
+   void VulkanComputeContext::Bind(const Id resourceId, const UniformBuffer& buffer) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::DescriptorBufferInfo uniformBufferDescriptor = {
@@ -75,7 +75,7 @@ namespace Pikzel {
    void VulkanComputeContext::Unbind(const UniformBuffer&) {}
 
 
-   void VulkanComputeContext::Bind(const entt::id_type resourceId, const Texture& texture, const uint32_t mipLevel) {
+   void VulkanComputeContext::Bind(const Id resourceId, const Texture& texture, const uint32_t mipLevel) {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::Sampler sampler = static_cast<const VulkanTexture&>(texture).GetVkSampler();
@@ -122,7 +122,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, bool value) {
+   void VulkanComputeContext::PushConstant(const Id id, bool value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Bool, "Push constant '{0}' type mismatch.  Bool given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -130,7 +130,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, int value) {
+   void VulkanComputeContext::PushConstant(const Id id, int value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Int, "Push constant '{0}' type mismatch.  Int given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -138,7 +138,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, uint32_t value) {
+   void VulkanComputeContext::PushConstant(const Id id, uint32_t value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::UInt, "Push constant '{0}' type mismatch.  UInt given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -146,7 +146,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, float value) {
+   void VulkanComputeContext::PushConstant(const Id id, float value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Float, "Push constant '{0}' type mismatch.  Float given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -154,7 +154,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, double value) {
+   void VulkanComputeContext::PushConstant(const Id id, double value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Double, "Push constant '{0}' type mismatch.  Double given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -162,7 +162,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::bvec2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::bvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::BVec2, "Push constant '{0}' type mismatch.  BVec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -170,7 +170,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::bvec3& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::bvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::BVec3, "Push constant '{0}' type mismatch.  BVec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -178,7 +178,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::bvec4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::bvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::BVec4, "Push constant '{0}' type mismatch.  BVec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -186,7 +186,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::ivec2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::ivec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::IVec2, "Push constant '{0}' type mismatch.  IVec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -194,7 +194,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::ivec3& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::ivec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::IVec3, "Push constant '{0}' type mismatch.  IVec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -202,7 +202,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::ivec4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::ivec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::IVec4, "Push constant '{0}' type mismatch.  IVec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -210,7 +210,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::uvec2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::uvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::UVec2, "Push constant '{0}' type mismatch.  UVec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -218,7 +218,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::uvec3& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::uvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::UVec3, "Push constant '{0}' type mismatch.  UVec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -226,7 +226,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::uvec4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::uvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::UVec4, "Push constant '{0}' type mismatch.  UVec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -234,7 +234,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::vec2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::vec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Vec2, "Push constant '{0}' type mismatch.  Vec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -242,7 +242,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::vec3& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::vec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Vec3, "Push constant '{0}' type mismatch.  Vec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -250,7 +250,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::vec4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::vec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id); // name will be like constants.mvp,  or anotherConstants.something4
       PKZL_CORE_ASSERT(constant.Type == DataType::Vec4, "Push constant '{0}' type mismatch.  Vec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -258,7 +258,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dvec2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dvec2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DVec2, "Push constant '{0}' type mismatch.  DVec2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -266,7 +266,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dvec3& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dvec3& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DVec3, "Push constant '{0}' type mismatch.  DVec3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -274,7 +274,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dvec4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dvec4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DVec4, "Push constant '{0}' type mismatch.  DVec4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -282,7 +282,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::mat2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Mat2, "Push constant '{0}' type mismatch.  Mat2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -290,7 +290,7 @@ namespace Pikzel {
    }
 
 
-   //void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat2x3& value) {
+   //void VulkanComputeContext::PushConstant(const Id id, const glm::mat2x3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
    //   PKZL_CORE_ASSERT(constant.Type == DataType::Mat2x3, "Push constant '{0}' type mismatch.  Mat2x3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -298,7 +298,7 @@ namespace Pikzel {
    //}
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat2x4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::mat2x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Mat2x4, "Push constant '{0}' type mismatch.  Mat2x4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -306,7 +306,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat3x2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::mat3x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Mat3x2, "Push constant '{0}' type mismatch.  Mat3x2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -314,7 +314,7 @@ namespace Pikzel {
    }
 
 
-   //void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat3& value) {
+   //void VulkanComputeContext::PushConstant(const Id id, const glm::mat3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
    //   PKZL_CORE_ASSERT(constant.Type == DataType::Mat3, "Push constant '{0}' type mismatch.  Mat3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -322,7 +322,7 @@ namespace Pikzel {
    //}
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat3x4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::mat3x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Mat3x4, "Push constant '{0}' type mismatch.  Mat3x4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -330,7 +330,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat4x2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::mat4x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::Mat4x2, "Push constant '{0}' type mismatch.  Mat4x2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -338,7 +338,7 @@ namespace Pikzel {
    }
 
 
-   //void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat4x3& value) {
+   //void VulkanComputeContext::PushConstant(const Id id, const glm::mat4x3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
    //   PKZL_CORE_ASSERT(constant.Type == DataType::Mat4x3, "Push constant '{0}' type mismatch.  Mat4x3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -346,7 +346,7 @@ namespace Pikzel {
    //}
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::mat4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::mat4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id); // name will be like constants.mvp,  or anotherConstants.something4
       PKZL_CORE_ASSERT(constant.Type == DataType::Mat4, "Push constant '{0}' type mismatch.  Mat4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -354,7 +354,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dmat2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DMat2, "Push constant '{0}' type mismatch.  DMat2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -362,7 +362,7 @@ namespace Pikzel {
    }
 
 
-   //void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat2x3& value) {
+   //void VulkanComputeContext::PushConstant(const Id id, const glm::dmat2x3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
    //   PKZL_CORE_ASSERT(constant.Type == DataType::DMat2x3, "Push constant '{0}' type mismatch.  DMat2x3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -370,7 +370,7 @@ namespace Pikzel {
    //}
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat2x4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dmat2x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DMat2x4, "Push constant '{0}' type mismatch.  DMat2x4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -378,7 +378,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat3x2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dmat3x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DMat3x2, "Push constant '{0}' type mismatch.  DMat3x2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -386,7 +386,7 @@ namespace Pikzel {
    }
 
 
-   //void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat3& value) {
+   //void VulkanComputeContext::PushConstant(const Id id, const glm::dmat3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
    //   PKZL_CORE_ASSERT(constant.Type == DataType::DMat3, "Push constant '{0}' type mismatch.  DMat3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -394,7 +394,7 @@ namespace Pikzel {
    //}
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat3x4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dmat3x4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DMat3x4, "Push constant '{0}' type mismatch.  DMat3x4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -402,7 +402,7 @@ namespace Pikzel {
    }
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat4x2& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dmat4x2& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DMat4x2, "Push constant '{0}' type mismatch.  DMat4x2 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -410,7 +410,7 @@ namespace Pikzel {
    }
 
 
-   //void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat4x3& value) {
+   //void VulkanComputeContext::PushConstant(const Id id, const glm::dmat4x3& value) {
    //   PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
    //   const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
    //   PKZL_CORE_ASSERT(constant.Type == DataType::DMat4x3, "Push constant '{0}' type mismatch.  DMat4x3 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));
@@ -418,7 +418,7 @@ namespace Pikzel {
    //}
 
 
-   void VulkanComputeContext::PushConstant(const entt::id_type id, const glm::dmat4& value) {
+   void VulkanComputeContext::PushConstant(const Id id, const glm::dmat4& value) {
       PKZL_CORE_ASSERT(m_Pipeline, "Attempted to access null pipeline!");
       const VulkanPushConstant& constant = m_Pipeline->GetPushConstant(id);
       PKZL_CORE_ASSERT(constant.Type == DataType::DMat4, "Push constant '{0}' type mismatch.  DMat4 given, expected {1}!", constant.Name, DataTypeToString(constant.Type));

@@ -2,15 +2,26 @@
 
 #include "Pikzel/Core/Core.h"
 #include "Pikzel/Events/ApplicationEvents.h"
+#include "Pikzel/Scene/ModelResource.h"
 
 #include <entt/entity/entity.hpp>
 #include <entt/entity/registry.hpp>
+#include <entt/resource/cache.hpp>
+#include <entt/resource/handle.hpp>
 
 #include <chrono>
 
 namespace Pikzel {
 
    using Object = entt::entity;
+   using Registry = entt::registry;
+   using ModelResourceCache = entt::resource_cache<ModelResource>;
+   using ModelResourceHandle = entt::resource_handle<ModelResource>;
+
+   template<typename T>
+   concept ObjectFunc = requires(T func, Object obj) {
+      func(obj);
+   };
 
    class PKZL_API Scene {
    public:
@@ -48,9 +59,21 @@ namespace Pikzel {
          m_Registry.erase<T>(object);
       }
 
+      template<ObjectFunc Func>
+      void Each(Func func) const {
+         m_Registry.each([func](entt::entity e) {
+            func(e);
+         });
+      }
+
+      Id LoadModelResource(const std::filesystem::path& path);
+
+      ModelResourceHandle GetModelResource(Id modelId) const;
+
       void OnUpdate(DeltaTime dt);
 
    private:
+      friend class SceneSerializerYAML;
 
       // HACK: At this stage I am unsure how entt "groups" and "views"
       //       will be exposed to clients of Scene.
@@ -61,8 +84,10 @@ namespace Pikzel {
       //       entt could be replaced with a different ECS, and the clients of Scene do not
       //       need to change)
    public:
-      entt::registry m_Registry;
+      Registry m_Registry;
+
    private:
+      ModelResourceCache m_ModelCache;
 
    };
 

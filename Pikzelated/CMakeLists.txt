@@ -27,9 +27,12 @@ set(
 )
 
 set(
+   Models
+   "Assets/Models/Triangle.obj"
+)
+
+set(
    ShaderSources
-   "Assets/Shaders/Triangle.vert"
-   "Assets/Shaders/Triangle.frag"
 )
 
 set(
@@ -41,6 +44,7 @@ set(
 )
 
 source_group("src" FILES ${ProjectSources})
+source_group("Assets/Models" FILES ${Models})
 source_group("Assets/Shaders" FILES ${ShaderSources} ${ShaderHeaders})
 source_group("Assets/Textures" FILES ${Textures})
 
@@ -83,6 +87,7 @@ set_source_files_properties(
 )
 
 copy_assets(ConfigFiles . CopiedConfig)
+copy_assets(Models Assets/${PROJECT_NAME}/Models CopiedModels)
 compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)
 copy_assets(Textures Assets/${PROJECT_NAME}/Textures CopiedTextures)
 
@@ -91,11 +96,13 @@ copy_assets(Textures Assets/${PROJECT_NAME}/Textures CopiedTextures)
 # The correct way to do this is to add_custom_target() and then add_dependencies() on the custom target.
 # I do not want to clutter up the project with a whole load of custom targets, however.
 set_source_files_properties(${CopiedConfig} PROPERTIES GENERATED TRUE)
+set_source_files_properties(${CopiedModels} PROPERTIES GENERATED TRUE)
 set_source_files_properties(${CompiledShaders} PROPERTIES GENERATED TRUE)
 set_source_files_properties(${CopiedTextures} PROPERTIES GENERATED TRUE)
 target_sources(
    ${PROJECT_NAME} PRIVATE
    ${CopiedConfig}
+   ${CopiedModels}
    ${CompiledShaders}
    ${CopiedTextures}
 )

@@ -115,12 +115,12 @@ namespace Pikzel {
    }
 
 
-   const VulkanPushConstant& VulkanPipeline::GetPushConstant(const entt::id_type id) const {
+   const VulkanPushConstant& VulkanPipeline::GetPushConstant(const Id id) const {
       return m_PushConstants.at(id);
    }
 
 
-   const VulkanResource& VulkanPipeline::GetResource(const entt::id_type id) const {
+   const VulkanResource& VulkanPipeline::GetResource(const Id id) const {
       return m_Resources.at(id);
    }
 
@@ -144,7 +144,7 @@ namespace Pikzel {
    }
 
 
-   static void ReflectResourceBindings(const ShaderType shaderType, const vk::DescriptorType descriptorType, const std::string_view& resourceType, spirv_cross::Compiler& compiler, std::unordered_map<entt::id_type, VulkanResource>& vulkanResources, spirv_cross::SmallVector<spirv_cross::Resource>& resources) {
+   static void ReflectResourceBindings(const ShaderType shaderType, const vk::DescriptorType descriptorType, const std::string_view& resourceType, spirv_cross::Compiler& compiler, std::unordered_map<Id, VulkanResource>& vulkanResources, spirv_cross::SmallVector<spirv_cross::Resource>& resources) {
       for (const auto& resource : resources) {
          const auto& name = resource.name;
          const auto& type = compiler.get_type(resource.type_id);
@@ -172,7 +172,7 @@ namespace Pikzel {
                break;
             }
          }
-         entt::id_type id = entt::hashed_string(name.data());
+         Id id = entt::hashed_string(name.data());
          if (!found) {
             if (vulkanResources.find(id) != vulkanResources.end()) {
                throw std::runtime_error {fmt::format("Shader resource name '{0}' is ambiguous.  Refers to different descriptor set bindings!", name)};

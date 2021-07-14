@@ -1,6 +1,6 @@
 #include "SceneRenderer.h"
 
-#include "Pikzel/Components/Mesh.h"
+#include "Pikzel/Components/Model.h"
 #include "Pikzel/Components/Transform.h"
 
 namespace Pikzel {
@@ -31,11 +31,21 @@ namespace Pikzel {
       glm::mat4 vp = camera.projection * glm::lookAt(camera.position, camera.position + camera.direction, camera.upVector);
 
       // something like this.. only more complicated.. (e.g need materials, shadows, animation, ...)
-      for (auto&& [entity, transform, mesh] : scene.m_Registry.group<const Transform, const Mesh>().each()) {
+      for (auto&& [entity, transform, model] : scene.m_Registry.group<const Transform, const Model>().each()) {
          gc.PushConstant("constants.mvp"_hs, vp * transform.Matrix);
-         gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
+
+         auto modelResource = scene.GetModelResource(model.Id);
+
+         for (const auto& mesh : modelResource->Meshes) {
+            //gc.PushConstant("constants.mvp"_hs, transform * mesh.Transform);
+            //gc.Bind("uAlbedo"_hs, *mesh.AlbedoTexture);
+            //gc.Bind("uMetallicRoughness"_hs, *mesh.MetallicRoughnessTexture);
+            //gc.Bind("uNormals"_hs, *mesh.NormalTexture);
+            //gc.Bind("uAmbientOcclusion"_hs, *mesh.AmbientOcclusionTexture);
+            //gc.Bind("uHeightMap"_hs, *mesh.HeightTexture);
+            gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
+         }
       }
    }
-
 
 }
