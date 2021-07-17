@@ -1,5 +1,6 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
+#include "Pikzel/Scene/AssetCache.h"
 
 #include <imgui_internal.h>
 
@@ -44,7 +45,7 @@ protected:
    void OnFileNew() {
       m_Scene = std::make_unique<Pikzel::Scene>();
 
-      auto model = m_Scene->LoadModelResource("Assets/Pikzelated/Models/Triangle.obj");
+      auto model = Pikzel::AssetCache::LoadModelResource("triangle", "Assets/Pikzelated/Models/Triangle.obj");
 
       Pikzel::Object triangle = m_Scene->CreateObject();
       m_Scene->AddComponent<Pikzel::Id>(triangle, 1234u);
@@ -60,14 +61,11 @@ protected:
 
 
    void OnFileOpen() {
-//      auto path = Pikzel::OpenFileDialog("*.pkzl", "Pikzel Scene File (*.pkzl)");
-//      if (path.has_value()) {
-//         Pikzel::SceneSerializerJSON json({ .Path = path.value() });
-//         m_Scene = json.Deserialise();
-//         if (!m_Scene) {
-//            PKZL_LOG_ERROR("Failed to load scene '{0}'", path.value().string());
-//         }
-//      }
+      auto path = Pikzel::OpenFileDialog("*.pkzl", "Pikzel Scene File (*.pkzl)");
+      if (path.has_value()) {
+         Pikzel::SceneSerializerYAML yaml{ {.Path = path.value() } };
+         m_Scene = yaml.Deserialize();
+      }
    }
 
 
@@ -81,7 +79,7 @@ protected:
             if (path.value().extension() != ".pkzl") {
                path.value() += ".pkzl";
             }
-            Pikzel::SceneSerializerYAML yaml({.Path = path.value()});
+            Pikzel::SceneSerializerYAML yaml{ {.Path = path.value()} };
             yaml.Serialize(*m_Scene);
          }
       }
@@ -219,15 +217,6 @@ protected:
    virtual void RenderEnd() override {
       PKZL_PROFILE_FUNCTION();
    }
-
-
-private:
-
-   // TODO: get rid of this in favor of Pikzel::Mesh::Vertex
-   struct Vertex {
-      glm::vec3 Pos;
-      glm::vec3 Color;
-   };
 
 
 private:

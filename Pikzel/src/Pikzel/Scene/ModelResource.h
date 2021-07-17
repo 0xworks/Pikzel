@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <filesystem>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -14,6 +15,12 @@ namespace Pikzel {
       PKZL_NO_COPY(ModelResource);
 
       ModelResource() = default;
+
+      ModelResource(const std::string_view name, const std::filesystem::path& path)
+      : Name{ name }
+      , Path{ path }
+      {}
+
       ~ModelResource() = default;
 
       ModelResource(ModelResource&& model) noexcept
@@ -30,6 +37,7 @@ namespace Pikzel {
       }
 
       std::vector<Mesh> Meshes;
+      std::string Name;
       std::filesystem::path Path;
    };
 

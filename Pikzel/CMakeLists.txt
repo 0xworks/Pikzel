@@ -58,6 +58,8 @@ set(
    "src/Pikzel/Renderer/sRGB.cpp"
    "src/Pikzel/Renderer/Texture.h"
    "src/Pikzel/Renderer/Texture.cpp"
+   "src/Pikzel/Scene/AssetCache.h"
+   "src/Pikzel/Scene/AssetCache.cpp"
    "src/Pikzel/Scene/Camera.h"
    "src/Pikzel/Scene/Camera.cpp"
    "src/Pikzel/Scene/Light.h"

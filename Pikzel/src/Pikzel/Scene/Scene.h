@@ -2,12 +2,9 @@
 
 #include "Pikzel/Core/Core.h"
 #include "Pikzel/Events/ApplicationEvents.h"
-#include "Pikzel/Scene/ModelResource.h"
 
 #include <entt/entity/entity.hpp>
 #include <entt/entity/registry.hpp>
-#include <entt/resource/cache.hpp>
-#include <entt/resource/handle.hpp>
 
 #include <chrono>
 
@@ -15,8 +12,6 @@ namespace Pikzel {
 
    using Object = entt::entity;
    using Registry = entt::registry;
-   using ModelResourceCache = entt::resource_cache<ModelResource>;
-   using ModelResourceHandle = entt::resource_handle<ModelResource>;
 
    template<typename T>
    concept ObjectFunc = requires(T func, Object obj) {
@@ -66,10 +61,6 @@ namespace Pikzel {
          });
       }
 
-      Id LoadModelResource(const std::filesystem::path& path);
-
-      ModelResourceHandle GetModelResource(Id modelId) const;
-
       void OnUpdate(DeltaTime dt);
 
    private:
@@ -86,8 +77,6 @@ namespace Pikzel {
    public:
       Registry m_Registry;
 
-   private:
-      ModelResourceCache m_ModelCache;
 
    };
 

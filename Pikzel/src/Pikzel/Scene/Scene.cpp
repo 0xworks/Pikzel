@@ -13,20 +13,6 @@ namespace Pikzel {
    }
 
 
-   Id Scene::LoadModelResource(const std::filesystem::path& path) {
-      auto id = entt::hashed_string(path.string().c_str()).value();
-      if (!m_ModelCache.load<ModelResourceLoader>(id, path)) {
-         PKZL_CORE_LOG_ERROR("Failed to load model '{0}'", path.string().c_str());
-      }
-      return id;
-   }
-
-
-   ModelResourceHandle Scene::GetModelResource(Id id) const {
-      return m_ModelCache.handle(id);
-   }
-
-
    void Scene::OnUpdate(DeltaTime dt) {
 
       // Something interesting goes here:

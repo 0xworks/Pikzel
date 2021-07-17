@@ -10,7 +10,7 @@ namespace Pikzel {
 
    struct ModelResourceLoader final : entt::resource_loader<ModelResourceLoader, ModelResource> {
 
-      std::shared_ptr<ModelResource> load(const std::filesystem::path& path) const;
+      std::shared_ptr<ModelResource> load(const std::string_view name, const std::filesystem::path& path) const;
 
    };
 

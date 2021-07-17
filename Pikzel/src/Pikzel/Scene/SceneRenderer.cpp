@@ -2,6 +2,7 @@
 
 #include "Pikzel/Components/Model.h"
 #include "Pikzel/Components/Transform.h"
+#include "Pikzel/Scene/AssetCache.h"
 
 namespace Pikzel {
 
@@ -19,7 +20,7 @@ namespace Pikzel {
             { Pikzel::ShaderType::Vertex, "Renderer/Triangle.vert.spv" },
             { Pikzel::ShaderType::Fragment, "Renderer/Triangle.frag.spv" }
          },
-         .bufferLayout = {{"inPos",   Pikzel::DataType::Vec3}, {"inColor", Pikzel::DataType::Vec3}}
+         .bufferLayout = Mesh::VertexBufferLayout
       });
 
    }
@@ -34,7 +35,7 @@ namespace Pikzel {
       for (auto&& [entity, transform, model] : scene.m_Registry.group<const Transform, const Model>().each()) {
          gc.PushConstant("constants.mvp"_hs, vp * transform.Matrix);
 
-         auto modelResource = scene.GetModelResource(model.Id);
+         auto modelResource = AssetCache::GetModelResource(model.Id);
 
          for (const auto& mesh : modelResource->Meshes) {
             //gc.PushConstant("constants.mvp"_hs, transform * mesh.Transform);
