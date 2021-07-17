@@ -17,7 +17,7 @@ namespace Pikzel {
 
       void Serialize(const Pikzel::Scene& scene);
 
-      std::unique_ptr<Pikzel::Scene> Deserialise();
+      std::unique_ptr<Pikzel::Scene> Deserialize();
 
    private:
       SerializerSettings m_Settings;
