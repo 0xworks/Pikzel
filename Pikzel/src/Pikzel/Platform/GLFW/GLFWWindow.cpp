@@ -55,6 +55,7 @@ namespace Pikzel {
          }
          glfwWindowHint(GLFW_CLIENT_API, clientAPI);
          glfwWindowHint(GLFW_RESIZABLE, m_Settings.isResizable ? GLFW_TRUE : GLFW_FALSE);
+         glfwWindowHint(GLFW_MAXIMIZED, m_Settings.isMaximized);
 
          if (!(
             (settings.msaaNumSamples == 1) ||

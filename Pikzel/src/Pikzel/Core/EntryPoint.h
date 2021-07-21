@@ -31,7 +31,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 int main(int argc, const char* argv[]) {
 #endif
-   Pikzel::Log::Init();
+   Pikzel::Log::Init(argc, argv);
    Pikzel::EventDispatcher::Init();
 
    // parse command line for render API
