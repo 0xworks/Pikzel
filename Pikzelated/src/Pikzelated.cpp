@@ -107,7 +107,7 @@ protected:
 
 
    virtual void Render() override {
-      static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+      static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_AutoHideTabBar;
       static ImGuiWindowFlags dockspace_window_flags =
          ImGuiWindowFlags_MenuBar |
          ImGuiWindowFlags_NoDocking |
@@ -119,11 +119,15 @@ protected:
          ImGuiWindowFlags_NoNavFocus
       ;
 
-      static ImGuiWindowFlags viewport_window_flags = ImGuiWindowFlags_None;
-      //         ImGuiWindowFlags_NoDocking |
+      static ImGuiWindowFlags viewport_window_flags = ImGuiWindowFlags_NoDecoration;
+      //           ImGuiWindowFlags_NoDocking |
       //         ImGuiWindowFlags_NoMove |
       //         ImGuiWindowFlags_NoResize
       //      ;
+
+#if _DEBUG
+      static bool demoWindow = false;
+#endif
 
       PKZL_PROFILE_FUNCTION();
 
@@ -169,6 +173,13 @@ protected:
                if (ImGui::MenuItem("Save As...")) {
                   OnFileSaveAs();
                }
+#if _DEBUG
+               ImGui::Separator();
+               if (ImGui::MenuItem("Show ImGui Demo")) {
+                   demoWindow = true;
+               }
+#endif
+               ImGui::Separator();
                if (ImGui::MenuItem("Exit", "Alt+F4")) {
                   Exit();
                }
@@ -210,6 +221,13 @@ protected:
          ImGui::End();
       }
       ImGui::PopStyleVar(3);
+
+#if _DEBUG
+      if (demoWindow) {
+          ImGui::ShowDemoWindow(&demoWindow);
+      }
+#endif
+
       io.DisplaySize = ImVec2((float)m_ViewportSize.x, (float)m_ViewportSize.y);
 
       GetWindow().EndImGuiFrame();
