@@ -29,7 +29,7 @@ namespace Pikzel {
    class PKZL_API Log {
    public:
 
-      static void Init();
+      static void Init(int argc, const char* argv[]);
 
       static spdlog::logger& GetCoreLogger();
       static spdlog::logger& GetAppLogger();

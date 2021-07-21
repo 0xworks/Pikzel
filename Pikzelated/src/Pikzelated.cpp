@@ -12,7 +12,7 @@ class Pikzelated final : public Pikzel::Application {
    using super = Pikzel::Application;
 public:
    Pikzelated()
-   : Pikzel::Application{{.title = APP_DESCRIPTION, .clearColor = {0.0f, 0.0f, 0.0f, 1.0f}, .isVSync = true}}
+   : Pikzel::Application{{.title = APP_DESCRIPTION, .clearColor = {0.0f, 0.0f, 0.0f, 1.0f}, .isMaximized = true, .isVSync = true}}
    , m_Input{GetWindow()}
    {
       PKZL_PROFILE_FUNCTION();
@@ -44,19 +44,7 @@ protected:
 
    void OnFileNew() {
       m_Scene = std::make_unique<Pikzel::Scene>();
-
-      auto model = Pikzel::AssetCache::LoadModelResource("triangle", "Assets/Pikzelated/Models/Triangle.obj");
-
-      Pikzel::Object triangle = m_Scene->CreateObject();
-      m_Scene->AddComponent<Pikzel::Id>(triangle, 1234u);
-      m_Scene->AddComponent<Pikzel::Transform>(triangle, glm::translate(glm::identity<glm::mat4>(), { 0.5, 0.5, 0.0 }));
-      m_Scene->AddComponent<Pikzel::Model>(triangle, model);
-
-
-      Pikzel::Object triangle2 = m_Scene->CreateObject();
-      m_Scene->AddComponent<Pikzel::Id>(triangle2, 9999u);
-      m_Scene->AddComponent<Pikzel::Transform>(triangle2, glm::scale(glm::identity<glm::mat4>(), {0.5, 0.5, 1.0}));
-      m_Scene->AddComponent<Pikzel::Model>(triangle2, model);
+      m_ScenePath.clear();
    }
 
 
@@ -65,11 +53,26 @@ protected:
       if (path.has_value()) {
          Pikzel::SceneSerializerYAML yaml{ {.Path = path.value() } };
          m_Scene = yaml.Deserialize();
+         m_ScenePath = path.value();
       }
    }
 
 
-   void OnFileSave() {}
+   void SaveScene() {
+      Pikzel::SceneSerializerYAML yaml{ {.Path = m_ScenePath} };
+      yaml.Serialize(*m_Scene);
+   }
+
+
+   void OnFileSave() {
+      if (m_Scene) {
+         if (m_ScenePath.empty()) {
+            OnFileSaveAs();
+         } else {
+            SaveScene();
+         }
+      }
+   }
 
 
    void OnFileSaveAs() {
@@ -79,8 +82,8 @@ protected:
             if (path.value().extension() != ".pkzl") {
                path.value() += ".pkzl";
             }
-            Pikzel::SceneSerializerYAML yaml{ {.Path = path.value()} };
-            yaml.Serialize(*m_Scene);
+            m_ScenePath = path.value();
+            SaveScene();
          }
       }
    }
@@ -231,10 +234,10 @@ private:
 
    Pikzel::Input m_Input;
    glm::u32vec2 m_ViewportSize = {800, 600};
+   std::filesystem::path m_ScenePath;
    std::unique_ptr<Pikzel::Scene> m_Scene;
    std::unique_ptr<Pikzel::SceneRenderer> m_SceneRenderer;
    std::unique_ptr<Pikzel::Framebuffer> m_Framebuffer;
-
 };
 
 

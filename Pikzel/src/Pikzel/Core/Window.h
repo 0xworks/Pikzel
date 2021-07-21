@@ -18,6 +18,7 @@ namespace Pikzel {
          glm::vec4 clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
          bool isResizable = true;
          bool isFullScreen = false;
+         bool isMaximized = false;
          bool isCursorEnabled = true;
          bool isVSync = true;
          uint32_t minWidth = 0;
