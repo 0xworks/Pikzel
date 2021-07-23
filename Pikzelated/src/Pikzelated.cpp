@@ -19,10 +19,9 @@ public:
 
       Pikzel::ImGuiEx::Init(GetWindow());
       ImGuiIO& io = ImGui::GetIO();
-      ImGui::LoadIniSettingsFromDisk(io.IniFilename);
-      if (!ImGui::GetCurrentContext()->SettingsLoaded) {
-         ImGui::LoadIniSettingsFromDisk("EditorImGui.ini");
-      }
+      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+      io.ConfigWindowsMoveFromTitleBarOnly = true;
 
       m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f}});
       m_SceneRenderer = Pikzel::CreateSceneRenderer(m_Framebuffer->GetGraphicsContext());
@@ -45,6 +44,21 @@ protected:
    void OnFileNew() {
       m_Scene = std::make_unique<Pikzel::Scene>();
       m_ScenePath.clear();
+
+#if _DEBUG
+      auto model = Pikzel::AssetCache::LoadModelResource("triangle", "Assets/Pikzelated/Models/Triangle.obj");
+
+      Pikzel::Object triangle = m_Scene->CreateObject();
+      m_Scene->AddComponent<Pikzel::Id>(triangle, 1234u);
+      m_Scene->AddComponent<Pikzel::Transform>(triangle, glm::translate(glm::identity<glm::mat4>(), { 0.5, 0.5, 0.0 }));
+      m_Scene->AddComponent<Pikzel::Model>(triangle, model);
+
+
+      Pikzel::Object triangle2 = m_Scene->CreateObject();
+      m_Scene->AddComponent<Pikzel::Id>(triangle2, 9999u);
+      m_Scene->AddComponent<Pikzel::Transform>(triangle2, glm::scale(glm::identity<glm::mat4>(), { 0.5, 0.5, 1.0 }));
+      m_Scene->AddComponent<Pikzel::Model>(triangle2, model);
+#endif
    }
 
 
@@ -107,28 +121,6 @@ protected:
 
 
    virtual void Render() override {
-      static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_AutoHideTabBar;
-      static ImGuiWindowFlags dockspace_window_flags =
-         ImGuiWindowFlags_MenuBar |
-         ImGuiWindowFlags_NoDocking |
-         ImGuiWindowFlags_NoTitleBar |
-         ImGuiWindowFlags_NoCollapse |
-         ImGuiWindowFlags_NoResize |
-         ImGuiWindowFlags_NoMove |
-         ImGuiWindowFlags_NoBringToFrontOnFocus |
-         ImGuiWindowFlags_NoNavFocus
-      ;
-
-      static ImGuiWindowFlags viewport_window_flags = ImGuiWindowFlags_NoDecoration;
-      //           ImGuiWindowFlags_NoDocking |
-      //         ImGuiWindowFlags_NoMove |
-      //         ImGuiWindowFlags_NoResize
-      //      ;
-
-#if _DEBUG
-      static bool demoWindow = false;
-#endif
-
       PKZL_PROFILE_FUNCTION();
 
       Pikzel::GraphicsContext& gc = m_Framebuffer->GetGraphicsContext();
@@ -142,56 +134,123 @@ protected:
       GetWindow().BeginFrame();
       GetWindow().BeginImGuiFrame();
 
-      ImGuiIO& io = ImGui::GetIO();
+      BeginDockSpace();
+      {
+         RenderMenuBar();
+         RenderStatisticsPanel();
+         RenderViewport(gc);
+      }
+      EndDockSpace();
+
+#if _DEBUG
+      if (m_ShowDemoWindow) {
+          ImGui::ShowDemoWindow(&m_ShowDemoWindow);
+      }
+#endif
+
+      GetWindow().EndImGuiFrame();
+      GetWindow().EndFrame();
+   }
+
+
+   void BeginDockSpace() {
+      static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
+      static ImGuiWindowFlags dockspace_window_flags =
+         //ImGuiWindowFlags_MenuBar |
+         //ImGuiWindowFlags_NoDocking |
+         ImGuiWindowFlags_NoTitleBar |
+         ImGuiWindowFlags_NoCollapse |
+         ImGuiWindowFlags_NoResize |
+         ImGuiWindowFlags_NoMove |
+         ImGuiWindowFlags_NoBringToFrontOnFocus |
+         ImGuiWindowFlags_NoNavFocus
+         ;
+
       ImGuiViewport* viewport = ImGui::GetMainViewport();
-      ImGui::SetNextWindowPos(viewport->Pos);
-      ImGui::SetNextWindowSize(viewport->Size);
+
+      auto pos = viewport->Pos;
+      auto size = viewport->Size;
+      const float infoBarSize = ImGui::GetFrameHeight();
+      pos.y += infoBarSize;
+      size.y -= infoBarSize;
+
+      ImGui::SetNextWindowPos(pos);
+      ImGui::SetNextWindowSize(size);
       ImGui::SetNextWindowViewport(viewport->ID);
 
       ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
       ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
+      ImGui::Begin("Dockspace", nullptr, dockspace_window_flags);
       {
-         ImGui::Begin("Pikzelated", nullptr, dockspace_window_flags);
-         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-            ImGuiID dockspace_id = ImGui::GetID("DockSpace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+         ImGuiID dockspaceId = ImGui::GetID("Dockspace");
+
+         if (!ImGui::DockBuilderGetNode(dockspaceId)) {
+            ImGuiID dockNode = dockspaceId;
+            ImGui::DockBuilderAddNode(dockNode);
+            ImGui::DockBuilderSetNodeSize(dockNode, { ImGui::GetIO().DisplaySize.x * ImGui::GetIO().DisplayFramebufferScale.x, ImGui::GetIO().DisplaySize.y * ImGui::GetIO().DisplayFramebufferScale.y });
+
+            ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockNode, ImGuiDir_Left, 0.2f, nullptr, &dockNode);
+
+            ImGui::DockBuilderDockWindow("Viewport", dockNode);
+            ImGui::DockBuilderDockWindow("Statistics", dockLeft);
+
+            ImGui::DockBuilderFinish(dockspaceId);
          }
 
-         if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("File")) {
-               if (ImGui::MenuItem("New...", "Ctrl+N")) {
-                  OnFileNew();
-               }
-               if (ImGui::MenuItem("Open...", "Ctrl+O")) {
-                  OnFileOpen();
-               }
-               if (ImGui::MenuItem("Save", "Ctrl+S")) {
-                  OnFileSave();
-               }
-               if (ImGui::MenuItem("Save As...")) {
-                  OnFileSaveAs();
-               }
-#if _DEBUG
-               ImGui::Separator();
-               if (ImGui::MenuItem("Show ImGui Demo")) {
-                   demoWindow = true;
-               }
-#endif
-               ImGui::Separator();
-               if (ImGui::MenuItem("Exit", "Alt+F4")) {
-                  Exit();
-               }
-               ImGui::EndMenu();
+         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+            ImGui::DockSpace(dockspaceId, {}, dockspace_flags);
+         }
+      }
+   }
+
+
+   void EndDockSpace() {
+      ImGui::End();
+      ImGui::PopStyleVar(3);
+   }
+
+
+   void RenderMenuBar() {
+      if (ImGui::BeginMainMenuBar()) {
+         if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("New...", "Ctrl+N")) {
+               OnFileNew();
             }
-            ImGui::EndMainMenuBar();
+            if (ImGui::MenuItem("Open...", "Ctrl+O")) {
+               OnFileOpen();
+            }
+            if (ImGui::MenuItem("Save", "Ctrl+S")) {
+               OnFileSave();
+            }
+            if (ImGui::MenuItem("Save As...")) {
+               OnFileSaveAs();
+            }
+#if _DEBUG
+            ImGui::Separator();
+            if (ImGui::MenuItem("Show ImGui Demo")) {
+               m_ShowDemoWindow = true;
+            }
+#endif
+            ImGui::Separator();
+            if (ImGui::MenuItem("Exit", "Alt+F4")) {
+               Exit();
+            }
+            ImGui::EndMenu();
          }
+         ImGui::EndMainMenuBar();
+      }
+   }
 
+
+   void RenderStatisticsPanel() {
+      static ImGuiWindowFlags statisticPanelFlags = ImGuiWindowFlags_NoCollapse;
+      if (m_ShowStatisticsPanel) {
+         ImGui::Begin("Statistics", &m_ShowStatisticsPanel, statisticPanelFlags);
          {
-            ImGui::Begin("Statistics");
-
             // auto stats = Renderer2D::GetStats();
+            auto& io = ImGui::GetIO();
             ImGui::Text("Draw Calls: XXX"); // % d", stats.DrawCalls);
             ImGui::Text("Quads: XXX");      // % d", stats.QuadCount);
             ImGui::Text("Vertices: XXX");   // % d", stats.GetTotalVertexCount());
@@ -205,33 +264,28 @@ protected:
                frameOffset = (frameOffset + 1) % IM_ARRAYSIZE(frameRates);
                refresh += 1.0f / 60.0f;
             }
-
-            ImGui::End();
          }
-
-         {
-            ImGui::Begin("Viewport", nullptr, viewport_window_flags);
-            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-            m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
-            gc.SwapBuffers();
-            ImGui::Image(m_Framebuffer->GetImGuiColorTextureId(0), viewportPanelSize, ImVec2{0, 1}, ImVec2{1, 0});
-            ImGui::End();
-         }
-
          ImGui::End();
       }
-      ImGui::PopStyleVar(3);
+   }
 
-#if _DEBUG
-      if (demoWindow) {
-          ImGui::ShowDemoWindow(&demoWindow);
+   void RenderViewport(Pikzel::GraphicsContext& gc) {
+      //static ImGuiDockNodeFlags viewport_dockspace_flags = ImGuiDockNodeFlags_NoDockingOverMe | ImGuiDockNodeFlags_NoDockingOverOther | ImGuiDockNodeFlags_NoTabBar;
+
+      static ImGuiWindowFlags viewport_window_flags = ImGuiWindowFlags_NoDecoration;// | ImGuiWindowFlags_NoDocking;
+      //ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+      //ImGui::SetNextWindowSize(viewportPanelSize);
+      //ImGui::SetNextWindowViewport(viewport->ID);
+      ImGui::Begin("Viewport", nullptr, viewport_window_flags);
+      {
+         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+         //ImGui::DockSpace(ImGui::GetID("DockSpace"), ImVec2{ 0,0 }, viewport_dockspace_flags);
+         gc.SwapBuffers();
+         ImGui::Image(m_Framebuffer->GetImGuiColorTextureId(0), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+         ImGui::GetIO().DisplaySize = ImVec2((float)m_ViewportSize.x, (float)m_ViewportSize.y); // what is this actually for?
       }
-#endif
-
-      io.DisplaySize = ImVec2((float)m_ViewportSize.x, (float)m_ViewportSize.y);
-
-      GetWindow().EndImGuiFrame();
-      GetWindow().EndFrame();
+      ImGui::End();
    }
 
 
@@ -256,6 +310,10 @@ private:
    std::unique_ptr<Pikzel::Scene> m_Scene;
    std::unique_ptr<Pikzel::SceneRenderer> m_SceneRenderer;
    std::unique_ptr<Pikzel::Framebuffer> m_Framebuffer;
+   bool m_ShowStatisticsPanel = true;
+#if _DEBUG
+   bool m_ShowDemoWindow = false;
+#endif
 };
 
 
