@@ -28,13 +28,18 @@ namespace Pikzel {
    {}
 
 
+   sRGB::operator glm::vec3() const {
+      return {red, green, blue};
+   }
+
+
    sRGB::operator glm::vec4() const {
       return {red, green, blue, 1.0f};
    }
 
 
-   sRGB::operator glm::vec3() const {
-      return {red, green, blue};
+   sRGB::operator ImVec4() const {
+      return {red, green, blue, 1.0f};
    }
 
 
@@ -59,6 +64,11 @@ namespace Pikzel {
 
 
    sRGBA::operator glm::vec4() const {
+      return {red, green, blue, alpha};
+   }
+
+
+   sRGBA::operator ImVec4() const {
       return {red, green, blue, alpha};
    }
 

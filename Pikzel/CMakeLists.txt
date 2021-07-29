@@ -86,6 +86,7 @@ set(
    "vendor/glfw/include"
    "vendor/glm"
    "vendor/imgui"
+   "vendor/ImGuiAl"
    "vendor/spdlog/include"
    "vendor/tracy"
    "vendor/yaml-cpp/include"

@@ -1,6 +1,12 @@
 #include "ImGuiEx.h"
 
 #include "Pikzel/Renderer/RenderCore.h"
+#include "Pikzel/Renderer/sRGB.h"
+
+#include <fonts/DroidSans.inl>
+#include <fonts/DroidSansBold.inl>
+#include <fonts/FontAwesome5Regular400.inl>
+#include <fonts/FontAwesome5Solid900.inl>
 
 #include <imgui_internal.h>
 
@@ -9,23 +15,151 @@ namespace Pikzel {
 
       void Init(Window& window) {
          window.InitializeImGui();
-
-         // Pikzel default ImGui style
          ImGui::SetCurrentContext(window.GetGraphicsContext().GetImGuiContext());
-         ImGuiIO& io = ImGui::GetIO();
-         ImGui::StyleColorsDark();
-         ImGuiStyle& style = ImGui::GetStyle();
-         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            style.WindowRounding = 0.0f;
-            style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-         }
-         float scaleFactor = window.ContentScale();
-         style.ScaleAllSizes(scaleFactor);
 
-         io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Bold.ttf", 16 * scaleFactor);
-         io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/OpenSans-Regular.ttf", 16 * scaleFactor);
+         ImGuiIO& io = ImGui::GetIO();
+         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+         io.ConfigWindowsMoveFromTitleBarOnly = true;
+
+         SetColors(Theme::Dark);
+
+         float scaleFactor = window.ContentScale();
+         ImGuiStyle& style = ImGui::GetStyle();
+         style.ScaleAllSizes(scaleFactor);
+         style.WindowRounding = 0.0f;
+         style.TabRounding = 0.0f;
+
+         io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Regular400_compressed_data, FontAwesome5Regular400_compressed_size, 16 * scaleFactor);
+         io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Solid900_compressed_data, FontAwesome5Solid900_compressed_size, 16 * scaleFactor);
+         io.Fonts->AddFontFromMemoryCompressedTTF(DroidSansBold_compressed_data, DroidSansBold_compressed_size, 16 * scaleFactor);
+         io.FontDefault = io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, 16 * scaleFactor);
 
          RenderCore::UploadImGuiFonts();
+      }
+
+
+      void SetColors(Theme theme) {
+         ImVec4* colors = ImGui::GetStyle().Colors;
+         switch (theme) {
+            case Theme::Light:
+               ImGui::StyleColorsLight();
+               colors[ImGuiCol_Text]                   = sRGBA{0.00f, 0.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_TextDisabled]           = sRGBA{0.60f, 0.60f, 0.60f, 1.00f};
+               colors[ImGuiCol_WindowBg]               = sRGBA{0.94f, 0.94f, 0.94f, 0.90f};
+               colors[ImGuiCol_ChildBg]                = sRGBA{0.94f, 0.94f, 0.94f, 1.00f};
+               colors[ImGuiCol_PopupBg]                = sRGBA{1.00f, 1.00f, 1.00f, 1.00f};
+               colors[ImGuiCol_Border]                 = sRGBA{0.00f, 0.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_BorderShadow]           = sRGBA{0.00f, 0.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_FrameBg]                = sRGBA{1.00f, 1.00f, 1.00f, 1.00f};
+               colors[ImGuiCol_FrameBgHovered]         = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_FrameBgActive]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_TitleBg]                = sRGBA{0.96f, 0.96f, 0.96f, 1.00f};
+               colors[ImGuiCol_TitleBgActive]          = sRGBA{0.82f, 0.82f, 0.82f, 1.00f};
+               colors[ImGuiCol_TitleBgCollapsed]       = sRGBA{1.00f, 1.00f, 1.00f, 1.00f};
+               colors[ImGuiCol_MenuBarBg]              = sRGBA{0.86f, 0.86f, 0.86f, 1.00f};
+               colors[ImGuiCol_ScrollbarBg]            = sRGBA{0.98f, 0.98f, 0.98f, 1.00f};
+               colors[ImGuiCol_ScrollbarGrab]          = sRGBA{0.69f, 0.69f, 0.69f, 1.00f};
+               colors[ImGuiCol_ScrollbarGrabHovered]   = sRGBA{0.49f, 0.49f, 0.49f, 1.00f};
+               colors[ImGuiCol_ScrollbarGrabActive]    = sRGBA{0.49f, 0.49f, 0.49f, 1.00f};
+               colors[ImGuiCol_CheckMark]              = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_SliderGrab]             = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_SliderGrabActive]       = sRGBA{0.46f, 0.54f, 0.80f, 1.00f};
+               colors[ImGuiCol_Button]                 = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_ButtonHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_ButtonActive]           = sRGBA{0.06f, 0.53f, 0.98f, 1.00f};
+               colors[ImGuiCol_Header]                 = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_HeaderHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_HeaderActive]           = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_Separator]              = sRGBA{0.39f, 0.39f, 0.39f, 1.00f};
+               colors[ImGuiCol_SeparatorHovered]       = sRGBA{0.14f, 0.44f, 0.80f, 1.00f};
+               colors[ImGuiCol_SeparatorActive]        = sRGBA{0.14f, 0.44f, 0.80f, 1.00f};
+               colors[ImGuiCol_ResizeGrip]             = sRGBA{0.35f, 0.35f, 0.35f, 1.00f};
+               colors[ImGuiCol_ResizeGripHovered]      = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_ResizeGripActive]       = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_Tab]                    = sRGBA{0.76f, 0.80f, 0.84f, 1.00f};
+               colors[ImGuiCol_TabHovered]             = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_TabActive]              = sRGBA{0.60f, 0.73f, 0.88f, 1.00f};
+               colors[ImGuiCol_TabUnfocused]           = sRGBA{0.92f, 0.93f, 0.94f, 1.00f};
+               colors[ImGuiCol_TabUnfocusedActive]     = sRGBA{0.74f, 0.82f, 0.91f, 1.00f};
+               colors[ImGuiCol_DockingPreview]         = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_DockingEmptyBg]         = sRGBA{0.20f, 0.20f, 0.20f, 1.00f};
+               colors[ImGuiCol_PlotLines]              = sRGBA{0.39f, 0.39f, 0.39f, 1.00f};
+               colors[ImGuiCol_PlotLinesHovered]       = sRGBA{1.00f, 0.43f, 0.35f, 1.00f};
+               colors[ImGuiCol_PlotHistogram]          = sRGBA{0.90f, 0.70f, 0.00f, 1.00f};
+               colors[ImGuiCol_PlotHistogramHovered]   = sRGBA{1.00f, 0.45f, 0.00f, 1.00f};
+               colors[ImGuiCol_TableHeaderBg]          = sRGBA{0.78f, 0.87f, 0.98f, 1.00f};
+               colors[ImGuiCol_TableBorderStrong]      = sRGBA{0.57f, 0.57f, 0.64f, 1.00f};
+               colors[ImGuiCol_TableBorderLight]       = sRGBA{0.68f, 0.68f, 0.74f, 1.00f};
+               colors[ImGuiCol_TableRowBg]             = sRGBA{0.00f, 0.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_TableRowBgAlt]          = sRGBA{0.30f, 0.30f, 0.30f, 1.00f};
+               colors[ImGuiCol_TextSelectedBg]         = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_DragDropTarget]         = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_NavHighlight]           = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_NavWindowingHighlight]  = sRGBA{0.70f, 0.70f, 0.70f, 1.00f};
+               colors[ImGuiCol_NavWindowingDimBg]      = sRGBA{0.20f, 0.20f, 0.20f, 1.00f};
+               colors[ImGuiCol_ModalWindowDimBg]       = sRGBA{0.20f, 0.20f, 0.20f, 1.00f};
+               break;
+
+            case Theme::Dark:
+               ImGui::StyleColorsDark();
+               colors[ImGuiCol_Text]                   = sRGBA{1.00f, 1.00f, 1.00f, 1.00f};
+               colors[ImGuiCol_TextDisabled]           = sRGBA{0.50f, 0.50f, 0.50f, 1.00f};
+               colors[ImGuiCol_WindowBg]               = sRGBA{0.06f, 0.06f, 0.06f, 0.94f};
+               colors[ImGuiCol_ChildBg]                = sRGBA{0.00f, 0.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_PopupBg]                = sRGBA{0.08f, 0.08f, 0.08f, 1.00f};
+               colors[ImGuiCol_Border]                 = sRGBA{0.43f, 0.43f, 0.50f, 1.00f};
+               colors[ImGuiCol_BorderShadow]           = sRGBA{0.00f, 0.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_FrameBg]                = sRGBA{0.16f, 0.29f, 0.48f, 1.00f};
+               colors[ImGuiCol_FrameBgHovered]         = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_FrameBgActive]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_TitleBg]                = sRGBA{0.04f, 0.04f, 0.04f, 1.00f};
+               colors[ImGuiCol_TitleBgActive]          = sRGBA{0.16f, 0.29f, 0.48f, 1.00f};
+               colors[ImGuiCol_TitleBgCollapsed]       = sRGBA{0.00f, 0.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_MenuBarBg]              = sRGBA{0.14f, 0.14f, 0.14f, 1.00f};
+               colors[ImGuiCol_ScrollbarBg]            = sRGBA{0.02f, 0.02f, 0.02f, 1.00f};
+               colors[ImGuiCol_ScrollbarGrab]          = sRGBA{0.31f, 0.31f, 0.31f, 1.00f};
+               colors[ImGuiCol_ScrollbarGrabHovered]   = sRGBA{0.41f, 0.41f, 0.41f, 1.00f};
+               colors[ImGuiCol_ScrollbarGrabActive]    = sRGBA{0.51f, 0.51f, 0.51f, 1.00f};
+               colors[ImGuiCol_CheckMark]              = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_SliderGrab]             = sRGBA{0.24f, 0.52f, 0.88f, 1.00f};
+               colors[ImGuiCol_SliderGrabActive]       = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_Button]                 = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_ButtonHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_ButtonActive]           = sRGBA{0.06f, 0.53f, 0.98f, 1.00f};
+               colors[ImGuiCol_Header]                 = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_HeaderHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_HeaderActive]           = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_Separator]              = sRGBA{0.43f, 0.43f, 0.50f, 1.00f};
+               colors[ImGuiCol_SeparatorHovered]       = sRGBA{0.10f, 0.40f, 0.75f, 1.00f};
+               colors[ImGuiCol_SeparatorActive]        = sRGBA{0.10f, 0.40f, 0.75f, 1.00f};
+               colors[ImGuiCol_ResizeGrip]             = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_ResizeGripHovered]      = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_ResizeGripActive]       = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_Tab]                    = sRGBA{0.18f, 0.35f, 0.58f, 1.00f};
+               colors[ImGuiCol_TabHovered]             = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_TabActive]              = sRGBA{0.20f, 0.41f, 0.68f, 1.00f};
+               colors[ImGuiCol_TabUnfocused]           = sRGBA{0.07f, 0.10f, 0.15f, 1.00f};
+               colors[ImGuiCol_TabUnfocusedActive]     = sRGBA{0.14f, 0.26f, 0.42f, 1.00f};
+               colors[ImGuiCol_DockingPreview]         = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_DockingEmptyBg]         = sRGBA{0.20f, 0.20f, 0.20f, 1.00f};
+               colors[ImGuiCol_PlotLines]              = sRGBA{0.61f, 0.61f, 0.61f, 1.00f};
+               colors[ImGuiCol_PlotLinesHovered]       = sRGBA{1.00f, 0.43f, 0.35f, 1.00f};
+               colors[ImGuiCol_PlotHistogram]          = sRGBA{0.90f, 0.70f, 0.00f, 1.00f};
+               colors[ImGuiCol_PlotHistogramHovered]   = sRGBA{1.00f, 0.60f, 0.00f, 1.00f};
+               colors[ImGuiCol_TableHeaderBg]          = sRGBA{0.19f, 0.19f, 0.20f, 1.00f};
+               colors[ImGuiCol_TableBorderStrong]      = sRGBA{0.31f, 0.31f, 0.35f, 1.00f};
+               colors[ImGuiCol_TableBorderLight]       = sRGBA{0.23f, 0.23f, 0.25f, 1.00f};
+               colors[ImGuiCol_TableRowBg]             = sRGBA{0.00f, 0.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_TableRowBgAlt]          = sRGBA{1.00f, 1.00f, 1.00f, 1.00f};
+               colors[ImGuiCol_TextSelectedBg]         = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_DragDropTarget]         = sRGBA{1.00f, 1.00f, 0.00f, 1.00f};
+               colors[ImGuiCol_NavHighlight]           = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_NavWindowingHighlight]  = sRGBA{1.00f, 1.00f, 1.00f, 1.00f};
+               colors[ImGuiCol_NavWindowingDimBg]      = sRGBA{0.80f, 0.80f, 0.80f, 1.00f};
+               colors[ImGuiCol_ModalWindowDimBg]       = sRGBA{0.80f, 0.80f, 0.80f, 1.00f};
+               break;
+         }
       }
 
 

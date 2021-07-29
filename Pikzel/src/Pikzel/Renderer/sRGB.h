@@ -1,5 +1,7 @@
 #pragma once
 
+#include <imgui.h>
+
 namespace Pikzel {
 
    // sRGB and sRGBA classes are convenience helpers to convert from non-linear color space that we are
@@ -51,6 +53,7 @@ namespace Pikzel {
 
       operator glm::vec3() const;
       operator glm::vec4() const;
+      operator ImVec4() const;
 
    private:
       float red;
@@ -66,6 +69,7 @@ namespace Pikzel {
 
       operator glm::vec3() const;
       operator glm::vec4() const;
+      operator ImVec4() const;
 
    private:
       float red;

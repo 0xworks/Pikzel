@@ -40,3 +40,6 @@
 [submodule "Pikzel/vendor/yaml-cpp"]
 	path = Pikzel/vendor/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
+[submodule "Pikzel/vendor/ImGuiAl"]
+	path = Pikzel/vendor/ImGuiAl
+	url = https://github.com/leiradel/ImGuiAl
