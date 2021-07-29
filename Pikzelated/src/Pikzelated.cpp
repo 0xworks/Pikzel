@@ -1,8 +1,10 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
+#include "Pikzel/Renderer/RenderCore.h"
 #include "Pikzel/Scene/AssetCache.h"
 
 #include <imgui_internal.h>
+
 
 // TODO: get these from somewhere
 const float nearPlane = 1000.f;
@@ -18,10 +20,6 @@ public:
       PKZL_PROFILE_FUNCTION();
 
       Pikzel::ImGuiEx::Init(GetWindow());
-      ImGuiIO& io = ImGui::GetIO();
-      io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-      io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-      io.ConfigWindowsMoveFromTitleBarOnly = true;
 
       m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f}});
       m_SceneRenderer = Pikzel::CreateSceneRenderer(m_Framebuffer->GetGraphicsContext());
@@ -178,7 +176,6 @@ protected:
       ImGui::SetNextWindowSize(size);
       ImGui::SetNextWindowViewport(viewport->ID);
 
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
       ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
@@ -202,13 +199,14 @@ protected:
          if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
             ImGui::DockSpace(dockspaceId, {}, dockspace_flags);
          }
+         ImGui::PopStyleVar(); // window padding
       }
    }
 
 
    void EndDockSpace() {
       ImGui::End();
-      ImGui::PopStyleVar(3);
+      ImGui::PopStyleVar(); // window border
    }
 
 
@@ -227,8 +225,17 @@ protected:
             if (ImGui::MenuItem("Save As...")) {
                OnFileSaveAs();
             }
-#if _DEBUG
             ImGui::Separator();
+            if (ImGui::BeginMenu("Theme")) {
+               if (ImGui::MenuItem("Light")) {
+                  Pikzel::ImGuiEx::SetColors(Pikzel::ImGuiEx::Theme::Light);
+               }
+               if (ImGui::MenuItem("Dark")) {
+                  Pikzel::ImGuiEx::SetColors(Pikzel::ImGuiEx::Theme::Dark);
+               }
+               ImGui::EndMenu();
+            }
+#if _DEBUG
             if (ImGui::MenuItem("Show ImGui Demo")) {
                m_ShowDemoWindow = true;
             }
@@ -276,6 +283,8 @@ protected:
       //ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
       //ImGui::SetNextWindowSize(viewportPanelSize);
       //ImGui::SetNextWindowViewport(viewport->ID);
+
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
       ImGui::Begin("Viewport", nullptr, viewport_window_flags);
       {
          ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
@@ -286,6 +295,7 @@ protected:
          ImGui::GetIO().DisplaySize = ImVec2((float)m_ViewportSize.x, (float)m_ViewportSize.y); // what is this actually for?
       }
       ImGui::End();
+      ImGui::PopStyleVar();
    }
 
 
