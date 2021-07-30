@@ -8,7 +8,7 @@ namespace Pikzel {
       auto id = entt::hashed_string(name.data());
       if (auto handle = GetModelResource(id)) {
          if (handle->Path != path) {
-            PKZL_CORE_LOG_ERROR("Model with name '{0}' has already been loaded from path '{1}'.  This conflicts with attempt to load from path '{2}'", name, handle->Path, path);
+            PKZL_CORE_LOG_ERROR("Model with name '{}' has already been loaded from path '{}'.  This conflicts with attempt to load from path '{}'", name, handle->Path, path);
          }
       } else {
          m_ModelCache.load<ModelResourceLoader>(id, name, path);
