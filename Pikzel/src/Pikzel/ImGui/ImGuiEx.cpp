@@ -13,6 +13,23 @@
 namespace Pikzel {
    namespace ImGuiEx {
 
+      void AddFont(const void* compressedData, const int compressedSize, const float pixelSize) {
+         static const ImWchar icon_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+
+         auto& io = ImGui::GetIO();
+         io.Fonts->AddFontFromMemoryCompressedTTF(compressedData, compressedSize, pixelSize);
+
+         ImFontConfig cfg;
+         cfg.GlyphMinAdvanceX = pixelSize;
+         cfg.MergeMode = true;
+
+         ImFont* mergedFont = io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Regular400_compressed_data, FontAwesome5Regular400_compressed_size, pixelSize * 0.75f, &cfg, icon_ranges);
+         PKZL_CORE_ASSERT(mergedFont, "Failed to merge font 'FontAwesome5Regular400'!");
+         mergedFont = io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Solid900_compressed_data, FontAwesome5Solid900_compressed_size, pixelSize * 0.75f, &cfg, icon_ranges);
+         PKZL_CORE_ASSERT(mergedFont, "Failed to merge font 'FontAwesome5Solid900'!");
+      }
+
+
       void Init(Window& window) {
          window.InitializeImGui();
          ImGui::SetCurrentContext(window.GetGraphicsContext().GetImGuiContext());
@@ -30,10 +47,8 @@ namespace Pikzel {
          style.WindowRounding = 0.0f;
          style.TabRounding = 0.0f;
 
-         io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Regular400_compressed_data, FontAwesome5Regular400_compressed_size, 16 * scaleFactor);
-         io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Solid900_compressed_data, FontAwesome5Solid900_compressed_size, 16 * scaleFactor);
-         io.Fonts->AddFontFromMemoryCompressedTTF(DroidSansBold_compressed_data, DroidSansBold_compressed_size, 16 * scaleFactor);
-         io.FontDefault = io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, 16 * scaleFactor);
+         AddFont(DroidSans_compressed_data, DroidSans_compressed_size, 16 * scaleFactor);
+         AddFont(DroidSansBold_compressed_data, DroidSansBold_compressed_size, 16 * scaleFactor);
 
          RenderCore::UploadImGuiFonts();
       }
@@ -184,7 +199,7 @@ namespace Pikzel {
          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button);
          ImGui::PushStyleColor(ImGuiCol_ButtonActive, button);
 
-         auto boldFont = ImGui::GetIO().Fonts->Fonts[0];
+         auto boldFont = ImGui::GetIO().Fonts->Fonts[(int)Font::DroidSansBold];
 
          {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.8f, 0.1f, 0.15f, 1.0f});

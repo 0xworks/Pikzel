@@ -1,30 +1,43 @@
-#include "Pikzel/Pikzel.h"
+#include "Panel.h"
+#include "SceneEditor.h"
+#include "SceneExplorerPanel.h"
+
 #include "Pikzel/Core/EntryPoint.h"
+#include "Pikzel/Core/PlatformUtility.h"
+#include "Pikzel/ImGui/ImGuiEx.h"
+#include "Pikzel/Input/KeyCodes.h"
 #include "Pikzel/Renderer/RenderCore.h"
-#include "Pikzel/Scene/AssetCache.h"
+#include "Pikzel/Scene/SceneRenderer.h"
+#include "Pikzel/Scene/SceneSerializer.h"
 
 #include <imgui_internal.h>
 
 
-// TODO: get these from somewhere
-const float nearPlane = 1000.f;
-const float farPlane = 0.1f;
+std::string MakeViewportWindowName(const std::filesystem::path& path) {
+   std::string windowName = "<unnamed scene>###Viewport";
+   if (!path.empty()) {
+      windowName = path.filename().string() + "###Viewport";
+   }
+   return windowName;
+}
+
 
 class Pikzelated final : public Pikzel::Application {
    using super = Pikzel::Application;
 public:
    Pikzelated()
    : Pikzel::Application{{.title = APP_DESCRIPTION, .clearColor = {0.0f, 0.0f, 0.0f, 1.0f}, .isMaximized = true, .isVSync = true}}
+   , m_Editor{std::move(std::make_unique<Pikzel::Scene>())}
    , m_Input{GetWindow()}
    {
       PKZL_PROFILE_FUNCTION();
 
       Pikzel::ImGuiEx::Init(GetWindow());
 
-      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f}});
+      m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_Editor.GetViewportSize().x, .height = m_Editor.GetViewportSize().y, .msaaNumSamples = 4});
       m_SceneRenderer = Pikzel::CreateSceneRenderer(m_Framebuffer->GetGraphicsContext());
 
-      m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(m_ViewportSize.x) / static_cast<float>(m_ViewportSize.y), nearPlane, farPlane);
+      m_Panels.emplace_back(std::make_unique<SceneExplorerPanel>(m_Editor));
    }
 
 
@@ -35,68 +48,52 @@ protected:
       if (m_Input.IsKeyPressed(Pikzel::KeyCode::Escape)) {
          Exit();
       }
-      m_Camera.Update(m_Input, deltaTime);
+      m_Editor.Update(m_Input, deltaTime);
    }
 
 
    void OnFileNew() {
-      m_Scene = std::make_unique<Pikzel::Scene>();
+      m_Editor.SetScene(std::move(std::make_unique<Pikzel::Scene>()));
       m_ScenePath.clear();
-
-#if _DEBUG
-      auto model = Pikzel::AssetCache::LoadModelResource("triangle", "Assets/Pikzelated/Models/Triangle.obj");
-
-      Pikzel::Object triangle = m_Scene->CreateObject();
-      m_Scene->AddComponent<Pikzel::Id>(triangle, 1234u);
-      m_Scene->AddComponent<Pikzel::Transform>(triangle, glm::translate(glm::identity<glm::mat4>(), { 0.5, 0.5, 0.0 }));
-      m_Scene->AddComponent<Pikzel::Model>(triangle, model);
-
-
-      Pikzel::Object triangle2 = m_Scene->CreateObject();
-      m_Scene->AddComponent<Pikzel::Id>(triangle2, 9999u);
-      m_Scene->AddComponent<Pikzel::Transform>(triangle2, glm::scale(glm::identity<glm::mat4>(), { 0.5, 0.5, 1.0 }));
-      m_Scene->AddComponent<Pikzel::Model>(triangle2, model);
-#endif
+      m_ViewportWindowName = MakeViewportWindowName(m_ScenePath);
    }
 
 
    void OnFileOpen() {
       auto path = Pikzel::OpenFileDialog("*.pkzl", "Pikzel Scene File (*.pkzl)");
       if (path.has_value()) {
-         Pikzel::SceneSerializerYAML yaml{ {.Path = path.value() } };
-         m_Scene = yaml.Deserialize();
+         Pikzel::SceneSerializerYAML yaml{{.Path = path.value() }};
+         m_Editor.SetScene(std::move(yaml.Deserialize()));
          m_ScenePath = path.value();
+         m_ViewportWindowName = MakeViewportWindowName(m_ScenePath);
       }
    }
 
 
    void SaveScene() {
-      Pikzel::SceneSerializerYAML yaml{ {.Path = m_ScenePath} };
-      yaml.Serialize(*m_Scene);
+      Pikzel::SceneSerializerYAML yaml{{.Path = m_ScenePath}};
+      yaml.Serialize(m_Editor.GetScene());
    }
 
 
    void OnFileSave() {
-      if (m_Scene) {
-         if (m_ScenePath.empty()) {
-            OnFileSaveAs();
-         } else {
-            SaveScene();
-         }
+      if (m_ScenePath.empty()) {
+         OnFileSaveAs();
+      } else {
+         SaveScene();
       }
    }
 
 
    void OnFileSaveAs() {
-      if (m_Scene) {
-         auto path = Pikzel::SaveFileDialog("*.pkzl", "Pikzel Scene File (*.pkzl)");
-         if (path.has_value()) {
-            if (path.value().extension() != ".pkzl") {
-               path.value() += ".pkzl";
-            }
-            m_ScenePath = path.value();
-            SaveScene();
+      auto path = Pikzel::SaveFileDialog("*.pkzl", "Pikzel Scene File (*.pkzl)");
+      if (path.has_value()) {
+         if (path.value().extension() != ".pkzl") {
+            path.value() += ".pkzl";
          }
+         m_ScenePath = path.value();
+         m_ViewportWindowName = MakeViewportWindowName(m_ScenePath);
+         SaveScene();
       }
    }
 
@@ -108,12 +105,11 @@ protected:
 
    virtual void RenderBegin() override {
       PKZL_PROFILE_FUNCTION();
-      if(
-         (m_ViewportSize.x != m_Framebuffer->GetWidth()) ||
-         (m_ViewportSize.y != m_Framebuffer->GetHeight())
+      if (auto size = m_Editor.GetViewportSize();
+         (size.x != m_Framebuffer->GetWidth()) ||
+         (size.y != m_Framebuffer->GetHeight())
       ) {
-         m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_ViewportSize.x, .height = m_ViewportSize.y, .msaaNumSamples = 4, .clearColorValue = {1.0f, 1.0f, 1.0f, 1.0f}});
-         m_Camera.projection = glm::perspective(m_Camera.fovRadians, static_cast<float>(m_ViewportSize.x) / static_cast<float>(m_ViewportSize.y), nearPlane, farPlane);
+         m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = size.x, .height = size.y, .msaaNumSamples = 4});
       }
    }
 
@@ -123,9 +119,9 @@ protected:
 
       Pikzel::GraphicsContext& gc = m_Framebuffer->GetGraphicsContext();
       gc.BeginFrame();
-      if (m_Scene) {
+      {
          PKZL_PROFILE_SCOPE("render scene");
-         m_SceneRenderer->Render(gc, m_Camera, *m_Scene);
+         m_SceneRenderer->Render(gc, m_Editor.GetCamera(), m_Editor.GetScene());
       }
       gc.EndFrame();
 
@@ -135,7 +131,9 @@ protected:
       BeginDockSpace();
       {
          RenderMenuBar();
-         RenderStatisticsPanel();
+         for (auto& panel : m_Panels) {
+            panel->Render();
+         }
          RenderViewport(gc);
       }
       EndDockSpace();
@@ -154,15 +152,13 @@ protected:
    void BeginDockSpace() {
       static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
       static ImGuiWindowFlags dockspace_window_flags =
-         //ImGuiWindowFlags_MenuBar |
-         //ImGuiWindowFlags_NoDocking |
          ImGuiWindowFlags_NoTitleBar |
          ImGuiWindowFlags_NoCollapse |
          ImGuiWindowFlags_NoResize |
          ImGuiWindowFlags_NoMove |
          ImGuiWindowFlags_NoBringToFrontOnFocus |
          ImGuiWindowFlags_NoNavFocus
-         ;
+      ;
 
       ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -183,17 +179,20 @@ protected:
       {
          ImGuiID dockspaceId = ImGui::GetID("Dockspace");
 
-         if (!ImGui::DockBuilderGetNode(dockspaceId)) {
+         if (!ImGui::DockBuilderGetNode(dockspaceId) || m_ResetWindowLayout) {
+            ImGui::DockBuilderRemoveNode(dockspaceId);
+
             ImGuiID dockNode = dockspaceId;
             ImGui::DockBuilderAddNode(dockNode);
             ImGui::DockBuilderSetNodeSize(dockNode, { ImGui::GetIO().DisplaySize.x * ImGui::GetIO().DisplayFramebufferScale.x, ImGui::GetIO().DisplaySize.y * ImGui::GetIO().DisplayFramebufferScale.y });
 
-            ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockNode, ImGuiDir_Left, 0.2f, nullptr, &dockNode);
+            ImGuiID dockRight = ImGui::DockBuilderSplitNode(dockNode, ImGuiDir_Right, 0.2f, nullptr, &dockNode);
 
-            ImGui::DockBuilderDockWindow("Viewport", dockNode);
-            ImGui::DockBuilderDockWindow("Statistics", dockLeft);
+            ImGui::DockBuilderDockWindow("###Viewport", dockNode);
+            ImGui::DockBuilderDockWindow("###SceneExplorer", dockRight);
 
             ImGui::DockBuilderFinish(dockspaceId);
+            m_ResetWindowLayout = false;
          }
 
          if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
@@ -235,6 +234,9 @@ protected:
                }
                ImGui::EndMenu();
             }
+            if (ImGui::MenuItem("Reset Window Layout")) {
+               m_ResetWindowLayout = true;
+            }
 #if _DEBUG
             if (ImGui::MenuItem("Show ImGui Demo")) {
                m_ShowDemoWindow = true;
@@ -246,53 +248,28 @@ protected:
             }
             ImGui::EndMenu();
          }
+
+         auto& io = ImGui::GetIO();
+         std::string fps = std::format("Frame time {:.3f} ms ({:.0f} FPS)", 1000.0f / io.Framerate, io.Framerate);
+         auto size = ImGui::CalcTextSize(fps.data());
+         ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - size.x - ImGui::GetStyle().ItemSpacing.x);
+         ImGui::Text(fps.data());
+
          ImGui::EndMainMenuBar();
       }
    }
 
 
-   void RenderStatisticsPanel() {
-      static ImGuiWindowFlags statisticPanelFlags = ImGuiWindowFlags_NoCollapse;
-      if (m_ShowStatisticsPanel) {
-         ImGui::Begin("Statistics", &m_ShowStatisticsPanel, statisticPanelFlags);
-         {
-            // auto stats = Renderer2D::GetStats();
-            auto& io = ImGui::GetIO();
-            ImGui::Text("Draw Calls: XXX"); // % d", stats.DrawCalls);
-            ImGui::Text("Quads: XXX");      // % d", stats.QuadCount);
-            ImGui::Text("Vertices: XXX");   // % d", stats.GetTotalVertexCount());
-            ImGui::Text("Indices: XXX");    // % d", stats.GetTotalIndexCount());
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            static float frameRates[90] = {};
-            static int frameOffset = 0;
-            static double refresh = ImGui::GetTime();
-            while (refresh <= ImGui::GetTime()) {
-               frameRates[frameOffset] = 1000.0f / io.Framerate;
-               frameOffset = (frameOffset + 1) % IM_ARRAYSIZE(frameRates);
-               refresh += 1.0f / 60.0f;
-            }
-         }
-         ImGui::End();
-      }
-   }
-
    void RenderViewport(Pikzel::GraphicsContext& gc) {
-      //static ImGuiDockNodeFlags viewport_dockspace_flags = ImGuiDockNodeFlags_NoDockingOverMe | ImGuiDockNodeFlags_NoDockingOverOther | ImGuiDockNodeFlags_NoTabBar;
-
-      static ImGuiWindowFlags viewport_window_flags = ImGuiWindowFlags_NoDecoration;// | ImGuiWindowFlags_NoDocking;
-      //ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-      //ImGui::SetNextWindowSize(viewportPanelSize);
-      //ImGui::SetNextWindowViewport(viewport->ID);
+      static ImGuiWindowFlags viewportWindowFlags = ImGuiWindowFlags_NoCollapse;
 
       ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-      ImGui::Begin("Viewport", nullptr, viewport_window_flags);
+      ImGui::Begin(m_ViewportWindowName.data(), nullptr, viewportWindowFlags);
       {
          ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-         m_ViewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-         //ImGui::DockSpace(ImGui::GetID("DockSpace"), ImVec2{ 0,0 }, viewport_dockspace_flags);
+         m_Editor.SetViewportSize({viewportPanelSize.x, viewportPanelSize.y});
          gc.SwapBuffers();
          ImGui::Image(m_Framebuffer->GetImGuiColorTextureId(0), viewportPanelSize, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-         ImGui::GetIO().DisplaySize = ImVec2((float)m_ViewportSize.x, (float)m_ViewportSize.y); // what is this actually for?
       }
       ImGui::End();
       ImGui::PopStyleVar();
@@ -305,22 +282,20 @@ protected:
 
 
 private:
-   Camera m_Camera = {
-      .position = {0.0f, 0.0f, 3.0f},
-      .direction = glm::normalize(glm::vec3{0.0f, 0.0f, -1.0f}),
-      .upVector = {0.0f, 1.0f, 0.0f},
-      .fovRadians = glm::radians(60.f),
-      .moveSpeed = 2.5f,
-      .rotateSpeed = 10.0f
-   };
+   SceneEditor m_Editor;
+   std::filesystem::path m_ScenePath;
 
    Pikzel::Input m_Input;
-   glm::u32vec2 m_ViewportSize = {800, 600};
-   std::filesystem::path m_ScenePath;
-   std::unique_ptr<Pikzel::Scene> m_Scene;
+
+   std::vector<std::unique_ptr<Panel>> m_Panels;
+
+   std::string m_ViewportWindowName = MakeViewportWindowName({});
+
    std::unique_ptr<Pikzel::SceneRenderer> m_SceneRenderer;
    std::unique_ptr<Pikzel::Framebuffer> m_Framebuffer;
-   bool m_ShowStatisticsPanel = true;
+
+   bool m_ResetWindowLayout = false;
+   bool m_ShowSceneExplorer = true;
 #if _DEBUG
    bool m_ShowDemoWindow = false;
 #endif

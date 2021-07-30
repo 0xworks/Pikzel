@@ -1,6 +1,8 @@
 #pragma once
 
+
 #include "Pikzel/Core/Window.h"
+#include "Pikzel/ImGui/IconsFontAwesome5.h"
 
 #include <glm/glm.hpp>
 #include <imgui.h>
@@ -12,6 +14,11 @@ namespace Pikzel {
       enum class Theme {
          Light,
          Dark
+      };
+
+      enum class Font {
+         DroidSans,
+         DroidSansBold
       };
 
       void Init(Window& window);
