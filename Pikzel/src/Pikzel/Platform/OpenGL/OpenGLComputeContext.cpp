@@ -34,7 +34,7 @@ namespace Pikzel {
          if (storageImageBinding != ~0) {
             glBindImageTexture(storageImageBinding, static_cast<const OpenGLTexture&>(texture).GetRendererId(), mipLevel, GL_TRUE, 0, GL_WRITE_ONLY, TextureFormatToInternalFormat(texture.GetFormat()));
          } else {
-            throw std::invalid_argument {fmt::format("OpenGLComputeContext::Bind(const Texture&) failed to find binding with id {0}!", resourceId)};
+            throw std::invalid_argument {std::format("OpenGLComputeContext::Bind(const Texture&) failed to find binding with id {}!", resourceId)};
          }
       }
    }

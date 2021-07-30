@@ -13,16 +13,29 @@
 namespace fmt {
 
    template <>
-   struct fmt::formatter<std::filesystem::path> : formatter<string_view> {
+   struct formatter<std::filesystem::path> : formatter<std::string_view> {
 
       template <typename FormatContext>
       auto format(const std::filesystem::path& path, FormatContext& ctx) {
-         return formatter<string_view>::format(path.string().c_str(), ctx);
+         return formatter<std::string_view>::format(path.string().data(), ctx);
       }
    };
 
 }
 
+
+namespace std {
+
+   template <>
+   struct formatter<filesystem::path> : formatter<string_view> {
+
+      template <typename FormatContext>
+      auto format(const filesystem::path& path, FormatContext& ctx) {
+         return formatter<string_view>::format(path.string().data(), ctx);
+      }
+   };
+
+}
 
 namespace Pikzel {
 

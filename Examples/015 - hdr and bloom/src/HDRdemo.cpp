@@ -223,7 +223,7 @@ protected:
          ImGui::Checkbox("Ambient Light", &m_ShowDirectionalLight);
          ImGui::Checkbox("Point Lights", &m_ShowPointLights);
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
-            ImGuiDrawPointLight(fmt::format("light {0}", i).c_str(), m_PointLights[i]);
+            ImGuiDrawPointLight(std::format("light {}", i).c_str(), m_PointLights[i]);
          }
          //ImGui::Text("Brightness color buffer:");
          //ImVec2 size = ImGui::GetContentRegionAvail();
