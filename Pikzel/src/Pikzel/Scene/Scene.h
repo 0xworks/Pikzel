@@ -18,6 +18,7 @@ namespace Pikzel {
       func(obj);
    };
 
+
    class PKZL_API Scene {
    public:
       virtual ~Scene() = default;
@@ -44,6 +45,16 @@ namespace Pikzel {
       }
 
       template<typename T>
+      T* TryGetComponent(const Object object) {
+         return m_Registry.try_get<T>(object);
+      }
+
+      template<typename T>
+      const T* TryGetComponent(const Object object) const {
+         return m_Registry.try_get<T>(object);
+      }
+
+      template<typename T>
       bool HasComponent(const Object object) const {
          return m_Registry.all_of<T>(object);
       }
@@ -61,23 +72,26 @@ namespace Pikzel {
          });
       }
 
+      template<typename... Component>
+      auto GetGroup() {
+         return m_Registry.group<Component...>();
+      }
+
+      template<typename... Component>
+      auto GetView() {
+         return m_Registry.view<Component...>();
+      }
+
+      template<typename... Component>
+      auto GetView() const {
+         return m_Registry.view<Component...>();
+      }
+
       void OnUpdate(DeltaTime dt);
 
    private:
       friend class SceneSerializerYAML;
-
-      // HACK: At this stage I am unsure how entt "groups" and "views"
-      //       will be exposed to clients of Scene.
-      //       For now, just hackaround this by exposing the registry directly
-      //
-      //       Ideally we do not want anything in the "entt" namespace escaping from
-      //       Scene.  (e.g. so the abstraction of the ECS is clean, and (in theory at least)
-      //       entt could be replaced with a different ECS, and the clients of Scene do not
-      //       need to change)
-   public:
       Registry m_Registry;
-
-
    };
 
    std::unique_ptr<Scene> PKZL_API CreateScene();

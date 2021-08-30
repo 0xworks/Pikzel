@@ -17,7 +17,7 @@ void SceneExplorerPanel::Render() {
    showSceneExplorer = IsVisible();
    ImGui::Begin(m_Name.data(), &showSceneExplorer, s_SceneExplorerFlags);
    {
-      for (auto [entity, id] : GetEditor().GetScene().m_Registry.view<Pikzel::Id>().each()) {
+      for (auto [entity, id] : GetEditor().GetScene().GetView<Pikzel::Id>().each()) {
          ImGui::Text(std::format("{}", id).data());
       }
    }

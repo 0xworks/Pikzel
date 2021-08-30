@@ -214,7 +214,7 @@ namespace Pikzel {
 
    template<typename T>
    void SerializeComponent(YAML::Emitter& yaml, const std::string_view key, const Scene& scene, const Object object) {
-      if (auto component = scene.m_Registry.try_get<T>(object)) {
+      if (auto component = scene.TryGetComponent<T>(object)) {
          yaml << YAML::Key << key.data() << YAML::Value; Serialize(yaml, *component);
       }
    }
@@ -260,7 +260,7 @@ namespace Pikzel {
    void SerializeObjects(YAML::Emitter& yaml, const Scene& scene) {
       yaml << YAML::BeginSeq;
       {
-         for (auto object : scene.m_Registry.view<const Id>()) {
+         for (auto object : scene.GetView<const Id>()) {
             SerializeObject(yaml, scene, object);
          }
       }
