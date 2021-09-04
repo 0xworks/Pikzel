@@ -44,31 +44,35 @@ namespace Pikzel {
 
    void Application::Run() {
       m_AppTime = std::chrono::steady_clock::now();
-      m_Running = true;
-      while (m_Running) {
+      m_IsRunning = true;
+      while (m_IsRunning) {
          PKZL_PROFILE_FRAMEMARKER();
          {
             PKZL_PROFILE_SCOPE("glfwPollEvents");
             glfwPollEvents();
          }
 
-         const auto currentTime = std::chrono::steady_clock::now();
-         {
-            PKZL_PROFILE_SCOPE("EventDispatcher::Send<UpdateEvent>");
-            EventDispatcher::Send<UpdateEvent>(currentTime - m_AppTime);
+         if (!m_IsPaused) {
+            const auto currentTime = std::chrono::steady_clock::now();
+            {
+               PKZL_PROFILE_SCOPE("EventDispatcher::Send<UpdateEvent>");
+               EventDispatcher::Send<UpdateEvent>(currentTime - m_AppTime);
+            }
+            Update(currentTime - m_AppTime);
+            m_AppTime = currentTime;
          }
-         Update(currentTime - m_AppTime);
-         m_AppTime = currentTime;
 
-         RenderBegin();
-         Render();
-         RenderEnd();
+         if (!m_IsMinimized) {
+            RenderBegin();
+            Render();
+            RenderEnd();
+         }
       }
    }
 
 
    void Application::Exit() {
-      m_Running = false;
+      m_IsRunning = false;
    }
 
 
@@ -118,7 +122,14 @@ namespace Pikzel {
 
    void Application::OnWindowResize(const Pikzel::WindowResizeEvent& event) {
       if (event.sender == m_Window->GetNativeWindow()) {
-         Pikzel::RenderCore::SetViewport(0, 0, event.width, event.height);
+         if ((event.width > 0) && (event.height > 0)) {
+            Pikzel::RenderCore::SetViewport(0, 0, event.width, event.height);
+            m_IsPaused = false;
+            m_IsMinimized = false;
+         } else {
+            m_IsPaused = true;
+            m_IsMinimized = true;
+         }
       }
    }
 

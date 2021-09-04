@@ -47,7 +47,9 @@ namespace Pikzel {
       std::filesystem::path m_root;
       std::chrono::steady_clock::time_point m_AppTime = {};
       std::unique_ptr<Window> m_Window;
-      bool m_Running = false;
+      bool m_IsRunning = false;    // Application is running.  If false, the main loop will exit
+      bool m_IsPaused = false;     // If paused, the main loop will not update the application logic
+      bool m_IsMinimized = false; // If minimized, the main loop will not render the application
 
       inline static Application* s_TheApplication = nullptr;
    };
