@@ -24,10 +24,10 @@ void HierarchyPanel::Render() {
          m_SelectedObject = Null;
       }
       if (expanded) {
-         const auto& scene = GetEditor().GetScene();
+         auto& scene = GetEditor().GetScene();
          Object object = scene.GetView<Relationship>().front();
          while (object != Null) {
-            auto relationship = scene.GetComponent<Relationship>(object);
+            auto& relationship = scene.GetComponent<Relationship>(object);
             RenderObject(scene, object, relationship.FirstChild);
             object = relationship.NextSibling;
          }
@@ -51,7 +51,7 @@ void HierarchyPanel::Render() {
 }
 
 
-void HierarchyPanel::RenderObject(const Scene& scene, Object object, Object childObject) {
+void HierarchyPanel::RenderObject(Scene& scene, Object object, Object childObject) {
    ImGuiTreeNodeFlags extraFlags = ImGuiTreeNodeFlags_None;
    if (object == m_SelectedObject) {
       extraFlags |= ImGuiTreeNodeFlags_Selected;
@@ -59,13 +59,49 @@ void HierarchyPanel::RenderObject(const Scene& scene, Object object, Object chil
    if (childObject == Null) {
       extraFlags |= ImGuiTreeNodeFlags_Leaf;
    }
-   auto name = scene.GetComponent<std::string>(object);
-   auto [expanded, clicked] = ImGuiEx::IconTreeNode((void*)(uintptr_t)object, ImGuiEx::Icon::Object, name.data(), extraFlags, [this, object] {
-      if (ImGui::BeginPopupContextItem(fmt::format("{}", object).data())) {
+   auto& name = scene.GetComponent<std::string>(object);
+   auto [expanded, clicked] = ImGuiEx::IconTreeNode((void*)(uintptr_t)object, ImGuiEx::Icon::Object, name.data(), extraFlags, [this, &scene, object] {
+
+      if (ImGui::BeginPopupContextItem()) {
          RenderAddMenu(object);
          RenderDeleteMenu(object);
          ImGui::EndPopup();
       }
+
+      if (ImGui::BeginDragDropSource()) {
+         ImGui::Text(scene.GetComponent<std::string>(object).data());
+         ImGui::SetDragDropPayload("Object", &object, sizeof(Object));
+         ImGui::EndDragDropSource();
+      }
+
+      // Begin target only if source is not one of this objects parents.
+      // In other words, you cannot drag an object onto one of it's children (that would make it a child of its child.. circular and confusing)
+      bool isDescendent = false;
+      const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+      if (payload && payload->IsDataType("Object")) {
+         Object sourceObject = *static_cast<Object*>(payload->Data);
+         Object parent = object;
+         while (parent != Null) {
+            if (parent == sourceObject) {
+               isDescendent = true;
+               break;
+            }
+            parent = scene.GetComponent<Relationship>(parent).Parent;
+         }
+      }
+
+      if (!isDescendent && ImGui::BeginDragDropTarget()) {
+         const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Object");
+         if (payload) {
+            Object sourceObject = *static_cast<Object*>(payload->Data);
+            m_Action = [&scene, sourceObject, object] {
+               scene.GetComponent<Relationship>(sourceObject).Parent = object;
+               scene.SortObjects();
+            };
+         }
+         ImGui::EndDragDropTarget();
+      }
+
    });
    if (clicked) {
       PKZL_CORE_LOG_INFO("Clicked");

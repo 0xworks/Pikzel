@@ -15,7 +15,7 @@ public:
    virtual void Render() override;
 
 private:
-   void RenderObject(const Pikzel::Scene& scene, Pikzel::Object object, Pikzel::Object childObject);
+   void RenderObject(Pikzel::Scene& scene, Pikzel::Object object, Pikzel::Object childObject);
    void RenderAddMenu(Pikzel::Object object);
    void RenderDeleteMenu(Pikzel::Object object);
 
