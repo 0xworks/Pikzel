@@ -1329,25 +1329,31 @@ namespace Pikzel {
 
    void VulkanWindowGC::RecreateSwapChain() {
       m_Device->GetVkDevice().waitIdle();
-      DestroyImageViews();
-      CreateSwapChain();
-      CreateImageViews();
 
-      DestroyColorImage();
-      CreateColorImage();
+      SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(m_Device->GetVkPhysicalDevice(), m_Surface);
+      vk::Extent2D extent = SelectSwapExtent(swapChainSupport.Capabilities);
 
-      DestroyDepthStencil();
-      CreateDepthStencil();
+      if ((extent.width > 0) && (extent.height > 0)) {
+         DestroyImageViews();
+         CreateSwapChain();
+         CreateImageViews();
 
-      DestroyFramebuffers();
-      CreateFramebuffers();
+         DestroyColorImage();
+         CreateColorImage();
 
-      m_WantResize = false;
+         DestroyDepthStencil();
+         CreateDepthStencil();
+
+         DestroyFramebuffers();
+         CreateFramebuffers();
+
+         m_WantResize = false;
+      }
    }
 
 
    void VulkanWindowGC::OnWindowResize(const WindowResizeEvent& event) {
-      if (event.sender == m_Window) {
+      if (event.sender == m_Window && (event.width > 0) && (event.height > 0)) {
          m_WantResize = true;
       }
    }
