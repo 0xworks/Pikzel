@@ -27,7 +27,7 @@ namespace Pikzel {
       void Init(Window& window);
       void SetColors(Theme theme);
 
-      std::tuple<bool, bool> IconTreeNode(void* ptr_id, Icon icon, std::string_view label, ImGuiTreeNodeFlags extraFlags = ImGuiTreeNodeFlags_None, std::function<void()> callback = {});
+      std::tuple<bool, bool> IconTreeNode(void* ptr_id, Icon icon, std::string_view content, ImGuiTreeNodeFlags extraFlags = ImGuiTreeNodeFlags_None, std::function<void()> callback = {});
 
       void EditVec3(const char* label, glm::vec3* value, const float resetValue = 0.0f, const float labelWidth = 100.0f);
       void EditVec3Color(const char* label, glm::vec3* value, const float labelWidth = 100.0f);
