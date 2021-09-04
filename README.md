@@ -66,13 +66,13 @@ This project is mainly a learning exercise for me, and I hope that the code is c
 
 
 ## Building
-This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2019 on Win10.
-I have also tested on Ubuntu 20.10 using gcc.  Others are untested, but may work (with hopefully only minor changes).
+This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio on Win10.
+I have also tested on Ubuntu 20.10 using vscode (with gcc compiler).  Others are untested, but may work (with hopefully only minor changes).
 
 ### Prerequisites
 - A c++20 compiler (or at least the compiler must support designated initializers)
 - cmake 3.16+
-- [Vulkan SDK](https://vulkan.lunarg.com/) (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).  Currently built against Vulkan SDK v1.2.162.0.
+- [Vulkan SDK](https://vulkan.lunarg.com/) (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).  Any version of Vulkan SDK v1.2.162.0 or greater should work, unless explicitly noted in commit comments.
 - On linux you will need the following packages installed:
   - libosmesa6-dev
   - libxrandr-dev
