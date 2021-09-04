@@ -17,14 +17,48 @@ HierarchyPanel::HierarchyPanel(SceneEditor& editor)
 void HierarchyPanel::Render() {
    static bool showSceneExplorer = true;
    showSceneExplorer = IsVisible();
+   auto& scene = GetEditor().GetScene();
    ImGui::Begin(m_Name.data(), &showSceneExplorer, s_SceneExplorerFlags);
    {
-      auto [expanded, clicked] = ImGuiEx::IconTreeNode(0, ImGuiEx::Icon::Scene, "Scene", ImGuiTreeNodeFlags_DefaultOpen);
+      auto [expanded, clicked] = ImGuiEx::IconTreeNode(0, ImGuiEx::Icon::Scene, "Scene", ImGuiTreeNodeFlags_DefaultOpen, [this, &scene] {
+
+         if (ImGui::BeginPopupContextItem()) {
+            RenderAddMenu(Null);
+            ImGui::EndPopup();
+         }
+
+         bool isDropTargetValid = true;
+         const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+         if (payload) {
+            if (payload->IsDataType("Object")) {
+               Object sourceObject = *static_cast<Object*>(payload->Data);
+
+               // Scene is not a valid drop target if the source already has no parent.
+               if (scene.GetComponent<Relationship>(sourceObject).Parent == Null) {
+                  isDropTargetValid = false;
+               }
+            }
+            // could validate other types of payload here
+         }
+
+         if (isDropTargetValid && ImGui::BeginDragDropTarget()) {
+            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Object");
+            if (payload) {
+               Object sourceObject = *static_cast<Object*>(payload->Data);
+               m_Action = [&scene, sourceObject] {
+                  scene.GetComponent<Relationship>(sourceObject).Parent = Null;
+                  scene.SortObjects();
+               };
+            }
+            ImGui::EndDragDropTarget();
+         }
+      });
+
       if (clicked) {
          m_SelectedObject = Null;
       }
+
       if (expanded) {
-         auto& scene = GetEditor().GetScene();
          Object object = scene.GetView<Relationship>().front();
          while (object != Null) {
             auto& relationship = scene.GetComponent<Relationship>(object);
@@ -33,6 +67,7 @@ void HierarchyPanel::Render() {
          }
          ImGui::TreePop();
       }
+
    }
    if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonDefault_ | ImGuiPopupFlags_NoOpenOverItems)) {
       RenderAddMenu(Null);
@@ -59,8 +94,12 @@ void HierarchyPanel::RenderObject(Scene& scene, Object object, Object childObjec
    if (childObject == Null) {
       extraFlags |= ImGuiTreeNodeFlags_Leaf;
    }
+   if (m_EnsureExpanded.contains(object)) {
+      ImGui::SetNextItemOpen(true);
+      m_EnsureExpanded.erase(object);
+   }
    auto& name = scene.GetComponent<std::string>(object);
-   auto [expanded, clicked] = ImGuiEx::IconTreeNode((void*)(uintptr_t)object, ImGuiEx::Icon::Object, name.data(), extraFlags, [this, &scene, object] {
+   auto [expanded, clicked] = ImGuiEx::IconTreeNode((void*)(uintptr_t)object, ImGuiEx::Icon::Object, name, extraFlags, [this, &scene, object] {
 
       if (ImGui::BeginPopupContextItem()) {
          RenderAddMenu(object);
@@ -74,29 +113,39 @@ void HierarchyPanel::RenderObject(Scene& scene, Object object, Object childObjec
          ImGui::EndDragDropSource();
       }
 
-      // Begin target only if source is not one of this objects parents.
-      // In other words, you cannot drag an object onto one of it's children (that would make it a child of its child.. circular and confusing)
-      bool isDescendent = false;
+      bool isDropTargetValid = true;
       const ImGuiPayload* payload = ImGui::GetDragDropPayload();
-      if (payload && payload->IsDataType("Object")) {
-         Object sourceObject = *static_cast<Object*>(payload->Data);
-         Object parent = object;
-         while (parent != Null) {
-            if (parent == sourceObject) {
-               isDescendent = true;
-               break;
+      if (payload) {
+         if (payload->IsDataType("Object")) {
+            Object sourceObject = *static_cast<Object*>(payload->Data);
+
+            // Drop target is only valid if object is not already the parent of source.
+            if (scene.GetComponent<Relationship>(sourceObject).Parent == object) {
+               isDropTargetValid = false;
+            } else {
+               // Drop target is only valid if source is not an ancestor of object.
+               // In other words, you cannot drag an object onto one of its descendants (that would make it a descendant of its descendant - circular and confusing)
+               Object parent = object;
+               while (parent != Null) {
+                  if (parent == sourceObject) {
+                     isDropTargetValid = false;
+                     break;
+                  }
+                  parent = scene.GetComponent<Relationship>(parent).Parent;
+               }
             }
-            parent = scene.GetComponent<Relationship>(parent).Parent;
          }
+         // could validate other types of payload here
       }
 
-      if (!isDescendent && ImGui::BeginDragDropTarget()) {
+      if (isDropTargetValid && ImGui::BeginDragDropTarget()) {
          const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Object");
          if (payload) {
             Object sourceObject = *static_cast<Object*>(payload->Data);
-            m_Action = [&scene, sourceObject, object] {
+            m_Action = [this, &scene, sourceObject, object] {
                scene.GetComponent<Relationship>(sourceObject).Parent = object;
                scene.SortObjects();
+               m_EnsureExpanded.insert(object);
             };
          }
          ImGui::EndDragDropTarget();
@@ -104,7 +153,6 @@ void HierarchyPanel::RenderObject(Scene& scene, Object object, Object childObjec
 
    });
    if (clicked) {
-      PKZL_CORE_LOG_INFO("Clicked");
       m_SelectedObject = object;
    }
    if(expanded) {

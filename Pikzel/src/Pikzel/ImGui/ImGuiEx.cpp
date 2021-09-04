@@ -196,7 +196,7 @@ namespace Pikzel {
          return {0.0f, 0.0f, 0.0f, 1.0f};
       }
 
-      std::tuple<bool, bool> IconTreeNode(void* ptr_id, Icon icon, std::string_view label, ImGuiTreeNodeFlags extraFlags, std::function<void()> callback) {
+      std::tuple<bool, bool> IconTreeNode(void* ptr_id, Icon icon, std::string_view content, ImGuiTreeNodeFlags extraFlags, std::function<void()> callback) {
          bool isExpanded = ImGui::TreeNodeEx(ptr_id, ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow | extraFlags, "");
          bool isClicked = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right));
          if (callback) {
@@ -207,7 +207,7 @@ namespace Pikzel {
          ImGui::Text(IconToString(icon));
          ImGui::PopStyleColor();
          ImGui::SameLine();
-         ImGui::Text(label.data());
+         ImGui::Text(content.data());
          return {isExpanded, isClicked};
       }
 
