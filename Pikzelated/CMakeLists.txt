@@ -8,13 +8,13 @@ project (
 
 set(
    ProjectSources
+   "src/HierarchyPanel.h"
+   "src/HierarchyPanel.cpp"
    "src/Panel.h"
    "src/Panel.cpp"
    "src/Pikzelated.cpp"
    "src/SceneEditor.h"
    "src/SceneEditor.cpp"
-   "src/SceneExplorerPanel.h"
-   "src/SceneExplorerPanel.cpp"
 )
 
 set(

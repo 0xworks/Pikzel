@@ -71,13 +71,16 @@
                             T& operator=(const T&) = delete; \
                             T& operator=(T&&) = delete;
 
-#include <entt/core/fwd.hpp>
 #include <entt/core/hashed_string.hpp>
+#include <entt/entity/entity.hpp>
+#include <entt/entity/fwd.hpp>
 
 using namespace entt::literals;
 
 namespace Pikzel {
    using Id = entt::id_type;
+   using Object = entt::entity;
+   inline constexpr entt::null_t Null {};
 }
 
 namespace std {

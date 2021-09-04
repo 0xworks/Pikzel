@@ -3,7 +3,6 @@
 #include "Pikzel/Core/Core.h"
 #include "Pikzel/Events/ApplicationEvents.h"
 
-#include <entt/entity/entity.hpp>
 #include <entt/entity/registry.hpp>
 
 #include <chrono>
@@ -23,7 +22,13 @@ namespace Pikzel {
    public:
       virtual ~Scene() = default;
 
-      Object CreateObject();
+      // Create a completely empty object (no components)
+      Object CreateEmptyObject();
+
+      // Create an object and initialise it with a std::string component ("NewObject"),
+      // and an initial relationship component to specified parent (which may be Null)
+      Object CreateObject(Object parent);
+
       void DestroyObject(Object entity);
 
       template<typename T, typename... Args>
@@ -86,6 +91,12 @@ namespace Pikzel {
       auto GetView() const {
          return m_Registry.view<Component...>();
       }
+
+      // sort objects based on their Relationship component
+      // this puts them in the order in which we want to
+      // draw them in the scene hierachy panel
+      // TODO: later allow different sort orders
+      void SortObjects();
 
       void OnUpdate(DeltaTime dt);
 

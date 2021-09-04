@@ -84,7 +84,7 @@ namespace Pikzel {
                colors[ImGuiCol_ButtonHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
                colors[ImGuiCol_ButtonActive]           = sRGBA{0.06f, 0.53f, 0.98f, 1.00f};
                colors[ImGuiCol_Header]                 = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
-               colors[ImGuiCol_HeaderHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_HeaderHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 0.60f};
                colors[ImGuiCol_HeaderActive]           = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
                colors[ImGuiCol_Separator]              = sRGBA{0.39f, 0.39f, 0.39f, 1.00f};
                colors[ImGuiCol_SeparatorHovered]       = sRGBA{0.14f, 0.44f, 0.80f, 1.00f};
@@ -143,7 +143,7 @@ namespace Pikzel {
                colors[ImGuiCol_ButtonHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
                colors[ImGuiCol_ButtonActive]           = sRGBA{0.06f, 0.53f, 0.98f, 1.00f};
                colors[ImGuiCol_Header]                 = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
-               colors[ImGuiCol_HeaderHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
+               colors[ImGuiCol_HeaderHovered]          = sRGBA{0.26f, 0.59f, 0.98f, 0.60f};
                colors[ImGuiCol_HeaderActive]           = sRGBA{0.26f, 0.59f, 0.98f, 1.00f};
                colors[ImGuiCol_Separator]              = sRGBA{0.43f, 0.43f, 0.50f, 1.00f};
                colors[ImGuiCol_SeparatorHovered]       = sRGBA{0.10f, 0.40f, 0.75f, 1.00f};
@@ -177,6 +177,39 @@ namespace Pikzel {
          }
       }
 
+
+      const char* IconToString(Icon icon) {
+         switch (icon) {
+            case Icon::Scene:  return ICON_FA_GLOBE;
+            case Icon::Object: return ICON_FA_CUBE;
+         }
+         return ICON_FA_QUESTION;
+      }
+
+
+      ImVec4 IconToColor(Icon icon) {
+         // TODO: theme aware colors.  For now choose them carefully so they work on either dark or light background
+         switch (icon) {
+            case Icon::Scene:  return {0.59f, 0.42f, 0.00f, 1.0f};
+            case Icon::Object: return {0.32f, 0.70f, 0.87f, 1.0f};
+         }
+         return {0.0f, 0.0f, 0.0f, 1.0f};
+      }
+
+      std::tuple<bool, bool> IconTreeNode(void* ptr_id, Icon icon, std::string_view label, ImGuiTreeNodeFlags extraFlags, std::function<void()> callback) {
+         bool isExpanded = ImGui::TreeNodeEx(ptr_id, ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow | extraFlags, "");
+         bool isClicked = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right));
+         if (callback) {
+            callback();
+         }
+         ImGui::PushStyleColor(ImGuiCol_Text, IconToColor(icon));
+         ImGui::SameLine();
+         ImGui::Text(IconToString(icon));
+         ImGui::PopStyleColor();
+         ImGui::SameLine();
+         ImGui::Text(label.data());
+         return {isExpanded, isClicked};
+      }
 
       void EditVec3(const char* label, glm::vec3* value, const float resetValue, const float labelWidth) {
          //

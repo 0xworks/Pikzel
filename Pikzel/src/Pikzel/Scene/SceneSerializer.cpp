@@ -1,6 +1,7 @@
 #include "SceneSerializer.h"
 
 #include "Pikzel/Components/Model.h"
+#include "Pikzel/Components/Relationship.h"
 #include "Pikzel/Components/Transform.h"
 #include "Pikzel/Scene/AssetCache.h"
 
@@ -136,6 +137,18 @@ namespace Pikzel {
 
 
    template<>
+   void Serialize<std::string>(YAML::Emitter& yaml, const std::string& name) {
+      yaml << name;
+   }
+
+
+   template<>
+   void Deserialize<std::string>(YAML::Node node, std::string& name) {
+      name = node.as<std::string>();
+   }
+
+
+   template<>
    void Serialize<Transform>(YAML::Emitter& yaml, const Transform& transform) {
       glm::vec3 position;
       glm::quat rotation;
@@ -229,7 +242,7 @@ namespace Pikzel {
    }
 
 
-   void SerializeObject(YAML::Emitter& yaml, const Scene& scene, const Object object) {
+   void SerializeObject(YAML::Emitter& yaml, const Scene& scene, const Object object, const Relationship& relationship) {
       // registry::visit is no good here because that gives you opaque type_info only.
       // we need the actual component types - to pass them off to templated serialize functions
       // scene.m_Registry.visit(object, [&](const entt::type_info info) {
@@ -240,28 +253,58 @@ namespace Pikzel {
       yaml << YAML::BeginMap;
       {
          SerializeComponent<Id>(yaml, "Id", scene, object);
+         SerializeComponent<std::string>(yaml, "Name", scene, object);
          SerializeComponent<Transform>(yaml, "Transform", scene, object);
          SerializeComponent<Model>(yaml, "Model", scene, object);
+         if (Object childObject = relationship.FirstChild; childObject != Null) {
+            yaml << YAML::Key << "Objects" << YAML::Value;
+            yaml << YAML::BeginSeq;
+            {
+               while (childObject != Null) {
+                  auto childRelationship = scene.GetComponent<Relationship>(childObject);
+                  SerializeObject(yaml, scene, childObject, childRelationship);
+                  childObject = childRelationship.NextSibling;
+               }
+            }
+            yaml << YAML::EndSeq;
+         }
       }
       yaml << YAML::EndMap;
    }
 
 
-   void DeserializeObject(YAML::Node objectNode, Scene& scene) {
+   Object DeserializeObject(YAML::Node objectNode, Scene& scene, Object parent) {
+      Object object = Null;
       if (objectNode.IsMap()) {
-         auto object = scene.CreateObject();
+         object = scene.CreateEmptyObject();
          DeserializeComponent<Id>(objectNode, "Id", scene, object);
+         DeserializeComponent<std::string>(objectNode, "Name", scene, object);
          DeserializeComponent<Transform>(objectNode, "Transform", scene, object);
          DeserializeComponent<Model>(objectNode, "Model", scene, object);
+         auto& relationship = scene.AddComponent<Relationship>(object);
+         relationship.Parent = parent;
+         Object prevChildObject = Null;
+         YAML::Node childObjectsNode = objectNode["Objects"];
+         for (auto childObjectNode : childObjectsNode) {
+            Object childObject = DeserializeObject(childObjectNode, scene, object);
+            if (prevChildObject != Null) {
+               scene.GetComponent<Relationship>(prevChildObject).NextSibling = childObject;
+            }
+            prevChildObject = childObject;
+         }
       }
+      return object;
    }
 
 
    void SerializeObjects(YAML::Emitter& yaml, const Scene& scene) {
       yaml << YAML::BeginSeq;
       {
-         for (auto object : scene.GetView<const Id>()) {
-            SerializeObject(yaml, scene, object);
+         Object object = scene.GetView<Relationship>().front();
+         while (object != Null) {
+            auto relationship = scene.GetComponent<Relationship>(object);
+            SerializeObject(yaml, scene, object, relationship);
+            object = relationship.NextSibling;
          }
       }
       yaml << YAML::EndSeq;
@@ -269,9 +312,17 @@ namespace Pikzel {
 
 
    void DeserializeObjects(YAML::Node objectsNode, Scene& scene) {
+      Object prevObject = Null;
       for (auto objectNode : objectsNode) {
-         DeserializeObject(objectNode, scene);
+         Object object = DeserializeObject(objectNode, scene, Null);
+         if (prevObject != Null) {
+            scene.GetComponent<Relationship>(prevObject).NextSibling = object;
+         }
+         if (object != Null) {
+            prevObject = object;
+         }
       }
+      scene.SortObjects();
    }
 
 
