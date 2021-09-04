@@ -19,6 +19,8 @@ option(
 #       Later, we might support something else (dont hold your breath)
 set(
    ProjectSources
+   "src/Pikzel/Components/Model.h"
+   "src/Pikzel/Components/Relationship.h"
    "src/Pikzel/Components/Transform.h"
    "src/Pikzel/Core/Application.h"
    "src/Pikzel/Core/Application.cpp"

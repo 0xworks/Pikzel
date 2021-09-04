@@ -1,6 +1,6 @@
 #include "Panel.h"
+#include "HierarchyPanel.h"
 #include "SceneEditor.h"
-#include "SceneExplorerPanel.h"
 
 #include "Pikzel/Core/EntryPoint.h"
 #include "Pikzel/Core/PlatformUtility.h"
@@ -37,7 +37,7 @@ public:
       m_Framebuffer = Pikzel::RenderCore::CreateFramebuffer({.width = m_Editor.GetViewportSize().x, .height = m_Editor.GetViewportSize().y, .msaaNumSamples = 4});
       m_SceneRenderer = Pikzel::CreateSceneRenderer(m_Framebuffer->GetGraphicsContext());
 
-      m_Panels.emplace_back(std::make_unique<SceneExplorerPanel>(m_Editor));
+      m_Panels.emplace_back(std::make_unique<HierarchyPanel>(m_Editor));
    }
 
 
@@ -189,7 +189,7 @@ protected:
             ImGuiID dockRight = ImGui::DockBuilderSplitNode(dockNode, ImGuiDir_Right, 0.2f, nullptr, &dockNode);
 
             ImGui::DockBuilderDockWindow("###Viewport", dockNode);
-            ImGui::DockBuilderDockWindow("###SceneExplorer", dockRight);
+            ImGui::DockBuilderDockWindow("###Hierarchy", dockRight);
 
             ImGui::DockBuilderFinish(dockspaceId);
             m_ResetWindowLayout = false;
@@ -295,7 +295,7 @@ private:
    std::unique_ptr<Pikzel::Framebuffer> m_Framebuffer;
 
    bool m_ResetWindowLayout = false;
-   bool m_ShowSceneExplorer = true;
+   bool m_ShowHierarchy = true;
 #if _DEBUG
    bool m_ShowDemoWindow = false;
 #endif
