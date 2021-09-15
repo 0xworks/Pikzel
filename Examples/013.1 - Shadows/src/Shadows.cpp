@@ -193,7 +193,7 @@ protected:
          ImGui::Checkbox("Point Lights", &m_ShowPointLights);
          ImGui::Checkbox("Soft Shadows", &m_UsePCSS);
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
-            ImGuiDrawPointLight(std::format("light {}", i).c_str(), m_PointLights[i]);
+            ImGuiDrawPointLight(fmt::format("light {}", i).c_str(), m_PointLights[i]);
          }
          ImGui::Text("Depth buffer:");
          ImVec2 size = ImGui::GetContentRegionAvail();

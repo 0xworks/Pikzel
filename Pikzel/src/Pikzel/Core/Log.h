@@ -9,7 +9,6 @@
 
 #include <filesystem>
 
-
 namespace fmt {
 
    template <>
@@ -23,19 +22,6 @@ namespace fmt {
 
 }
 
-
-namespace std {
-
-   template <>
-   struct formatter<filesystem::path> : formatter<string_view> {
-
-      template <typename FormatContext>
-      auto format(const filesystem::path& path, FormatContext& ctx) {
-         return formatter<string_view>::format(path.string().data(), ctx);
-      }
-   };
-
-}
 
 namespace Pikzel {
 

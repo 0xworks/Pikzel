@@ -145,7 +145,7 @@ namespace Pikzel {
       } else {
          TextureLoader loader{ m_Path };
          if (!loader.IsLoaded()) {
-            throw std::runtime_error{std::format("failed to load image '{}'", m_Path.string())};
+            throw std::runtime_error{fmt::format("failed to load image '{}'", m_Path.string())};
          }
          m_Width = loader.GetWidth();
          m_Height = loader.GetHeight();
@@ -270,24 +270,24 @@ namespace Pikzel {
 
    void OpenGLTexture::CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings) {
       if (GetType() != srcTexture.GetType()) {
-         throw std::logic_error{std::format("Texture::CopyFrom() source and destination textures are not the same type!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() source and destination textures are not the same type!")};
       }
       if (GetFormat() != srcTexture.GetFormat()) {
-         throw std::logic_error{std::format("Texture::CopyFrom() source and destination textures are not the same format!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() source and destination textures are not the same format!")};
       }
       if (settings.srcMipLevel >= srcTexture.GetMIPLevels()) {
-         throw std::logic_error{std::format("Texture::CopyFrom() source texture does not have requested mip level!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() source texture does not have requested mip level!")};
       }
       if (settings.dstMipLevel >= GetMIPLevels()) {
-         throw std::logic_error{std::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
       }
 
       uint32_t layerCount = settings.layerCount == 0 ? srcTexture.GetLayers() : settings.layerCount;
       if (settings.srcLayer + layerCount > srcTexture.GetLayers()) {
-         throw std::logic_error{std::format("Texture::CopyFrom() source texture does not have requested layer!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() source texture does not have requested layer!")};
       }
       if (settings.dstLayer + layerCount > GetLayers()) {
-         throw std::logic_error{std::format("Texture::CopyFrom() destination texture does not have requested layer!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() destination texture does not have requested layer!")};
       }
 
       uint32_t width = settings.width == 0 ? srcTexture.GetWidth() / (1 << settings.srcMipLevel) : settings.width;
@@ -295,13 +295,13 @@ namespace Pikzel {
       uint32_t depth = settings.depth == 0 ? srcTexture.GetDepth() : settings.depth;
 
       if (width + settings.dstX > (GetWidth() >> settings.dstMipLevel)) {
-         throw std::logic_error{std::format("Texture::CopyFrom() requested width (+ destination xOffset) is larger than destination texture width!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() requested width (+ destination xOffset) is larger than destination texture width!")};
       }
       if (height + settings.dstY > (GetHeight() >> settings.dstMipLevel)) {
-         throw std::logic_error{std::format("Texture::CopyFrom() requested height (+ destination yOffset) is larger than destination texture height!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() requested height (+ destination yOffset) is larger than destination texture height!")};
       }
       if (depth + settings.dstZ > GetDepth()) {
-         throw std::logic_error{std::format("Texture::CopyFrom() requested depth (+ destination zOffset) is larger than destination texture depth!")};
+         throw std::logic_error{fmt::format("Texture::CopyFrom() requested depth (+ destination zOffset) is larger than destination texture depth!")};
       }
 
       uint32_t depthFactor = 1;
