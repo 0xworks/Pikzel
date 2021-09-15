@@ -372,7 +372,7 @@ namespace Pikzel {
             DeserializeObjects(sceneNode["Objects"], *scene);
 
          } else {
-            throw std::runtime_error{std::format("No scene found in stream from path '{}'", m_Settings.Path) };
+            throw std::runtime_error{fmt::format("No scene found in stream from path '{}'", m_Settings.Path) };
          }
 
       } catch (const std::exception& err) {
