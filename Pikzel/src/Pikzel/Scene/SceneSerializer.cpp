@@ -193,7 +193,7 @@ namespace Pikzel {
 
 
    template<>
-   void Serialize<ModelResourceHandle>(YAML::Emitter& yaml, const ModelResourceHandle& handle) {
+   void Serialize<ConstModelResourceHandle>(YAML::Emitter& yaml, const ConstModelResourceHandle& handle) {
       yaml << YAML::BeginMap;
       {
          yaml << YAML::Key << "Name" << YAML::Value << handle->Name;
@@ -202,12 +202,11 @@ namespace Pikzel {
       yaml << YAML::EndMap;
    }
 
-
    template<>
    void Serialize<ModelResourceCache>(YAML::Emitter& yaml, const ModelResourceCache& cache) {
       yaml << YAML::Value << YAML::BeginSeq;
       {
-         cache.each([&](ModelResourceHandle handle) {
+         cache.each([&](ConstModelResourceHandle handle) {
             Serialize(yaml, handle);
          });
       }

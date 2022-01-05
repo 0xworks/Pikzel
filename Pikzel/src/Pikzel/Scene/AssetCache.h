@@ -13,6 +13,7 @@ namespace Pikzel {
 
    using ModelResourceCache = entt::resource_cache<ModelResource>;
    using ModelResourceHandle = entt::resource_handle<ModelResource>;
+   using ConstModelResourceHandle = entt::resource_handle<const ModelResource>;
 
    class PKZL_API AssetCache {
       AssetCache() = delete;
