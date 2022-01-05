@@ -3,7 +3,7 @@
   "configurePresets": [
     {
       "name": "windows-x64-debug",
-      "displayName": "Windows x64 Debug",
+      "displayName": "windows-x64-debug",
       "description": "Target Windows with the Visual Studio development environment.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
@@ -25,7 +25,7 @@
     },
     {
       "name": "windows-x64-release",
-      "displayName": "Windows x64 Release",
+      "displayName": "windows-x64-release",
       "description": "Target Windows with the Visual Studio development environment.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
