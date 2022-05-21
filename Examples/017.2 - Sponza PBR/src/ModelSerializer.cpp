@@ -13,24 +13,24 @@ namespace SponzaPBR {
 
       std::unordered_map<std::string, std::shared_ptr<Pikzel::Texture>> g_TextureCache;
 
-      const uint32_t g_AssimpProcessFlags =
-         aiProcess_Triangulate |
-         aiProcess_JoinIdenticalVertices |
-         aiProcess_GenNormals |
-         aiProcess_GenUVCoords |
-         aiProcess_CalcTangentSpace |
-         aiProcess_OptimizeMeshes |
-         aiProcess_ValidateDataStructure |
-         aiProcess_GlobalScale
+      const uint32_t g_AssimpProcessFlags = 0
+         | aiProcess_Triangulate
+         | aiProcess_JoinIdenticalVertices
+         | aiProcess_GenNormals
+         | aiProcess_GenUVCoords
+         | aiProcess_CalcTangentSpace
+         | aiProcess_OptimizeMeshes
+         | aiProcess_ValidateDataStructure
+         | aiProcess_GlobalScale
       ;
 
 
       glm::mat4 AssimpMat4ToGLMMat4(const aiMatrix4x4& matrix) {
          return {
-            matrix.a1, matrix.a2, matrix.a3, matrix.a4,
-            matrix.b1, matrix.b2, matrix.b3, matrix.b4,
-            matrix.c1, matrix.c2, matrix.c3, matrix.c4,
-            matrix.d1, matrix.d2, matrix.d3, matrix.d4
+            matrix.a1, matrix.b1, matrix.c1, matrix.d1,
+            matrix.a2, matrix.b2, matrix.c2, matrix.d2,
+            matrix.a3, matrix.b3, matrix.c3, matrix.d3,
+            matrix.a4, matrix.b4, matrix.c4, matrix.d4
          };
       }
 
