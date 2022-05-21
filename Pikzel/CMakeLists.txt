@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.16)
+﻿cmake_minimum_required(VERSION 3.20)
 
 find_package(Vulkan)
 
@@ -241,8 +241,8 @@ set(
    SceneShaderHeaders
 )
 
-compile_shaders(RendererShaderSources RendererShaderHeaders ${CMAKE_CURRENT_BINARY_DIR}/Renderer CompiledRendererShaders)
-compile_shaders(SceneShaderSources SceneShaderHeaders ${CMAKE_CURRENT_BINARY_DIR}/Scene/Shaders CompiledSceneShaders)
+compile_shaders(RendererShaderSources RendererShaderHeaders "src/Pikzel/Renderer/Shaders/" "${CMAKE_CURRENT_BINARY_DIR}/Renderer" CompiledRendererShaders)
+compile_shaders(SceneShaderSources SceneShaderHeaders "src/Pikzel/Scene/Shaders/" "${CMAKE_CURRENT_BINARY_DIR}/Scene/Shaders" CompiledSceneShaders)
 
 cmrc_add_resource_library(
    PikzelResources WHENCE ${CMAKE_CURRENT_BINARY_DIR}
@@ -414,7 +414,7 @@ if(${Vulkan_FOUND})
    target_include_directories(
       "PlatformVulkan" PRIVATE
       "vendor/SPIRV-cross"
-      "vendor/VulkanMemoryAllocator-Hpp"
+      "vendor/VulkanMemoryAllocator-Hpp/include"
       ${Vulkan_INCLUDE_DIRS}
    )
 

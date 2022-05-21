@@ -43,33 +43,33 @@ endmacro()
 
 
 # Shader compilation
-macro(compile_shaders shader_src_files shader_header_files dir_name compiled_shaders)
+macro(compile_shaders shader_src_files shader_header_files strip_dir dest_dir compiled_shaders)
    set(${compiled_shaders})
    set(${compiled_shaders} PARENT_SCOPE)
    foreach(shader ${${shader_src_files}})
       message("${target_name} SHADER: ${shader}")
-      get_filename_component(file_name ${shader} NAME)
-      get_filename_component(full_path ${shader} ABSOLUTE)
-      if(IS_ABSOLUTE ${dir_name})
-         set(output_dir ${dir_name})
+      cmake_path(RELATIVE_PATH shader BASE_DIRECTORY ${strip_dir} OUTPUT_VARIABLE file_name)
+      cmake_path(ABSOLUTE_PATH shader NORMALIZE OUTPUT_VARIABLE full_path)
+      if(IS_ABSOLUTE ${dest_dir})
+         cmake_path(SET output_dir NORMALIZE "${dest_dir}")
       else()
-         set(output_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dir_name})
+         cmake_path(SET output_dir NORMALIZE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dest_dir}")
       endif()
-      set(output_file ${output_dir}/${file_name}.spv)
+      cmake_path(SET output_file NORMALIZE "${output_dir}/${file_name}.spv")
       set(${compiled_shaders} ${${compiled_shaders}} ${output_file})
       set(${compiled_shaders} ${${compiled_shaders}} PARENT_SCOPE)
       set_source_files_properties(${shader} PROPERTIES HEADER_FILE_ONLY TRUE)
       if (WIN32)
          add_custom_command(
             OUTPUT ${output_file}
-            COMMAND ${Vulkan_GLSLANG_VALIDATOR} --target-env vulkan1.2 ${full_path} -o ${output_file}
+            COMMAND ${Vulkan_GLSLANG_VALIDATOR} --target-env vulkan1.3 ${full_path} -o ${output_file}
             DEPENDS ${full_path}
             DEPENDS ${${shader_header_files}}  # this makes all shaders depend on all shader_header_files... but I cant think of a better way
          )
       else()
          add_custom_command(
             OUTPUT ${output_file}
-            COMMAND mkdir --parents ${output_dir} && ${Vulkan_GLSLANG_VALIDATOR} --target-env vulkan1.2 ${full_path} -o ${output_file}
+            COMMAND mkdir --parents ${output_dir} && ${Vulkan_GLSLANG_VALIDATOR} --target-env vulkan1.3 ${full_path} -o ${output_file}
             DEPENDS ${full_path}
          )
       endif()
@@ -77,19 +77,19 @@ macro(compile_shaders shader_src_files shader_header_files dir_name compiled_sha
 endmacro()
 
 
-macro(copy_assets asset_files dir_name copied_files)
+macro(copy_assets asset_files strip_dir dest_dir copied_files)
    set(${copied_files})
    set(${copied_files} PARENT_SCOPE)
    foreach(asset ${${asset_files}})
       message("${target_name} ASSET: ${asset}")
-      get_filename_component(file_name ${asset} NAME)
-      get_filename_component(full_path ${asset} ABSOLUTE)
-      if(IS_ABSOLUTE ${dir_name})
-         set(output_dir ${dir_name})
+      cmake_path(RELATIVE_PATH asset BASE_DIRECTORY ${strip_dir} OUTPUT_VARIABLE file_name)
+      cmake_path(ABSOLUTE_PATH asset NORMALIZE OUTPUT_VARIABLE full_path)
+      if(IS_ABSOLUTE ${dest_dir})
+         cmake_path(SET output_dir NORMALIZE "${dest_dir}")
       else()
-         set(output_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dir_name})
+         cmake_path(SET output_dir NORMALIZE "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${dest_dir}")
       endif()
-      set(output_file ${output_dir}/${file_name})
+      cmake_path(SET output_file NORMALIZE "${output_dir}/${file_name}")
       set(${copied_files} ${${copied_files}} ${output_file})
       set(${copied_files} ${${copied_files}} PARENT_SCOPE)
       set_source_files_properties(${asset} PROPERTIES HEADER_FILE_ONLY TRUE)

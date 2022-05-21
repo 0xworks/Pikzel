@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.16)
+cmake_minimum_required (VERSION 3.20)
 
 project (
    "017.2SponzaPBR"
@@ -95,9 +95,9 @@ target_link_libraries(
    ${ProjectLibs}
 )
 
-compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)
-copy_assets(Models Assets/${PROJECT_NAME}/Models CopiedModels)
-copy_assets(Textures Assets/${PROJECT_NAME}/Textures CopiedTextures)
+compile_shaders(ShaderSources ShaderHeaders "Assets/Shaders" "Assets/${PROJECT_NAME}/Shaders" CompiledShaders)
+copy_assets(Models "Assets/Models" "Assets/${PROJECT_NAME}/Models" CopiedModels)
+copy_assets(Textures "Assets/Textures" "Assets/${PROJECT_NAME}/Textures" CopiedTextures)
 
 # These arent really "source" files.
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)

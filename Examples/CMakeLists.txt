@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 add_subdirectory("001 - Triangle")
 add_subdirectory("002 - Textured")

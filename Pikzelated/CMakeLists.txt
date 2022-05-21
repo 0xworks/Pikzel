@@ -81,9 +81,9 @@ target_link_libraries(
    ${ProjectLibs}
 )
 
-copy_assets(Models Assets/${PROJECT_NAME}/Models CopiedModels)
-compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)
-copy_assets(Textures Assets/${PROJECT_NAME}/Textures CopiedTextures)
+copy_assets(Models "Assets/Models" "Assets/${PROJECT_NAME}/Models" CopiedModels)
+compile_shaders(ShaderSources ShaderHeaders "Assets/Shaders" "Assets/${PROJECT_NAME}/Shaders" CompiledShaders)
+copy_assets(Textures "Assets/Textures" "Assets/${PROJECT_NAME}/Textures" CopiedTextures)
 
 # These arent really "source" files.
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)
