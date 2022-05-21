@@ -10,7 +10,7 @@ namespace Pikzel {
    public:
       static void Init(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::Device device) {
          vma::AllocatorCreateInfo allocatorInfo;
-         allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_1;
+         allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
          allocatorInfo.instance = instance;
          allocatorInfo.physicalDevice = physicalDevice;
          allocatorInfo.device = device;
