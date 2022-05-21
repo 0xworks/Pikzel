@@ -13,15 +13,17 @@ namespace ModelAndMeshDemo {
 
       std::unordered_map<std::string, std::shared_ptr<Pikzel::Texture>> g_TextureCache;
 
-      const uint32_t g_AssimpProcessFlags =
-         aiProcess_Triangulate |
-         aiProcess_JoinIdenticalVertices |
-         aiProcess_GenNormals |
-         aiProcess_GenUVCoords |
-         aiProcess_OptimizeMeshes |
-         aiProcess_ValidateDataStructure
+      const uint32_t g_AssimpProcessFlags = 0
+         | aiProcess_CalcTangentSpace
+         | aiProcess_Triangulate
+         | aiProcess_SortByPType
+         | aiProcess_JoinIdenticalVertices
+         | aiProcess_GenNormals
+         | aiProcess_GenUVCoords
+         | aiProcess_OptimizeMeshes
+         | aiProcess_LimitBoneWeights
+         | aiProcess_GlobalScale
       ;
-
 
       std::shared_ptr<Pikzel::Texture> LoadMaterialTexture(const aiScene* pscene, const aiMaterial* pmaterial, aiTextureType type, const std::filesystem::path& modelDir) {
          // for now we support only 0 or 1 texture  TODO: make better

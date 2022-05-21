@@ -22,7 +22,7 @@ public:
       CreatePipelines();
 
       // POI: We use the ModelSerializer to load the model from an asset file.  In this case "sponza.gltf"
-      m_Model = ModelAndMeshDemo::ModelSerializer::Import("Assets/NewSponza/Main/NewSponza_Main_FBX_YUp.fbx");
+      m_Model = ModelAndMeshDemo::ModelSerializer::Import("Assets/Models/Sponza/Sponza.gltf");
 
       Pikzel::ImGuiEx::Init(GetWindow());
    }
