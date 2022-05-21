@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.16)
+cmake_minimum_required (VERSION 3.20)
 
 project (
    "009ModelAndMesh"
@@ -75,7 +75,7 @@ add_dependencies(
    "Assets"
 )
 
-compile_shaders(ShaderSources ShaderHeaders Assets/${PROJECT_NAME}/Shaders CompiledShaders)
+compile_shaders(ShaderSources ShaderHeaders "Assets/Shaders" "Assets/${PROJECT_NAME}/Shaders" CompiledShaders)
 
 # These arent really "source" files.
 # This line is here to make target depend on the listed files (so that cmake will then "build" them)
