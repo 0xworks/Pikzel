@@ -35,18 +35,39 @@ namespace SponzaPBR {
       }
 
 
-      std::shared_ptr<Pikzel::Texture> LoadMaterialTexture(aiMaterial* mat, aiTextureType type, const std::filesystem::path& modelDir) {
-
-         // for now we support only 0 or 1 texture  TODO: make better
-          for (unsigned int i = 0; i < mat->GetTextureCount(type); ++i) {
+      std::shared_ptr<Pikzel::Texture> LoadMaterialTexture(const aiScene* pscene, aiMaterial* pmaterial, aiTextureType type, const std::filesystem::path& modelDir) {
+         for (unsigned int i = 0; i < pmaterial->GetTextureCount(type); ++i) {
             aiString str;
-            mat->GetTexture(type, i, &str);
+            pmaterial->GetTexture(type, i, &str);
             std::filesystem::path texturePath = modelDir / str.C_Str();
-            if (g_TextureCache.find(texturePath.string()) == g_TextureCache.end()) {
-               bool isSRGB = (type == aiTextureType_DIFFUSE);
-               g_TextureCache[texturePath.string()] = Pikzel::RenderCore::CreateTexture({ .path = texturePath, .format = (type == aiTextureType_DIFFUSE ? Pikzel::TextureFormat::SRGBA8 : Pikzel::TextureFormat::RGBA8) });
+            if (auto texture = g_TextureCache.find(texturePath.string()); texture != g_TextureCache.end()) {
+               return texture->second;
+            } else {
+               // For now we are only loading DIFFUSE and SPECULAR texture types.
+               // Make an assumption that DIFFUSE is non-linear, and SPECULAR is linear
+               auto format = (type == aiTextureType_DIFFUSE ? Pikzel::TextureFormat::SRGBA8 : Pikzel::TextureFormat::RGBA8);
+               if (auto ptexture = pscene->GetEmbeddedTexture(str.C_Str())) {
+                  if (ptexture->mHeight == 0) {
+                     Pikzel::TextureLoader loader(ptexture->pcData, ptexture->mWidth);
+                     if (loader.IsLoaded()) {
+                        std::shared_ptr<Pikzel::Texture> embeddedTexture = Pikzel::RenderCore::CreateTexture({.width = loader.GetWidth(), .height = loader.GetHeight(), .format = format});
+                        const auto [data, size] = loader.GetData(0, 0, 0);
+                        embeddedTexture->SetData(data, size);
+                        g_TextureCache[texturePath.string()] = embeddedTexture;
+                        return embeddedTexture;
+                     }
+                  } else {
+                     std::shared_ptr<Pikzel::Texture> embeddedTexture = Pikzel::RenderCore::CreateTexture({.width = ptexture->mWidth, .height = ptexture->mHeight, .format = format});
+                     embeddedTexture->SetData(ptexture->pcData, sizeof(ptexture->pcData));
+                     g_TextureCache[texturePath.string()] = embeddedTexture;
+                     return embeddedTexture;
+                  }
+               } else {
+                  std::shared_ptr<Pikzel::Texture> externalTexture = Pikzel::RenderCore::CreateTexture({.path = texturePath, .format = format});
+                  g_TextureCache[texturePath.string()] = externalTexture;
+                  return externalTexture;
+               }
             }
-            return g_TextureCache[texturePath.string()];
          }
 
          // material did not have a texture of specified type => create one
@@ -112,9 +133,9 @@ namespace SponzaPBR {
          mesh.IndexBuffer = Pikzel::RenderCore::CreateIndexBuffer(indices.size(), indices.data());
 
          if (pmesh->mMaterialIndex >= 0) {
-            aiMaterial* material = pscene->mMaterials[pmesh->mMaterialIndex];
+            aiMaterial* pmaterial = pscene->mMaterials[pmesh->mMaterialIndex];
 
-            auto materialName = material->GetName();
+            auto materialName = pmaterial->GetName();
             PKZL_CORE_LOG_TRACE("   Material '{0}'", materialName.data);
 
 #if 0
@@ -168,11 +189,11 @@ namespace SponzaPBR {
             }
 #endif
 
-            mesh.AlbedoTexture = LoadMaterialTexture(material, aiTextureType_DIFFUSE, modelDir);
-            mesh.MetallicRoughnessTexture = LoadMaterialTexture(material, aiTextureType_UNKNOWN, modelDir);          // HACK:  load metallic-roughness from the UNKNOWN texture type (because that's where it seems to be in the sponza model data)
-            mesh.AmbientOcclusionTexture = LoadMaterialTexture(material, aiTextureType_AMBIENT_OCCLUSION, modelDir); // There is no AO texture in the sponza model data, this will just create a default one
-            mesh.NormalTexture = LoadMaterialTexture(material, aiTextureType_NORMALS, modelDir);
-            mesh.HeightTexture = LoadMaterialTexture(material, aiTextureType_HEIGHT, modelDir);                      // There is no height map in the sponza model data, this will just create a default one
+            mesh.AlbedoTexture = LoadMaterialTexture(pscene, pmaterial, aiTextureType_DIFFUSE, modelDir);
+            mesh.MetallicRoughnessTexture = LoadMaterialTexture(pscene, pmaterial, aiTextureType_UNKNOWN, modelDir);          // HACK:  load metallic-roughness from the UNKNOWN texture type (because that's where it seems to be in the sponza model data)
+            mesh.AmbientOcclusionTexture = LoadMaterialTexture(pscene, pmaterial, aiTextureType_AMBIENT_OCCLUSION, modelDir); // There is no AO texture in the sponza model data, this will just create a default one
+            mesh.NormalTexture = LoadMaterialTexture(pscene, pmaterial, aiTextureType_NORMALS, modelDir);
+            mesh.HeightTexture = LoadMaterialTexture(pscene, pmaterial, aiTextureType_HEIGHT, modelDir);                      // There is no height map in the sponza model data, this will just create a default one
          }
 
          mesh.AABB = { aabbMin, aabbMax };

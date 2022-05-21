@@ -20,6 +20,16 @@ namespace Pikzel {
    }
 
 
+   TextureLoader::TextureLoader(void* pData, uint32_t size) {
+      m_FileData = std::vector<uint8_t>(static_cast<uint8_t*>(pData), static_cast<uint8_t*>(pData) + size);
+      if (!TrySTBI()) {
+         if (!TryDDSKTX()) {
+            PKZL_CORE_ASSERT(false, "<embedded texture>: Image format not supported!");
+         }
+         Flip();
+      }
+   }
+   
    TextureLoader::~TextureLoader() {
       if (m_Data) {
          if (m_IsDDSKTX) {

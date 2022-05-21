@@ -299,6 +299,7 @@ namespace Pikzel {
    public:
       PKZL_NO_COPYMOVE(TextureLoader);
       TextureLoader(const std::filesystem::path& path);
+      TextureLoader(void* pdata, uint32_t size);
       ~TextureLoader();
 
       bool IsLoaded() const;
@@ -321,6 +322,7 @@ namespace Pikzel {
    private:
       bool TrySTBI();
       bool TryDDSKTX();
+      // for platform windows we could probably also try Windows Imaging Component (WIC) here.
 
       void Flip();
       void Flip(const uint32_t layer, const uint32_t slice, const uint32_t mipLevel);
