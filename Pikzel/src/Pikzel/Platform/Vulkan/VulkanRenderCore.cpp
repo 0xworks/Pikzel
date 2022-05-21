@@ -184,10 +184,10 @@ namespace Pikzel {
 
       vk::ApplicationInfo appInfo = {
          "Pikzel Vulkan RenderCore",
-         VK_MAKE_VERSION(1, 0, 0),
+         VK_MAKE_API_VERSION(0, 1, 0, 0),
          "Pikzel",
-         VK_MAKE_VERSION(1, 0, 0),
-         VK_API_VERSION_1_2
+         VK_MAKE_API_VERSION(0, 1, 0, 0),
+         VK_API_VERSION_1_3
       };
 
       vk::DebugUtilsMessengerCreateInfoEXT debugCI {
