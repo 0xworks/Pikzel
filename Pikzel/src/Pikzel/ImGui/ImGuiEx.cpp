@@ -5,8 +5,8 @@
 
 #include <fonts/CousineRegular.inl>
 #include <fonts/CousineBold.inl>
-#include <fonts/FontAwesome5Regular400.inl>
-#include <fonts/FontAwesome5Solid900.inl>
+#include <fonts/FontAwesome6Regular400.inl>
+#include <fonts/FontAwesome6Solid900.inl>
 
 #include <imgui_internal.h>
 
@@ -23,10 +23,10 @@ namespace Pikzel {
          cfg.GlyphMinAdvanceX = pixelSize;
          cfg.MergeMode = true;
 
-         ImFont* mergedFont = io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Regular400_compressed_data, FontAwesome5Regular400_compressed_size, pixelSize * 0.75f, &cfg, icon_ranges);
-         PKZL_CORE_ASSERT(mergedFont, "Failed to merge font 'FontAwesome5Regular400'!");
-         mergedFont = io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Solid900_compressed_data, FontAwesome5Solid900_compressed_size, pixelSize * 0.75f, &cfg, icon_ranges);
-         PKZL_CORE_ASSERT(mergedFont, "Failed to merge font 'FontAwesome5Solid900'!");
+         ImFont* mergedFont = io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome6Regular400_compressed_data, FontAwesome6Regular400_compressed_size, pixelSize * 0.75f, &cfg, icon_ranges);
+         PKZL_CORE_ASSERT(mergedFont, "Failed to merge font 'FontAwesome6Regular400'!");
+         mergedFont = io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome6Solid900_compressed_data, FontAwesome6Solid900_compressed_size, pixelSize * 0.75f, &cfg, icon_ranges);
+         PKZL_CORE_ASSERT(mergedFont, "Failed to merge font 'FontAwesome6Solid900'!");
       }
 
 

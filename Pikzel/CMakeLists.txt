@@ -259,7 +259,7 @@ set_property(TARGET PikzelResources PROPERTY POSITION_INDEPENDENT_CODE ON)
 ##################################################################
 add_library(
    "ImGui" STATIC
-   "src/Pikzel/ImGui/IconsFontAwesome5.h"
+   "src/Pikzel/ImGui/IconsFontAwesome6.h"
    "src/Pikzel/ImGui/ImGuiEx.h"
    "src/Pikzel/ImGui/ImGuiEx.cpp"
    "vendor/imgui/imgui.cpp"

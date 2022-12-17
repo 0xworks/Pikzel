@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Pikzel/Core/Window.h"
-#include "Pikzel/ImGui/IconsFontAwesome5.h"
+#include "Pikzel/ImGui/IconsFontAwesome6.h"
 
 #include <glm/glm.hpp>
 
