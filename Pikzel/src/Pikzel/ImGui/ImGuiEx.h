@@ -15,8 +15,8 @@ namespace Pikzel {
       };
 
       enum class Font {
-         DroidSans,
-         DroidSansBold
+         UIRegular,
+         UIBold
       };
 
       enum class Icon {

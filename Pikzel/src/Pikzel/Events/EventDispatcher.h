@@ -22,7 +22,7 @@ namespace Pikzel {
       // Send an Event, constructed with args as specified
       template<typename Event, typename... Args>
       static void Send(Args... args) {
-         s_Dispatcher->trigger<Event>(std::forward<Args>(args)...);
+         s_Dispatcher->trigger<Event>({std::forward<Args>(args)...});
       }
 
       // Connect Event to a candidate free function

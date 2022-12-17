@@ -2,18 +2,19 @@
 
 #include "Pikzel/Core/Core.h"
 #include "Pikzel/Scene/ModelResource.h"
+#include "Pikzel/Scene/ModelResourceLoader.h"
 
 #include <entt/resource/cache.hpp>
-#include <entt/resource/handle.hpp>
+#include <entt/resource/resource.hpp>
 
 #include <filesystem>
 #include <string>
 
 namespace Pikzel {
 
-   using ModelResourceCache = entt::resource_cache<ModelResource>;
-   using ModelResourceHandle = entt::resource_handle<ModelResource>;
-   using ConstModelResourceHandle = entt::resource_handle<const ModelResource>;
+   using ModelResourceCache = entt::resource_cache<ModelResource, ModelResourceLoader>;
+   using ModelResourceHandle = entt::resource<ModelResource>;
+   using ConstModelResourceHandle = entt::resource<const ModelResource>;
 
    class PKZL_API AssetCache {
       AssetCache() = delete;

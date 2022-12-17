@@ -2,15 +2,16 @@
 
 #include "Pikzel/Scene/ModelResource.h"
 
-#include <entt/resource/loader.hpp>
-
 #include <filesystem>
+#include <memory>
+#include <string_view>
 
 namespace Pikzel {
 
-   struct ModelResourceLoader final : entt::resource_loader<ModelResourceLoader, ModelResource> {
+   struct ModelResourceLoader {
+      using result_type = std::shared_ptr<ModelResource>;
 
-      std::shared_ptr<ModelResource> load(const std::string_view name, const std::filesystem::path& path) const;
+      result_type operator()(const std::string_view name, const std::filesystem::path& path) const;
 
    };
 

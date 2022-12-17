@@ -193,7 +193,7 @@ namespace Pikzel {
    }
 
 
-   std::shared_ptr<ModelResource> ModelResourceLoader::load(const std::string_view name, const std::filesystem::path& path) const {
+   std::shared_ptr<ModelResource> ModelResourceLoader::operator()(const std::string_view name, const std::filesystem::path& path) const {
       PKZL_CORE_LOG_INFO("Loading model with name '{0}' from path '{1}'.", name, path);
       std::shared_ptr<ModelResource> model = std::make_shared<ModelResource>(name, path);
 

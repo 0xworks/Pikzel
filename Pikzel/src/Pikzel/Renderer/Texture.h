@@ -327,8 +327,6 @@ namespace Pikzel {
       void Flip();
       void Flip(const uint32_t layer, const uint32_t slice, const uint32_t mipLevel);
 
-
-
    private:
       std::vector<uint8_t> m_FileData;
       void* m_Data;
