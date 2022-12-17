@@ -23,7 +23,7 @@
 #include "Pikzel/Events/MouseEvents.h"
 #include "Pikzel/Events/WindowEvents.h"
 
-#include "Pikzel/ImGui/IconsFontAwesome5.h"
+#include "Pikzel/ImGui/IconsFontAwesome6.h"
 #include "Pikzel/ImGui/ImGuiEx.h"
 
 #include "Pikzel/Input/Input.h"
