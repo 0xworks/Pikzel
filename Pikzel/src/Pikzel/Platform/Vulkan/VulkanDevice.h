@@ -4,6 +4,10 @@
 #include <vulkan/vulkan.hpp>
 
 namespace Pikzel {
+
+   template<typename T>
+   concept PhysicalDeviceFeatures = std::is_same_v<T, vk::PhysicalDeviceFeatures> || std::is_same_v<T, vk::PhysicalDeviceVulkan13Features>;
+
    class VulkanDevice {
    public:
       VulkanDevice(vk::Instance instance, vk::SurfaceKHR surface);
@@ -25,7 +29,18 @@ namespace Pikzel {
 
       uint32_t GetMSAAMaxSamples() const;
 
-      vk::PhysicalDeviceFeatures GetEnabledPhysicalDeviceFeatures() const;
+      template<PhysicalDeviceFeatures T>
+      T GetEnabledPhysicalDeviceFeatures() const;
+
+      template<>
+      vk::PhysicalDeviceFeatures GetEnabledPhysicalDeviceFeatures<vk::PhysicalDeviceFeatures>() const {
+         return m_EnabledPhysicalDeviceFeatures.features;
+      }
+
+      template<>
+      vk::PhysicalDeviceVulkan13Features GetEnabledPhysicalDeviceFeatures<vk::PhysicalDeviceVulkan13Features>() const {
+         return m_EnabledPhysicalDeviceVulkan13Features;
+      }
 
       void SubmitSingleTimeCommands(vk::Queue queue, const std::function<void(vk::CommandBuffer)>& action);
 
@@ -34,8 +49,7 @@ namespace Pikzel {
    private:
       bool IsPhysicalDeviceSuitable(vk::PhysicalDevice physicalDevice, vk::SurfaceKHR surface);
       std::vector<const char*> GetRequiredDeviceExtensions() const;
-      vk::PhysicalDeviceFeatures GetRequiredPhysicalDeviceFeatures(vk::PhysicalDeviceFeatures availableFeatures) const;
-      void* GetRequiredPhysicalDeviceFeaturesEXT() const;
+      void EnablePhysicalDeviceFeatures();
       void SelectPhysicalDevice(vk::SurfaceKHR surface);
 
       void CreateDevice();
@@ -48,8 +62,9 @@ namespace Pikzel {
       vk::Instance m_Instance;
       vk::PhysicalDevice m_PhysicalDevice;
       vk::PhysicalDeviceProperties m_PhysicalDeviceProperties;
-      vk::PhysicalDeviceFeatures m_PhysicalDeviceFeatures;                 // features that are available on the selected physical device
-      vk::PhysicalDeviceFeatures m_EnabledPhysicalDeviceFeatures;          // features that have been enabled
+      vk::PhysicalDeviceFeatures2 m_EnabledPhysicalDeviceFeatures;
+      vk::PhysicalDeviceVulkan13Features m_EnabledPhysicalDeviceVulkan13Features;
+
       QueueFamilyIndices m_QueueFamilyIndices;
 
       vk::Device m_Device;
