@@ -3,8 +3,8 @@
 #include "Pikzel/Renderer/RenderCore.h"
 #include "Pikzel/Renderer/sRGB.h"
 
-#include <fonts/DroidSans.inl>
-#include <fonts/DroidSansBold.inl>
+#include <fonts/CousineRegular.inl>
+#include <fonts/CousineBold.inl>
 #include <fonts/FontAwesome5Regular400.inl>
 #include <fonts/FontAwesome5Solid900.inl>
 
@@ -47,8 +47,8 @@ namespace Pikzel {
          style.WindowRounding = 0.0f;
          style.TabRounding = 0.0f;
 
-         AddFont(DroidSans_compressed_data, DroidSans_compressed_size, 16 * scaleFactor);
-         AddFont(DroidSansBold_compressed_data, DroidSansBold_compressed_size, 16 * scaleFactor);
+         AddFont(CousineRegular_compressed_data, CousineRegular_compressed_size, 16 * scaleFactor);
+         AddFont(CousineBold_compressed_data, CousineBold_compressed_size, 16 * scaleFactor);
 
          RenderCore::UploadImGuiFonts();
       }
@@ -232,7 +232,7 @@ namespace Pikzel {
          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button);
          ImGui::PushStyleColor(ImGuiCol_ButtonActive, button);
 
-         auto boldFont = ImGui::GetIO().Fonts->Fonts[(int)Font::DroidSansBold];
+         auto boldFont = ImGui::GetIO().Fonts->Fonts[(int)Font::UIBold];
 
          {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.8f, 0.1f, 0.15f, 1.0f});

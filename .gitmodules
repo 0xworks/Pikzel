@@ -25,9 +25,6 @@
 [submodule "Pikzel/vendor/cmrc"]
 	path = Pikzel/vendor/cmrc
 	url = https://github.com/vector-of-bool/cmrc.git
-[submodule "Pikzel/vendor/SPIRV-Cross"]
-	path = Pikzel/vendor/SPIRV-Cross
-	url = https://github.com/KhronosGroup/SPIRV-Cross.git
 [submodule "Pikzel/vendor/VulkanMemoryAllocator-Hpp"]
 	path = Pikzel/vendor/VulkanMemoryAllocator-Hpp
 	url = https://github.com/malte-v/VulkanMemoryAllocator-Hpp.git

@@ -58,9 +58,9 @@ namespace Pikzel {
       }
 
       PKZL_CORE_LOG_INFO("OpenGL Info:");
-      PKZL_CORE_LOG_INFO("  Vendor: {0}", glGetString(GL_VENDOR));
-      PKZL_CORE_LOG_INFO("  Renderer: {0}", glGetString(GL_RENDERER));
-      PKZL_CORE_LOG_INFO("  Version: {0}", glGetString(GL_VERSION));
+      PKZL_CORE_LOG_INFO("  Vendor: {0}", (char*)glGetString(GL_VENDOR));
+      PKZL_CORE_LOG_INFO("  Renderer: {0}", (char*)glGetString(GL_RENDERER));
+      PKZL_CORE_LOG_INFO("  Version: {0}", (char*)glGetString(GL_VERSION));
 
 #ifdef PKZL_ENABLE_ASSERTS
       int versionMajor;

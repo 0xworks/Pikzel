@@ -11,14 +11,14 @@ namespace Pikzel {
             PKZL_CORE_LOG_ERROR("Model with name '{}' has already been loaded from path '{}'.  This conflicts with attempt to load from path '{}'", name, handle->Path, path);
          }
       } else {
-         m_ModelCache.load<ModelResourceLoader>(id, name, path);
+         m_ModelCache.load(id, name, path);
       }
       return id;
    }
 
 
    ModelResourceHandle AssetCache::GetModelResource(Id id) {
-      return m_ModelCache.handle(id);
+      return m_ModelCache[id];
    }
 
 

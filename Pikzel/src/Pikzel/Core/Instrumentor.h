@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tracy.hpp"
+#include "tracy/Tracy.hpp"
 
 
 #ifdef PKZL_PROFILE

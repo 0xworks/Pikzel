@@ -90,9 +90,10 @@ set(
    "vendor/imgui"
    "vendor/ImGuiAl"
    "vendor/spdlog/include"
-   "vendor/tracy"
+   "vendor/tracy/public"
    "vendor/yaml-cpp/include"
    ${CMRC_INCLUDE_DIR}
+   "$ENV{VULKAN_SDK}/include/spirv_cross"
 )
 
 
@@ -159,7 +160,6 @@ target_include_directories(
 target_include_directories(
    ${PROJECT_NAME} PRIVATE
    "vendor/dds-ktx"
-   "vendor/SPIRV-Cross"
    "vendor/stb"
    "vendor/tinyfiledialogs"
 )
@@ -186,10 +186,6 @@ if(MSVC)
    )
 endif()
 
-
-
-
-
 target_link_libraries(
    ${PROJECT_NAME} PRIVATE
    ${ProjectLibs}
@@ -198,6 +194,15 @@ target_link_libraries(
 target_link_libraries(
    ${PROJECT_NAME} PUBLIC
    "TracyClient"
+   debug "spirv-cross-cored"
+   debug "spirv-cross-glsld"
+   optimized "spirv-cross-core"
+   optimized "spirv-cross-glsl"
+)
+
+target_link_directories(
+   ${PROJECT_NAME} PUBLIC
+   "$ENV{VULKAN_SDK}/lib"
 )
 
 if(MSVC)
@@ -326,7 +331,6 @@ target_compile_definitions(
 target_include_directories(
    "PlatformOpenGL" PRIVATE
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
-   "vendor/SPIRV-cross"
 )
 
 target_link_libraries(
@@ -335,9 +339,6 @@ target_link_libraries(
    "glfw"
    "glm"
    "ImGui"
-   "spirv-cross-core"
-   "spirv-cross-glsl"
-   "TracyClient"
 )
 
 target_precompile_headers(
@@ -413,8 +414,8 @@ if(${Vulkan_FOUND})
 
    target_include_directories(
       "PlatformVulkan" PRIVATE
-      "vendor/SPIRV-cross"
       "vendor/VulkanMemoryAllocator-Hpp/include"
+      "$ENV{VULKAN_SDK}/include/vma"
       ${Vulkan_INCLUDE_DIRS}
    )
 
@@ -437,9 +438,6 @@ if(${Vulkan_FOUND})
       "glfw"
       "glm"
       "ImGui"
-      "spirv-cross-core"
-      "spirv-cross-glsl"
-      "TracyClient"
       ${Vulkan_LIBRARIES}
    )
 
@@ -451,7 +449,7 @@ endif()
 
 add_library(
    "TracyClient" SHARED
-   "vendor/tracy/TracyClient.cpp"
+   "vendor/tracy/public/TracyClient.cpp"
 )
 
 target_compile_features(
@@ -474,6 +472,7 @@ target_include_directories(
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
 
 set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "Inject debug postfix in .a/.so/.dll lib names" FORCE)
+set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp's export functionality." FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library." FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library." FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "Disable this if you want to use assimp as a submodule." FORCE)
@@ -485,12 +484,6 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS ON)
 add_subdirectory("vendor/glfw")
 set(BUILD_SHARED_LIBS OFF)
-
-set(SPIRV_CROSS_SKIP_INSTALL ON CACHE BOOL "Skips installation targets." FORCE)
-set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "Enable SPIRV-Cross tests." FORCE)
-set(SPIRV_CROSS_CLI OFF CACHE BOOL "Build the CLI binary. Requires SPIRV_CROSS_STATIC." FORCE)
-set(SPIRV_CROSS_FORCE_PIC ON CACHE BOOL "Force position-independent code for all targets." FORCE)
-add_subdirectory("vendor/SPIRV-Cross")
 
 add_subdirectory("vendor/glm")
 

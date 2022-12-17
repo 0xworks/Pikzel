@@ -206,9 +206,9 @@ namespace Pikzel {
    void Serialize<ModelResourceCache>(YAML::Emitter& yaml, const ModelResourceCache& cache) {
       yaml << YAML::Value << YAML::BeginSeq;
       {
-         cache.each([&](ConstModelResourceHandle handle) {
+         for(const auto& [id, handle] : cache) {
             Serialize(yaml, handle);
-         });
+         }
       }
       yaml << YAML::EndSeq;
    }

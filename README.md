@@ -66,13 +66,13 @@ This project is mainly a learning exercise for me, and I hope that the code is c
 
 
 ## Building
-This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio on Win10.
+This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio on Win11.
 I have also tested on Ubuntu 20.10 using vscode (with gcc compiler).  Others are untested, but may work (with hopefully only minor changes).
 
 ### Prerequisites
 - A c++20 compiler (or at least the compiler must support designated initializers)
 - cmake 3.16+
-- [Vulkan SDK](https://vulkan.lunarg.com/) (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with Spir-V cross).  The project is currently using the Spir-V tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This will be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).  Any version of Vulkan SDK v1.2.162.0 or greater should work, unless explicitly noted in commit comments.
+- [Vulkan SDK](https://vulkan.lunarg.com/) (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with SPIRV-cross).  The project is currently using the spirv tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This might be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).  Any version of Vulkan SDK v1.2.162.0 or greater should work.
 - On linux you will need the following packages installed:
   - libosmesa6-dev
   - libxrandr-dev
@@ -81,21 +81,20 @@ I have also tested on Ubuntu 20.10 using vscode (with gcc compiler).  Others are
   - libxi-dev
 
 - All other dependencies are brought in via git submodules to try and minimize the need to pre-install things.  The other dependencies are:
-  - assimp          (asset (aka 3d models) importing)
-  - cmrc            (for embedding resources (such as shader binaries) into the compiled application)
-  - dds-ktx         (dds and ktx image file loading)
-  - entt            (Entity Component System, plus this is also used for the event system, and compile time string hashing)
-  - glfw            (window management)
-  - glm             (maths)
-  - imgui           (tooling ui)
-  - ImGuiAl         (widgets for imgui)
-  - spdlog          (logging)
-  - SPIRV-Cross     (shader cross-compilation)
-  - stb             (image file loading)
-  - tinyfiledialogs (cross platform file load/save dialogs)
-  - tracy           (performance profiling)
-  - vma             (Vulkan memory allocator)
-  - yaml-cpp        (serialization to/from yaml)
+  - assimp                    (asset (aka 3d models) importing)
+  - cmrc                      (for embedding resources (such as shader binaries) into the compiled application)
+  - dds-ktx                   (dds and ktx image file loading)
+  - entt                      (Entity Component System, plus this is also used for the event system, and compile time string hashing)
+  - glfw                      (window management)
+  - glm                       (maths)
+  - imgui                     (tooling ui)
+  - ImGuiAl                   (widgets for imgui)
+  - spdlog                    (logging)
+  - stb                       (image file loading)
+  - tinyfiledialogs           (cross platform file load/save dialogs)
+  - tracy                     (performance profiling)
+  - VulkanMemoryAllocator-hpp (c++ bindings for vma)
+  - yaml-cpp                  (serialization to/from yaml)
 
 ### Build
 - ```git clone --recursive https://github.com/0xworks/Pikzel.git```
