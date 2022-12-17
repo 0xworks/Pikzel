@@ -481,22 +481,22 @@ namespace Pikzel {
       }
 
       m_TextureSampler = m_Device->GetVkDevice().createSampler({
-         {}                                                              /*flags*/,
-         TextureFilterToVkFilter(magFilter)                              /*magFilter*/,
-         TextureFilterToVkFilter(minFilter)                              /*minFilter*/,
-         TextureFilterToVkMipmapMode(minFilter)                          /*mipmapMode*/,
-         TextureWrapToVkSamplerAddressMode(wrapU)                        /*addressModeU*/,
-         TextureWrapToVkSamplerAddressMode(wrapV)                        /*addressModeV*/,
-         TextureWrapToVkSamplerAddressMode(wrapW)                        /*addressModeW*/,
-         0.0f                                                            /*mipLodBias*/,
-         m_Device->GetEnabledPhysicalDeviceFeatures().samplerAnisotropy  /*anisotropyEnable*/,
-         16                                                              /*maxAnisotropy*/,
-         false                                                           /*compareEnable*/,
-         vk::CompareOp::eNever                                           /*compareOp*/,
-         0.0f                                                            /*minLod*/,
-         static_cast<float>(m_Image->GetMIPLevels())                     /*maxLod*/,
-         vk::BorderColor::eFloatOpaqueBlack                              /*borderColor*/,
-         false                                                           /*unnormalizedCoordinates*/
+         {}                                                                       /*flags*/,
+         TextureFilterToVkFilter(magFilter)                                       /*magFilter*/,
+         TextureFilterToVkFilter(minFilter)                                       /*minFilter*/,
+         TextureFilterToVkMipmapMode(minFilter)                                   /*mipmapMode*/,
+         TextureWrapToVkSamplerAddressMode(wrapU)                                 /*addressModeU*/,
+         TextureWrapToVkSamplerAddressMode(wrapV)                                 /*addressModeV*/,
+         TextureWrapToVkSamplerAddressMode(wrapW)                                 /*addressModeW*/,
+         0.0f                                                                     /*mipLodBias*/,
+         m_Device->GetEnabledPhysicalDeviceFeatures<vk::PhysicalDeviceFeatures>().samplerAnisotropy  /*anisotropyEnable*/,
+         16                                                                       /*maxAnisotropy*/,
+         false                                                                    /*compareEnable*/,
+         vk::CompareOp::eNever                                                    /*compareOp*/,
+         0.0f                                                                     /*minLod*/,
+         static_cast<float>(m_Image->GetMIPLevels())                              /*maxLod*/,
+         vk::BorderColor::eFloatOpaqueBlack                                       /*borderColor*/,
+         false                                                                    /*unnormalizedCoordinates*/
       });
    }
 

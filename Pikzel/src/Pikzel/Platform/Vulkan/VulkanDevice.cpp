@@ -46,23 +46,24 @@ namespace Pikzel {
    }
 
 
-   vk::PhysicalDeviceFeatures VulkanDevice::GetRequiredPhysicalDeviceFeatures(vk::PhysicalDeviceFeatures availableFeatures) const {
-      vk::PhysicalDeviceFeatures features;
+   void VulkanDevice::EnablePhysicalDeviceFeatures() {
+      auto result = m_PhysicalDevice.getFeatures2<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan13Features>();
+      auto availableFeatures = result.get<vk::PhysicalDeviceFeatures2>().features;
+      auto availableVulkan13Features = result.get<vk::PhysicalDeviceVulkan13Features>();
+
+
       if (availableFeatures.samplerAnisotropy) {
-         features.setSamplerAnisotropy(true);
+         m_EnabledPhysicalDeviceFeatures.features.setSamplerAnisotropy(true);
       }
       if (availableFeatures.geometryShader) {
-         features.setGeometryShader(true);
+         m_EnabledPhysicalDeviceFeatures.features.setGeometryShader(true);
       }
       if (availableFeatures.imageCubeArray) {
-         features.setImageCubeArray(true);
+         m_EnabledPhysicalDeviceFeatures.features.setImageCubeArray(true);
       }
-      return features;
-   }
-
-
-   void* VulkanDevice::GetRequiredPhysicalDeviceFeaturesEXT() const {
-      return nullptr;
+      if (availableVulkan13Features.maintenance4) {
+         m_EnabledPhysicalDeviceVulkan13Features.setMaintenance4(true);
+      }
    }
 
 
@@ -73,7 +74,6 @@ namespace Pikzel {
          if (IsPhysicalDeviceSuitable(physicalDevice, surface)) {
             m_PhysicalDevice = physicalDevice;
             m_PhysicalDeviceProperties = m_PhysicalDevice.getProperties();
-            m_PhysicalDeviceFeatures = m_PhysicalDevice.getFeatures();
             m_QueueFamilyIndices = FindQueueFamilies(m_PhysicalDevice, surface);
             break;
          }
@@ -112,7 +112,7 @@ namespace Pikzel {
 
       std::vector<const char*> deviceExtensions = GetRequiredDeviceExtensions();
 
-      m_EnabledPhysicalDeviceFeatures = GetRequiredPhysicalDeviceFeatures(m_PhysicalDeviceFeatures);
+      EnablePhysicalDeviceFeatures();
 
       vk::DeviceCreateInfo ci = {
          {},
@@ -122,9 +122,9 @@ namespace Pikzel {
          nullptr                                          /*ppEnabledLayerNames*/,
          static_cast<uint32_t>(deviceExtensions.size())   /*enabledExtensionCount*/,
          deviceExtensions.data()                          /*ppEnabledExtensionNames*/,
-         &m_EnabledPhysicalDeviceFeatures                 /*pEnabledFeatures*/
+         nullptr                                          /*pEnabledFeatures*/
       };
-      ci.pNext = GetRequiredPhysicalDeviceFeaturesEXT();
+      ci.pNext = &vk::StructureChain(m_EnabledPhysicalDeviceFeatures, m_EnabledPhysicalDeviceVulkan13Features).get<vk::PhysicalDeviceFeatures2>();
 
 #ifdef PKZL_DEBUG
       std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
@@ -241,11 +241,6 @@ namespace Pikzel {
       if (counts & vk::SampleCountFlagBits::e4)  return 4;
       if (counts & vk::SampleCountFlagBits::e2)  return 2;
       return 1;
-   }
-
-
-   vk::PhysicalDeviceFeatures VulkanDevice::GetEnabledPhysicalDeviceFeatures() const {
-      return m_EnabledPhysicalDeviceFeatures;
    }
 
 

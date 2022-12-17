@@ -191,7 +191,7 @@ protected:
          ImGui::RadioButton("Reinhard", &m_ToneMap, 1);
          ImGui::RadioButton("Exposure", &m_ToneMap, 2);
          ImGui::SameLine();
-         ImGui::DragFloat("", &m_Exposure, 0.1f, 0, 10);
+         ImGui::DragFloat("##", &m_Exposure, 0.1f, 0, 10);
          ImGui::InputInt("Lod", &skyboxLod, 1.0f);
 
          ImGui::Text("Depth buffer:");

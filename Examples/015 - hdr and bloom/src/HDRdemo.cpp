@@ -217,7 +217,7 @@ protected:
          ImGui::RadioButton("Reinhard", &m_ToneMap, 1);
          ImGui::RadioButton("Exposure", &m_ToneMap, 2);
          ImGui::SameLine();
-         ImGui::DragFloat("", &m_Exposure, 0.1f, 0, 10);
+         ImGui::DragFloat("##", &m_Exposure, 0.1f, 0, 10);
          ImGui::Checkbox("Normal mapping", &m_UseNormalMaps);
          ImGui::Checkbox("Displacement mapping", &m_UseDisplacementMaps);
          ImGui::Checkbox("Ambient Light", &m_ShowDirectionalLight);
