@@ -1,26 +1,28 @@
 #include "HierarchyPanel.h"
+#include "UI.h"
 
 #include "Pikzel/Components/Relationship.h"
-#include "Pikzel/ImGui/ImGuiEx.h"
+#include "Pikzel/Events/EventDispatcher.h"
 
 using namespace Pikzel;
 
-static ImGuiWindowFlags s_SceneExplorerFlags = ImGuiWindowFlags_NoCollapse;
+static ImGuiWindowFlags s_HierarchyFlags = ImGuiWindowFlags_NoCollapse;
 
 HierarchyPanel::HierarchyPanel(SceneEditor& editor)
-   : Panel{editor}
+: Panel{editor}
 {
-   m_Name = ICON_FA_STREAM"  Hierarchy###Hierarchy";
+   m_Name = ICON_FA_BARS_STAGGERED" Hierarchy###Hierarchy";
+   EventDispatcher::Connect<SceneEditor::ObjectSelectedEvent, &HierarchyPanel::OnObjectSelected>(*this);
 }
 
 
 void HierarchyPanel::Render() {
-   static bool showSceneExplorer = true;
-   showSceneExplorer = IsVisible();
+   static bool showHierarchy = true;
+   showHierarchy = IsVisible();
    auto& scene = GetEditor().GetScene();
-   ImGui::Begin(m_Name.data(), &showSceneExplorer, s_SceneExplorerFlags);
+   ImGui::Begin(m_Name.data(), &showHierarchy, s_HierarchyFlags);
    {
-      auto [expanded, clicked] = ImGuiEx::IconTreeNode(0, ImGuiEx::Icon::Scene, "Scene", ImGuiTreeNodeFlags_DefaultOpen, [this, &scene] {
+      auto [expanded, clicked] = UI::IconTreeNode(0, UI::Icon::Scene, "Scene", ImGuiTreeNodeFlags_DefaultOpen, [this, &scene] {
 
          if (ImGui::BeginPopupContextItem()) {
             RenderAddMenu(Null);
@@ -55,7 +57,8 @@ void HierarchyPanel::Render() {
       });
 
       if (clicked) {
-         m_SelectedObject = Null;
+         Object object = Null;
+         EventDispatcher::Send<SceneEditor::ObjectSelectedEvent>(object);
       }
 
       if (expanded) {
@@ -82,12 +85,12 @@ void HierarchyPanel::Render() {
       m_Action = {};
    }
 
-   SetVisible(showSceneExplorer);
+   SetVisible(showHierarchy);
 }
 
 
 void HierarchyPanel::RenderObject(Scene& scene, Object object, Object childObject) {
-   ImGuiTreeNodeFlags extraFlags = ImGuiTreeNodeFlags_None;
+   ImGuiTreeNodeFlags extraFlags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
    if (object == m_SelectedObject) {
       extraFlags |= ImGuiTreeNodeFlags_Selected;
    }
@@ -99,7 +102,7 @@ void HierarchyPanel::RenderObject(Scene& scene, Object object, Object childObjec
       m_EnsureExpanded.erase(object);
    }
    auto& name = scene.GetComponent<std::string>(object);
-   auto [expanded, clicked] = ImGuiEx::IconTreeNode((void*)(uintptr_t)object, ImGuiEx::Icon::Object, name, extraFlags, [this, &scene, object] {
+   auto [expanded, clicked] = UI::IconTreeNode((void*)(uintptr_t)object, UI::Icon::Object, name, extraFlags, [this, &scene, object] {
 
       if (ImGui::BeginPopupContextItem()) {
          RenderAddMenu(object);
@@ -153,7 +156,7 @@ void HierarchyPanel::RenderObject(Scene& scene, Object object, Object childObjec
 
    });
    if (clicked) {
-      m_SelectedObject = object;
+      EventDispatcher::Send<SceneEditor::ObjectSelectedEvent>(object);
    }
    if(expanded) {
       while (childObject != Null) {
@@ -181,7 +184,15 @@ void HierarchyPanel::RenderAddMenu(Object parent) {
 void HierarchyPanel::RenderDeleteMenu(Object object) {
    if (ImGui::MenuItem("Delete")) {
       m_Action = [this, object] {
-         GetEditor().GetScene().DestroyObject(object);
+         auto& scene = GetEditor().GetScene();
+         Object parent = scene.GetComponent<Relationship>(object).Parent;
+         scene.DestroyObject(object);
+         EventDispatcher::Send<SceneEditor::ObjectSelectedEvent>(parent);
       };
    }
+}
+
+
+void HierarchyPanel::OnObjectSelected(const SceneEditor::ObjectSelectedEvent& event) {
+   m_SelectedObject = event.object;
 }

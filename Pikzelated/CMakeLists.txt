@@ -13,8 +13,12 @@ set(
    "src/Panel.h"
    "src/Panel.cpp"
    "src/Pikzelated.cpp"
+   "src/PropertiesPanel.h"
+   "src/PropertiesPanel.cpp"
    "src/SceneEditor.h"
    "src/SceneEditor.cpp"
+   "src/UI.h"
+   "src/UI.cpp"
 )
 
 set(
