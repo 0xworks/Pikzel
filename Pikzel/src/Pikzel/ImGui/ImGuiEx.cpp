@@ -3,10 +3,10 @@
 #include "Pikzel/Renderer/RenderCore.h"
 #include "Pikzel/Renderer/sRGB.h"
 
-#include <fonts/CousineRegular.inl>
-#include <fonts/CousineBold.inl>
 #include <fonts/FontAwesome6Regular400.inl>
 #include <fonts/FontAwesome6Solid900.inl>
+#include <fonts/RobotoBold.inl>
+#include <fonts/RobotoRegular.inl>
 
 #include <imgui_internal.h>
 
@@ -47,8 +47,8 @@ namespace Pikzel {
          style.WindowRounding = 0.0f;
          style.TabRounding = 0.0f;
 
-         AddFont(CousineRegular_compressed_data, CousineRegular_compressed_size, 16 * scaleFactor);
-         AddFont(CousineBold_compressed_data, CousineBold_compressed_size, 16 * scaleFactor);
+         AddFont(RobotoRegular_compressed_data, RobotoRegular_compressed_size, 16 * scaleFactor);
+         AddFont(RobotoBold_compressed_data, RobotoBold_compressed_size, 16 * scaleFactor);
 
          RenderCore::UploadImGuiFonts();
       }
@@ -178,126 +178,99 @@ namespace Pikzel {
       }
 
 
-      const char* IconToString(Icon icon) {
-         switch (icon) {
-            case Icon::Scene:  return ICON_FA_GLOBE;
-            case Icon::Object: return ICON_FA_CUBE;
-         }
-         return ICON_FA_QUESTION;
-      }
-
-
-      ImVec4 IconToColor(Icon icon) {
-         // TODO: theme aware colors.  For now choose them carefully so they work on either dark or light background
-         switch (icon) {
-            case Icon::Scene:  return {0.59f, 0.42f, 0.00f, 1.0f};
-            case Icon::Object: return {0.32f, 0.70f, 0.87f, 1.0f};
-         }
-         return {0.0f, 0.0f, 0.0f, 1.0f};
-      }
-
-      std::tuple<bool, bool> IconTreeNode(void* ptr_id, Icon icon, std::string_view content, ImGuiTreeNodeFlags extraFlags, std::function<void()> callback) {
-         bool isExpanded = ImGui::TreeNodeEx(ptr_id, ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow | extraFlags, "");
-         bool isClicked = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right));
-         if (callback) {
-            callback();
-         }
-         ImGui::PushStyleColor(ImGuiCol_Text, IconToColor(icon));
-         ImGui::SameLine();
-         ImGui::Text(IconToString(icon));
-         ImGui::PopStyleColor();
-         ImGui::SameLine();
-         ImGui::Text(content.data());
-         return {isExpanded, isClicked};
-      }
-
-      void EditVec3(const char* label, glm::vec3* value, const float resetValue, const float labelWidth) {
+      bool EditVec3(glm::vec3* value, const glm::vec3& resetValue) {
          //
          // ImGui UI for glm::vec3 based on code from TheCherno Game Engine Series episode 91  https://www.youtube.com/watch?v=IEiOP7Y-Mbc&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT&index=91
          //
+         ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+         auto boldFont = ImGui::GetIO().Fonts->Fonts[(int)Font::RobotoBold];
+         bool bChanged = false;
+
+         {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+            ImGui::PushFont(boldFont);
+            if (ImGui::Button("X") && (value->x != resetValue.x)) {
+               value->x = resetValue.x;
+               bChanged = true;
+            }
+            ImGui::PopFont();
+            ImGui::PopStyleColor(3);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+            ImGui::SameLine();
+            bChanged |= ImGui::DragFloat("##X", &value->x, 0.1f, 0.0f, 0.0f, "%.2f");
+            ImGui::PopStyleVar();
+         }
+         ImGui::PopItemWidth();
+
+         {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+            ImGui::SameLine();
+            ImGui::PushFont(boldFont);
+            if (ImGui::Button("Y") && (value->y != resetValue.y)) {
+               value->y = resetValue.y;
+               bChanged = true;
+            }
+            ImGui::PopFont();
+            ImGui::PopStyleColor(3);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+            ImGui::SameLine();
+            bChanged |= ImGui::DragFloat("##Y", &value->y, 0.1f, 0.0f, 0.0f, "%.2f");
+            ImGui::PopStyleVar();
+         }
+         ImGui::PopItemWidth();
+
+         {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
+            ImGui::SameLine();
+            ImGui::PushFont(boldFont);
+            if (ImGui::Button("Z") && (value->z != resetValue.z)) {
+               value->z = resetValue.z;
+               bChanged = true;
+            }
+            ImGui::PopFont();
+            ImGui::PopStyleColor(3);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+            ImGui::SameLine();
+            bChanged |= ImGui::DragFloat("##Z", &value->z, 0.1f, 0.0f, 0.0f, "%.2f");
+            ImGui::PopStyleVar();
+         }
+         ImGui::PopItemWidth();
+
+         return bChanged;
+      }
+
+
+      bool EditVec3(const char* label, glm::vec3* value, const glm::vec3& resetValue, const float labelWidth) {
          ImGui::PushID(label);
 
          ImGui::Columns(2, nullptr, false);
          ImGui::SetColumnWidth(0, labelWidth);
-         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {10, 10});
+         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{10, 10});
 
          ImGui::AlignTextToFramePadding();
          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(label).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
          ImGui::Text(label);
 
          ImGui::NextColumn();
-         ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-
-         ImVec4 button = ImGui::GetStyleColorVec4(ImGuiCol_Button);
-         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button);
-         ImGui::PushStyleColor(ImGuiCol_ButtonActive, button);
-
-         auto boldFont = ImGui::GetIO().Fonts->Fonts[(int)Font::UIBold];
-
-         {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.8f, 0.1f, 0.15f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 {0.9f, 0.2f, 0.2f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 {0.8f, 0.1f, 0.15f, 1.0f});
-            ImGui::PushFont(boldFont);
-            if (ImGui::Button("X")) {
-               value->x = resetValue;
-            }
-            ImGui::PopFont();
-            ImGui::PopStyleColor(3);
-
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
-            ImGui::SameLine();
-            ImGui::DragFloat("##X", &value->x, 0.1f, 0.0f, 0.0f, "%.2f");
-            ImGui::PopStyleVar();
-         }
-         ImGui::PopItemWidth();
-
-         {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.2f, 0.7f, 0.2f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 {0.3f, 0.8f, 0.3f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 {0.2f, 0.7f, 0.2f, 1.0f});
-            ImGui::SameLine();
-            ImGui::PushFont(boldFont);
-            if (ImGui::Button("Y")) {
-               value->y = resetValue;
-            }
-            ImGui::PopFont();
-            ImGui::PopStyleColor(3);
-
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
-            ImGui::SameLine();
-            ImGui::DragFloat("##Y", &value->y, 0.1f, 0.0f, 0.0f, "%.2f");
-            ImGui::PopStyleVar();
-         }
-         ImGui::PopItemWidth();
-
-         {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4 {0.1f, 0.25f, 0.8f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4 {0.2f, 0.35f, 0.9f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4 {0.1f, 0.25f, 0.8f, 1.0f});
-            ImGui::SameLine();
-            ImGui::PushFont(boldFont);
-            if (ImGui::Button("Z")) {
-               value->z = resetValue;
-            }
-            ImGui::PopFont();
-            ImGui::PopStyleColor(3);
-
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {0, 0});
-            ImGui::SameLine();
-            ImGui::DragFloat("##Z", &value->z, 0.1f, 0.0f, 0.0f, "%.2f");
-            ImGui::PopStyleVar();
-         }
-         ImGui::PopItemWidth();
+         bool bChanged = EditVec3(value, resetValue);
 
          ImGui::PopStyleVar();
-         ImGui::PopStyleColor(2);
          ImGui::Columns(1);
          ImGui::PopID();
+         return bChanged;
       }
 
 
-      void EditVec3Color(const char* label, glm::vec3* value, const float labelWidth) {
+      bool EditVec3Color(const char* label, glm::vec3* value, float labelWidth) {
          ImGui::PushID(label);
 
          ImGui::Columns(2, nullptr, false);
@@ -311,15 +284,20 @@ namespace Pikzel {
          ImGui::NextColumn();
 
          float color[3] = {value->r, value->g, value->b};
-         ImGui::ColorEdit3("##Color", color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder);
-         *value = {color[0], color[1], color[2]};
+         bool bChanged = false;
+         if (ImGui::ColorEdit3("##Color", color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder)) {
+            *value = {color[0], color[1], color[2]};
+            bChanged = true;
+         }
 
          ImGui::PopStyleVar();
          ImGui::Columns(1);
          ImGui::PopID();
+         return bChanged;
       }
 
-      void EditFloat(const char* label, float* value, const float labelWidth, const char* format, ImGuiInputTextFlags flags) {
+
+      bool EditFloat(const char* label, float* value, const float labelWidth, const char* format, ImGuiInputTextFlags flags) {
          ImGui::PushID(label);
 
          ImGui::Columns(2, nullptr, false);
@@ -332,11 +310,12 @@ namespace Pikzel {
 
          ImGui::NextColumn();
 
-         ImGui::DragFloat("##Float", value, 1.0f, 0.0f, 100000.0f, format, ImGuiSliderFlags_Logarithmic);
+         bool bChanged = ImGui::DragFloat("##Float", value, 1.0f, 0.0f, 100000.0f, format, ImGuiSliderFlags_Logarithmic);
 
          ImGui::PopStyleVar();
          ImGui::Columns(1);
          ImGui::PopID();
+         return bChanged;
       }
 
    }

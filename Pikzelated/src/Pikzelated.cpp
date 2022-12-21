@@ -1,5 +1,5 @@
-#include "Panel.h"
 #include "HierarchyPanel.h"
+#include "PropertiesPanel.h"
 #include "SceneEditor.h"
 
 #include "Pikzel/Core/EntryPoint.h"
@@ -38,6 +38,8 @@ public:
       m_SceneRenderer = Pikzel::CreateSceneRenderer(m_Framebuffer->GetGraphicsContext());
 
       m_Panels.emplace_back(std::make_unique<HierarchyPanel>(m_Editor));
+      m_Panels.emplace_back(std::make_unique<PropertiesPanel>(m_Editor));
+
    }
 
 
@@ -190,6 +192,10 @@ protected:
 
             ImGui::DockBuilderDockWindow("###Viewport", dockNode);
             ImGui::DockBuilderDockWindow("###Hierarchy", dockRight);
+
+            ImGuiID dockBottom = ImGui::DockBuilderSplitNode(dockRight, ImGuiDir_Down, 0.5f, nullptr, &dockRight);
+
+            ImGui::DockBuilderDockWindow("###Properties", dockBottom);
 
             ImGui::DockBuilderFinish(dockspaceId);
             m_ResetWindowLayout = false;

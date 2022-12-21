@@ -2,12 +2,18 @@
 
 #include "Pikzel/Core/Core.h"
 
-#include <glm/glm.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/quaternion_float.hpp>
 
 namespace Pikzel {
 
    struct PKZL_API Transform {
       glm::mat4 Matrix;
+      glm::vec3 Translation;
+      glm::quat Rotation;
+      glm::vec3 RotationEuler;
+      glm::vec3 Scale;
    };
+
 
 }

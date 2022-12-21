@@ -23,6 +23,10 @@ public:
 
    void Update(const Pikzel::Input& input, const Pikzel::DeltaTime deltaTime);
 
+   struct ObjectSelectedEvent {
+      Pikzel::Object object = Pikzel::Null;
+   };
+
 private:
    Camera m_Camera = {
       .position = {0.0f, 0.0f, 3.0f},

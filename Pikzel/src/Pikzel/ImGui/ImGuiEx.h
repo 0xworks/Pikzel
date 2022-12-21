@@ -3,34 +3,27 @@
 #include "Pikzel/Core/Window.h"
 #include "Pikzel/ImGui/IconsFontAwesome6.h"
 
-#include <glm/glm.hpp>
+#include <glm/ext/vector_float3.hpp>
 
-namespace Pikzel {
+namespace Pikzel::ImGuiEx {
 
-   namespace ImGuiEx {
+   enum class Theme {
+      Light,
+      Dark
+   };
 
-      enum class Theme {
-         Light,
-         Dark
-      };
+   enum class Font {
+      RobotoRegular,
+      RobotoBold
+   };
 
-      enum class Font {
-         UIRegular,
-         UIBold
-      };
+   void Init(Window& window);
+   void SetColors(Theme theme);
 
-      enum class Icon {
-         Scene,
-         Object
-      };
+   bool EditVec3(glm::vec3* value, const glm::vec3& resetValue = {0.0f, 0.0f, 0.0f});
+   bool EditVec3(const char* label, glm::vec3* value, const glm::vec3& resetValue = {0.0f, 0.0f, 0.0f}, const float labelWidth = 100.0f);
 
-      void Init(Window& window);
-      void SetColors(Theme theme);
+   bool EditVec3Color(const char* label, glm::vec3* value, const float labelWidth = 100.0f);
+   bool EditFloat(const char* label, float* value, const float labelWidth = 100.0f, const char* format = "%.3f", ImGuiInputTextFlags flags = 0);
 
-      std::tuple<bool, bool> IconTreeNode(void* ptr_id, Icon icon, std::string_view content, ImGuiTreeNodeFlags extraFlags = ImGuiTreeNodeFlags_None, std::function<void()> callback = {});
-
-      void EditVec3(const char* label, glm::vec3* value, const float resetValue = 0.0f, const float labelWidth = 100.0f);
-      void EditVec3Color(const char* label, glm::vec3* value, const float labelWidth = 100.0f);
-      void EditFloat(const char* label, float* value, const float labelWidth = 100.0f, const char* format = "%.3f", ImGuiInputTextFlags flags = 0);
-   }
 }
