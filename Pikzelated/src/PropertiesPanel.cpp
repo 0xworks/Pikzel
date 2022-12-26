@@ -24,12 +24,12 @@ PropertiesPanel::PropertiesPanel(SceneEditor& editor)
 
 template<typename Component, typename Callback> requires std::is_invocable_v<Callback, Component&>
 void DrawComponent(std::string_view componentName, Scene& scene, Object object, Callback callback) {
-   if (scene.HasComponent<Component>(object)) {
+   if(auto component = scene.TryGetComponent<Component>(object)) {
       ImGuiTreeNodeFlags extraFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
       auto [expanded, clicked] = UI::IconTreeNode((void*)typeid(Component).hash_code(), UI::Icon::Component, componentName, extraFlags);
       if (expanded) {
          if (callback) {
-            callback(scene.GetComponent<Component>(object));
+            callback(*component);
          }
          ImGui::TreePop();
       }
@@ -74,7 +74,8 @@ void PropertiesPanel::Render() {
             if (model.Id != Null) {
                // and if user changes it.. its not that we want the model's name changed
                // what we mean is to change to a different model
-               UI::Property("Model", AssetCache::GetModelResource(model.Id)->Name);
+               auto temp = AssetCache::GetPathHandle(model.Id)->string();
+               UI::Property("Model", temp);
             }
             UI::EndPropertyTable();
          });

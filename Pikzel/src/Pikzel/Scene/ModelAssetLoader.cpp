@@ -1,4 +1,4 @@
-#include "ModelResourceLoader.h"
+#include "ModelAssetLoader.h"
 
 #include "Pikzel/Renderer/RenderCore.h"
 
@@ -163,7 +163,7 @@ namespace Pikzel {
    }
 
 
-   void ProcessNode(ModelResource& model, aiMatrix4x4 transform, aiNode* node, const aiScene* scene, const std::filesystem::path& modelDir, size_t indentAmount) {
+   void ProcessNode(ModelAsset& model, aiMatrix4x4 transform, aiNode* node, const aiScene* scene, const std::filesystem::path& modelDir, size_t indentAmount) {
       //std::string indent(indentAmount, ' ');
       //PKZL_CORE_LOG_TRACE("{0} {1}", indent, node->mName.C_Str());
       //PKZL_CORE_LOG_TRACE("{0} Transform = {{", indent);
@@ -193,9 +193,9 @@ namespace Pikzel {
    }
 
 
-   std::shared_ptr<ModelResource> ModelResourceLoader::operator()(const std::string_view name, const std::filesystem::path& path) const {
-      PKZL_CORE_LOG_INFO("Loading model with name '{0}' from path '{1}'.", name, path);
-      std::shared_ptr<ModelResource> model = std::make_shared<ModelResource>(name, path);
+   std::shared_ptr<ModelAsset> ModelAssetLoader::operator()(const std::filesystem::path& path) const {
+      PKZL_CORE_LOG_INFO("Loading model from path '{}'.", path);
+      std::shared_ptr<ModelAsset> model = std::make_shared<ModelAsset>();
 
       Assimp::Importer importer;
       const aiScene* scene = importer.ReadFile(path.string(), g_AssimpProcessFlags);

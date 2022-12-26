@@ -43,11 +43,11 @@
 #include "Pikzel/Scene/Camera.h"
 #include "Pikzel/Scene/Light.h"
 #include "Pikzel/Scene/Mesh.h"
-#include "Pikzel/Scene/ModelResource.h"
-#include "Pikzel/Scene/ModelResourceLoader.h"
+#include "Pikzel/Scene/ModelAsset.h"
+#include "Pikzel/Scene/ModelAssetLoader.h"
 #include "Pikzel/Scene/Scene.h"
 #include "Pikzel/Scene/SceneRenderer.h"
-#include "Pikzel/Scene/SceneSerializer.h"
+#include "Pikzel/Serialization/SceneSerializer.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

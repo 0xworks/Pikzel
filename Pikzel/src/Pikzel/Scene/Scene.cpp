@@ -1,5 +1,4 @@
 #include "Scene.h"
-#include "ModelResourceLoader.h"
 
 #include "Pikzel/Components/Relationship.h"
 

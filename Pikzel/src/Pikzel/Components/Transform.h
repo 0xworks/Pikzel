@@ -8,7 +8,6 @@
 namespace Pikzel {
 
    struct PKZL_API Transform {
-      glm::mat4 Matrix;
       glm::vec3 Translation;
       glm::quat Rotation;
       glm::vec3 RotationEuler;

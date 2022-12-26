@@ -30,7 +30,7 @@ namespace Pikzel {
 
       Mesh(std::unique_ptr<VertexBuffer> vb, std::unique_ptr<IndexBuffer> ib)
       : VertexBuffer { std::move(vb) }
-      , IndexBuffer {std::move(ib) }
+      , IndexBuffer { std::move(ib) }
       {}
 
       Mesh(Mesh&& mesh) noexcept

@@ -32,12 +32,12 @@ namespace Pikzel {
       glm::mat4 vp = camera.projection * glm::lookAt(camera.position, camera.position + camera.direction, camera.upVector);
 
       // something like this.. only more complicated.. (e.g need materials, shadows, animation, ...)
-      for (auto&& [object, transform, model] : scene.GetGroup<const Transform, const Model>().each()) {
-         gc.PushConstant("constants.mvp"_hs, vp * transform.Matrix);
+      for (auto&& [object, transform, model] : scene.GetGroup<const glm::mat4, const Model>().each()) {
+         gc.PushConstant("constants.mvp"_hs, vp * transform);
 
-         auto modelResource = AssetCache::GetModelResource(model.Id);
+         auto modelAsset = AssetCache::GetModelAsset(model.Id);
 
-         for (const auto& mesh : modelResource->Meshes) {
+         for (const auto& mesh : modelAsset->Meshes) {
             //gc.PushConstant("constants.mvp"_hs, transform * mesh.Transform);
             //gc.Bind("uAlbedo"_hs, *mesh.AlbedoTexture);
             //gc.Bind("uMetallicRoughness"_hs, *mesh.MetallicRoughnessTexture);
