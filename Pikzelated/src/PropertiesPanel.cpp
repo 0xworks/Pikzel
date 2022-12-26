@@ -74,7 +74,7 @@ void PropertiesPanel::Render() {
             if (model.Id != Null) {
                // and if user changes it.. its not that we want the model's name changed
                // what we mean is to change to a different model
-               auto temp = AssetCache::GetPathHandle(model.Id)->string();
+               auto temp = AssetCache::GetPath(model.Id)->string();
                UI::Property("Model", temp);
             }
             UI::EndPropertyTable();

@@ -7,7 +7,7 @@ namespace Pikzel {
    Id AssetCache::LoadModelAsset(const std::filesystem::path& path) {
       auto id = entt::hashed_string(path.string().data());
 
-      if (GetPathHandle(id)) {
+      if (GetPath(id)) {
          PKZL_CORE_LOG_ERROR("Asset with path '{}' has already been loaded", path);
       } else {
          m_Paths.load(id, path);
@@ -22,7 +22,7 @@ namespace Pikzel {
    }
 
 
-   Pikzel::PathHandle AssetCache::GetPathHandle(Id id) {
+   Pikzel::PathHandle AssetCache::GetPath(Id id) {
       return m_Paths[id];
    }
 
