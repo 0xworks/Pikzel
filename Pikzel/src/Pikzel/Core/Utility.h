@@ -65,4 +65,28 @@ namespace Pikzel {
       return buffer;
    }
 
+
+   inline std::unique_ptr<std::istream> IStream(const std::filesystem::path& path) {
+      // search paths for the stream are as follows:
+      // 1) The current working directory
+      // 2) The application binary directory
+      // 3) The Pikzel embedded cmrc filesystem
+
+      // 1) try current working directory (i.e. use path exactly as passed in)
+      auto file = std::make_unique<std::ifstream>(path, std::ios::binary);
+      if (!file->is_open()) {
+
+         // 2) try application "root" directory
+         std::filesystem::path root = Application::Get().GetRootDir();
+         file->open(root / path, std::ios::binary);
+         if (!file->is_open()) {
+
+            // 3) try Pikzel embedded CMRC filesystem
+            auto fs = GetEmbeddedFileSystem();
+            auto cmrcFile = fs.open(path.string());
+            return std::make_unique<std::istringstream>(std::string(cmrcFile.begin(), cmrcFile.end()));
+         }
+      }
+      return file;
+   }
 }

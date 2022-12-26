@@ -1,29 +1,34 @@
 #include "AssetCache.h"
 
-#include "Pikzel/Scene/ModelResourceLoader.h"
+#include "Pikzel/Scene/ModelAssetLoader.h"
 
 namespace Pikzel {
 
-   Id AssetCache::LoadModelResource(const std::string_view name, const std::filesystem::path& path) {
-      auto id = entt::hashed_string(name.data());
-      if (auto handle = GetModelResource(id)) {
-         if (handle->Path != path) {
-            PKZL_CORE_LOG_ERROR("Model with name '{}' has already been loaded from path '{}'.  This conflicts with attempt to load from path '{}'", name, handle->Path, path);
-         }
+   Id AssetCache::LoadModelAsset(const std::filesystem::path& path) {
+      auto id = entt::hashed_string(path.string().data());
+
+      if (GetPathHandle(id)) {
+         PKZL_CORE_LOG_ERROR("Asset with path '{}' has already been loaded", path);
       } else {
-         m_ModelCache.load(id, name, path);
+         m_Paths.load(id, path);
+         m_Models.load(id, path);
       }
       return id;
    }
 
 
-   ModelResourceHandle AssetCache::GetModelResource(Id id) {
-      return m_ModelCache[id];
+   ModelAssetHandle AssetCache::GetModelAsset(Id id) {
+      return m_Models[id];
    }
 
 
+   Pikzel::PathHandle AssetCache::GetPathHandle(Id id) {
+      return m_Paths[id];
+   }
+
    void AssetCache::Clear() {
-      m_ModelCache.clear();
+      m_Paths.clear();
+      m_Models.clear();
    }
 
 }

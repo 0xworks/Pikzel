@@ -6,21 +6,20 @@
 
 namespace Pikzel {
 
-   struct PKZL_API SerializerSettings {
+   struct PKZL_API SceneSerializerSettings {
       std::filesystem::path Path;
    };
 
-
    class PKZL_API SceneSerializerYAML final {
    public:
-      SceneSerializerYAML(const SerializerSettings& settings);
+      SceneSerializerYAML(const SceneSerializerSettings& settings);
 
       void Serialize(const Pikzel::Scene& scene);
 
       std::unique_ptr<Pikzel::Scene> Deserialize();
 
    private:
-      SerializerSettings m_Settings;
+      SceneSerializerSettings m_Settings;
    };
 
 }

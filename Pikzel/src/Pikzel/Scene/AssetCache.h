@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Pikzel/Core/Core.h"
-#include "Pikzel/Scene/ModelResource.h"
-#include "Pikzel/Scene/ModelResourceLoader.h"
+#include "Pikzel/Scene/ModelAsset.h"
+#include "Pikzel/Scene/ModelAssetLoader.h"
 
 #include <entt/resource/cache.hpp>
 #include <entt/resource/resource.hpp>
@@ -12,24 +12,30 @@
 
 namespace Pikzel {
 
-   using ModelResourceCache = entt::resource_cache<ModelResource, ModelResourceLoader>;
-   using ModelResourceHandle = entt::resource<ModelResource>;
-   using ConstModelResourceHandle = entt::resource<const ModelResource>;
+   using PathCache = entt::resource_cache<std::filesystem::path>;
+   using PathHandle = entt::resource<std::filesystem::path>;
+
+   using ModelAssetCache = entt::resource_cache<ModelAsset, ModelAssetLoader>;
+   using ModelAssetHandle = entt::resource<ModelAsset>;
+   using ConstModelAssetHandle = entt::resource<const ModelAsset>;
 
    class PKZL_API AssetCache {
       AssetCache() = delete;
       PKZL_NO_COPYMOVE(AssetCache);
 
    public:
-      static Id LoadModelResource(const std::string_view name, const std::filesystem::path& path);
+      static Id LoadModelAsset(const std::filesystem::path& path);
 
-      static ModelResourceHandle GetModelResource(Id modelId);
+      static PathHandle GetPathHandle(Id id);
+
+      static ModelAssetHandle GetModelAsset(Id modelId);
 
       static void Clear();
 
    private:
-      friend class SceneSerializerYAML;
-      inline static ModelResourceCache m_ModelCache;
+      friend class AssetCacheSerializerYAML;
+      inline static PathCache m_Paths;
+      inline static ModelAssetCache m_Models;
 
    };
 

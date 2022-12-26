@@ -1,128 +1,21 @@
 #include "SceneSerializer.h"
 
+#include "Serializer.h"
+#include "Yaml.h"
+
 #include "Pikzel/Components/Model.h"
 #include "Pikzel/Components/Relationship.h"
 #include "Pikzel/Components/Transform.h"
+#include "Pikzel/Core/Utility.h"
 #include "Pikzel/Scene/AssetCache.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
-#include <yaml-cpp/yaml.h>
 #include <fstream>
 
-namespace YAML {
-
-   template<>
-   struct convert<glm::vec2> {
-
-      static Node encode(const glm::vec2& vec) {
-         Node node;
-         node.SetStyle(EmitterStyle::Flow);
-         node.push_back(vec.x);
-         node.push_back(vec.y);
-         return node;
-      }
-
-      static bool decode(const Node& node, glm::vec2& vec) {
-         if (!node.IsSequence() || node.size() != 2) {
-            return false;
-         }
-         vec.x = node[0].as<float>();
-         vec.y = node[1].as<float>();
-         return true;
-      }
-   };
-
-
-   template<>
-   struct convert<glm::vec3> {
-
-      static Node encode(const glm::vec3& vec) {
-         Node node;
-         node.SetStyle(EmitterStyle::Flow);
-         node.push_back(vec.x);
-         node.push_back(vec.y);
-         node.push_back(vec.z);
-         return node;
-      }
-
-      static bool decode(const Node& node, glm::vec3& vec) {
-         if (!node.IsSequence() || node.size() != 3) {
-            return false;
-         }
-         vec.x = node[0].as<float>();
-         vec.y = node[1].as<float>();
-         vec.z = node[2].as<float>();
-         return true;
-      }
-   };
-
-
-   template<>
-   struct convert<glm::vec4> {
-
-      static Node encode(const glm::vec4& vec) {
-         Node node;
-         node.SetStyle(EmitterStyle::Flow);
-         node.push_back(vec.x);
-         node.push_back(vec.y);
-         node.push_back(vec.z);
-         node.push_back(vec.w);
-         return node;
-      }
-
-      static bool decode(const Node& node, glm::vec4& vec) {
-         if (!node.IsSequence() || node.size() != 4) {
-            return false;
-         }
-         vec.x = node[0].as<float>();
-         vec.y = node[1].as<float>();
-         vec.z = node[2].as<float>();
-         vec.w = node[3].as<float>();
-         return true;
-      }
-   };
-
-
-   template<>
-   struct convert<glm::quat> {
-
-      static Node encode(const glm::quat& quat) {
-         Node node;
-         node.SetStyle(EmitterStyle::Flow);
-         node.push_back(quat.x);
-         node.push_back(quat.y);
-         node.push_back(quat.z);
-         node.push_back(quat.w);
-         return node;
-      }
-
-      static bool decode(const Node& node, glm::quat& quat) {
-         if (!node.IsSequence() || node.size() != 4) {
-            return false;
-         }
-         quat.x = node[0].as<float>();
-         quat.y = node[1].as<float>();
-         quat.z = node[2].as<float>();
-         quat.w = node[3].as<float>();
-         return true;
-      }
-   };
-
-}
-
-
 namespace Pikzel {
-
-   template<typename T>
-   void Serialize(YAML::Emitter& yaml, const T& component); // not defined on purpose.  you must specialize
-
-
-   template<typename T>
-   void Deserialize(YAML::Node node, T& component); // not defined on purpose.  you must specialize
-
 
    template<>
    void Serialize<Id>(YAML::Emitter& yaml, const Id& id) {
@@ -150,19 +43,11 @@ namespace Pikzel {
 
    template<>
    void Serialize<Transform>(YAML::Emitter& yaml, const Transform& transform) {
-      glm::vec3 position;
-      glm::quat rotation;
-      glm::vec3 scale;
-      glm::vec3 skew;
-      glm::vec4 perspective;
-      glm::decompose(transform.Matrix, scale, rotation, position, skew, perspective);
-      rotation = glm::conjugate(rotation);
-
       yaml << YAML::Value << YAML::BeginMap;
       {
-         yaml << YAML::Key << "Position" << YAML::Value << YAML::Node{ position };
-         yaml << YAML::Key << "Rotation" << YAML::Value << YAML::Node{ glm::eulerAngles(rotation) };
-         yaml << YAML::Key << "Scale" << YAML::Value << YAML::Node{ scale };
+         yaml << YAML::Key << "Translation" << YAML::Value << YAML::Node{transform.Translation};
+         yaml << YAML::Key << "Rotation" << YAML::Value << YAML::Node{transform.RotationEuler};
+         yaml << YAML::Key << "Scale" << YAML::Value << YAML::Node{transform.Scale};
       }
       yaml << YAML::EndMap;
    }
@@ -171,55 +56,28 @@ namespace Pikzel {
    template<>
    void Deserialize<Transform>(YAML::Node node, Transform& transform) {
       if (node.IsMap()) {
-         auto position = node["Position"].as<glm::vec3>();
-         auto rotation = node["Rotation"].as<glm::vec3>();
-         auto scale = node["Scale"].as<glm::vec3>();
-         transform.Matrix = glm::translate(glm::identity<glm::mat4>(), position) * glm::toMat4(glm::quat(rotation)) * glm::scale(glm::identity<glm::mat4>(), scale);
+         transform.Translation = node["Translation"].as<glm::vec3>();
+         transform.RotationEuler = node["Rotation"].as<glm::vec3>();
+         transform.Rotation = glm::quat(transform.RotationEuler);
+         transform.Scale = node["Scale"].as<glm::vec3>();
       }
    }
 
 
    template<>
    void Serialize<Model>(YAML::Emitter& yaml, const Model& model) {
-      auto handle = AssetCache::GetModelResource(model.Id);
-      yaml << (handle? handle->Name : "<unknown>");
+      auto handle = AssetCache::GetPathHandle(model.Id);
+      yaml << YAML::Key << "Path" << YAML::Value << (handle ? handle->string() : "<unknown>");
    }
 
 
    template<>
    void Deserialize<Model>(YAML::Node node, Model& model) {
-      model.Id = entt::hashed_string{ node.as<std::string>().data() }.value();
-   }
-
-
-   template<>
-   void Serialize<ConstModelResourceHandle>(YAML::Emitter& yaml, const ConstModelResourceHandle& handle) {
-      yaml << YAML::BeginMap;
-      {
-         yaml << YAML::Key << "Name" << YAML::Value << handle->Name;
-         yaml << YAML::Key << "Path" << YAML::Value << handle->Path.string().c_str();
-      }
-      yaml << YAML::EndMap;
-   }
-
-   template<>
-   void Serialize<ModelResourceCache>(YAML::Emitter& yaml, const ModelResourceCache& cache) {
-      yaml << YAML::Value << YAML::BeginSeq;
-      {
-         for(const auto& [id, handle] : cache) {
-            Serialize(yaml, handle);
+      if (node.IsMap()) {
+         auto path = node["Path"].as<std::string>();
+         if (path != "<unknown>") {
+            model.Id = AssetCache::LoadModelAsset(path);
          }
-      }
-      yaml << YAML::EndSeq;
-   }
-
-
-   template<>
-   void Deserialize<ModelResourceCache>(YAML::Node node, ModelResourceCache&) {
-      for (auto modelResourceNode : node) {
-         auto name = modelResourceNode["Name"].as<std::string>();
-         auto path = modelResourceNode["Path"].as<std::string>();
-         Pikzel::AssetCache::LoadModelResource(name, path);
       }
    }
 
@@ -237,6 +95,16 @@ namespace Pikzel {
       if (auto componentNode = node[key.data()]) {
          auto& component = scene.AddComponent<T>(object);
          Deserialize(componentNode, component);
+      }
+   }
+
+
+   template<>
+   void DeserializeComponent<Transform>(YAML::Node node, const std::string_view key, Scene& scene, Object object) {
+      if (auto componentNode = node[key.data()]) {
+         auto& transform = scene.AddComponent<Transform>(object);
+         Deserialize(componentNode, transform);
+         scene.AddComponent<glm::mat4>(object) = glm::translate(glm::identity<glm::mat4>(), transform.Translation) * glm::toMat4(transform.Rotation) * glm::scale(glm::identity<glm::mat4>(), transform.Scale);
       }
    }
 
@@ -325,29 +193,21 @@ namespace Pikzel {
    }
 
 
-   SceneSerializerYAML::SceneSerializerYAML(const SerializerSettings& settings)
-   : m_Settings { settings }
+   SceneSerializerYAML::SceneSerializerYAML(const SceneSerializerSettings& settings)
+   : m_Settings{settings}
    {}
 
 
    void SceneSerializerYAML::Serialize(const Scene& scene) {
-      std::ofstream out{ m_Settings.Path };
-   
-      YAML::Emitter yaml{ out };
+      std::ofstream out{m_Settings.Path};
+
+      YAML::Emitter yaml{out};
 
       yaml << YAML::BeginMap;
       {
          yaml << YAML::Key << "Scene";
          yaml << YAML::Value << YAML::BeginMap;
          {
-            yaml << YAML::Key << "Assets";
-            yaml << YAML::Value << YAML::BeginMap;
-            {
-               yaml << YAML::Key << "Models";
-               yaml << YAML::Value; Pikzel::Serialize(yaml, AssetCache::m_ModelCache);
-            }
-            yaml << YAML::EndMap;
-
             yaml << YAML::Key << "Objects";
             yaml << YAML::Value; SerializeObjects(yaml, scene);
          }
@@ -360,18 +220,13 @@ namespace Pikzel {
    std::unique_ptr<Scene> SceneSerializerYAML::Deserialize() {
       std::unique_ptr<Scene> scene = std::make_unique<Scene>();
       try {
-         YAML::Node node = YAML::LoadFile(m_Settings.Path.string().c_str());
-         if (auto sceneNode = node["Scene"]) {
-            PKZL_CORE_LOG_INFO("Deserializing scene from path '{0}'", m_Settings.Path);
-
-            if (auto assetsNode = sceneNode["Assets"]) {
-               Pikzel::Deserialize(assetsNode["Models"], AssetCache::m_ModelCache);
-            }
-
+         std::unique_ptr<std::istream> in = IStream(m_Settings.Path);
+         YAML::Node yaml = YAML::Load(*in);
+         if (auto sceneNode = yaml["Scene"]) {
+            PKZL_CORE_LOG_INFO("Deserializing scene from path '{}'", m_Settings.Path.string());
             DeserializeObjects(sceneNode["Objects"], *scene);
-
          } else {
-            throw std::runtime_error{fmt::format("No scene found in stream from path '{}'", m_Settings.Path) };
+            throw std::runtime_error{fmt::format("No scene found in stream from path '{}'", m_Settings.Path.string()) };
          }
 
       } catch (const std::exception& err) {

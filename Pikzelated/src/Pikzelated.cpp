@@ -8,7 +8,7 @@
 #include "Pikzel/Input/KeyCodes.h"
 #include "Pikzel/Renderer/RenderCore.h"
 #include "Pikzel/Scene/SceneRenderer.h"
-#include "Pikzel/Scene/SceneSerializer.h"
+#include "Pikzel/Serialization/SceneSerializer.h"
 
 #include <imgui_internal.h>
 
@@ -39,7 +39,6 @@ public:
 
       m_Panels.emplace_back(std::make_unique<HierarchyPanel>(m_Editor));
       m_Panels.emplace_back(std::make_unique<PropertiesPanel>(m_Editor));
-
    }
 
 
@@ -64,10 +63,12 @@ protected:
    void OnFileOpen() {
       auto path = Pikzel::OpenFileDialog("*.pkzl", "Pikzel Scene File (*.pkzl)");
       if (path.has_value()) {
-         Pikzel::SceneSerializerYAML yaml{{.Path = path.value() }};
-         m_Editor.SetScene(std::move(yaml.Deserialize()));
-         m_ScenePath = path.value();
-         m_ViewportWindowName = MakeViewportWindowName(m_ScenePath);
+         Pikzel::SceneSerializerYAML yaml{{.Path = path.value()}};
+         if (auto scene = yaml.Deserialize()) {
+            m_Editor.SetScene(std::move(scene));
+            m_ScenePath = path.value();
+            m_ViewportWindowName = MakeViewportWindowName(m_ScenePath);
+         }
       }
    }
 

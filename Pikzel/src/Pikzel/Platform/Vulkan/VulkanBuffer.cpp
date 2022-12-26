@@ -32,6 +32,11 @@ namespace Pikzel {
 
    VulkanBuffer& VulkanBuffer::operator=(VulkanBuffer&& that) noexcept {
       if (this != &that) {
+         if (m_Device && m_Buffer) {
+            VulkanMemoryAllocator::Get().destroyBuffer(m_Buffer, m_Allocation);
+            m_Buffer = nullptr;
+            m_Allocation = nullptr;
+         }
          m_Device = that.m_Device;
          m_Buffer = that.m_Buffer;
          m_Allocation = that.m_Allocation;
@@ -79,14 +84,14 @@ namespace Pikzel {
 
 
    VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const BufferLayout& layout, uint32_t size)
-   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly},
-   m_Layout {layout}
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly}
+   , m_Layout {layout}
    {}
 
 
    VulkanVertexBuffer::VulkanVertexBuffer(std::shared_ptr<VulkanDevice> device, const BufferLayout& layout, const uint32_t size, const void* data)
-   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly},
-   m_Layout {layout}
+   : m_Buffer {device, size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer, vma::MemoryUsage::eGpuOnly}
+   , m_Layout {layout}
    {
       CopyFromHost(0, size, data);
    }
