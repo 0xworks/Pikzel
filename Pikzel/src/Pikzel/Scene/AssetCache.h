@@ -26,7 +26,7 @@ namespace Pikzel {
    public:
       static Id LoadModelAsset(const std::filesystem::path& path);
 
-      static PathHandle GetPathHandle(Id id);
+      static PathHandle GetPath(Id id);
 
       static ModelAssetHandle GetModelAsset(Id modelId);
 
