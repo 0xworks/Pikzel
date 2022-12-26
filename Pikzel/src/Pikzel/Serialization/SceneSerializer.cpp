@@ -76,7 +76,10 @@ namespace Pikzel {
       if (node.IsMap()) {
          auto path = node["Path"].as<std::string>();
          if (path != "<unknown>") {
-            model.Id = AssetCache::LoadModelAsset(path);
+            model.Id = entt::hashed_string(path.data());
+            if (!AssetCache::GetModelAssetHandle(model.Id)) {
+               AssetCache::LoadModelAsset(path);
+            }
          }
       }
    }
