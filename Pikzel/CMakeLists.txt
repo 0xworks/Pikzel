@@ -398,8 +398,8 @@ if(${Vulkan_FOUND})
       "src/Pikzel/Platform/Vulkan/VulkanTexture.cpp"
       "src/Pikzel/Platform/Vulkan/VulkanUtility.h"
       "src/Pikzel/Platform/Vulkan/VulkanUtility.cpp"
-      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.h"
-      "src/Pikzel/Platform/Vulkan/imgui_impl_vulkan.cpp"
+      "vendor/imgui/backends/imgui_impl_vulkan.h"
+      "vendor/imgui/backends/imgui_impl_vulkan.cpp"
       "vendor/imgui/backends/imgui_impl_glfw.h"
       "vendor/imgui/backends/imgui_impl_glfw.cpp"
    )
