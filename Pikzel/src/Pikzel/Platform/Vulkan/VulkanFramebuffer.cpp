@@ -4,7 +4,7 @@
 
 #include "Pikzel/Renderer/RenderCore.h"
 
-#include "imgui_impl_vulkan.h"
+#include <backends/imgui_impl_vulkan.h>
 
 namespace Pikzel {
 
@@ -266,11 +266,11 @@ namespace Pikzel {
 
    void VulkanFramebuffer::DestroyAttachments() {
       for (auto& descriptorSet : m_ColorDescriptorSets) {
-         ImGui_ImplVulkan_DestroyTexture(reinterpret_cast<ImTextureID>(descriptorSet));
+         ImGui_ImplVulkan_RemoveTexture(descriptorSet);
       }
       m_ColorDescriptorSets.clear();
       if (m_DepthDescriptorSet) {
-         ImGui_ImplVulkan_DestroyTexture(reinterpret_cast<ImTextureID>(m_DepthDescriptorSet));
+         ImGui_ImplVulkan_RemoveTexture(m_DepthDescriptorSet);
          m_DepthDescriptorSet = VK_NULL_HANDLE;
       }
       m_Context.reset();
