@@ -12,6 +12,8 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+#include <GL/gl.h>
+
 namespace Pikzel {
 
    OpenGLGraphicsContext::OpenGLGraphicsContext(const glm::vec4& clearColorValue, const GLdouble clearDepthValue)

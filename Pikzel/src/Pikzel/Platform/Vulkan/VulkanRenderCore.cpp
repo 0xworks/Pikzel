@@ -45,6 +45,8 @@ namespace Pikzel {
          case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
             PKZL_CORE_LOG_ERROR("Vulkan Debug: {0}", pCallbackData->pMessage);
             break;
+         default:
+            break;
       }
       return VK_FALSE;
    }
@@ -144,6 +146,7 @@ namespace Pikzel {
          case TextureType::Texture2DArray:   return std::make_unique<VulkanTexture2DArray>(m_Device, settings, usage, aspect);
          case TextureType::TextureCube:      return std::make_unique<VulkanTextureCube>(m_Device, settings, usage, aspect);
          case TextureType::TextureCubeArray: return std::make_unique<VulkanTextureCubeArray>(m_Device, settings, usage, aspect);
+         default:                            break;
       }
       PKZL_CORE_ASSERT(false, "TextureType not supported!");
       return nullptr;

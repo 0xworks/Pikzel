@@ -33,6 +33,7 @@ namespace Pikzel {
          case DataType::DVec2:    return vk::Format::eR64G64Sfloat;
          case DataType::DVec3:    return vk::Format::eR64G64B64Sfloat;
          case DataType::DVec4:    return vk::Format::eR64G64B64A64Sfloat;
+         default:                 break;
       }
       PKZL_CORE_ASSERT(false, "Unknown DataType for VkFormat!");
       return {};

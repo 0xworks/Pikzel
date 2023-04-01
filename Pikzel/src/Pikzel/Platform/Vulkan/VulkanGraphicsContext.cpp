@@ -475,8 +475,8 @@ namespace Pikzel {
       }
 
       vk::SubpassDescriptionDepthStencilResolve depthResolve = {
-         {vk::ResolveModeFlagBits::eMin}    /*depthResolveMode*/,
-         {vk::ResolveModeFlagBits::eNone}   /*stencilResolveMode*/,
+         vk::ResolveModeFlagBits::eMin      /*depthResolveMode*/,
+         vk::ResolveModeFlagBits::eNone     /*stencilResolveMode*/,
          resolveDepthAttachmentRefs.data()  /*pDepthStencilResolveAttachment*/
       };
 

@@ -3,6 +3,7 @@
 #include "OpenGLComputeContext.h"
 #include "OpenGLPipeline.h"
 
+#include <GL/gl.h>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Pikzel {
@@ -13,6 +14,7 @@ namespace Pikzel {
          case TextureType::Texture2DArray:   return GL_TEXTURE_2D_ARRAY;
          case TextureType::TextureCube:      return GL_TEXTURE_CUBE_MAP;
          case TextureType::TextureCubeArray: return GL_TEXTURE_CUBE_MAP_ARRAY;
+         default:                            break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureType!");
       return 0;
@@ -46,6 +48,7 @@ namespace Pikzel {
          case TextureFormat::RGTC1SR:   return GL_COMPRESSED_SIGNED_RED_RGTC1;
          case TextureFormat::RGTC2RG:   return GL_COMPRESSED_RG_RGTC2;
          case TextureFormat::RGTC2SRG:  return GL_COMPRESSED_SIGNED_RG_RGTC2;
+         default:                       break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
@@ -54,20 +57,21 @@ namespace Pikzel {
 
    GLenum TextureFormatToDataFormat(const TextureFormat format) {
       switch (format) {
-         case TextureFormat::RGB8: return GL_RGB;
-         case TextureFormat::RGBA8: return GL_RGBA;
-         case TextureFormat::SRGB8: return GL_RGB;
-         case TextureFormat::SRGBA8: return GL_RGBA;
-         case TextureFormat::RG16F: return GL_RG;
-         case TextureFormat::RGB16F: return GL_RGB;
+         case TextureFormat::RGB8:    return GL_RGB;
+         case TextureFormat::RGBA8:   return GL_RGBA;
+         case TextureFormat::SRGB8:   return GL_RGB;
+         case TextureFormat::SRGBA8:  return GL_RGBA;
+         case TextureFormat::RG16F:   return GL_RG;
+         case TextureFormat::RGB16F:  return GL_RGB;
          case TextureFormat::RGBA16F: return GL_RGBA;
-         case TextureFormat::RG32F: return GL_RG;
-         case TextureFormat::RGB32F: return GL_RGB;
+         case TextureFormat::RG32F:   return GL_RG;
+         case TextureFormat::RGB32F:  return GL_RGB;
          case TextureFormat::RGBA32F: return GL_RGBA;
-         case TextureFormat::R8: return GL_RED;
-         case TextureFormat::R32F: return GL_RED;
+         case TextureFormat::R8:      return GL_RED;
+         case TextureFormat::R32F:    return GL_RED;
             // no need (yet) to set depth data yourself, so no depth formats here
             // no need (yet) to set compressed texture data yourself, so no compressed formats here
+         default:                     break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
@@ -76,20 +80,21 @@ namespace Pikzel {
 
    GLenum TextureFormatToDataType(const TextureFormat format) {
       switch (format) {
-         case TextureFormat::RGB8: return GL_UNSIGNED_BYTE;
-         case TextureFormat::RGBA8: return GL_UNSIGNED_BYTE;
-         case TextureFormat::SRGB8: return GL_UNSIGNED_BYTE;
-         case TextureFormat::SRGBA8: return GL_UNSIGNED_BYTE;
-         case TextureFormat::RG16F: return GL_HALF_FLOAT;
-         case TextureFormat::RGB16F: return GL_HALF_FLOAT;
+         case TextureFormat::RGB8:    return GL_UNSIGNED_BYTE;
+         case TextureFormat::RGBA8:   return GL_UNSIGNED_BYTE;
+         case TextureFormat::SRGB8:   return GL_UNSIGNED_BYTE;
+         case TextureFormat::SRGBA8:  return GL_UNSIGNED_BYTE;
+         case TextureFormat::RG16F:   return GL_HALF_FLOAT;
+         case TextureFormat::RGB16F:  return GL_HALF_FLOAT;
          case TextureFormat::RGBA16F: return GL_HALF_FLOAT;
-         case TextureFormat::RG32F: return GL_FLOAT;
-         case TextureFormat::RGB32F: return GL_FLOAT;
+         case TextureFormat::RG32F:   return GL_FLOAT;
+         case TextureFormat::RGB32F:  return GL_FLOAT;
          case TextureFormat::RGBA32F: return GL_FLOAT;
-         case TextureFormat::R8: return GL_UNSIGNED_BYTE;
-         case TextureFormat::R32F: return GL_FLOAT;
+         case TextureFormat::R8:      return GL_UNSIGNED_BYTE;
+         case TextureFormat::R32F:    return GL_FLOAT;
             // no need to set depth data yourself, so no depth formats here
             // no need (yet) to set compressed texture data yourself, so no compressed formats here
+         default:                     break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return 0;
@@ -98,12 +103,13 @@ namespace Pikzel {
 
    GLenum TextureFilterToGLTextureFilter(const TextureFilter filter) {
       switch (filter) {
-         case TextureFilter::Nearest: return GL_NEAREST;
+         case TextureFilter::Nearest:              return GL_NEAREST;
          case TextureFilter::NearestMipmapNearest: return GL_NEAREST_MIPMAP_NEAREST;
-         case TextureFilter::NearestMipmapLinear: return GL_NEAREST_MIPMAP_LINEAR;
-         case TextureFilter::Linear: return GL_LINEAR;
-         case TextureFilter::LinearMipmapNearest: return GL_LINEAR_MIPMAP_NEAREST;
-         case TextureFilter::LinearMipmapLinear: return GL_LINEAR_MIPMAP_LINEAR;
+         case TextureFilter::NearestMipmapLinear:  return GL_NEAREST_MIPMAP_LINEAR;
+         case TextureFilter::Linear:               return GL_LINEAR;
+         case TextureFilter::LinearMipmapNearest:  return GL_LINEAR_MIPMAP_NEAREST;
+         case TextureFilter::LinearMipmapLinear:   return GL_LINEAR_MIPMAP_LINEAR;
+         default:                                  break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
       return GL_LINEAR;
@@ -112,10 +118,11 @@ namespace Pikzel {
 
    GLenum TextureWrapToGLTextureWrap(const TextureWrap wrap) {
       switch (wrap) {
-         case TextureWrap::ClampToEdge: return GL_CLAMP_TO_EDGE;
+         case TextureWrap::ClampToEdge:   return GL_CLAMP_TO_EDGE;
          case TextureWrap::ClampToBorder: return GL_CLAMP_TO_BORDER;
-         case TextureWrap::Repeat: return GL_REPEAT;
-         case TextureWrap::MirrorRepeat: return GL_MIRRORED_REPEAT;
+         case TextureWrap::Repeat:        return GL_REPEAT;
+         case TextureWrap::MirrorRepeat:  return GL_MIRRORED_REPEAT;
+         default:                         break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureWrap!");
       return GL_CLAMP_TO_EDGE;

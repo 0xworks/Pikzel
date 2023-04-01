@@ -1,49 +1,75 @@
 ﻿{
-  "version": 2,
-  "configurePresets": [
-    {
-      "name": "windows-x64-debug",
-      "displayName": "windows-x64-debug",
-      "description": "Target Windows with the Visual Studio development environment.",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "hostOS": [
-            "Windows"
-          ]
-        }
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "windows-x64-debug",
+            "displayName": "windows-x64-debug",
+            "description": "Target Windows with the Visual Studio development environment.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": [
+                        "Windows"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "windows-x64-release",
+            "displayName": "windows-x64-release",
+            "description": "Target Windows with the Visual Studio development environment.",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": [
+                        "Windows"
+                    ]
+                }
+            }
+        },
+        {
+          "name": "Debug-clang",
+          "displayName": "Debug build, clang compiler",
+          "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+          "generator": "Ninja",
+          "binaryDir": "${sourceDir}/out/build/${presetName}",
+          "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug",
+            "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+            "CMAKE_C_COMPILER": "clang",
+            "CMAKE_CXX_COMPILER": "clang++"
+          }
+        },
+        {
+          "name": "Release-clang",
+          "displayName": "Release build, clang compiler",
+          "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+          "generator": "Ninja",
+          "binaryDir": "${sourceDir}/out/build/${presetName}",
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Release",
+              "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+              "CMAKE_C_COMPILER": "clang",
+              "CMAKE_CXX_COMPILER": "clang++"
+          }
       }
-    },
-    {
-      "name": "windows-x64-release",
-      "displayName": "windows-x64-release",
-      "description": "Target Windows with the Visual Studio development environment.",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "hostOS": [
-            "Windows"
-          ]
-        }
-      }
-    }
-  ]
+    ]
 }

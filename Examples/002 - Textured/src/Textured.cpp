@@ -49,7 +49,7 @@ private:
       // There are many different parameters for creating a texture.
       // The simplest is to provide the path to an image file asset.
       // This creates a 2D texture and will automatically set the width, height, texture format, and mip map levels.
-      m_Texture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/Container.jpg"});
+      m_Texture = Pikzel::RenderCore::CreateTexture({.path = "Assets/" APP_NAME "/Textures/container.jpg"});
    }
 
 

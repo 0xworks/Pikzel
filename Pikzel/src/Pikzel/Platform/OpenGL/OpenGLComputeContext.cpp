@@ -4,6 +4,8 @@
 #include "OpenGLPipeline.h"
 #include "OpenGLTexture.h"
 
+#include <GL/gl.h>
+
 namespace Pikzel {
 
    OpenGLComputeContext::OpenGLComputeContext()

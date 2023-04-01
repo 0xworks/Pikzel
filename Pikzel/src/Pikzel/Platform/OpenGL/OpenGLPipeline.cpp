@@ -3,8 +3,11 @@
 
 #include "Pikzel/Core/Utility.h"
 
+#include <GL/gl.h>
 #include <glm/gtc/type_ptr.hpp>
-#include <spirv_glsl.hpp>
+#include <spirv_cross/spirv_glsl.hpp>
+
+#include <string_view>
 
 namespace Pikzel {
 

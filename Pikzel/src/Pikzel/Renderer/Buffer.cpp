@@ -43,6 +43,7 @@ namespace Pikzel {
          case DataType::DMat4x2:  return "DMat4x2";
          case DataType::DMat4x3:  return "DMat4x3";
          case DataType::DMat4:    return "DMat4";
+         default:                 break;
       }
       PKZL_CORE_ASSERT(false, "Unknown DataType!");
       return "Unknown";
@@ -89,6 +90,7 @@ namespace Pikzel {
          case DataType::DMat4x2:  return 8 * 4 * 2;
          case DataType::DMat4x3:  return 8 * 4 * 3;
          case DataType::DMat4:    return 8 * 4 * 4;
+         default:                 break;
       }
       PKZL_CORE_ASSERT(false, "Unknown DataType!");
       return 0;
@@ -142,6 +144,7 @@ namespace Pikzel {
          case DataType::DMat4x2:  return 4;
          case DataType::DMat4x3:  return 4;
          case DataType::DMat4:    return 4;
+         default:                 break;
       }
       PKZL_CORE_ASSERT(false, "Unknown DataType!");
       return 0;
