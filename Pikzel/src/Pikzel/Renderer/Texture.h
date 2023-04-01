@@ -98,8 +98,8 @@ namespace Pikzel {
          case TextureFormat::RGTC1SR:   return true;
          case TextureFormat::RGTC2RG:   return true;
          case TextureFormat::RGTC2SRG:  return true;
+         default:                       return false;
       }
-      return false;
    }
 
 
@@ -132,8 +132,8 @@ namespace Pikzel {
          case TextureFormat::RGTC1SR:   return false;
          case TextureFormat::RGTC2RG:   return false;
          case TextureFormat::RGTC2SRG:  return false;
+         default:                       return false;
       }
-      return false;
    }
 
 
@@ -166,8 +166,8 @@ namespace Pikzel {
          case TextureFormat::RGTC1SR:   return true;
          case TextureFormat::RGTC2RG:   return true;
          case TextureFormat::RGTC2SRG:  return true;
+         default:                       return false;
       }
-      return false;
    }
 
 

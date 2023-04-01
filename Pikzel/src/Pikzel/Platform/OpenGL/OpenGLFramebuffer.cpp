@@ -3,6 +3,8 @@
 
 #include "Pikzel/Renderer/RenderCore.h"
 
+#include <GL/gl.h>
+
 namespace Pikzel {
 
    static GLenum buffers[4] = {

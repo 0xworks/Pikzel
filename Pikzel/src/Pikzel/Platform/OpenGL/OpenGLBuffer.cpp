@@ -1,5 +1,7 @@
 #include "OpenGLBuffer.h"
 
+#include <GL/gl.h>
+
 namespace Pikzel {
 
    OpenGLVertexBuffer::OpenGLVertexBuffer(const BufferLayout& layout, const uint32_t size)

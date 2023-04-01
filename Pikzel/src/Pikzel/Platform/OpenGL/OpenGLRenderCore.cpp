@@ -5,6 +5,7 @@
 #include "OpenGLPipeline.h"
 #include "OpenGLTexture.h"
 
+#include <GL/gl.h>
 #include <glm/ext/matrix_transform.hpp>
 
 #if defined(PKZL_PLATFORM_WINDOWS)

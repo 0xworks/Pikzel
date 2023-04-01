@@ -7,6 +7,7 @@
 #define DDSKTX_IMPLEMENT
 #include "dds-ktx.h"
 
+#include <filesystem>
 namespace Pikzel {
 
    TextureLoader::TextureLoader(const std::filesystem::path& path) {
@@ -149,50 +150,51 @@ namespace Pikzel {
 
    TextureFormat DDSKTXFormatToTextureFormat(ddsktx_format format, bool isSRGB) {
       switch (format) {
-      case DDSKTX_FORMAT_BC1:       return isSRGB ? TextureFormat::DXT1SRGBA : TextureFormat::DXT1RGBA;
-      case DDSKTX_FORMAT_BC2:       return isSRGB ? TextureFormat::DXT3SRGBA : TextureFormat::DXT3RGBA;
-      case DDSKTX_FORMAT_BC3:       return isSRGB ? TextureFormat::DXT5SRGBA : TextureFormat::DXT5RGBA;
-      case DDSKTX_FORMAT_BC4:       return TextureFormat::RGTC1R;  /* signed variant? */
-      case DDSKTX_FORMAT_BC5:       return TextureFormat::RGTC2RG; /* signed variant? */
-      case DDSKTX_FORMAT_BC6H:      break;  /* BC6H */
-      case DDSKTX_FORMAT_BC7:       break;  /* BC7 */
-      case DDSKTX_FORMAT_ETC1:      break;  /* ETC1 RGB8 */
-      case DDSKTX_FORMAT_ETC2:      break;  /* ETC2 RGB8 */
-      case DDSKTX_FORMAT_ETC2A:     break;  /* ETC2 RGBA8 */
-      case DDSKTX_FORMAT_ETC2A1:    break;  /* ETC2 RGBA8A1 */
-      case DDSKTX_FORMAT_PTC12:     break;  /* PVRTC1 RGB 2bpp */
-      case DDSKTX_FORMAT_PTC14:     break;  /* PVRTC1 RGB 4bpp */
-      case DDSKTX_FORMAT_PTC12A:    break;  /* PVRTC1 RGBA 2bpp */
-      case DDSKTX_FORMAT_PTC14A:    break;  /* PVRTC1 RGBA 4bpp */
-      case DDSKTX_FORMAT_PTC22:     break;  /* PVRTC2 RGBA 2bpp */
-      case DDSKTX_FORMAT_PTC24:     break;  /* PVRTC2 RGBA 4bpp */
-      case DDSKTX_FORMAT_ATC:       break;  /* ATC RGB 4BPP */
-      case DDSKTX_FORMAT_ATCE:      break;  /* ATCE RGBA 8 BPP explicit alpha */
-      case DDSKTX_FORMAT_ATCI:      break;  /* ATCI RGBA 8 BPP interpolated alpha */
-      case DDSKTX_FORMAT_ASTC4x4:   break;  /* ASTC 4x4 8.0 BPP */
-      case DDSKTX_FORMAT_ASTC5x5:   break;  /* ASTC 5x5 5.12 BPP */
-      case DDSKTX_FORMAT_ASTC6x6:   break;  /* ASTC 6x6 3.56 BPP */
-      case DDSKTX_FORMAT_ASTC8x5:   break;  /* ASTC 8x5 3.20 BPP */
-      case DDSKTX_FORMAT_ASTC8x6:   break;  /* ASTC 8x6 2.67 BPP */
-      case DDSKTX_FORMAT_ASTC10x5:  break;  /* ASTC 10x5 2.56 BPP */
-      case DDSKTX_FORMAT_A8:        break;
-      case DDSKTX_FORMAT_R8:        return TextureFormat::R8;
-      case DDSKTX_FORMAT_RGBA8:     return isSRGB ? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
-      case DDSKTX_FORMAT_RGBA8S:    break;
-      case DDSKTX_FORMAT_RG16:      return TextureFormat::RG16F;
-      case DDSKTX_FORMAT_RGB8:      return isSRGB ? TextureFormat::SRGB8 : TextureFormat::RGB8;
-      case DDSKTX_FORMAT_R16:       break;
-      case DDSKTX_FORMAT_R32F:      return TextureFormat::R32F;
-      case DDSKTX_FORMAT_R16F:      break;
-      case DDSKTX_FORMAT_RG16F:     return TextureFormat::RG16F;
-      case DDSKTX_FORMAT_RG16S:     break;
-      case DDSKTX_FORMAT_RGBA16F:   return TextureFormat::RGBA16F;
-      case DDSKTX_FORMAT_RGBA16:    return TextureFormat::RGBA16F;
-      case DDSKTX_FORMAT_BGRA8:     return TextureFormat::BGRA8;
-      case DDSKTX_FORMAT_RGB10A2:   break;
-      case DDSKTX_FORMAT_RG11B10F:  break;
-      case DDSKTX_FORMAT_RG8:       break;
-      case DDSKTX_FORMAT_RG8S:      break;
+         case DDSKTX_FORMAT_BC1:       return isSRGB ? TextureFormat::DXT1SRGBA : TextureFormat::DXT1RGBA;
+         case DDSKTX_FORMAT_BC2:       return isSRGB ? TextureFormat::DXT3SRGBA : TextureFormat::DXT3RGBA;
+         case DDSKTX_FORMAT_BC3:       return isSRGB ? TextureFormat::DXT5SRGBA : TextureFormat::DXT5RGBA;
+         case DDSKTX_FORMAT_BC4:       return TextureFormat::RGTC1R;  /* signed variant? */
+         case DDSKTX_FORMAT_BC5:       return TextureFormat::RGTC2RG; /* signed variant? */
+         case DDSKTX_FORMAT_BC6H:      break;  /* BC6H */
+         case DDSKTX_FORMAT_BC7:       break;  /* BC7 */
+         case DDSKTX_FORMAT_ETC1:      break;  /* ETC1 RGB8 */
+         case DDSKTX_FORMAT_ETC2:      break;  /* ETC2 RGB8 */
+         case DDSKTX_FORMAT_ETC2A:     break;  /* ETC2 RGBA8 */
+         case DDSKTX_FORMAT_ETC2A1:    break;  /* ETC2 RGBA8A1 */
+         case DDSKTX_FORMAT_PTC12:     break;  /* PVRTC1 RGB 2bpp */
+         case DDSKTX_FORMAT_PTC14:     break;  /* PVRTC1 RGB 4bpp */
+         case DDSKTX_FORMAT_PTC12A:    break;  /* PVRTC1 RGBA 2bpp */
+         case DDSKTX_FORMAT_PTC14A:    break;  /* PVRTC1 RGBA 4bpp */
+         case DDSKTX_FORMAT_PTC22:     break;  /* PVRTC2 RGBA 2bpp */
+         case DDSKTX_FORMAT_PTC24:     break;  /* PVRTC2 RGBA 4bpp */
+         case DDSKTX_FORMAT_ATC:       break;  /* ATC RGB 4BPP */
+         case DDSKTX_FORMAT_ATCE:      break;  /* ATCE RGBA 8 BPP explicit alpha */
+         case DDSKTX_FORMAT_ATCI:      break;  /* ATCI RGBA 8 BPP interpolated alpha */
+         case DDSKTX_FORMAT_ASTC4x4:   break;  /* ASTC 4x4 8.0 BPP */
+         case DDSKTX_FORMAT_ASTC5x5:   break;  /* ASTC 5x5 5.12 BPP */
+         case DDSKTX_FORMAT_ASTC6x6:   break;  /* ASTC 6x6 3.56 BPP */
+         case DDSKTX_FORMAT_ASTC8x5:   break;  /* ASTC 8x5 3.20 BPP */
+         case DDSKTX_FORMAT_ASTC8x6:   break;  /* ASTC 8x6 2.67 BPP */
+         case DDSKTX_FORMAT_ASTC10x5:  break;  /* ASTC 10x5 2.56 BPP */
+         case DDSKTX_FORMAT_A8:        break;
+         case DDSKTX_FORMAT_R8:        return TextureFormat::R8;
+         case DDSKTX_FORMAT_RGBA8:     return isSRGB ? TextureFormat::SRGBA8 : TextureFormat::RGBA8;
+         case DDSKTX_FORMAT_RGBA8S:    break;
+         case DDSKTX_FORMAT_RG16:      return TextureFormat::RG16F;
+         case DDSKTX_FORMAT_RGB8:      return isSRGB ? TextureFormat::SRGB8 : TextureFormat::RGB8;
+         case DDSKTX_FORMAT_R16:       break;
+         case DDSKTX_FORMAT_R32F:      return TextureFormat::R32F;
+         case DDSKTX_FORMAT_R16F:      break;
+         case DDSKTX_FORMAT_RG16F:     return TextureFormat::RG16F;
+         case DDSKTX_FORMAT_RG16S:     break;
+         case DDSKTX_FORMAT_RGBA16F:   return TextureFormat::RGBA16F;
+         case DDSKTX_FORMAT_RGBA16:    return TextureFormat::RGBA16F;
+         case DDSKTX_FORMAT_BGRA8:     return TextureFormat::BGRA8;
+         case DDSKTX_FORMAT_RGB10A2:   break;
+         case DDSKTX_FORMAT_RG11B10F:  break;
+         case DDSKTX_FORMAT_RG8:       break;
+         case DDSKTX_FORMAT_RG8S:      break;
+         default:                      break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return TextureFormat::Undefined;

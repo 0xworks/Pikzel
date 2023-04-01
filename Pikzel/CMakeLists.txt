@@ -95,7 +95,7 @@ set(
    "vendor/tracy/public"
    "vendor/yaml-cpp/include"
    ${CMRC_INCLUDE_DIR}
-   "$ENV{VULKAN_SDK}/include/spirv_cross"
+   ${Vulkan_INCLUDE_DIRS}
 )
 
 
@@ -193,14 +193,25 @@ target_link_libraries(
    ${ProjectLibs}
 )
 
+if(WINDOWS)
+   target_link_libraries(
+      ${PROJECT_NAME} PUBLIC
+      "TracyClient"
+      debug "spirv-cross-cored"
+      debug "spirv-cross-glsld"
+      optimized "spirv-cross-core"
+      optimized "spirv-cross-glsl"
+   )
+endif()
+
+if(UNIX)
 target_link_libraries(
    ${PROJECT_NAME} PUBLIC
    "TracyClient"
-   debug "spirv-cross-cored"
-   debug "spirv-cross-glsld"
-   optimized "spirv-cross-core"
-   optimized "spirv-cross-glsl"
+   "spirv-cross-core"
+   "spirv-cross-glsl"
 )
+endif()
 
 target_link_directories(
    ${PROJECT_NAME} PUBLIC
@@ -330,6 +341,7 @@ target_compile_definitions(
    "PlatformOpenGL" PRIVATE
 )
 
+# note: needs vulkan include dirs for spirv_cross
 target_include_directories(
    "PlatformOpenGL" PRIVATE
    "src/Pikzel/Platform/OpenGL/vendor/glad/include"
@@ -477,6 +489,7 @@ set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "Inject debug postfix in .a/.so/.
 set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp's export functionality." FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library." FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library." FORCE)
+set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Build zlib." FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "Disable this if you want to use assimp as a submodule." FORCE)
 add_subdirectory("vendor/assimp")
 

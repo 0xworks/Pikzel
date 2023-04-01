@@ -12,6 +12,7 @@ namespace Pikzel {
          case TextureType::Texture2DArray:   return vk::ImageViewType::e2DArray;
          case TextureType::TextureCube:      return vk::ImageViewType::eCube;
          case TextureType::TextureCubeArray: return vk::ImageViewType::eCubeArray;
+         default:                            break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureType!");
       return {};
@@ -47,6 +48,7 @@ namespace Pikzel {
          case vk::Format::eBc4SnormBlock:         return TextureFormat::RGTC1SR;
          case vk::Format::eBc5UnormBlock:         return TextureFormat::RGTC2RG;
          case vk::Format::eBc5SnormBlock:         return TextureFormat::RGTC2SRG;
+         default:                                 break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return TextureFormat::Undefined;
@@ -82,6 +84,7 @@ namespace Pikzel {
          case TextureFormat::RGTC1SR:     return vk::Format::eBc4SnormBlock;
          case TextureFormat::RGTC2RG:     return vk::Format::eBc5UnormBlock;
          case TextureFormat::RGTC2SRG:    return vk::Format::eBc5SnormBlock;
+         default:                         break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFormat!");
       return vk::Format::eUndefined;
@@ -96,6 +99,7 @@ namespace Pikzel {
          case TextureFilter::Linear:                 return vk::Filter::eLinear;
          case TextureFilter::LinearMipmapNearest:    return vk::Filter::eLinear;
          case TextureFilter::LinearMipmapLinear:     return vk::Filter::eLinear;
+         default:                                    break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
       return vk::Filter::eLinear;
@@ -110,6 +114,7 @@ namespace Pikzel {
          case TextureFilter::Linear:                 return vk::SamplerMipmapMode::eLinear;
          case TextureFilter::LinearMipmapNearest:    return vk::SamplerMipmapMode::eNearest;
          case TextureFilter::LinearMipmapLinear:     return vk::SamplerMipmapMode::eLinear;
+         default:                                    break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureFilter!");
       return vk::SamplerMipmapMode::eLinear;
@@ -122,6 +127,7 @@ namespace Pikzel {
          case TextureWrap::ClampToBorder:  return vk::SamplerAddressMode::eClampToBorder;
          case TextureWrap::Repeat:         return vk::SamplerAddressMode::eRepeat;
          case TextureWrap::MirrorRepeat:   return vk::SamplerAddressMode::eMirroredRepeat;
+         default:                          break;
       }
       PKZL_CORE_ASSERT(false, "Unsupported TextureWrap!");
       return vk::SamplerAddressMode::eClampToEdge;
