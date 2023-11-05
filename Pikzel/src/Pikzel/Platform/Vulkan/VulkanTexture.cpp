@@ -626,7 +626,7 @@ namespace Pikzel {
          throw std::runtime_error("Data must be entire texture!");
       }
 
-      std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, TextureSettings{.width = width, .height = height, .format = m_DataFormat, .mipLevels = 1});
+      std::unique_ptr<VulkanTexture2D> tex2d = std::make_unique<VulkanTexture2D>(m_Device, TextureSettings{.width = width, .height = height, .format = m_DataFormat});
       tex2d->SetData(data, size);
 
       std::unique_ptr<ComputeContext> compute = std::make_unique<VulkanComputeContext>(m_Device);

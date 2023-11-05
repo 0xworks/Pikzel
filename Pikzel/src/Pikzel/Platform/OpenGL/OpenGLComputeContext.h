@@ -21,7 +21,7 @@ namespace Pikzel {
       virtual void Bind(const Id resourceId, const UniformBuffer& buffer) override;
       virtual void Unbind(const UniformBuffer& buffer) override;
 
-      virtual void Bind(const Id resourceId, const Texture& texture, const uint32_t mipLevel = 0) override;
+      virtual void Bind(const Id resourceId, const Texture& texture, const uint32_t mipLevel) override;
       virtual void Unbind(const Texture& texture) override;
 
       virtual void Bind(const Pipeline& pipeline) override;
