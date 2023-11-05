@@ -128,9 +128,10 @@ protected:
          // Skybox
          view = glm::mat3(view);
          gc.Bind(*m_PipelineSkybox);
-         gc.Bind("uSkybox"_hs, *m_Skybox);
+         gc.Bind("uSkybox"_hs, *m_SpecularIrradiance);
          gc.PushConstant("constants.vp"_hs, m_Camera.projection * view);
          gc.PushConstant("constants.lod"_hs, skyboxLod);
+         gc.PushConstant("constants.intensity"_hs, m_DirectionalLights[0].ambient.r);
          gc.DrawTriangles(*m_VertexBuffer, 36, 6);
 
          gc.EndFrame();
@@ -321,7 +322,7 @@ private:
             { Pikzel::ShaderType::Compute, "Renderer/EnvironmentPrefilter.comp.spv"}
          }
       });
-      const float deltaRoughness = 0.5f / static_cast<float>(m_SpecularIrradiance->GetMIPLevels() - 1);
+      const float deltaRoughness = 1.0f / static_cast<float>(m_SpecularIrradiance->GetMIPLevels() - 1);
       for (uint32_t level = 1; level < m_SpecularIrradiance->GetMIPLevels(); ++level) {
          compute->Begin();
          compute->Bind(*pipelinePrefilter);
@@ -439,7 +440,7 @@ private:
 
 private:
 
-   // POI: TextureId here is just a convienient way to refer to textures later on.
+   // POI: TextureId here is just a convenient way to refer to textures later on.
    enum class TextureId {
       DefaultColor = 0,
       DefaultMR,

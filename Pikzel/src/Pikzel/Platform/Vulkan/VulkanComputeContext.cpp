@@ -79,7 +79,7 @@ namespace Pikzel {
       const VulkanResource& resource = m_Pipeline->GetResource(resourceId);
 
       vk::Sampler sampler = static_cast<const VulkanTexture&>(texture).GetVkSampler();
-      vk::ImageView imageView = static_cast<const VulkanTexture&>(texture).GetVkImageView(mipLevel);
+      vk::ImageView imageView = mipLevel == ~0? static_cast<const VulkanTexture&>(texture).GetVkImageView() : static_cast<const VulkanTexture&>(texture).GetVkImageView(mipLevel);
       vk::DescriptorImageInfo textureImageDescriptor = {
          sampler,
          imageView,
