@@ -76,12 +76,12 @@ namespace Pikzel {
 
 
    void VulkanRenderCore::UploadImGuiFonts() {
-      m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [] (vk::CommandBuffer commandBuffer) {
-         if (!ImGui_ImplVulkan_CreateFontsTexture(commandBuffer)) {
+      //m_Device->SubmitSingleTimeCommands(m_Device->GetTransferQueue(), [] (vk::CommandBuffer commandBuffer) {
+         if (!ImGui_ImplVulkan_CreateFontsTexture(/*commandBuffer*/)) {
             throw std::runtime_error {"failed to create ImGui font textures!"};
          }
-      });
-      ImGui_ImplVulkan_DestroyFontUploadObjects();
+      //});
+      //ImGui_ImplVulkan_DestroyFontUploadObjects();
    }
 
 
