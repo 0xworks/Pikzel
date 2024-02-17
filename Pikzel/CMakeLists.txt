@@ -152,6 +152,8 @@ target_compile_definitions(
 target_compile_definitions(
    ${PROJECT_NAME} PRIVATE
    PKZL_BUILD_DLL
+   PlatformOpenGL="$<TARGET_FILE_NAME:PlatformOpenGL>"
+   PlatformVulkan="$<TARGET_FILE_NAME:PlatformVulkan>"
 )
 
 target_include_directories(
