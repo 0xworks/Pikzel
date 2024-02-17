@@ -3,6 +3,9 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
+#include <format>
+#include <memory>
+
 // note: Pikzel uses reverse-Z so near and far planes are swapped
 const float nearPlane = 10000.0f;
 const float farPlane = 1.f;
@@ -165,7 +168,7 @@ public:
          {
             ImGui::Begin("Lighting");
             for (size_t i = 0; i < m_PointLights.size(); ++i) {
-               ImGuiDrawPointLight(fmt::format("light {}", i).c_str(), m_PointLights[i]);
+               ImGuiDrawPointLight(std::format("light {}", i).c_str(), m_PointLights[i]);
             }
             ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
             ImGui::Text("Depth buffer:");

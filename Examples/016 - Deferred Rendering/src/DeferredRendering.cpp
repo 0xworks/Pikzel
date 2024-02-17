@@ -1,6 +1,10 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
+#include <format>
+#include <memory>
+#include <vector>
+
 // Deferred rendering demonstration
 // The scene is first rendered to an off-screen "G-buffer" consisting of:
 // - position information
@@ -117,7 +121,7 @@ protected:
          ImGui::Checkbox("Directional Light", &m_ShowDirectionalLight);
          ImGui::Checkbox("Point Lights", &m_ShowPointLights);
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
-            ImGuiDrawPointLight(fmt::format("light {}", i).c_str(), m_PointLights[i]);
+            ImGuiDrawPointLight(std::format("light {}", i).c_str(), m_PointLights[i]);
          }
          ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
 

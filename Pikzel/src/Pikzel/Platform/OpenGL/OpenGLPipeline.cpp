@@ -7,7 +7,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
 
+#include <format>
+#include <stdexcept>
+#include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 namespace Pikzel {
 
@@ -119,7 +124,7 @@ namespace Pikzel {
          for (const auto otherResourceMap : otherResourceMaps) {
             const auto otherResource = otherResourceMap->find(id);
             if (otherResource != otherResourceMap->end()) {
-               throw std::runtime_error {fmt::format("Shader resource name '{}' is ambiguous.  Refers to different types of resource!", name)};
+               throw std::runtime_error {std::format("Shader resource name '{}' is ambiguous.  Refers to different types of resource!", name)};
             }
          }
 
@@ -129,7 +134,7 @@ namespace Pikzel {
          } else {
             // already seen this name, check that binding is the same
             if (openGLResource->second.Binding != openGLBinding) {
-               throw std::runtime_error {fmt::format("Shader resource name '{}' is ambiguous.  Refers to different bindings!", name)};
+               throw std::runtime_error {std::format("Shader resource name '{}' is ambiguous.  Refers to different bindings!", name)};
             }
          }
       }
@@ -505,7 +510,7 @@ namespace Pikzel {
       const auto resource = m_SamplerResources.find(resourceId);
       GLuint retVal = (resource == m_SamplerResources.end()) ? ~0 : resource->second.Binding;
       if (exceptionIfNotFound && retVal == ~0) {
-         throw std::invalid_argument {fmt::format("OpenGLPipeline::GetSamplerBinding() failed to find resource with id {}", resourceId)};
+         throw std::invalid_argument {std::format("OpenGLPipeline::GetSamplerBinding() failed to find resource with id {}", resourceId)};
       }
       return retVal;
    }
@@ -515,7 +520,7 @@ namespace Pikzel {
       const auto resource = m_StorageImageResources.find(resourceId);
       GLuint retVal = (resource == m_StorageImageResources.end()) ? ~0 : resource->second.Binding;
       if (exceptionIfNotFound && retVal == ~0) {
-         throw std::invalid_argument {fmt::format("OpenGLPipeline::GetStorageImageResources() failed to find resource with id {}!", resourceId)};
+         throw std::invalid_argument {std::format("OpenGLPipeline::GetStorageImageResources() failed to find resource with id {}!", resourceId)};
       }
       return retVal;
    }
@@ -525,7 +530,7 @@ namespace Pikzel {
       const auto resource = m_UniformBufferResources.find(resourceId);
       GLuint retVal = (resource == m_UniformBufferResources.end()) ? ~0 : resource->second.Binding;
       if (exceptionIfNotFound && retVal == ~0) {
-         throw std::invalid_argument {fmt::format("OpenGLPipeline::GetUniformBufferBinding() failed to find resource with id {}!", resourceId)};
+         throw std::invalid_argument {std::format("OpenGLPipeline::GetUniformBufferBinding() failed to find resource with id {}!", resourceId)};
       }
       return retVal;
    }
@@ -543,7 +548,7 @@ namespace Pikzel {
 
 
    void OpenGLPipeline::AppendShader(ShaderType type, const std::filesystem::path path, const SpecializationConstantsMap& specializationConstants) {
-      PKZL_CORE_LOG_TRACE("Appending shader '{}'", path);
+      PKZL_CORE_LOG_TRACE("Appending shader '{}'", path.string());
 
       std::vector<uint32_t> src = ReadFile<uint32_t>(path);
 

@@ -16,6 +16,8 @@
 #endif
 
 #if defined(PKZL_PLATFORM_WINDOWS)
+   #define WIN32_LEAN_AND_MEAN
+   #include <Windows.h>
    #ifdef PKZL_BUILD_DLL
       #define PKZL_API __declspec(dllexport)
       #define ENTT_API_EXPORT
@@ -23,7 +25,6 @@
       #define PKZL_API __declspec(dllimport)
       #define ENTT_API_IMPORT
    #endif
-   #define CDECL __cdecl
 #else
    #define PKZL_API
    #define CDECL
@@ -43,6 +44,20 @@
 
 #include "Log.h"
 #include "Instrumentor.h"
+
+// This file is pre-compiled.
+// Include here other things likely useful for pre-compilation
+#include <array>
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <map>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
+#include <xutility>
+#include <vector>
 
 #if defined(PKZL_ENABLE_ASSERTS)
    #define PKZL_CORE_ASSERT(x, ...) { if(!(x)) { PKZL_CORE_LOG_ERROR(__VA_ARGS__); PKZL_DEBUG_BREAK; } }

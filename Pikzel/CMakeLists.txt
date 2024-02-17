@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.20)
 
-find_package(Vulkan)
+find_package(Vulkan REQUIRED)
 
 include("vendor/cmrc/CMakeRC.cmake")
 
@@ -99,7 +99,7 @@ set(
 )
 
 
-# These at the "public" defines
+# These are the "public" defines
 # i.e. any other project referencing Pikzel will also get these defines
 # There are additional "private" defines set below
 set(
@@ -124,14 +124,12 @@ if(PKZL_PROFILE)
    )
 endif()
 
+# These are the "public" libraries
+# i.e. any other project referencing Pikzel will also link these libraries
+# There are additional "private" libraries set below
 set(
    ProjectLibs
-   "assimp"
-   "glfw"
-   "glm"
-   "ImGui"
-   "PikzelResources"
-   "yaml-cpp"
+   "spdlog"
 )
 
 add_library(
@@ -191,11 +189,11 @@ if(MSVC)
 endif()
 
 target_link_libraries(
-   ${PROJECT_NAME} PRIVATE
+   ${PROJECT_NAME} PUBLIC
    ${ProjectLibs}
 )
 
-if(WINDOWS)
+if(MSVC)
    target_link_libraries(
       ${PROJECT_NAME} PUBLIC
       "TracyClient"
@@ -214,6 +212,16 @@ target_link_libraries(
    "spirv-cross-glsl"
 )
 endif()
+
+target_link_libraries(
+   ${PROJECT_NAME} PRIVATE
+   "assimp"
+   "glfw"
+   "glm"
+   "ImGui"
+   "PikzelResources"
+   "yaml-cpp"
+)
 
 target_link_directories(
    ${PROJECT_NAME} PUBLIC
@@ -485,23 +493,35 @@ target_include_directories(
 )
 
 ##################################################################
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+set(BUILD_SHARED_LIBS OFF)
 
-set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "Inject debug postfix in .a/.so/.dll lib names" FORCE)
-set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp's export functionality." FORCE)
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library." FORCE)
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library." FORCE)
-set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Build zlib." FORCE)
-set(ASSIMP_INSTALL OFF CACHE BOOL "Disable this if you want to use assimp as a submodule." FORCE)
+set(ASSIMP_INJECT_DEBUG_POSTFIX OFF)
+set(ASSIMP_NO_EXPORT ON)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
+set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_BUILD_ZLIB ON)
+set(ASSIMP_INSTALL OFF)
 add_subdirectory("vendor/assimp")
 
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF)
+set(GLFW_BUILD_TESTS OFF)
+set(GLFW_BUILD_EXAMPLES OFF)
 set(BUILD_SHARED_LIBS ON)
 add_subdirectory("vendor/glfw")
 set(BUILD_SHARED_LIBS OFF)
 
 add_subdirectory("vendor/glm")
-
 add_subdirectory("vendor/yaml-cpp")
+
+set(SPDLOG_USE_STD_FORMAT ON)
+set(SPDLOG_BUILD_SHARED ON)
+set(CMAKE_CXX_STANDARD 20)
+add_subdirectory("vendor/spdlog")
+
+# spdlog cmake is hard-coded to put spdlog shared library in the $CONFIG subdirectory.
+# We need it in the same directory as our executables.
+# Copy it here.
+add_custom_command(
+   TARGET ${PROJECT_NAME}
+   POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:spdlog> ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+)

@@ -3,6 +3,12 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
+#include <array>
+#include <format>
+#include <memory>
+#include <utility>
+#include <vector>
+
 // note: Pikzel uses reverse-Z so near and far planes are swapped
 constexpr float nearPlane = 100.0f;
 constexpr float farPlane = 0.01f;
@@ -183,7 +189,7 @@ protected:
       {
          ImGui::Begin("Lighting");
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
-            ImGuiDrawPointLight(fmt::format("light {}", i).c_str(), m_PointLights[i]);
+            ImGuiDrawPointLight(std::format("light {}", i).c_str(), m_PointLights[i]);
          }
          ImGui::Text("Frame time: %.3fms (%.0f FPS)", m_DeltaTime.count() * 1000.0f, 1.0f / m_DeltaTime.count());
          ImGui::Text("Tone mapping:");

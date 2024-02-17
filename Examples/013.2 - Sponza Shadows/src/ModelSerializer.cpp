@@ -6,6 +6,11 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <filesystem>
+#include <format>
+#include <memory>
+#include <string>
+#include <unordered_map>
 
 namespace SponzaShadows {
 
@@ -162,7 +167,7 @@ namespace SponzaShadows {
          const aiScene* scene = importer.ReadFile(path.string(), g_AssimpProcessFlags);
 
          if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-            throw std::runtime_error {fmt::format("Error when importing model '{}': {}", path.string(), importer.GetErrorString())};
+            throw std::runtime_error {std::format("Error when importing model '{}': {}", path, importer.GetErrorString())};
          }
 
          std::filesystem::path modelDir = path;

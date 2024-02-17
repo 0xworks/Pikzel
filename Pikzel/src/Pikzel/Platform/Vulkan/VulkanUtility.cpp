@@ -15,7 +15,7 @@ namespace Pikzel {
          if (!layerFound) {
             PKZL_CORE_LOG_INFO("available layers:");
             for (const auto& layer : availableLayers) {
-               PKZL_CORE_LOG_INFO("\t{0}", layer.layerName);
+               PKZL_CORE_LOG_INFO("\t{0}", &layer.layerName[0]);
             }
             std::string msg {"layer '"};
             msg += layer;
@@ -39,7 +39,7 @@ namespace Pikzel {
          if (!extensionFound) {
             PKZL_CORE_LOG_INFO("available extensions:");
             for (const auto& extension : availableExtensions) {
-               PKZL_CORE_LOG_INFO("\t{0}", extension.extensionName);
+               PKZL_CORE_LOG_INFO("\t{0}", &extension.extensionName[0]);
             }
             std::string msg {"extension '"};
             msg += extension;
