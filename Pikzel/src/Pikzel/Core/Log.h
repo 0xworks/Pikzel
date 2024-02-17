@@ -1,22 +1,16 @@
 #pragma once
 
-#include "spdlog/spdlog.h"
-
-// On Windows, spdlog.h brings in Windows.h, which in turn defines some things which clash with our code.
-// undef them here.
-#undef MemoryBarrier
-#undef CreateWindow
-
+#include <spdlog/spdlog.h>
 #include <filesystem>
 
-namespace fmt {
+namespace std {
 
    template <>
-   struct formatter<std::filesystem::path> : formatter<std::string_view> {
+   struct formatter<filesystem::path> : formatter<string> {
 
       template <typename FormatContext>
-      auto format(const std::filesystem::path& path, FormatContext& ctx) {
-         return formatter<std::string_view>::format(path.string().data(), ctx);
+      FormatContext::iterator format(const filesystem::path& path, FormatContext& ctx) const {
+         return formatter<string>::format(path.string(), ctx);
       }
    };
 

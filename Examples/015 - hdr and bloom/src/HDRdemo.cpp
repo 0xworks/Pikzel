@@ -1,6 +1,11 @@
 #include "Pikzel/Pikzel.h"
 #include "Pikzel/Core/EntryPoint.h"
 
+#include <array>
+#include <format>
+#include <memory>
+#include <vector>
+
 // note: Pikzel uses reverse-Z so near and far planes are swapped
 constexpr float nearPlane = 50.0f;
 constexpr float farPlane = 0.1f;
@@ -223,7 +228,7 @@ protected:
          ImGui::Checkbox("Ambient Light", &m_ShowDirectionalLight);
          ImGui::Checkbox("Point Lights", &m_ShowPointLights);
          for (size_t i = 0; i < m_PointLights.size(); ++i) {
-            ImGuiDrawPointLight(fmt::format("light {}", i).c_str(), m_PointLights[i]);
+            ImGuiDrawPointLight(std::format("light {}", i).c_str(), m_PointLights[i]);
          }
          //ImGui::Text("Brightness color buffer:");
          //ImVec2 size = ImGui::GetContentRegionAvail();

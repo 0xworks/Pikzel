@@ -13,7 +13,11 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include <format>
 #include <fstream>
+#include <memory>
+#include <string>
+#include <string_view>
 
 namespace Pikzel {
 
@@ -229,7 +233,7 @@ namespace Pikzel {
             PKZL_CORE_LOG_INFO("Deserializing scene from path '{}'", m_Settings.Path.string());
             DeserializeObjects(sceneNode["Objects"], *scene);
          } else {
-            throw std::runtime_error{fmt::format("No scene found in stream from path '{}'", m_Settings.Path.string()) };
+            throw std::runtime_error{std::format("No scene found in stream from path '{}'", m_Settings.Path) };
          }
 
       } catch (const std::exception& err) {

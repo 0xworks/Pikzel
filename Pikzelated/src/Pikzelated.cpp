@@ -12,6 +12,12 @@
 
 #include <imgui_internal.h>
 
+#include <filesystem>
+#include <format>
+#include <memory>
+#include <string>
+#include <xutility>
+#include <vector>
 
 std::string MakeViewportWindowName(const std::filesystem::path& path) {
    std::string windowName = "<unnamed scene>###Viewport";
@@ -257,7 +263,7 @@ protected:
          }
 
          auto& io = ImGui::GetIO();
-         std::string fps = fmt::format("Frame time {:.3f} ms ({:.0f} FPS)", 1000.0f / io.Framerate, io.Framerate);
+         std::string fps = std::format("Frame time {:.3f} ms ({:.0f} FPS)", 1000.0f / io.Framerate, io.Framerate);
          auto size = ImGui::CalcTextSize(fps.data());
          ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - size.x - ImGui::GetStyle().ItemSpacing.x);
          ImGui::Text(fps.data());

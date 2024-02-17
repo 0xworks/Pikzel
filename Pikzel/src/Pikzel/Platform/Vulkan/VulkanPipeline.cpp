@@ -7,7 +7,17 @@
 
 #include <spirv_cross/spirv_cross.hpp>
 
+#include <array>
+#include <format>
 #include <map>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 
 namespace Pikzel {
 
@@ -151,7 +161,7 @@ namespace Pikzel {
          const auto& type = compiler.get_type(resource.type_id);
          std::vector<uint32_t> shape;
          if (type.array.size() > 0) {
-            PKZL_CORE_LOG_ERROR(fmt::format("{} object with name '{}' is an array.  This is not currently supported by Pikzel!", resourceType, name));
+            PKZL_CORE_LOG_ERROR(std::format("{} object with name '{}' is an array.  This is not currently supported by Pikzel!", resourceType, name));
             shape.resize(type.array.size());  // number of dimensions of the array. 0 = its a scalar (i.e. not an array), 1 = 1D array, 2 = 2D array, etc...
             for (auto dim = 0; dim < shape.size(); ++dim) {
                shape[dim] = type.array[dim];  // size of [dim]th dimension of the array
@@ -166,7 +176,7 @@ namespace Pikzel {
          for (auto& [id, res] : vulkanResources) {
             if ((res.DescriptorSet == set) && (res.Binding == binding)) {
                if ((res.Name != name) || (res.Type != descriptorType)) {
-                  throw std::runtime_error{fmt::format("Descriptor set {}, binding {} is ambiguous.  Refers to different names (or types)!", set, binding)};
+                  throw std::runtime_error{std::format("Descriptor set {}, binding {} is ambiguous.  Refers to different names (or types)!", set, binding)};
                }
                res.ShaderStages |= ShaderTypeToVulkanShaderStage(shaderType);
                found = true;
@@ -176,7 +186,7 @@ namespace Pikzel {
          Id id = entt::hashed_string(name.data());
          if (!found) {
             if (vulkanResources.find(id) != vulkanResources.end()) {
-               throw std::runtime_error{fmt::format("Shader resource name '{}' is ambiguous.  Refers to different descriptor set bindings!", name)};
+               throw std::runtime_error{std::format("Shader resource name '{}' is ambiguous.  Refers to different descriptor set bindings!", name)};
             } else {
                vulkanResources.emplace(id, VulkanResource {name, set, binding, descriptorType, shape, ShaderTypeToVulkanShaderStage(shaderType)});
             }

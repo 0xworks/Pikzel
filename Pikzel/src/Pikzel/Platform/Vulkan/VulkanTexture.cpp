@@ -4,6 +4,11 @@
 #include "VulkanComputeContext.h"
 #include "VulkanPipeline.h"
 
+#include <format>
+#include <memory>
+#include <stdexcept>
+#include <utility>
+
 namespace Pikzel {
 
    vk::ImageViewType TextureTypeToVkImageViewType(const TextureType& type) {
@@ -151,7 +156,7 @@ namespace Pikzel {
       } else {
          TextureLoader loader{ m_Path };
          if (!loader.IsLoaded()) {
-            throw std::runtime_error{fmt::format("failed to load image '{}'", m_Path.string())};
+            throw std::runtime_error{std::format("failed to load image '{}'", m_Path)};
          }
          uint32_t width = loader.GetWidth();
          uint32_t height = loader.GetHeight();
@@ -298,34 +303,34 @@ namespace Pikzel {
 
    void VulkanTexture::CopyFrom(const Texture& srcTexture, const TextureCopySettings& settings) {
       if (GetType() != srcTexture.GetType()) {
-         throw std::logic_error{fmt::format("Texture::CopyFrom() source and destination textures are not the same type!")};
+         throw std::logic_error{std::format("Texture::CopyFrom() source and destination textures are not the same type!")};
       }
       if (GetFormat() != srcTexture.GetFormat()) {
-         throw std::logic_error{fmt::format("Texture::CopyFrom() source and destination textures are not the same format!")};
+         throw std::logic_error{std::format("Texture::CopyFrom() source and destination textures are not the same format!")};
       }
       if (settings.srcMipLevel >= srcTexture.GetMIPLevels()) {
-         throw std::logic_error{fmt::format("Texture::CopyFrom() source texture does not have requested mip level!")};
+         throw std::logic_error{std::format("Texture::CopyFrom() source texture does not have requested mip level!")};
       }
       if (settings.dstMipLevel >= GetMIPLevels()) {
-         throw std::logic_error{fmt::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
+         throw std::logic_error{std::format("Texture::CopyFrom() destination texture does not have requested mip level!")};
       }
 
       uint32_t layerCount = settings.layerCount == 0 ? srcTexture.GetLayers() : settings.layerCount;
       if (settings.srcLayer + layerCount > srcTexture.GetLayers()) {
-         throw std::logic_error{fmt::format("Texture::CopyFrom() source texture does not have requested layer!")};
+         throw std::logic_error{std::format("Texture::CopyFrom() source texture does not have requested layer!")};
       }
       if (settings.dstLayer + layerCount > GetLayers()) {
-         throw std::logic_error{fmt::format("Texture::CopyFrom() destination texture does not have requested layer!")};
+         throw std::logic_error{std::format("Texture::CopyFrom() destination texture does not have requested layer!")};
       }
 
       uint32_t width = settings.width == 0 ? srcTexture.GetWidth() / (1 << settings.srcMipLevel) : settings.width;
       uint32_t height = settings.height == 0 ? srcTexture.GetHeight() / (1 << settings.srcMipLevel) : settings.height;
 
       if (width > GetWidth() / (1 << settings.dstMipLevel)) {
-         throw std::logic_error{fmt::format("Texture::CopyFrom() requested width is larger than destination texture width!")};
+         throw std::logic_error{std::format("Texture::CopyFrom() requested width is larger than destination texture width!")};
       }
       if (height > GetHeight() / (1 << settings.dstMipLevel)) {
-         throw std::logic_error{fmt::format("Texture::CopyFrom() requested height is larger than destination texture height!")};
+         throw std::logic_error{std::format("Texture::CopyFrom() requested height is larger than destination texture height!")};
       }
 
       vk::ImageCopy region = {
