@@ -66,11 +66,11 @@ This project is mainly a learning exercise for me, and I hope that the code is c
 
 
 ## Building
-This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio on Win11.
+This project is C++ and uses CMake to generate build system files.  My development environment is Visual Studio 2022 on Win11.
 I have also tested on Ubuntu 20.10 using vscode (with gcc compiler), and Ubuntu 22.04 using vscode (with clang).  Others are untested, but may work (with hopefully only minor changes).
 
 ### Prerequisites
-- A c++20 compiler (or at least the compiler must support designated initializers)
+- A c++20 compiler
 - cmake 3.20+
 - [Vulkan SDK](https://vulkan.lunarg.com/) (this is currently required even if you are using the OpenGL backend, as shaders are written in Vulkan GLSL dialect (and then cross compiled with SPIRV-cross).  The project is currently using the spirv tools distributed with the Vulkan SDK rather than bringing them in via submodules and building them independently.  This might be changed in the future (so that use of OpenGL will not depend on Vulkan SDK)).  Any version of Vulkan SDK v1.2.162.0 or greater should work.
 
