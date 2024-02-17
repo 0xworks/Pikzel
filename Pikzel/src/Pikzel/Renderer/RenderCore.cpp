@@ -20,14 +20,14 @@ namespace Pikzel {
       switch (s_API) {
          case API::OpenGL: {
 #if defined(PKZL_PLATFORM_WINDOWS)
-            gAPILib = LoadLibrary("PlatformOpenGL.dll");
+            gAPILib = LoadLibrary(PlatformOpenGL);
             if (gAPILib) {
                CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(gAPILib, "CreateRenderCore");
             } else {
                throw std::runtime_error {"Failed to load OpenGL platform library!"};
             }
 #elif defined(PKZL_PLATFORM_LINUX)
-            gAPILib = dlopen("libPlatformOpenGL.so", RTLD_LAZY);
+            gAPILib = dlopen(PlatformOpenGL, RTLD_LAZY);
             if (gAPILib) {
                CreateRenderCore = (RENDERCORECREATEPROC)dlsym(gAPILib, "CreateRenderCore");
             } else {
@@ -40,14 +40,14 @@ namespace Pikzel {
          }
          case API::Vulkan: {
 #if defined(PKZL_PLATFORM_WINDOWS)
-            gAPILib = LoadLibrary("PlatformVulkan.dll");
+            gAPILib = LoadLibrary(PlatformVulkan);
             if (gAPILib) {
                CreateRenderCore = (RENDERCORECREATEPROC)GetProcAddress(gAPILib, "CreateRenderCore");
             } else {
                throw std::runtime_error {"Failed to load Vulkan platform library!"};
             }
 #elif defined(PKZL_PLATFORM_LINUX)
-            gAPILib = dlopen("libPlatformVulkan.so", RTLD_LAZY);
+            gAPILib = dlopen(PlatformVulkan, RTLD_LAZY);
             if (gAPILib) {
                CreateRenderCore = (RENDERCORECREATEPROC)dlsym(gAPILib, "CreateRenderCore");
             } else {
