@@ -968,12 +968,14 @@ namespace Pikzel {
          .Device          = m_Device->GetVkDevice(),
          .QueueFamily     = m_Device->GetGraphicsQueueFamilyIndex(),
          .Queue           = m_Device->GetGraphicsQueue(),
-         .PipelineCache   = m_PipelineCache,
          .DescriptorPool  = m_DescriptorPoolImGui,
+         .RenderPass      = m_RenderPassImGui,
+         .MinImageCount = static_cast<uint32_t>(m_SwapChainImages.size()),
+         .ImageCount = static_cast<uint32_t>(m_SwapChainImages.size()),
+         .MSAASamples = static_cast<VkSampleCountFlagBits>(GetNumSamples()),
+         .PipelineCache = m_PipelineCache,
          .Subpass         = 0,
-         .MinImageCount   = static_cast<uint32_t>(m_SwapChainImages.size()),
-         .ImageCount      = static_cast<uint32_t>(m_SwapChainImages.size()),
-         .MSAASamples     = static_cast<VkSampleCountFlagBits>(GetNumSamples()),
+         .UseDynamicRendering = false,
          .Allocator       = nullptr, // TODO: proper allocator...
          .CheckVkResultFn = [](const VkResult err) {
             if (err != VK_SUCCESS) {
@@ -981,7 +983,7 @@ namespace Pikzel {
             }
          }
       };
-      ImGui_ImplVulkan_Init(&init_info, m_RenderPassImGui);
+      ImGui_ImplVulkan_Init(&init_info);
       super::InitializeImGui();
       m_InitializedImGui = true;
    }
