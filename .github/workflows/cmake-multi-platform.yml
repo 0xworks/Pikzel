@@ -38,11 +38,15 @@ jobs:
             cpp_compiler: clang++
         exclude:
           - os: windows-latest
+            c_compiler cl
+          - os: windows-latest
             c_compiler: gcc
           - os: windows-latest
             c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: gcc
 
     steps:
     - name: Checkout code
@@ -54,7 +58,7 @@ jobs:
     - name: Install packages
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo apt install libosmesa6-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+          sudo apt-get -f install libosmesa6-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
         fi
       shell: bash
 
