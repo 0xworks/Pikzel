@@ -38,7 +38,7 @@ jobs:
             cpp_compiler: clang++
         exclude:
           - os: windows-latest
-            c_compiler cl
+            c_compiler: cl
           - os: windows-latest
             c_compiler: gcc
           - os: windows-latest
