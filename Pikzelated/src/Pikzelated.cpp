@@ -16,7 +16,6 @@
 #include <format>
 #include <memory>
 #include <string>
-#include <xutility>
 #include <vector>
 
 std::string MakeViewportWindowName(const std::filesystem::path& path) {
@@ -266,7 +265,7 @@ protected:
          std::string fps = std::format("Frame time {:.3f} ms ({:.0f} FPS)", 1000.0f / io.Framerate, io.Framerate);
          auto size = ImGui::CalcTextSize(fps.data());
          ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - size.x - ImGui::GetStyle().ItemSpacing.x);
-         ImGui::Text(fps.data());
+         ImGui::TextUnformatted(fps.data());
 
          ImGui::EndMainMenuBar();
       }

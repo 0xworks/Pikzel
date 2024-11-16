@@ -35,17 +35,17 @@ namespace UI {
 
 
    std::tuple<bool, bool> IconTreeNode(void* ptr_id, Icon icon, std::string_view content, ImGuiTreeNodeFlags extraFlags, std::function<void()> callback) {
-      bool isExpanded = ImGui::TreeNodeEx(ptr_id, ImGuiTreeNodeFlags_SpanFullWidth | extraFlags, "");
+      bool isExpanded = ImGui::TreeNodeEx(ptr_id, ImGuiTreeNodeFlags_SpanFullWidth | extraFlags, "#");
       bool isClicked = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseClicked(ImGuiMouseButton_Right));
       if (callback) {
          callback();
       }
       ImGui::PushStyleColor(ImGuiCol_Text, IconToColor(icon));
       ImGui::SameLine();
-      ImGui::Text(IconToGlyph(icon));
+      ImGui::TextUnformatted(IconToGlyph(icon));
       ImGui::PopStyleColor();
       ImGui::SameLine();
-      ImGui::Text(content.data());
+      ImGui::TextUnformatted(content.data());
       return {isExpanded, isClicked};
    }
 
@@ -58,7 +58,7 @@ namespace UI {
    bool Property(std::string_view label, glm::vec3& value, const glm::vec3& resetValue) {
       ImGui::TableNextRow();
       ImGui::TableSetColumnIndex(0);
-      ImGui::Text(label.data());
+      ImGui::TextUnformatted(label.data());
       ImGui::TableSetColumnIndex(1);
       return Pikzel::ImGuiEx::EditVec3(&value, resetValue);
    }
@@ -67,7 +67,7 @@ namespace UI {
    bool Property(std::string_view label, std::string& value) {
       ImGui::TableNextRow();
       ImGui::TableSetColumnIndex(0);
-      ImGui::Text(label.data());
+      ImGui::TextUnformatted(label.data());
       ImGui::TableSetColumnIndex(1);
       char buffer[256];
       strncpy(buffer, value.c_str(), 256);

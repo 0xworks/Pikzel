@@ -39,11 +39,6 @@ add_executable(
    ${ShaderSources}
 )
 
-target_compile_features(
-   ${PROJECT_NAME} PRIVATE
-   cxx_std_20
-)
-
 target_compile_definitions(
    ${PROJECT_NAME} PRIVATE
    APP_NAME="${PROJECT_NAME}"

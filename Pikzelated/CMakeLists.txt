@@ -27,8 +27,8 @@ set(
 
 set(
    ProjectLibs
-   "Pikzel"
    "ImGui"
+   "Pikzel"
 )
 
 set(
@@ -59,11 +59,6 @@ add_executable(
    ${ShaderSources}
    ${ShaderHeaders}
    ${Textures}
-)
-
-target_compile_features(
-   ${PROJECT_NAME} PRIVATE
-   cxx_std_20
 )
 
 target_compile_definitions(

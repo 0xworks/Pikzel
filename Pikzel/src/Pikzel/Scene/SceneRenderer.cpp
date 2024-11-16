@@ -35,7 +35,7 @@ namespace Pikzel {
       for (auto&& [object, transform, model] : scene.GetGroup<const glm::mat4, const Model>().each()) {
          gc.PushConstant("constants.mvp"_hs, vp * transform);
 
-         auto modelAsset = AssetCache::GetModelAsset(model.Id);
+         auto modelAsset = AssetCache::GetModelAsset(model.id);
 
          for (const auto& mesh : modelAsset->Meshes) {
             //gc.PushConstant("constants.mvp"_hs, transform * mesh.Transform);
@@ -44,7 +44,7 @@ namespace Pikzel {
             //gc.Bind("uNormals"_hs, *mesh.NormalTexture);
             //gc.Bind("uAmbientOcclusion"_hs, *mesh.AmbientOcclusionTexture);
             //gc.Bind("uHeightMap"_hs, *mesh.HeightTexture);
-            gc.DrawIndexed(*mesh.VertexBuffer, *mesh.IndexBuffer);
+            gc.DrawIndexed(*mesh.vertexBuffer, *mesh.indexBuffer);
          }
       }
    }

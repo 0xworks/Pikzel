@@ -72,7 +72,7 @@ namespace Pikzel {
 
       template<ObjectFunc Func>
       void Each(Func func) const {
-         m_Registry.storage<entt::entity>().each([func](entt::entity e) {
+         m_Registry.storage<entt::entity>()->each([func](entt::entity e) {
             func(e);
          });
       }

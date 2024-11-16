@@ -70,7 +70,7 @@ namespace Pikzel {
 
    template<>
    void Serialize<Model>(YAML::Emitter& yaml, const Model& model) {
-      auto path = AssetCache::GetPath(model.Id);
+      auto path = AssetCache::GetPath(model.id);
       yaml << YAML::Key << "Path" << YAML::Value << (path ? path->string() : "<unknown>");
    }
 
@@ -80,8 +80,8 @@ namespace Pikzel {
       if (node.IsMap()) {
          auto path = node["Path"].as<std::string>();
          if (path != "<unknown>") {
-            model.Id = entt::hashed_string(path.data());
-            if (!AssetCache::GetModelAsset(model.Id)) {
+            model.id = entt::hashed_string(path.data());
+            if (!AssetCache::GetModelAsset(model.id)) {
                AssetCache::LoadModelAsset(path);
             }
          }

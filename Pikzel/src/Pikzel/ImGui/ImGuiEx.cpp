@@ -258,7 +258,7 @@ namespace Pikzel {
 
          ImGui::AlignTextToFramePadding();
          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(label).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
-         ImGui::Text(label);
+         ImGui::TextUnformatted(label);
 
          ImGui::NextColumn();
          bool bChanged = EditVec3(value, resetValue);
@@ -279,7 +279,7 @@ namespace Pikzel {
 
          ImGui::AlignTextToFramePadding();
          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(label).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
-         ImGui::Text(label);
+         ImGui::TextUnformatted(label);
 
          ImGui::NextColumn();
 
@@ -306,7 +306,7 @@ namespace Pikzel {
 
          ImGui::AlignTextToFramePadding();
          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(label).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
-         ImGui::Text(label);
+         ImGui::TextUnformatted(label);
 
          ImGui::NextColumn();
 
