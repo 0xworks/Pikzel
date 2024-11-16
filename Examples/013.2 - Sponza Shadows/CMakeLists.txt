@@ -21,9 +21,9 @@ set(
 
 set(
    ProjectLibs
-   "Pikzel"
-   "ImGui"
    "assimp"  # Note: eventually client apps will not need to directly link to assimp
+   "ImGui"
+   "Pikzel"
 )
 
 set(
@@ -51,11 +51,6 @@ source_group("Assets/Shaders" FILES ${ShaderSources} ${ShaderHeaders})
 add_executable(
    ${PROJECT_NAME}
    ${ProjectSources}
-)
-
-target_compile_features(
-   ${PROJECT_NAME} PRIVATE
-   cxx_std_20
 )
 
 target_compile_definitions(

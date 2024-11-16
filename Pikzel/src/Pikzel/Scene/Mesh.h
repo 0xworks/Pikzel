@@ -30,25 +30,25 @@ namespace Pikzel {
       ~Mesh() = default;
 
       Mesh(std::unique_ptr<VertexBuffer> vb, std::unique_ptr<IndexBuffer> ib)
-      : VertexBuffer { std::move(vb) }
-      , IndexBuffer { std::move(ib) }
+      : vertexBuffer { std::move(vb) }
+      , indexBuffer { std::move(ib) }
       {}
 
       Mesh(Mesh&& mesh) noexcept
-      : VertexBuffer { std::move(mesh.VertexBuffer) }
-      , IndexBuffer { std::move(mesh.IndexBuffer) }
+      : vertexBuffer { std::move(mesh.vertexBuffer) }
+      , indexBuffer { std::move(mesh.indexBuffer) }
       {}
 
       Mesh& operator=(Mesh&& mesh) noexcept {
          if (this != &mesh) {
-            VertexBuffer = std::move(mesh.VertexBuffer);
-            IndexBuffer = std::move(mesh.IndexBuffer);
+            vertexBuffer = std::move(mesh.vertexBuffer);
+            indexBuffer = std::move(mesh.indexBuffer);
          }
          return *this;
       }
 
-      std::unique_ptr<VertexBuffer> VertexBuffer;
-      std::unique_ptr<IndexBuffer> IndexBuffer;
+      std::unique_ptr<VertexBuffer> vertexBuffer;
+      std::unique_ptr<IndexBuffer> indexBuffer;
    };
 
 }

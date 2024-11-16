@@ -71,10 +71,10 @@ void PropertiesPanel::Render() {
             // need to think about this a bit more...
             // basically we need to be able to drag n drop assets into this property.
             // we also want a drop down selectable menu of assets...
-            if (model.Id != Null) {
+            if (model.id != Null) {
                // and if user changes it.. its not that we want the model's name changed
                // what we mean is to change to a different model
-               auto temp = AssetCache::GetPath(model.Id)->string();
+               auto temp = AssetCache::GetPath(model.id)->string();
                UI::Property("Model", temp);
             }
             UI::EndPropertyTable();

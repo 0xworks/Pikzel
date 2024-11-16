@@ -111,7 +111,7 @@ void HierarchyPanel::RenderObject(Scene& scene, Object object, Object childObjec
       }
 
       if (ImGui::BeginDragDropSource()) {
-         ImGui::Text(scene.GetComponent<std::string>(object).data());
+         ImGui::TextUnformatted(scene.GetComponent<std::string>(object).data());
          ImGui::SetDragDropPayload("Object", &object, sizeof(Object));
          ImGui::EndDragDropSource();
       }

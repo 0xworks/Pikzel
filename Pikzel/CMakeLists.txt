@@ -129,17 +129,12 @@ endif()
 # There are additional "private" libraries set below
 set(
    ProjectLibs
-   "spdlog"
+   "spdlog_header_only"
 )
 
 add_library(
    ${PROJECT_NAME} SHARED
    ${ProjectSources}
-)
-
-target_compile_features(
-   ${PROJECT_NAME} PUBLIC
-   cxx_std_20
 )
 
 target_compile_definitions(
@@ -296,12 +291,16 @@ set_property(TARGET ImGui PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_compile_features(
    "ImGui" PRIVATE
-   cxx_std_20
 )
 
 target_include_directories(
    "ImGui" PRIVATE
    ${ProjectIncludes}
+)
+
+target_link_libraries(
+   "ImGui" PRIVATE
+   "spdlog_header_only"
 )
 
 ##################################################################
@@ -340,11 +339,6 @@ add_library(
    "src/Pikzel/Platform/OpenGL/imgui_impl_opengl3.cpp"
    "vendor/imgui/backends/imgui_impl_glfw.h"
    "vendor/imgui/backends/imgui_impl_glfw.cpp"
-)
-
-target_compile_features(
-   "PlatformOpenGL" PRIVATE
-   cxx_std_20
 )
 
 target_compile_definitions(
@@ -426,11 +420,6 @@ if(${Vulkan_FOUND})
       "vendor/imgui/backends/imgui_impl_glfw.cpp"
    )
 
-   target_compile_features(
-      "PlatformVulkan" PRIVATE
-      cxx_std_20
-   )
-
    target_compile_definitions(
       "PlatformVulkan" PRIVATE
        VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
@@ -476,11 +465,6 @@ add_library(
    "vendor/tracy/public/TracyClient.cpp"
 )
 
-target_compile_features(
-   "TracyClient" PRIVATE
-   cxx_std_20
-)
-
 target_compile_definitions(
    "TracyClient" PRIVATE
    TRACY_ENABLE
@@ -514,8 +498,6 @@ add_subdirectory("vendor/glm")
 add_subdirectory("vendor/yaml-cpp")
 
 set(SPDLOG_USE_STD_FORMAT ON)
-set(SPDLOG_BUILD_SHARED ON)
-set(CMAKE_CXX_STANDARD 20)
 add_subdirectory("vendor/spdlog")
 
 # spdlog cmake is hard-coded to put spdlog shared library in the $CONFIG subdirectory.

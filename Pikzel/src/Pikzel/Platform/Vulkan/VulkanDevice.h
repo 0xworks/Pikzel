@@ -5,9 +5,6 @@
 
 namespace Pikzel {
 
-   template<typename T>
-   concept PhysicalDeviceFeatures = std::is_same_v<T, vk::PhysicalDeviceFeatures> || std::is_same_v<T, vk::PhysicalDeviceVulkan13Features>;
-
    class VulkanDevice {
    public:
       VulkanDevice(vk::Instance instance, vk::SurfaceKHR surface);
@@ -29,16 +26,11 @@ namespace Pikzel {
 
       uint32_t GetMSAAMaxSamples() const;
 
-      template<PhysicalDeviceFeatures T>
-      T GetEnabledPhysicalDeviceFeatures() const;
-
-      template<>
-      vk::PhysicalDeviceFeatures GetEnabledPhysicalDeviceFeatures<vk::PhysicalDeviceFeatures>() const {
+      vk::PhysicalDeviceFeatures GetEnabledPhysicalDeviceFeatures() const {
          return m_EnabledPhysicalDeviceFeatures.features;
       }
 
-      template<>
-      vk::PhysicalDeviceVulkan13Features GetEnabledPhysicalDeviceFeatures<vk::PhysicalDeviceVulkan13Features>() const {
+      vk::PhysicalDeviceVulkan13Features GetEnabledPhysicalDeviceVulkan13Features() const {
          return m_EnabledPhysicalDeviceVulkan13Features;
       }
 

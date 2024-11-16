@@ -22,7 +22,7 @@ namespace Pikzel {
    struct PKZL_API PipelineSettings {
       bool enableBlend = true; // enable or disable color blending.  Always src_alpha + (1 - src_alpha) at this stage.  TODO: support more complex options later
       std::vector<std::pair<ShaderType, std::filesystem::path>> shaders;
-      const BufferLayout& bufferLayout = {};
+      BufferLayout bufferLayout = {};
       SpecializationConstantsMap specializationConstants;
    };
 

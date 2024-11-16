@@ -5,7 +5,7 @@
 namespace Pikzel {
 
    struct PKZL_API Model {
-      Id Id;
+      Id id;
    };
 
 }

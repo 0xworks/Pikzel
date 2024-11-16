@@ -183,7 +183,7 @@ private:
 
    void CreateUniformBuffers() {
       Material materials[] = {
-         {.shininess{32.0f}}
+         {.shininess = 32.0f}
       };
       m_MaterialBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(materials), materials);
       m_LightBuffer = Pikzel::RenderCore::CreateUniformBuffer(sizeof(Light));
