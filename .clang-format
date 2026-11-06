@@ -1,0 +1,52 @@
+# Pikzel C++ formatting.
+# Derived from the conventions of the earlier Pikzel engine (X:\Pikzel-original):
+# three-space indent, braces on the same line, left-bound pointers/references.
+# Unlike the original, namespace contents are not indented.
+# ColumnLimit is 0 so that clang-format never wraps long lines.
+---
+Language: Cpp
+Standard: Latest
+
+IndentWidth: 3
+TabWidth: 3
+UseTab: Never
+ColumnLimit: 0
+ContinuationIndentWidth: 3
+ConstructorInitializerIndentWidth: 0
+AccessModifierOffset: -3
+NamespaceIndentation: None
+IndentCaseLabels: true
+IndentPPDirectives: BeforeHash
+PPIndentWidth: 3
+
+BreakBeforeBraces: Attach
+BreakConstructorInitializers: BeforeColon
+AlignAfterOpenBracket: BlockIndent
+AlignTrailingComments: true
+
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+
+SpaceBeforeParens: ControlStatements
+SpaceBeforeCpp11BracedList: false
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: false
+Cpp11BracedListStyle: true
+
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: true
+EmptyLineAfterAccessModifier: Leave
+SkipMacroDefinitionBody: true
+FixNamespaceComments: false
+
+SortIncludes: Never
+IncludeBlocks: Preserve
+...
