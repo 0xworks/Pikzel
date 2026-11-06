@@ -9,7 +9,16 @@
 
 include(FetchContent)
 
-# spdlog: logging. Uses its bundled copy of fmt for formatting.
+# spdlog: logging.
+#
+# spdlog is configured to format with std::format instead of its bundled copy of fmt, so
+# the engine uses a single formatting library. A custom type then needs only one
+# std::formatter specialisation to work with both logging and std::format elsewhere.
+# The cost is fmt-only extras such as named arguments, fmt::join and spdlog's bin_to_hex.
+# spdlog exports the resulting SPDLOG_USE_STD_FORMAT definition as a PUBLIC compile
+# definition, so everything linking spdlog agrees on the setting.
+set(SPDLOG_USE_STD_FORMAT ON)
+
 FetchContent_Declare(
    spdlog
    GIT_REPOSITORY https://github.com/gabime/spdlog.git

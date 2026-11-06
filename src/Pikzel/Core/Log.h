@@ -31,7 +31,7 @@ spdlog::logger& GetAppLogger();
 }
 
 // Macros (rather than functions) so that logging can later be compiled out of particular
-// build configurations without touching call sites. Arguments use fmt format syntax:
+// build configurations without touching call sites. Arguments use std::format syntax:
 //    PKZL_LOG_INFO("Loaded {} meshes in {:.2f} ms", meshCount, milliseconds);
 
 #define PKZL_CORE_LOG_TRACE(...) ::Pikzel::Log::GetCoreLogger().trace(__VA_ARGS__)
