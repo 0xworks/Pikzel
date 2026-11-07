@@ -1,19 +1,24 @@
 # Renderer Foundation
 
-This document describes the first layer of the renderer: getting a GPU device, presenting frames to a window, and the minimum set of resource types needed to draw. The `HelloTriangle` example uses all of it.
+This document describes the first layer of the renderer: getting a GPU device, presenting frames to a window, and the resource types needed to draw textured 3D geometry. `HelloTriangle` is the smallest program using it; `TexturedCubes` uses all of it.
 
 ## Pieces
 
 | Type | Header | Responsibility |
 |---|---|---|
 | `Window` | `Platform/Window.h` | A GLFW window with no graphics context. Hands out native OS handles. |
-| `GraphicsDevice`, `GraphicsApi` | `Renderer/GraphicsDevice.h` | The NRI device for the chosen graphics API, its interface tables and the graphics queue. No window needed. |
-| `SwapChain`, `Frame` | `Renderer/SwapChain.h` | Back buffers, frames in flight, CPU/GPU synchronisation, resize handling. |
-| `CommandList`, `RenderTarget` | `Renderer/CommandList.h` | Recording rendering passes, pipeline and vertex buffer binding, and draws. |
-| `Buffer`, `BufferUsage` | `Renderer/Buffer.h` | A GPU buffer and its memory, filled with initial data. |
-| `Pipeline`, `GraphicsPipelineSettings` | `Renderer/Pipeline.h` | A graphics pipeline and its (currently empty) pipeline layout. |
+| `GraphicsDevice`, `GraphicsApi` | `Renderer/GraphicsDevice.h` | The NRI device for the chosen graphics API, its interface tables, the graphics queue and the descriptor pool. No window needed. |
+| `SwapChain`, `Frame` | `Renderer/SwapChain.h` | Back buffers, an optional depth buffer, frames in flight, CPU/GPU synchronisation, resize handling. |
+| `CommandList`, `RenderTarget`, `RenderPassSettings` | `Renderer/CommandList.h` | Recording rendering passes, binding pipelines, buffers, descriptor sets and push constants, and draws. |
+| `Buffer`, `BufferSettings` | `Renderer/Buffer.h` | A GPU buffer and its memory: device-local and filled once, or host-writable and rewritten each frame. |
+| `Texture`, `TextureSettings` | `Renderer/Texture.h` | A 2D texture, its memory and its views: sampled by shaders, rendered into, or used as a depth buffer. |
+| `Sampler` | `Renderer/Sampler.h` | Filtering and addressing state for reading textures. |
+| `Pipeline`, `GraphicsPipelineSettings` | `Renderer/Pipeline.h` | A graphics pipeline and its pipeline layout (descriptor sets and push constants). |
+| `DescriptorSet` | `Renderer/DescriptorSet.h` | A group of resource bindings matching one of a pipeline's descriptor set layouts. |
 | `Shader` | `Renderer/Shader.h` | Loads one entry point compiled at build time (SPIR-V or DXIL, for the device's API). |
-| `Format` | `Renderer/Format.h` | The texture and vertex formats the engine uses. |
+| `Float4x4`, `ToFloat4x4` | `Renderer/ShaderTypes.h` | Fixed-layout types that mirror shader data, converted explicitly from RTM. |
+| `CreateLookAtMatrix`, `CreatePerspectiveMatrix` | `Renderer/Camera.h` | View and projection matrices in the engine's coordinate conventions. |
+| `Format` | `Renderer/Format.h` | The texture, depth and vertex formats the engine uses. |
 | `Color` | `Renderer/Color.h` | A linear RGBA color, with conversions from sRGB values and hex codes. |
 | `NriInterface`, `CheckNri`, conversions | `Renderer/Nri.h` | **Internal.** NRI includes, interface tables, error handling, enum conversions. |
 
@@ -35,12 +40,12 @@ Renderer classes still have a few accessors that return NRI objects (`GraphicsDe
 
 The engine classes also take on what NRI leaves to the caller:
 
-- **Lifetime.** Every class that owns NRI objects destroys them in its destructor. `Buffer` and `Pipeline` are move-only. `GraphicsDevice` and `SwapChain` cannot be moved, because other objects refer to them.
-- **Memory.** `Buffer` creates the buffer, allocates and binds memory, uploads the initial data, and frees everything.
+- **Lifetime.** Every class that owns NRI objects destroys them in its destructor. `Buffer`, `Texture`, `Sampler` and `Pipeline` are move-only. `GraphicsDevice` and `SwapChain` cannot be moved, because other objects refer to them.
+- **Memory.** `Buffer` and `Texture` create the resource, allocate and bind memory, create the views they need, upload any initial data, and free everything.
 - **Synchronisation.** `SwapChain` handles frames in flight, semaphores, fences and back buffer layout transitions.
 - **Errors.** `CheckNri` turns a failed `nri::Result` into a `std::runtime_error` naming the operation. NRI's diagnostic messages, including validation errors, go to the engine log.
 
-`CommandList` is a lightweight, non-owning view of a command buffer owned by `SwapChain`. `BeginRendering()` also sets the viewport and scissor to cover the whole target, since nearly every pass wants that. `BindVertexBuffer()` takes the vertex stride from the bound pipeline, so the stride is stated once, in `GraphicsPipelineSettings`.
+`CommandList` is a lightweight, non-owning view of a command buffer owned by `SwapChain`. `BeginRendering()` also sets the viewport and scissor to cover the whole color target, since nearly every pass wants that. `BindVertexBuffer()` takes the vertex stride from the bound pipeline, so the stride is stated once, in `GraphicsPipelineSettings`.
 
 ## Color spaces
 
@@ -68,11 +73,93 @@ NRI creates 8-bit swap chains with a UNORM format and renders through sRGB views
 
 Measured on screen, the transparent bar is (255, 188, 188) over white and (187, 188, 0) over green, on both Vulkan and D3D12. Linear 0.5 encodes to sRGB 188, which confirms the blend happens in linear space. Blending in sRGB space would have produced 128.
 
-Textures will follow the same rule when they arrive: color textures (albedo, UI) use `*Srgb` formats so that sampling returns linear values, and data textures (normals, roughness) use `*Unorm`.
+Textures follow the same rule: color textures (albedo, UI) use `*Srgb` formats so that sampling returns linear values, and data textures (normals, roughness) use `*Unorm`. Texel data for an sRGB texture is stored as sRGB-encoded bytes, exactly as an image editor produces them, with no conversion on the CPU: `TexturedCubes` builds its checkerboard from sRGB hex codes this way. Because the GPU decodes before it filters, bilinear filtering also happens in linear space.
+
+## Coordinate conventions
+
+The renderer's 3D conventions are chosen to match glTF, the engine's main asset format, so imported meshes and scenes need no conversion:
+
+- **Right-handed, +Y up.** A camera looks down its -Z axis, with +X to its right.
+- **Counter-clockwise front faces.** A triangle whose vertices appear counter-clockwise on screen faces the viewer. `CullMode::Back` discards the others.
+- **Clip space as in D3D.** x and y from -1 to +1 with +y up, depth from 0 to 1. NRI flips Vulkan's viewport, so this holds on both APIs.
+- **Reversed-Z depth**, described below.
+
+RTM's own camera helpers (`rtm::view_look_at`, `rtm::proj_perspective_fov`) are left-handed and use traditional depth, so the engine builds its view and projection matrices itself, in `Renderer/Camera.h`. Each is a few lines, and the unit tests in `tests/Renderer/CameraTests.cpp` pin down the conventions: where the eye, target and up direction land in view space, and the depth of points at the near plane and far away.
+
+### Reversed-Z
+
+`CreatePerspectiveMatrix()` maps the near plane to depth **1** and infinitely distant points to depth **0**, the opposite of the traditional mapping.
+
+Perspective projection makes stored depth proportional to 1/distance, so most of the depth range is spent close to the near plane. Floating-point numbers are also unevenly spread, with far more representable values near 0 than near 1. With traditional depth (near = 0), these two effects pile up at the same end, and distant geometry is left with very little precision, causing z-fighting. Reversing the range makes them roughly cancel out, giving almost uniform precision at every distance with a 32-bit float depth buffer (`Format::D32Float`). Precision is good enough to put the far plane at infinity, which removes a parameter that would otherwise need tuning per scene.
+
+The rest of the renderer only has to agree on two things: depth buffers are cleared to 0 (the far plane), and the depth test passes for *greater* values (`CompareOp::Greater`, the default in `GraphicsPipelineSettings`).
+
+## Matrices and data shared with shaders
+
+CPU math types cannot simply be copied into GPU buffers. RTM's types are laid out for SIMD registers, while shaders read buffers according to their own layout rules. Data shared with shaders is therefore declared with plain C++ structs that mirror the Slang declarations, using types from `Renderer/ShaderTypes.h`, and filled by explicit conversion.
+
+**Matrices.** RTM uses row vectors: a point is transformed as `p * M`, and a matrix stores its four rows (`x_axis`, `y_axis`, `z_axis`, `w_axis`) one after another, with the translation in the last row. Engine shaders use the same convention, so a matrix means the same thing on both sides:
+
+- shaders transform with `mul(vector, matrix)`, and compose matrices left to right in the order they apply (`p * model * viewProjection`);
+- shaders are compiled with `-matrix-layout-row-major` (`cmake/Shaders.cmake`), so a `float4x4` in a buffer is read one row at a time;
+- `ToFloat4x4()` writes an RTM matrix's rows in that order.
+
+No transposes are needed anywhere. The alternative, column vectors in shaders (`mul(matrix, vector)`), is equally valid but would put a transpose at the CPU/GPU boundary, and the CPU and shader code would then read differently.
+
+**Packing.** Constant buffers and push constants use HLSL's packing rules: members are laid out in order in 16-byte rows, and a member may not straddle a row boundary. A `float3` followed by a `float` share one row; two `float3`s do not. C++ structs that mirror shader data `static_assert` their size and member offsets, so a mismatch is a compile error rather than garbage on screen (see `FrameConstants` in `examples/TexturedCubes/Main.cpp`).
+
+The layouts are still checked by hand on the shader side. Slang's reflection API could verify them against the compiled shaders when a pipeline is created; that is a likely next step once the engine links the Slang library.
+
+## Resource binding
+
+Shaders reach everything except vertex data through the **pipeline layout**, which `GraphicsPipelineSettings` describes. It has two parts.
+
+**Descriptor sets.** A descriptor is a small GPU-readable record saying where a resource is and how to read it: a texture view, a constant buffer view, a sampler. A descriptor set is a block of descriptors bound with one command. Each `DescriptorSetLayout` lists the ranges of registers its set covers, in one register space:
+
+```cpp
+.descriptorSets = {
+   {.registerSpace = 1, .ranges = {{.type = DescriptorType::ConstantBuffer, .baseRegister = 0}}},
+   {.registerSpace = 2, .ranges = {{.type = DescriptorType::Texture, .baseRegister = 0}, {.type = DescriptorType::Sampler, .baseRegister = 0}}},
+},
+```
+
+which matches these shader declarations:
+
+```slang
+ConstantBuffer<FrameConstants> g_Frame : register(b0, space1);
+Texture2D g_Albedo : register(t0, space2);
+SamplerState g_Sampler : register(s0, space2);
+```
+
+On D3D12 the register space is part of the register name. On Vulkan, Slang turns `spaceN` into descriptor set N, and the register kinds are shifted into separate binding ranges (see [Vulkan binding offsets](#vulkan-binding-offsets)). NRI builds the matching layouts for each API.
+
+Resources are grouped into sets by how often they change. `TexturedCubes` has a per-frame set (camera and light) and a per-material set (texture and sampler). Each set is bound only when its contents change, and a material's set is written once and reused every frame.
+
+**Push constants.** A small block of data (at most 128 bytes is portable) written straight into the command buffer with `CommandList::PushConstants()`, with no buffer or descriptor involved. That makes them the cheapest way to pass data that changes with every draw, such as a model matrix. In Slang the block is declared `[[vk::push_constant]] ConstantBuffer<T> name : register(b0, space0);`. Space 0 is reserved for it when a pipeline uses push constants, and `Pipeline` rejects descriptor sets that use space 0 as well. (D3D12 calls these root constants, and Vulkan, push constants.)
+
+**The descriptor pool.** Descriptor sets are allocated from a single pool, owned by `GraphicsDevice`. A single pool is needed because D3D12 can only have one shader-visible descriptor heap of each kind bound at a time, NRI backs a pool with such heaps, and so all sets used in one command buffer must come from the same pool. `SwapChain` attaches it to each frame's command buffer. NRI never returns individual sets to the pool, so sets are created up front (per material, per frame in flight), not per draw. The pool's capacity is fixed in `GraphicsDevice.cpp`.
+
+This is the classic "bind a set per draw" model. A renderer aiming at GPU-driven rendering will likely move to **bindless** resources, where shaders index one large array of descriptors (`ResourceDescriptorHeap` in shader model 6.6, which is why D3D12 shaders target it). Descriptor sets remain the clearer way to learn how binding works, and are enough until the renderer draws many different materials.
+
+## Per-frame data
+
+Data the CPU rewrites every frame, such as the camera, lives in **host-writable** buffers (`BufferSettings::isHostWritable`). These are allocated in NRI's `DEVICE_UPLOAD` memory: video memory the CPU can write directly on GPUs with resizable BAR, falling back to system memory otherwise. `Buffer::Write()` copies into it straight away.
+
+The CPU must not overwrite data the GPU is still reading. With two frames in flight, while the CPU writes frame N's constants the GPU may still be drawing frame N-1, so anything rewritten per frame exists once per frame in flight. `Frame::inFlightIndex` says which copy to use, and `SwapChain` guarantees that the GPU has finished with the previous frame that used the same index. `TexturedCubes` keeps one constant buffer and one descriptor set per frame in flight, and picks them with `inFlightIndex`.
+
+Device-local buffers and textures created with initial data are filled once by NRI's `UploadData` helper, which copies through a staging buffer and waits for the GPU. That is fine at load time but too slow per frame.
+
+## Depth buffer
+
+`SwapChainSettings::depthFormat` asks the swap chain to keep a depth buffer the size of the window, recreated with the back buffers on resize. `Frame::depthBuffer` hands it out as a `RenderTarget`, and `RenderPassSettings` attaches it to a pass, normally cleared to 0.
+
+There is one depth buffer, not one per back buffer. Frames execute one after another on the single graphics queue, and each frame clears the depth buffer, so sharing is safe as long as one frame's depth writes finish before the next frame's begin. `SwapChain::BeginFrame()` records a barrier for exactly that (a write-after-write dependency) at the start of each frame. A newly created depth buffer has no previous writes, and moves from the `UNDEFINED` layout instead.
+
+Keeping the depth buffer in `SwapChain` means applications never deal with resizing it. When the renderer moves to off-screen rendering (HDR targets and tone mapping), those targets will own their own depth buffers, and this option will matter less.
 
 ## Frames in flight
 
-The CPU records frame N+1 while the GPU executes frame N. Anything the CPU writes during a frame — currently the command allocator and command buffer — exists once per frame in flight (two by default).
+The CPU records frame N+1 while the GPU executes frame N. Anything the CPU writes during a frame — the command allocator and command buffer, and any per-frame data the application keeps (see [Per-frame data](#per-frame-data)) — exists once per frame in flight (two by default).
 
 ```
 CPU:  record 0 | record 1 | wait(0 done) record 2 | wait(1 done) record 3 | ...
@@ -80,6 +167,14 @@ GPU:           | execute 0          | execute 1              | execute 2  ...
 ```
 
 A single timeline fence tracks progress. Frame N signals it with the value N + 1 when its GPU work completes. Before reusing the resources of frame N, `BeginFrame()` waits for the fence to reach `N - framesInFlight + 1`, meaning the frame that last used those resources has finished.
+
+### Frame pacing
+
+The fence keeps the CPU from running too far ahead of the GPU, but it does not tie the CPU to the display. On Vulkan with NVIDIA's Windows driver, measured in `TexturedCubes`, the presentation engine released back buffers in bursts: the CPU would block for two to four refreshes (33–66 ms), then record several frames almost instantly. Each frame was still displayed one refresh apart, but the animation time sampled when each frame was recorded was unevenly spaced, so motion visibly jittered every second or two. D3D12 happened not to show it, but nothing guaranteed that either.
+
+The fix is a **waitable swap chain**. `BeginFrame()` first waits until frame `N - framesInFlight` has actually been presented, with `VK_KHR_present_wait` on Vulkan (each frame is presented with ID N + 1) and DXGI's frame latency waitable object on D3D12. The CPU then starts every frame in step with the display: in the same measurement, the longest frame dropped from 66 ms to about 17–22 ms at a 60 Hz refresh, on both APIs and with or without validation. The remaining long frames are at start-up and when the window is resized, where the swap chain is recreated.
+
+The two APIs wait differently. Vulkan waits for a specific present ID, which must already have been queued on the current swap chain, so the first `framesInFlight` frames after the swap chain is created skip the wait. D3D12's latency object ignores the ID, starts out allowing `framesInFlight` queued frames, and must be waited on every frame from the first; skipping waits would let extra frames queue up and add latency.
 
 ## Swap chain synchronisation
 
@@ -152,11 +247,12 @@ The shader compiler assigns those bindings, and NRI builds descriptor set layout
 These are deliberate omissions, to be filled in as real requirements arrive:
 
 - **Vulkan and D3D12 only.** NRI also has D3D11, Metal and WebGPU backends. D3D11 lacks the modern features the renderer is aiming for. Metal and WebGPU would need new shader targets and platforms the engine does not target yet.
-- **Synchronous uploads.** `Buffer`'s initial upload waits for the GPU. Streaming and per-frame data will need upload buffers in host-visible memory, or NRI's streamer.
-- **One allocation per buffer.** Fine for a handful of buffers. A real scene will want sub-allocation (NRI can route allocations through VMA).
-- **No depth buffer, textures, or descriptors yet.** These come next, along with constant buffers and a camera.
-- **One vertex buffer, one color target, two blend modes.** `GraphicsPipelineSettings` covers exactly what is used so far: `BlendMode::Opaque` and `BlendMode::Alpha` (standard "over" compositing). Index buffers, depth, other blend modes and multiple render targets get settings as they are needed.
-- **Vertex layouts are not checked against shaders.** Locations and semantic names in `VertexAttribute` must match the shader by hand. Slang's reflection API could verify them when a pipeline is created.
+- **Synchronous loading.** Initial uploads of buffers and textures wait for the GPU. Streaming assets in while running will need asynchronous uploads (NRI's streamer, or a copy queue).
+- **One allocation per resource.** Fine for a handful of resources. A real scene will want sub-allocation (NRI can route allocations through VMA).
+- **Single-mip 2D textures.** No mip chains, arrays, cube maps or 3D textures yet. Mip chains will come from the asset pipeline, which generates them offline.
+- **Pipeline layouts are written by hand.** Descriptor set layouts, push constant sizes and vertex layouts must match the shader by hand. Slang's reflection API could generate or verify them when a pipeline is created.
+- **Descriptor sets are never freed.** See [Resource binding](#resource-binding).
+- **One vertex buffer, one color target, two blend modes.** `GraphicsPipelineSettings` covers exactly what is used so far: `BlendMode::Opaque` and `BlendMode::Alpha` (standard "over" compositing). Other blend modes, stencil and multiple render targets get settings as they are needed.
 - **SDR output only.** The swap chain is 8-bit sRGB (`BT709_G22_8BIT`). Linear values above 1.0 are clipped, not tone-mapped. HDR rendering targets and tone mapping will come with the lighting work.
 - **Swap chain format assumed stable.** Pipelines are created with the format reported at startup. If recreation ever produced a different format (it does not in practice for the same window and display), those pipelines would need rebuilding.
 

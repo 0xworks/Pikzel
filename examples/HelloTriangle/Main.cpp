@@ -100,7 +100,7 @@ void Run(const pk::GraphicsApi api) {
       }
 
       pk::CommandList& commandList = frame->commandList;
-      commandList.BeginRendering(frame->backBuffer, clearColor);
+      commandList.BeginRendering({.colorTarget = &frame->backBuffer, .clearColor = clearColor});
       commandList.BindPipeline(pipeline);
       commandList.BindVertexBuffer(vertexBuffer);
       commandList.Draw(static_cast<uint32_t>(vertices.size()));

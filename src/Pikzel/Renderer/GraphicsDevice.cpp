@@ -111,6 +111,16 @@ GraphicsDevice::GraphicsDevice(const GraphicsDeviceSettings& settings)
 
       // NRI creates one graphics queue by default. It can also present to a window.
       CheckNri(m_Nri->GetQueue(*m_Device, nri::QueueType::GRAPHICS, 0, m_GraphicsQueue), "GetQueue");
+
+      // The pool has a fixed capacity, chosen generously for the engine's current needs.
+      // Descriptor sets are never returned to it individually (see DescriptorSet), so a
+      // program that keeps creating sets will eventually run out.
+      nri::DescriptorPoolDesc poolDesc = {};
+      poolDesc.descriptorSetMaxNum = 1024;
+      poolDesc.constantBufferMaxNum = 1024;
+      poolDesc.textureMaxNum = 4096;
+      poolDesc.samplerMaxNum = 256;
+      CheckNri(m_Nri->CreateDescriptorPool(*m_Device, poolDesc, m_DescriptorPool), "CreateDescriptorPool");
    } catch (...) {
       nri::nriDestroyDevice(m_Device);
       throw;
@@ -126,6 +136,7 @@ GraphicsDevice::~GraphicsDevice() {
    if (const auto result = m_Nri->DeviceWaitIdle(m_Device); result != nri::Result::SUCCESS) {
       PKZL_CORE_LOG_ERROR("DeviceWaitIdle failed during shutdown: {}", ToString(result));
    }
+   m_Nri->DestroyDescriptorPool(m_DescriptorPool);
    nri::nriDestroyDevice(m_Device);
 }
 
@@ -142,6 +153,11 @@ nri::Device& GraphicsDevice::GetDevice() const {
 
 nri::Queue& GraphicsDevice::GetGraphicsQueue() const {
    return *m_GraphicsQueue;
+}
+
+
+nri::DescriptorPool& GraphicsDevice::GetDescriptorPool() const {
+   return *m_DescriptorPool;
 }
 
 

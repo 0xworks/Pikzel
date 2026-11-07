@@ -6,7 +6,6 @@
 
 #include <cassert>
 #include <format>
-#include <limits>
 #include <stdexcept>
 #include <type_traits>
 #include <variant>
@@ -51,19 +50,15 @@ nri::Format GetSrgbViewFormat(const nri::Format format) {
 }
 
 
-nri::Dim_t ToDim(const uint32_t value) {
-   if (value > std::numeric_limits<nri::Dim_t>::max()) {
-      throw std::runtime_error("Swap chain dimension is too large");
-   }
-   return static_cast<nri::Dim_t>(value);
-}
-
 }
 
 
 SwapChain::SwapChain(GraphicsDevice& device, const Window& window, const SwapChainSettings& settings)
 : m_Device(device), m_Window(window), m_Settings(settings) {
    assert(settings.framesInFlight > 0);
+   if (settings.depthFormat != Format::Unknown && !IsDepthFormat(settings.depthFormat)) {
+      throw std::invalid_argument("SwapChainSettings::depthFormat must be a depth format");
+   }
 
    // Members are created one at a time, and any step can throw. A throwing constructor
    // does not run the destructor, so clean up whatever exists before rethrowing. NRI's
@@ -113,10 +108,35 @@ std::optional<Frame> SwapChain::BeginFrame() {
       RecreateSwapChain(windowSize.width, windowSize.height);
    }
 
+   const uint64_t framesInFlight = m_Frames.size();
+
+   // Frame pacing: wait until frame (m_FrameIndex - framesInFlight) has been presented. See
+   // "Frame pacing" in SwapChain.h. The two APIs wait differently:
+   //  - Vulkan waits for a specific present ID (frame N is presented with ID N + 1), which
+   //    must have been queued on this swap chain, so the first frames after creation skip
+   //    the wait.
+   //  - D3D12 ignores the ID and waits on a frame latency object, which starts out allowing
+   //    framesInFlight frames and must be waited on every frame, from the first. Skipping
+   //    waits would let extra frames queue up.
+   const uint64_t framesSinceCreation = m_FrameIndex - m_FirstFrameIndex;
+   const bool isPresentQueued = framesSinceCreation >= framesInFlight;
+   if (isPresentQueued || m_Device.GetApi() == GraphicsApi::D3D12) {
+      const uint64_t presentId = isPresentQueued ? m_FrameIndex - framesInFlight + 1 : 1; // any non-zero ID for D3D12
+      const auto presentWaitResult = nri.WaitForPresent(*m_SwapChain, presentId);
+      if (presentWaitResult == nri::Result::OUT_OF_DATE) {
+         m_IsOutOfDate = true;
+         return std::nullopt;
+      }
+      // UNSUPPORTED means the device has no waitable swap chain; frames are then paced by
+      // the fence and acquire alone.
+      if (presentWaitResult != nri::Result::UNSUPPORTED) {
+         CheckNri(presentWaitResult, "WaitForPresent");
+      }
+   }
+
    // Wait until the GPU has finished the frame that last used this frame's resources:
    // frame (m_FrameIndex - framesInFlight), which signalled the fence with one more than
    // its index.
-   const uint64_t framesInFlight = m_Frames.size();
    if (m_FrameIndex >= framesInFlight) {
       nri.Wait(*m_FrameFence, m_FrameIndex - framesInFlight + 1);
    }
@@ -133,28 +153,50 @@ std::optional<Frame> SwapChain::BeginFrame() {
    const BackBuffer& backBuffer = m_BackBuffers[m_BackBufferIndex];
 
    // The GPU has finished with this allocator's previous commands (see the wait above),
-   // so its memory can be reused for this frame's commands.
+   // so its memory can be reused for this frame's commands. The device's descriptor pool
+   // is attached to the command buffer, so that descriptor sets can be bound in it.
    nri.ResetCommandAllocator(*frame.commandAllocator);
-   CheckNri(nri.BeginCommandBuffer(*frame.commandBuffer, nullptr), "BeginCommandBuffer");
+   CheckNri(nri.BeginCommandBuffer(*frame.commandBuffer, &m_Device.GetDescriptorPool()), "BeginCommandBuffer");
+
+   nri::TextureBarrierDesc barriers[2] = {};
+   uint32_t barrierCount = 0;
 
    // Transition the back buffer from whatever the presentation engine left it in to a
    // color attachment. The old contents are not needed, so the "before" layout is left as
    // UNDEFINED, which lets the GPU discard them.
-   nri::TextureBarrierDesc toColorAttachment = {};
+   nri::TextureBarrierDesc& toColorAttachment = barriers[barrierCount++];
    toColorAttachment.texture = backBuffer.texture;
    toColorAttachment.after = {nri::AccessBits::COLOR_ATTACHMENT, nri::Layout::COLOR_ATTACHMENT, nri::StageBits::COLOR_ATTACHMENT};
    toColorAttachment.mipNum = 1;
    toColorAttachment.layerNum = 1;
 
+   // The depth buffer stays in the depth attachment layout from frame to frame, but this
+   // frame's depth writes must not start until the previous frame's have finished (a
+   // write-after-write hazard), so a barrier orders them. A new depth buffer has nothing to
+   // wait for, and moves from UNDEFINED to the depth attachment layout instead.
+   if (m_DepthBuffer) {
+      constexpr nri::AccessLayoutStage depthAttachment = {nri::AccessBits::DEPTH_STENCIL_ATTACHMENT, nri::Layout::DEPTH_STENCIL_ATTACHMENT, nri::StageBits::DEPTH_STENCIL_ATTACHMENT};
+
+      nri::TextureBarrierDesc& depthBarrier = barriers[barrierCount++];
+      depthBarrier.texture = &m_DepthBuffer->GetNriTexture();
+      depthBarrier.before = m_IsDepthBufferNew ? nri::AccessLayoutStage{nri::AccessBits::NONE, nri::Layout::UNDEFINED, nri::StageBits::NONE} : depthAttachment;
+      depthBarrier.after = depthAttachment;
+      depthBarrier.mipNum = 1;
+      depthBarrier.layerNum = 1;
+      m_IsDepthBufferNew = false;
+   }
+
    nri::BarrierDesc barrierDesc = {};
-   barrierDesc.textures = &toColorAttachment;
-   barrierDesc.textureNum = 1;
+   barrierDesc.textures = barriers;
+   barrierDesc.textureNum = barrierCount;
    nri.CmdBarrier(*frame.commandBuffer, barrierDesc);
 
    m_IsFrameInProgress = true;
    return Frame{
       .commandList = CommandList(nri, *frame.commandBuffer),
       .backBuffer = RenderTarget(*backBuffer.colorAttachment, m_Width, m_Height),
+      .depthBuffer = m_DepthBuffer ? std::optional(m_DepthBuffer->GetRenderTarget()) : std::nullopt,
+      .inFlightIndex = static_cast<uint32_t>(m_FrameIndex % framesInFlight),
    };
 }
 
@@ -202,7 +244,8 @@ void SwapChain::EndFrame() {
    submitDesc.signalFenceNum = static_cast<uint32_t>(std::size(signalFences));
    CheckNri(nri.QueueSubmit(m_Device.GetGraphicsQueue(), submitDesc), "QueueSubmit");
 
-   const auto presentResult = nri.QueuePresent(*m_SwapChain, *backBuffer.releaseSemaphore, 0);
+   // The present ID lets BeginFrame() wait for this frame to be presented (frame pacing).
+   const auto presentResult = nri.QueuePresent(*m_SwapChain, *backBuffer.releaseSemaphore, m_FrameIndex + 1);
    if (presentResult == nri::Result::OUT_OF_DATE) {
       m_IsOutOfDate = true;
    } else {
@@ -219,26 +262,40 @@ Format SwapChain::GetFormat() const {
 }
 
 
+Format SwapChain::GetDepthFormat() const {
+   return m_Settings.depthFormat;
+}
+
+
+uint32_t SwapChain::GetFramesInFlight() const {
+   return static_cast<uint32_t>(m_Frames.size());
+}
+
+
 void SwapChain::CreateSwapChain(const uint32_t width, const uint32_t height) {
    const auto& nri = m_Device.GetNri();
 
    nri::SwapChainDesc desc = {};
    desc.window = ToNriWindow(m_Window.GetNativeHandle());
    desc.queue = &m_Device.GetGraphicsQueue();
-   desc.width = ToDim(width);
-   desc.height = ToDim(height);
+   desc.width = ToNriDim(width);
+   desc.height = ToNriDim(height);
    // One more back buffer than frames in flight, so the CPU need not wait for the display
    // to release a back buffer while the GPU still has frames queued.
    desc.textureNum = static_cast<uint8_t>(m_Frames.size() + 1);
    // 8-bit, sRGB (gamma 2.2) output: standard dynamic range.
    desc.format = nri::SwapChainFormat::BT709_G22_8BIT;
    desc.flags = m_Settings.isVSyncEnabled ? nri::SwapChainBits::VSYNC : nri::SwapChainBits::ALLOW_TEARING;
+   // WAITABLE enables WaitForPresent, used for frame pacing. NRI drops the flag if the
+   // device does not support it, and WaitForPresent then reports UNSUPPORTED.
+   desc.flags |= nri::SwapChainBits::WAITABLE;
    desc.queuedFrameNum = static_cast<uint8_t>(m_Frames.size());
 
    CheckNri(nri.CreateSwapChain(m_Device.GetDevice(), desc, m_SwapChain), "CreateSwapChain");
    m_Width = width;
    m_Height = height;
    m_IsOutOfDate = false;
+   m_FirstFrameIndex = m_FrameIndex;
 
    // The graphics API may create more back buffers than requested, and picks the exact
    // format, so both are read back from the swap chain.
@@ -272,12 +329,20 @@ void SwapChain::CreateSwapChain(const uint32_t width, const uint32_t height) {
       CheckNri(nri.CreateFence(m_Device.GetDevice(), {.initialValue = nri::SWAPCHAIN_SEMAPHORE}, backBuffer.releaseSemaphore), "CreateFence");
    }
 
+   if (m_Settings.depthFormat != Format::Unknown) {
+      m_DepthBuffer.emplace(m_Device, TextureSettings{.width = width, .height = height, .format = m_Settings.depthFormat, .usage = TextureUsage::DepthAttachment});
+      m_IsDepthBufferNew = true;
+   }
+
    PKZL_CORE_LOG_DEBUG("Created swap chain: {}x{}, {} back buffers, format {} (rendered through {} views)", width, height, textureCount, nri::nriGetFormatProps(textureFormat)->name, nri::nriGetFormatProps(viewFormat)->name);
 }
 
 
-// Destroys the swap chain and the per-back-buffer objects. The GPU must be idle.
+// Destroys the swap chain, the per-back-buffer objects and the depth buffer. The GPU must
+// be idle.
 void SwapChain::DestroySwapChain() {
+   m_DepthBuffer.reset();
+
    const auto& nri = m_Device.GetNri();
    for (BackBuffer& backBuffer : m_BackBuffers) {
       nri.DestroyFence(backBuffer.acquireSemaphore);

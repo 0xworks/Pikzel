@@ -5,6 +5,7 @@
 #include <string_view>
 
 namespace nri {
+struct DescriptorPool;
 struct Device;
 struct Queue;
 }
@@ -57,6 +58,11 @@ struct GraphicsDeviceSettings {
 // The graphics API is chosen when the device is created and is fixed for its lifetime.
 // Almost nothing above the renderer needs to know which one is in use; the exception is
 // loading compiled shaders, which differ per API (see Shader).
+//
+// The device also owns the descriptor pool that every DescriptorSet is allocated from.
+// There is a single pool because D3D12 can only have one shader-visible descriptor heap
+// of each kind bound at a time, and NRI backs a pool with such heaps: descriptor sets used
+// together in one command buffer must come from the same pool. See DescriptorSet.
 class GraphicsDevice {
 public:
    // Throws std::runtime_error if the requested API was not compiled in, or if no GPU
@@ -79,12 +85,14 @@ public:
    const NriInterface& GetNri() const;
    nri::Device& GetDevice() const;
    nri::Queue& GetGraphicsQueue() const;
+   nri::DescriptorPool& GetDescriptorPool() const;
 
 private:
    // Held by pointer so that this header does not need NRI's definitions.
    std::unique_ptr<NriInterface> m_Nri;
    nri::Device* m_Device = nullptr;
    nri::Queue* m_GraphicsQueue = nullptr;
+   nri::DescriptorPool* m_DescriptorPool = nullptr;
    GraphicsApi m_Api = GraphicsApi::Vulkan;
 };
 

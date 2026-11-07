@@ -92,6 +92,37 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(spdlog glfw nri)
 
+# RTM (Realtime Math): CPU mathematics.
+#
+# RTM is header-only. Its own CMake project only builds RTM's tests, so the package is just
+# downloaded, and an interface target is defined here that adds its include directory.
+FetchContent_Declare(
+   rtm
+   GIT_REPOSITORY https://github.com/nfrechette/rtm.git
+   GIT_TAG v2.4.0
+   GIT_SHALLOW TRUE
+   GIT_SUBMODULES "" # RTM's submodules are only for its own tests and benchmarks
+   SOURCE_SUBDIR "no-cmake-project" # download only; nothing to build
+)
+FetchContent_MakeAvailable(rtm)
+
+add_library(rtm INTERFACE)
+add_library(rtm::rtm ALIAS rtm)
+target_include_directories(rtm SYSTEM INTERFACE "${rtm_SOURCE_DIR}/includes")
+
+# Catch2: unit testing. Only needed when the tests are built.
+if(PKZL_BUILD_TESTS)
+   FetchContent_Declare(
+      Catch2
+      GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+      GIT_TAG v3.9.1
+      GIT_SHALLOW TRUE
+      SYSTEM
+   )
+   FetchContent_MakeAvailable(Catch2)
+   list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
+endif()
+
 # Slang: shader compiler.
 #
 # Shaders are compiled at build time by the slangc command-line compiler (see Shaders.cmake),
@@ -155,7 +186,7 @@ if(PKZL_ENABLE_D3D12)
 endif()
 
 # Keep third-party targets out of the way in IDE solution views.
-foreach(thirdPartyTarget IN ITEMS spdlog glfw update_mappings NRI NRI_Shared NRI_VK NRI_D3D12)
+foreach(thirdPartyTarget IN ITEMS spdlog glfw update_mappings NRI NRI_Shared NRI_VK NRI_D3D12 Catch2 Catch2WithMain)
    if(TARGET ${thirdPartyTarget})
       set_target_properties(${thirdPartyTarget} PROPERTIES FOLDER "ThirdParty")
    endif()

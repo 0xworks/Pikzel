@@ -33,6 +33,7 @@ if(PROJECT_IS_TOP_LEVEL)
 endif()
 
 option(PKZL_BUILD_EXAMPLES "Build the example programs" ${PROJECT_IS_TOP_LEVEL})
+option(PKZL_BUILD_TESTS "Build the unit tests" ${PROJECT_IS_TOP_LEVEL})
 
 # Vulkan support is always built. D3D12 support is optional, and Windows only. With it
 # enabled the engine contains both backends, every shader is compiled to both SPIR-V and
@@ -53,4 +54,9 @@ add_subdirectory(src/Pikzel)
 
 if(PKZL_BUILD_EXAMPLES)
    add_subdirectory(examples)
+endif()
+
+if(PKZL_BUILD_TESTS)
+   enable_testing()
+   add_subdirectory(tests)
 endif()

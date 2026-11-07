@@ -197,12 +197,22 @@ build/windows-x64-debug/bin/HelloTriangle --d3d12
 ```
 
 
+#### Tests
+
+Unit tests use [Catch2](https://github.com/catchorg/Catch2) and are built by default (`PKZL_BUILD_TESTS`). Run them with:
+
+```bash
+ctest --preset windows-x64-debug
+```
+
+
 ### Repository Layout
 
 | Path | Contents |
 |---|---|
 | `src/Pikzel/` | Engine runtime library, one folder per subsystem (`Core/`, `Platform/`, `Renderer/`, ...) |
 | `examples/` | Small programs, each demonstrating one part of the engine |
+| `tests/` | Unit tests |
 | `cmake/` | Shared CMake modules: compiler options, third-party dependencies and shader compilation |
 | `docs/` | Design notes for engine subsystems (start with [`docs/Renderer.md`](docs/Renderer.md)) |
 
@@ -214,8 +224,8 @@ build/windows-x64-debug/bin/HelloTriangle --d3d12
 The project is currently at the foundation and architecture stage.
 
 Planned development milestones:
-- [ ] Core infrastructure and platform layer
-- [ ] Rendering foundation
+- [x] Core infrastructure and platform layer
+- [x] Rendering foundation
 - [ ] Scene management and ECS integration
 - [ ] Editor foundation
 - [ ] Asset pipeline

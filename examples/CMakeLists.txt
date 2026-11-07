@@ -3,3 +3,4 @@
 add_subdirectory(HelloLog)
 add_subdirectory(HelloTriangle)
 add_subdirectory(SrgbTest)
+add_subdirectory(TexturedCubes)

@@ -67,6 +67,9 @@ function(_pikzel_compile_shader_entry_point sourcePath entryPoint target outputP
 
    # No -stage is given: slangc takes each entry point's stage from its [shader("...")]
    # attribute in the source.
+   #
+   # Matrices in buffers are read row by row (-matrix-layout-row-major), matching how RTM
+   # stores matrices on the CPU. See src/Pikzel/Renderer/ShaderTypes.h.
    add_custom_command(
       OUTPUT "${outputPath}"
       COMMAND "${CMAKE_COMMAND}" -E make_directory "${outputDirectory}"
@@ -75,6 +78,7 @@ function(_pikzel_compile_shader_entry_point sourcePath entryPoint target outputP
          "${PKZL_SLANGC_EXECUTABLE}" "${sourcePath}"
          -entry ${entryPoint}
          ${targetArguments}
+         -matrix-layout-row-major
          -g
          -o "${outputPath}"
          -depfile "${depfile}"

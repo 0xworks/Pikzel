@@ -29,6 +29,13 @@ enum class Format : uint8_t {
    BGRA8Srgb,
    RGB10A2Unorm,
    RGBA16Float,
+
+   // Depth buffers
+   D32Float,
 };
+
+constexpr bool IsDepthFormat(const Format format) {
+   return format == Format::D32Float;
+}
 
 }

@@ -22,10 +22,14 @@ target_sources(
 
       Renderer/Buffer.h
       Renderer/Buffer.cpp
+      Renderer/Camera.h
+      Renderer/Camera.cpp
       Renderer/Color.h
       Renderer/Color.cpp
       Renderer/CommandList.h
       Renderer/CommandList.cpp
+      Renderer/DescriptorSet.h
+      Renderer/DescriptorSet.cpp
       Renderer/Format.h
       Renderer/GraphicsDevice.h
       Renderer/GraphicsDevice.cpp
@@ -33,22 +37,30 @@ target_sources(
       Renderer/Nri.cpp
       Renderer/Pipeline.h
       Renderer/Pipeline.cpp
+      Renderer/Sampler.h
+      Renderer/Sampler.cpp
       Renderer/Shader.h
       Renderer/Shader.cpp
+      Renderer/ShaderTypes.h
+      Renderer/ShaderTypes.cpp
       Renderer/SwapChain.h
       Renderer/SwapChain.cpp
+      Renderer/Texture.h
+      Renderer/Texture.cpp
 )
 
 # Engine headers are included by their path from src, e.g. "Pikzel/Core/Log.h".
 target_include_directories(Pikzel PUBLIC "${PROJECT_SOURCE_DIR}/src")
 
 # spdlog is PUBLIC because the logging macros in Log.h expand to spdlog calls.
+# RTM is PUBLIC because it is the engine's math library, used directly in public headers.
 # NRI and GLFW are PRIVATE: they are implementation details of the renderer and Window,
 # and the engine's public headers do not include them (see Renderer/Nri.h).
 target_link_libraries(
    Pikzel
    PUBLIC
       spdlog::spdlog
+      rtm::rtm
    PRIVATE
       NRI
       glfw

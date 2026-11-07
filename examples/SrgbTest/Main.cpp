@@ -55,7 +55,7 @@ constexpr float s_HalfHeight = 9.0f;
 
 
 // Appends an axis-aligned rectangle, as two triangles, given its center and size in
-// layout units. Vertices are in clockwise order, the engine's front-facing winding.
+// layout units. Vertices are in counter-clockwise order, the engine's front-facing winding.
 void AddRect(std::vector<Vertex>& vertices, const float centerX, const float centerY, const float width, const float height, const pk::Color& color) {
    const float left = (centerX - width / 2.0f) / s_HalfWidth;
    const float right = (centerX + width / 2.0f) / s_HalfWidth;
@@ -63,12 +63,12 @@ void AddRect(std::vector<Vertex>& vertices, const float centerX, const float cen
    const float top = (centerY + height / 2.0f) / s_HalfHeight;
 
    vertices.push_back({{left, top}, color});
-   vertices.push_back({{right, top}, color});
+   vertices.push_back({{left, bottom}, color});
    vertices.push_back({{right, bottom}, color});
 
    vertices.push_back({{left, top}, color});
    vertices.push_back({{right, bottom}, color});
-   vertices.push_back({{left, bottom}, color});
+   vertices.push_back({{right, top}, color});
 }
 
 
@@ -146,7 +146,7 @@ void Run(const pk::GraphicsApi api) {
       }
 
       pk::CommandList& commandList = frame->commandList;
-      commandList.BeginRendering(frame->backBuffer, clearColor);
+      commandList.BeginRendering({.colorTarget = &frame->backBuffer, .clearColor = clearColor});
       commandList.BindPipeline(pipeline);
       commandList.BindVertexBuffer(vertexBuffer);
       commandList.Draw(static_cast<uint32_t>(vertices.size()));

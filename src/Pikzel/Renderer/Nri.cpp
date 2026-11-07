@@ -1,6 +1,7 @@
 #include "Pikzel/Renderer/Nri.h"
 
 #include <format>
+#include <limits>
 #include <stdexcept>
 
 namespace Pikzel {
@@ -38,6 +39,14 @@ void CheckNri(const nri::Result result, const std::string_view operation) {
 }
 
 
+nri::Dim_t ToNriDim(const uint32_t value) {
+   if (value > std::numeric_limits<nri::Dim_t>::max()) {
+      throw std::runtime_error(std::format("Texture dimension {} is too large (the maximum is {})", value, std::numeric_limits<nri::Dim_t>::max()));
+   }
+   return static_cast<nri::Dim_t>(value);
+}
+
+
 // The engine's Format enum is a small subset of NRI's. The two conversion functions are
 // kept side by side so that adding a format means updating both together.
 nri::Format ToNri(const Format format) {
@@ -62,6 +71,8 @@ nri::Format ToNri(const Format format) {
          return nri::Format::R10_G10_B10_A2_UNORM;
       case Format::RGBA16Float:
          return nri::Format::RGBA16_SFLOAT;
+      case Format::D32Float:
+         return nri::Format::D32_SFLOAT;
       case Format::Unknown:
       default:
          return nri::Format::UNKNOWN;
@@ -91,6 +102,8 @@ Format FromNri(const nri::Format format) {
          return Format::RGB10A2Unorm;
       case nri::Format::RGBA16_SFLOAT:
          return Format::RGBA16Float;
+      case nri::Format::D32_SFLOAT:
+         return Format::D32Float;
       default:
          return Format::Unknown;
    }

@@ -37,6 +37,9 @@ std::string_view ToString(nri::Result result);
 // reported as exceptions with the name of the operation that failed.
 void CheckNri(nri::Result result, std::string_view operation);
 
+// NRI stores texture dimensions in 16 bits. Throws std::runtime_error if value does not fit.
+nri::Dim_t ToNriDim(uint32_t value);
+
 nri::Format ToNri(Format format);
 
 // Returns Format::Unknown for NRI formats the engine does not define.
