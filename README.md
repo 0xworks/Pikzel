@@ -1,4 +1,6 @@
-# Pikzel
+# Pikzel 1.x
+
+**This branch should be considered archived.  I will not develop it any further.  The engine is being re-written (see `dev` branch)**
 
 A simple rendering engine for OpenGL and Vulkan.  This is not (yet) a "game engine".  So far it does only graphics.  There is no audio, no physics, no AI, no networking, etc. Scene "editor" is in development.
 
@@ -8,6 +10,9 @@ This project is mainly a learning exercise for me, and I hope that the code is c
 - Provide a simple abstraction layer over different rendering APIs (such as OpenGL, Vulkan, etc.)
 - Application developer is free to interact with the engine at a low level (e.g. write your own shaders, issue your own draw calls), or can use higher level "renderers" provided by the engine.  These will render a scene for you.
 - Be accessible to beginners. To this end, a series of demo applications are included that pretty much follow along the [learnopengl.com](https://learnopengl.com) tutorials.
+
+*A note on the first goal (now that I know better).  Don't do it like that.  You end up making too many compromises to try to fit two very different APIs (each with different goals) into a common subset.  It was a fun exercise and taught me a lot about the basic components of a graphics API, but it is not suitable for anything more than a learning exercise.*
+
 
 ## Features
 - [ ] Supported platforms
