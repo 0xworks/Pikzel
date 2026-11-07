@@ -3,12 +3,14 @@
 
 #include "Pikzel/Core/Log.h"
 
+namespace pk = Pikzel;
+
 
 int main() {
-   Pikzel::Log::Init();
+   pk::Log::Init();
 
    PKZL_LOG_INFO("Hello from Pikzel!");
 
-   Pikzel::Log::Shutdown();
+   pk::Log::Shutdown();
    return 0;
 }

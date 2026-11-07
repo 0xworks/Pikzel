@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.28)
+# 3.30 is the minimum required by NVIDIA NRI (see cmake/Dependencies.cmake).
+cmake_minimum_required(VERSION 3.30)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
    message(FATAL_ERROR "In-source builds are not allowed. Configure into a separate directory, for example with a preset: cmake --preset windows-x64-debug")
@@ -18,6 +19,10 @@ if(PROJECT_IS_TOP_LEVEL)
    set(CMAKE_CXX_STANDARD_REQUIRED ON)
    set(CMAKE_CXX_EXTENSIONS OFF)
 
+   # The engine does not use C++20 modules, so skip the dependency-scanning step CMake
+   # would otherwise add to every C++ compile (third-party targets included).
+   set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
    # Put every executable (and any DLLs) in one directory so that examples and tools
    # can be run directly from the build tree without copying files around.
    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
@@ -32,6 +37,7 @@ option(PKZL_BUILD_EXAMPLES "Build the example programs" ${PROJECT_IS_TOP_LEVEL})
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CompilerOptions)
 include(Dependencies)
+include(Shaders)
 
 add_subdirectory(src/Pikzel)
 

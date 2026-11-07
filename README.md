@@ -155,13 +155,15 @@ A few principles guide development:
 
 Requirements:
 
-- CMake 3.28 or later
+- CMake 3.30 or later
 - Ninja
 - A C++23 compiler (currently developed with MSVC from Visual Studio 2026)
+- A GPU and driver with Vulkan support, to run the rendering examples
+- Optionally, the [Vulkan SDK](https://vulkan.lunarg.com/), for the Vulkan validation layers used in debug builds
 
 Third-party dependencies are fetched automatically by CMake during the first configure (see `cmake/Dependencies.cmake`).
 
-On Windows, run these from a Visual Studio x64 developer prompt (or open the folder in Visual Studio or VS Code, which pick up the presets):
+On Windows, run these from a Visual Studio x64 developer prompt (or just open the project root folder in Visual Studio or VS Code, which will pick up the presets automatically):
 
 ```bash
 cmake --preset windows-x64-debug
@@ -171,19 +173,18 @@ cmake --preset windows-x64-debug
 cmake --build --preset windows-x64-debug
 ```
 
-```bash
-build/windows-x64-debug/bin/HelloLog
-```
-
 Linux presets (`linux-debug`, `linux-release`) are also defined.
+
+
 
 ### Repository Layout
 
 | Path | Contents |
 |---|---|
-| `src/Pikzel/` | Engine runtime library, one folder per subsystem (`Core/`, ...) |
+| `src/Pikzel/` | Engine runtime library, one folder per subsystem (`Core/`, `Platform/`, `Renderer/`, ...) |
 | `examples/` | Small programs, each demonstrating one part of the engine |
-| `cmake/` | Shared CMake modules: compiler options and third-party dependencies |
+| `cmake/` | Shared CMake modules: compiler options, third-party dependencies and shader compilation |
+| `docs/` | Design notes for engine subsystems (start with [`docs/Renderer.md`](docs/Renderer.md)) |
 
 
 ## Project Status

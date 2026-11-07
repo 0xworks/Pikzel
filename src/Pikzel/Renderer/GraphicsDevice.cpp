@@ -1,0 +1,108 @@
+#include "Pikzel/Renderer/GraphicsDevice.h"
+#include "Pikzel/Core/Log.h"
+#include "Pikzel/Renderer/Nri.h"
+
+#include <stdexcept>
+
+namespace Pikzel {
+
+namespace {
+
+// Forwards NRI's diagnostics (including validation messages) to the engine log.
+void NriMessageCallback(const nri::Message messageType, const char* file, const uint32_t line, const char* message, void*) {
+   switch (messageType) {
+      case nri::Message::INFO:
+         PKZL_CORE_LOG_DEBUG("NRI: {}", message);
+         break;
+      case nri::Message::WARNING:
+         PKZL_CORE_LOG_WARN("NRI: {}", message);
+         break;
+      case nri::Message::ERROR:
+      default:
+         PKZL_CORE_LOG_ERROR("NRI: {} ({}:{})", message, file, line);
+         break;
+   }
+}
+
+}
+
+
+GraphicsDevice::GraphicsDevice(const GraphicsDeviceSettings& settings)
+: m_Nri(std::make_unique<NriInterface>()) {
+   // NRI returns adapters sorted with the most capable first (discrete GPUs, then by
+   // video memory), so the first adapter that supports Vulkan is a sensible default.
+   nri::AdapterDesc adapterDesc = {};
+   uint32_t adapterCount = 1;
+   CheckNri(nri::nriEnumerateAdapters(&adapterDesc, adapterCount, nri::GraphicsAPI::VK), "nriEnumerateAdapters");
+   if (adapterCount == 0) {
+      throw std::runtime_error("No GPU with Vulkan support was found");
+   }
+
+   nri::DeviceCreationDesc deviceCreationDesc = {};
+   deviceCreationDesc.graphicsAPI = nri::GraphicsAPI::VK;
+   deviceCreationDesc.adapterDesc = &adapterDesc;
+   deviceCreationDesc.callbackInterface.MessageCallback = NriMessageCallback;
+   deviceCreationDesc.enableGraphicsAPIValidation = settings.isApiValidationEnabled;
+   deviceCreationDesc.enableNRIValidation = settings.isNriValidationEnabled;
+
+   // Must match the register shifts given to the shader compiler (see cmake/Shaders.cmake).
+   deviceCreationDesc.vkBindingOffsets = {
+      .sRegister = PKZL_VK_BINDING_OFFSET_SAMPLER,
+      .tRegister = PKZL_VK_BINDING_OFFSET_SHADER_RESOURCE,
+      .bRegister = PKZL_VK_BINDING_OFFSET_CONSTANT_BUFFER,
+      .uRegister = PKZL_VK_BINDING_OFFSET_READ_WRITE,
+   };
+
+   CheckNri(nri::nriCreateDevice(deviceCreationDesc, m_Device), "nriCreateDevice");
+
+   // From here on the constructor can still throw, and a throwing constructor does not
+   // run the destructor, so the device is released explicitly on failure.
+   try {
+      // NriInterface inherits from every interface table the engine uses, so each table is
+      // written into the matching base-class part of m_Nri. NRI_INTERFACE expands to the
+      // interface's name and size; the size guards against mismatched headers.
+      CheckNri(nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::CoreInterface), static_cast<nri::CoreInterface*>(m_Nri.get())), "Get CoreInterface");
+      CheckNri(nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::HelperInterface), static_cast<nri::HelperInterface*>(m_Nri.get())), "Get HelperInterface");
+      CheckNri(nri::nriGetInterface(*m_Device, NRI_INTERFACE(nri::SwapChainInterface), static_cast<nri::SwapChainInterface*>(m_Nri.get())), "Get SwapChainInterface");
+
+      // NRI creates one graphics queue by default. It can also present to a window.
+      CheckNri(m_Nri->GetQueue(*m_Device, nri::QueueType::GRAPHICS, 0, m_GraphicsQueue), "GetQueue");
+   } catch (...) {
+      nri::nriDestroyDevice(m_Device);
+      throw;
+   }
+
+   const auto& desc = m_Nri->GetDeviceDesc(*m_Device);
+   PKZL_CORE_LOG_INFO("Graphics device: {} ({}, {} MiB video memory)", desc.adapterDesc.name, nri::nriGetGraphicsAPIString(desc.graphicsAPI), desc.adapterDesc.videoMemorySize / (1024 * 1024));
+}
+
+
+GraphicsDevice::~GraphicsDevice() {
+   // Destructors must not throw, so the result is logged rather than passed to CheckNri.
+   if (const auto result = m_Nri->DeviceWaitIdle(m_Device); result != nri::Result::SUCCESS) {
+      PKZL_CORE_LOG_ERROR("DeviceWaitIdle failed during shutdown: {}", ToString(result));
+   }
+   nri::nriDestroyDevice(m_Device);
+}
+
+
+const NriInterface& GraphicsDevice::GetNri() const {
+   return *m_Nri;
+}
+
+
+nri::Device& GraphicsDevice::GetDevice() const {
+   return *m_Device;
+}
+
+
+nri::Queue& GraphicsDevice::GetGraphicsQueue() const {
+   return *m_GraphicsQueue;
+}
+
+
+void GraphicsDevice::WaitIdle() const {
+   CheckNri(m_Nri->DeviceWaitIdle(m_Device), "DeviceWaitIdle");
+}
+
+}
