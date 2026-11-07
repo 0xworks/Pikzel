@@ -158,7 +158,7 @@ Requirements:
 - CMake 3.30 or later
 - Ninja
 - A C++23 compiler (currently developed with MSVC from Visual Studio 2026)
-- A GPU and driver with Vulkan support, to run the rendering examples
+- A GPU and driver with Vulkan support, to run the rendering examples (or D3D12 support, see below)
 - Optionally, the [Vulkan SDK](https://vulkan.lunarg.com/), for the Vulkan validation layers used in debug builds
 
 Third-party dependencies are fetched automatically by CMake during the first configure (see `cmake/Dependencies.cmake`).
@@ -175,6 +175,26 @@ cmake --build --preset windows-x64-debug
 
 Linux presets (`linux-debug`, `linux-release`) are also defined.
 
+
+#### D3D12 (optional, Windows only)
+
+The renderer always supports Vulkan. To also build D3D12 support, configure with `PKZL_ENABLE_D3D12=ON`.
+
+```bash
+cmake --preset windows-x64-debug -DPKZL_ENABLE_D3D12=ON
+```
+
+```bash
+cmake --build --preset windows-x64-debug
+```
+
+This downloads the DirectX Shader Compiler (and NRI's Agility SDK package) and compiles every shader to DXIL as well as SPIR-V. D3D12 validation in debug builds needs the Windows "Graphics Tools" optional feature. See [`docs/Renderer.md`](docs/Renderer.md#graphics-apis) for details.
+
+The graphics API is then chosen at run time, and the rendering examples take `--d3d12`:
+
+```bash
+build/windows-x64-debug/bin/HelloTriangle --d3d12
+```
 
 
 ### Repository Layout

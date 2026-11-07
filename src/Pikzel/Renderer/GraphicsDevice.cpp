@@ -2,11 +2,23 @@
 #include "Pikzel/Core/Log.h"
 #include "Pikzel/Renderer/Nri.h"
 
+#include <format>
 #include <stdexcept>
 
 namespace Pikzel {
 
 namespace {
+
+nri::GraphicsAPI ToNri(const GraphicsApi api) {
+   switch (api) {
+      case GraphicsApi::D3D12:
+         return nri::GraphicsAPI::D3D12;
+      case GraphicsApi::Vulkan:
+      default:
+         return nri::GraphicsAPI::VK;
+   }
+}
+
 
 // Forwards NRI's diagnostics (including validation messages) to the engine log.
 void NriMessageCallback(const nri::Message messageType, const char* file, const uint32_t line, const char* message, void*) {
@@ -27,25 +39,57 @@ void NriMessageCallback(const nri::Message messageType, const char* file, const 
 }
 
 
+std::string_view ToString(const GraphicsApi api) {
+   switch (api) {
+      case GraphicsApi::Vulkan:
+         return "Vulkan";
+      case GraphicsApi::D3D12:
+         return "D3D12";
+   }
+   return "Unknown";
+}
+
+
+bool IsGraphicsApiAvailable(const GraphicsApi api) {
+   switch (api) {
+      case GraphicsApi::Vulkan:
+         return true;
+      case GraphicsApi::D3D12:
+#ifdef PKZL_HAS_D3D12
+         return true;
+#else
+         return false;
+#endif
+   }
+   return false;
+}
+
+
 GraphicsDevice::GraphicsDevice(const GraphicsDeviceSettings& settings)
-: m_Nri(std::make_unique<NriInterface>()) {
+: m_Nri(std::make_unique<NriInterface>()), m_Api(settings.api) {
+   // NRI would also fail for a backend it was built without, but with a less helpful message.
+   if (!IsGraphicsApiAvailable(settings.api)) {
+      throw std::runtime_error(std::format("{} support was not compiled into the engine (configure with PKZL_ENABLE_D3D12=ON)", ToString(settings.api)));
+   }
+
    // NRI returns adapters sorted with the most capable first (discrete GPUs, then by
-   // video memory), so the first adapter that supports Vulkan is a sensible default.
+   // video memory), so the first adapter that supports the API is a sensible default.
    nri::AdapterDesc adapterDesc = {};
    uint32_t adapterCount = 1;
-   CheckNri(nri::nriEnumerateAdapters(&adapterDesc, adapterCount, nri::GraphicsAPI::VK), "nriEnumerateAdapters");
+   CheckNri(nri::nriEnumerateAdapters(&adapterDesc, adapterCount, ToNri(settings.api)), "nriEnumerateAdapters");
    if (adapterCount == 0) {
-      throw std::runtime_error("No GPU with Vulkan support was found");
+      throw std::runtime_error(std::format("No GPU with {} support was found", ToString(settings.api)));
    }
 
    nri::DeviceCreationDesc deviceCreationDesc = {};
-   deviceCreationDesc.graphicsAPI = nri::GraphicsAPI::VK;
+   deviceCreationDesc.graphicsAPI = ToNri(settings.api);
    deviceCreationDesc.adapterDesc = &adapterDesc;
    deviceCreationDesc.callbackInterface.MessageCallback = NriMessageCallback;
    deviceCreationDesc.enableGraphicsAPIValidation = settings.isApiValidationEnabled;
    deviceCreationDesc.enableNRIValidation = settings.isNriValidationEnabled;
 
    // Must match the register shifts given to the shader compiler (see cmake/Shaders.cmake).
+   // Only the Vulkan backend reads these; D3D12 has a separate namespace per register kind.
    deviceCreationDesc.vkBindingOffsets = {
       .sRegister = PKZL_VK_BINDING_OFFSET_SAMPLER,
       .tRegister = PKZL_VK_BINDING_OFFSET_SHADER_RESOURCE,
@@ -103,6 +147,11 @@ nri::Queue& GraphicsDevice::GetGraphicsQueue() const {
 
 void GraphicsDevice::WaitIdle() const {
    CheckNri(m_Nri->DeviceWaitIdle(m_Device), "DeviceWaitIdle");
+}
+
+
+GraphicsApi GraphicsDevice::GetApi() const {
+   return m_Api;
 }
 
 }

@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
+#include <string_view>
 
 namespace nri {
 struct Device;
@@ -11,10 +13,27 @@ namespace Pikzel {
 
 struct NriInterface;
 
+// The low-level graphics API the renderer runs on. Vulkan is always available. D3D12 is
+// available on Windows when the engine is built with PKZL_ENABLE_D3D12.
+enum class GraphicsApi : uint8_t {
+   Vulkan,
+   D3D12,
+};
+
+std::string_view ToString(GraphicsApi api);
+
+// Whether support for the given API was compiled into the engine. This says nothing about
+// whether the computer's GPU and driver support it; creating a device finds that out.
+bool IsGraphicsApiAvailable(GraphicsApi api);
+
 struct GraphicsDeviceSettings {
+   GraphicsApi api = GraphicsApi::Vulkan;
+
    // Validation catches incorrect API usage at a significant CPU cost, so it is on by
-   // default only in debug builds. API validation needs the Vulkan validation layers,
-   // which come with the Vulkan SDK; NRI validation is built into NRI.
+   // default only in debug builds. NRI validation is built into NRI. API validation needs
+   // extra components: for Vulkan the validation layers, which come with the Vulkan SDK;
+   // for D3D12 the debug layer, which comes with the Windows "Graphics Tools" optional
+   // feature. Without them the device is still created, just without API validation.
 #ifdef NDEBUG
    bool isApiValidationEnabled = false;
    bool isNriValidationEnabled = false;
@@ -34,8 +53,14 @@ struct GraphicsDeviceSettings {
 // Engine classes that own GPU objects keep a reference to their GraphicsDevice, which
 // makes that ordering the natural one in C++ (members and locals are destroyed in reverse
 // order of construction).
+//
+// The graphics API is chosen when the device is created and is fixed for its lifetime.
+// Almost nothing above the renderer needs to know which one is in use; the exception is
+// loading compiled shaders, which differ per API (see Shader).
 class GraphicsDevice {
 public:
+   // Throws std::runtime_error if the requested API was not compiled in, or if no GPU
+   // supports it.
    explicit GraphicsDevice(const GraphicsDeviceSettings& settings = {});
    ~GraphicsDevice();
 
@@ -48,6 +73,8 @@ public:
    // recreating objects the GPU may still be using; too slow to call every frame.
    void WaitIdle() const;
 
+   GraphicsApi GetApi() const;
+
    // Renderer internal: used by the other renderer classes to call into NRI.
    const NriInterface& GetNri() const;
    nri::Device& GetDevice() const;
@@ -58,6 +85,7 @@ private:
    std::unique_ptr<NriInterface> m_Nri;
    nri::Device* m_Device = nullptr;
    nri::Queue* m_GraphicsQueue = nullptr;
+   GraphicsApi m_Api = GraphicsApi::Vulkan;
 };
 
 }

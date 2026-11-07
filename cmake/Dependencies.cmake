@@ -45,21 +45,37 @@ FetchContent_Declare(
 
 # NVIDIA NRI: graphics API abstraction.
 #
-# NRI is built as a static library with only the Vulkan backend enabled. Vulkan runs on
+# NRI is built as a static library. The Vulkan backend is always enabled: Vulkan runs on
 # every desktop platform the engine targets, and Slang compiles shaders to SPIR-V with no
-# extra tools. Enabling D3D12 later is a matter of switching its backend on here and also
-# compiling shaders to DXIL (which needs dxcompiler.dll alongside slangc).
+# extra tools. On Windows the D3D12 backend can be added with PKZL_ENABLE_D3D12 (see the
+# top-level CMakeLists.txt). Both backends are then linked in, and the program picks one
+# when it creates its GraphicsDevice.
 #
 # NRI fetches the Vulkan headers itself, so the Vulkan SDK is not needed to build. At run
 # time the Vulkan loader (vulkan-1.dll / libvulkan.so) comes with the GPU driver; the SDK
-# is only needed for the Vulkan validation layers.
+# is only needed for the Vulkan validation layers. D3D12 comes with Windows and its
+# headers with the Windows SDK.
 #
 # These are cache entries, rather than plain variables, because NRI declares most of them
-# with cmake_dependent_option, which reads the cache.
+# with cmake_dependent_option, which reads the cache. FORCE is used for the D3D12 settings
+# so that toggling PKZL_ENABLE_D3D12 in an existing build directory takes effect.
 set(NRI_STATIC_LIBRARY ON CACHE BOOL "")
 set(NRI_ENABLE_VK_SUPPORT ON CACHE BOOL "")
 set(NRI_ENABLE_D3D11_SUPPORT OFF CACHE BOOL "")
-set(NRI_ENABLE_D3D12_SUPPORT OFF CACHE BOOL "")
+set(NRI_ENABLE_D3D12_SUPPORT ${PKZL_ENABLE_D3D12} CACHE BOOL "" FORCE)
+# The Agility SDK is Microsoft's D3D12 runtime and headers distributed as a NuGet package,
+# newer than the copies in Windows and the Windows SDK. NRI's D3D12 backend is written
+# against its headers and does not compile with the Windows SDK's, so its support stays on
+# (NRI downloads the package itself). A program only runs on the Agility runtime if its
+# executable exports D3D12SDKVersion and D3D12SDKPath; Pikzel's programs do not, so they
+# use the D3D12 runtime that comes with Windows, and NRI only uses features it reports.
+# NRI still copies the Agility runtime into bin/AgilitySDK, where it goes unused.
+#
+# The NVIDIA and AMD driver extension libraries unlock vendor-specific features the engine
+# does not use, so they are left out.
+set(NRI_ENABLE_AGILITY_SDK_SUPPORT ${PKZL_ENABLE_D3D12} CACHE BOOL "" FORCE)
+set(NRI_ENABLE_NVAPI OFF CACHE BOOL "" FORCE)
+set(NRI_ENABLE_AMDAGS OFF CACHE BOOL "" FORCE)
 set(NRI_ENABLE_WGPU_SUPPORT OFF CACHE BOOL "")
 set(NRI_ENABLE_METAL_SUPPORT OFF CACHE BOOL "")
 set(NRI_ENABLE_NONE_SUPPORT OFF CACHE BOOL "")
@@ -111,8 +127,35 @@ find_program(
    REQUIRED
 )
 
+# DirectX Shader Compiler (DXC): DXIL code generation for D3D12.
+#
+# Slang does not generate DXIL itself. It translates Slang to HLSL and hands that to DXC's
+# dxcompiler.dll, which the Slang package does not include. The official prebuilt DXC
+# release is downloaded and its location given to slangc (see Shaders.cmake). The package
+# also contains dxil.dll, which signs the DXIL: D3D12 refuses unsigned shaders unless
+# experimental features are enabled, and dxcompiler.dll loads dxil.dll from its own
+# directory to do the signing.
+#
+# The Windows SDK also includes a copy of DXC, but its version depends on which SDK is
+# installed. A pinned download keeps shader output the same on every machine.
+if(PKZL_ENABLE_D3D12)
+   FetchContent_Declare(
+      dxc
+      URL "https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2609/dxc_2026_09_29.zip"
+      URL_HASH SHA256=ad31b1fc8443175d204f77a611fdb3ef2ec42759bdc2f1167368de24a4a7e7f1
+      DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+      SOURCE_SUBDIR "no-cmake-project" # download and extract only; there is nothing to build
+   )
+   FetchContent_MakeAvailable(dxc)
+
+   set(PKZL_DXC_DIRECTORY "${dxc_SOURCE_DIR}/bin/x64")
+   if(NOT EXISTS "${PKZL_DXC_DIRECTORY}/dxcompiler.dll" OR NOT EXISTS "${PKZL_DXC_DIRECTORY}/dxil.dll")
+      message(FATAL_ERROR "dxcompiler.dll and dxil.dll were not found in ${PKZL_DXC_DIRECTORY}")
+   endif()
+endif()
+
 # Keep third-party targets out of the way in IDE solution views.
-foreach(thirdPartyTarget IN ITEMS spdlog glfw update_mappings NRI NRI_Shared NRI_VK)
+foreach(thirdPartyTarget IN ITEMS spdlog glfw update_mappings NRI NRI_Shared NRI_VK NRI_D3D12)
    if(TARGET ${thirdPartyTarget})
       set_target_properties(${thirdPartyTarget} PROPERTIES FOLDER "ThirdParty")
    endif()

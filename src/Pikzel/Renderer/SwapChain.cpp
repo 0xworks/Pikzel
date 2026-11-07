@@ -251,8 +251,10 @@ void SwapChain::CreateSwapChain(const uint32_t width, const uint32_t height) {
    // sRGB view of the back buffer bridges the two: the GPU encodes each linear value to
    // sRGB as it writes it (and blending happens in linear space, before encoding).
    //
-   // NRI creates 8-bit swap chains with a UNORM format but allows sRGB views of them,
-   // using VK_KHR_swapchain_mutable_format, which all desktop drivers support.
+   // NRI creates 8-bit swap chains with a UNORM format but allows sRGB views of them. On
+   // Vulkan this uses VK_KHR_swapchain_mutable_format, which all desktop drivers support.
+   // D3D12 allows it natively: flip-model swap chains cannot have an sRGB format, but an
+   // sRGB render target view of their UNORM back buffers is permitted.
    const nri::Format viewFormat = GetSrgbViewFormat(textureFormat);
    m_Format = FromNri(viewFormat);
 

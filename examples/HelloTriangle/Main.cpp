@@ -2,8 +2,11 @@
 //
 // It opens a window, creates a GPU device and a swap chain for the window, uploads one
 // triangle's vertices to a GPU buffer, builds a graphics pipeline from Slang shaders
-// (compiled to SPIR-V at build time), and then draws the triangle every frame until the
-// window is closed. The window can be resized and minimised.
+// (compiled at build time), and then draws the triangle every frame until the window is
+// closed. The window can be resized and minimised.
+//
+// It runs on Vulkan by default. Pass --d3d12 to run on D3D12 instead (only available when
+// the engine is built with PKZL_ENABLE_D3D12).
 
 #include "Pikzel/Core/Log.h"
 #include "Pikzel/Platform/Window.h"
@@ -20,6 +23,7 @@
 #include <cstdint>
 #include <exception>
 #include <span>
+#include <string_view>
 
 namespace pk = Pikzel;
 
@@ -33,9 +37,19 @@ struct Vertex {
 };
 
 
-void Run() {
+pk::GraphicsApi ParseGraphicsApi(const std::span<char*> arguments) {
+   for (const std::string_view argument : arguments) {
+      if (argument == "--d3d12") {
+         return pk::GraphicsApi::D3D12;
+      }
+   }
+   return pk::GraphicsApi::Vulkan;
+}
+
+
+void Run(const pk::GraphicsApi api) {
    pk::Window window({.title = "Hello Triangle"});
-   pk::GraphicsDevice device;
+   pk::GraphicsDevice device({.api = api});
    pk::SwapChain swapChain(device, window);
 
    // Colors are written as sRGB hex codes, as a color picker would give them, and
@@ -50,19 +64,21 @@ void Run() {
 
    const pk::Buffer vertexBuffer(device, pk::BufferUsage::Vertex, std::as_bytes(std::span(vertices)));
 
-   // Triangle.slang is compiled to Triangle.spv at build time; it holds both entry points.
-   const pk::Shader shader("Triangle");
+   // Each entry point of Triangle.slang is compiled to its own file at build time, for
+   // every graphics API the engine was built with. The device's API picks which is loaded.
+   const pk::Shader vertexShader(device, "Triangle", "VertexMain");
+   const pk::Shader fragmentShader(device, "Triangle", "FragmentMain");
 
-   // Attribute locations match [[vk::location(n)]] in Triangle.slang.
+   // Each attribute names its shader input twice: by location for Vulkan
+   // ([[vk::location(n)]] in Triangle.slang) and by semantic for D3D12 (: POSITION, : COLOR).
    const pk::Pipeline pipeline(
       device,
       {
-         .shader = &shader,
-         .vertexEntryPoint = "VertexMain",
-         .fragmentEntryPoint = "FragmentMain",
+         .vertexShader = &vertexShader,
+         .fragmentShader = &fragmentShader,
          .vertexAttributes = {
-            {.location = 0, .format = pk::Format::RG32Float, .offset = offsetof(Vertex, position)},
-            {.location = 1, .format = pk::Format::RGBA32Float, .offset = offsetof(Vertex, color)},
+            {.location = 0, .semanticName = "POSITION", .format = pk::Format::RG32Float, .offset = offsetof(Vertex, position)},
+            {.location = 1, .semanticName = "COLOR", .format = pk::Format::RGBA32Float, .offset = offsetof(Vertex, color)},
          },
          .vertexStride = sizeof(Vertex),
          .cullMode = pk::CullMode::None,
@@ -101,12 +117,12 @@ void Run() {
 }
 
 
-int main() {
+int main(const int argc, char* argv[]) {
    pk::Log::Init();
 
    int exitCode = 0;
    try {
-      Run();
+      Run(ParseGraphicsApi(std::span(argv, static_cast<std::size_t>(argc))));
    } catch (const std::exception& e) {
       PKZL_LOG_FATAL("{}", e.what());
       exitCode = 1;

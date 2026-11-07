@@ -42,18 +42,25 @@ enum class BlendMode : uint8_t {
 };
 
 // One input to the vertex shader, read from each vertex in the vertex buffer.
+//
+// The graphics APIs match attributes to shader inputs in different ways, so an attribute
+// names its shader input in both. Vulkan matches by location number: [[vk::location(n)]]
+// on the shader input. D3D12 matches by HLSL semantic: for example `: COLOR` (name "COLOR",
+// index 0) or `: TEXCOORD1` (name "TEXCOORD", index 1). Both must be filled in for a
+// pipeline to work on either API.
 struct VertexAttribute {
-   // Matches [[vk::location(n)]] on the vertex shader input.
    uint32_t location = 0;
+   std::string semanticName;
+   uint32_t semanticIndex = 0;
    Format format = Format::Unknown;
    // Byte offset of the attribute within a vertex.
    uint32_t offset = 0;
 };
 
 struct GraphicsPipelineSettings {
-   const Shader* shader = nullptr;
-   std::string vertexEntryPoint = "VertexMain";
-   std::string fragmentEntryPoint = "FragmentMain";
+   // Compiled entry points for each stage, loaded for the same device as the pipeline.
+   const Shader* vertexShader = nullptr;
+   const Shader* fragmentShader = nullptr;
 
    // Layout of one vertex in the vertex buffer: its attributes, and the distance in bytes
    // from one vertex to the next. There is a single vertex buffer for now.

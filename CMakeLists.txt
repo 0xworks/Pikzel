@@ -34,6 +34,16 @@ endif()
 
 option(PKZL_BUILD_EXAMPLES "Build the example programs" ${PROJECT_IS_TOP_LEVEL})
 
+# Vulkan support is always built. D3D12 support is optional, and Windows only. With it
+# enabled the engine contains both backends, every shader is compiled to both SPIR-V and
+# DXIL, and programs choose the graphics API at run time (GraphicsDeviceSettings::api).
+# It is off by default because it adds a download (the DirectX Shader Compiler) and
+# roughly doubles shader build time.
+option(PKZL_ENABLE_D3D12 "Build the D3D12 rendering backend in addition to Vulkan (Windows only)" OFF)
+if(PKZL_ENABLE_D3D12 AND NOT WIN32)
+   message(FATAL_ERROR "PKZL_ENABLE_D3D12 is only supported on Windows")
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CompilerOptions)
 include(Dependencies)

@@ -18,6 +18,9 @@
 // Everything is drawn in a single draw call from one vertex buffer, with alpha blending.
 // Shapes are laid out in a 32 x 18 unit space (matching the window's 16:9 shape) and
 // stretch with the window if it is resized.
+//
+// It runs on Vulkan by default. Pass --d3d12 to run on D3D12 instead (only available when
+// the engine is built with PKZL_ENABLE_D3D12). The pattern should look identical on both.
 
 #include "Pikzel/Core/Log.h"
 #include "Pikzel/Platform/Window.h"
@@ -33,6 +36,7 @@
 #include <cstdint>
 #include <exception>
 #include <span>
+#include <string_view>
 #include <vector>
 
 namespace pk = Pikzel;
@@ -88,22 +92,34 @@ std::vector<Vertex> BuildTestPattern() {
 }
 
 
-void Run() {
+pk::GraphicsApi ParseGraphicsApi(const std::span<char*> arguments) {
+   for (const std::string_view argument : arguments) {
+      if (argument == "--d3d12") {
+         return pk::GraphicsApi::D3D12;
+      }
+   }
+   return pk::GraphicsApi::Vulkan;
+}
+
+
+void Run(const pk::GraphicsApi api) {
    pk::Window window({.title = "sRGB Test"});
-   pk::GraphicsDevice device;
+   pk::GraphicsDevice device({.api = api});
    pk::SwapChain swapChain(device, window);
 
    const std::vector<Vertex> vertices = BuildTestPattern();
    const pk::Buffer vertexBuffer(device, pk::BufferUsage::Vertex, std::as_bytes(std::span(vertices)));
 
-   const pk::Shader shader("SrgbTest");
+   const pk::Shader vertexShader(device, "SrgbTest", "VertexMain");
+   const pk::Shader fragmentShader(device, "SrgbTest", "FragmentMain");
    const pk::Pipeline pipeline(
       device,
       {
-         .shader = &shader,
+         .vertexShader = &vertexShader,
+         .fragmentShader = &fragmentShader,
          .vertexAttributes = {
-            {.location = 0, .format = pk::Format::RG32Float, .offset = offsetof(Vertex, position)},
-            {.location = 1, .format = pk::Format::RGBA32Float, .offset = offsetof(Vertex, color)},
+            {.location = 0, .semanticName = "POSITION", .format = pk::Format::RG32Float, .offset = offsetof(Vertex, position)},
+            {.location = 1, .semanticName = "COLOR", .format = pk::Format::RGBA32Float, .offset = offsetof(Vertex, color)},
          },
          .vertexStride = sizeof(Vertex),
          .cullMode = pk::CullMode::None,
@@ -145,12 +161,12 @@ void Run() {
 }
 
 
-int main() {
+int main(const int argc, char* argv[]) {
    pk::Log::Init();
 
    int exitCode = 0;
    try {
-      Run();
+      Run(ParseGraphicsApi(std::span(argv, static_cast<std::size_t>(argc))));
    } catch (const std::exception& e) {
       PKZL_LOG_FATAL("{}", e.what());
       exitCode = 1;

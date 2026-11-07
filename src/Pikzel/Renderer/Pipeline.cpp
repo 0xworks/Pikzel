@@ -45,9 +45,17 @@ nri::CullMode ToNri(const CullMode cullMode) {
 
 Pipeline::Pipeline(GraphicsDevice& device, const GraphicsPipelineSettings& settings)
 : m_Device(&device), m_VertexStride(settings.vertexStride) {
-   assert(settings.shader && "GraphicsPipelineSettings::shader must be set");
+   assert(settings.vertexShader && "GraphicsPipelineSettings::vertexShader must be set");
+   assert(settings.fragmentShader && "GraphicsPipelineSettings::fragmentShader must be set");
    if (settings.colorFormat == Format::Unknown) {
       throw std::invalid_argument("GraphicsPipelineSettings::colorFormat must be set");
+   }
+   // Checked on every API, so that a pipeline written and tested on Vulkan does not
+   // fail only when it is first run on D3D12.
+   for (const auto& attribute : settings.vertexAttributes) {
+      if (attribute.semanticName.empty()) {
+         throw std::invalid_argument("VertexAttribute::semanticName must be set");
+      }
    }
 
    const auto& nri = device.GetNri();
@@ -57,11 +65,13 @@ Pipeline::Pipeline(GraphicsDevice& device, const GraphicsPipelineSettings& setti
    layoutDesc.shaderStages = nri::StageBits::VERTEX_SHADER | nri::StageBits::FRAGMENT_SHADER;
    CheckNri(nri.CreatePipelineLayout(device.GetDevice(), layoutDesc, m_PipelineLayout), "CreatePipelineLayout");
 
-   // Both entry points normally come from the same compiled module, selected by name.
-   const auto bytecode = settings.shader->GetBytecode();
+   // The entry point name is only used by Vulkan, where a SPIR-V module may hold several
+   // entry points. A DXIL shader has exactly one, so D3D12 has no use for it.
+   const auto vertexBytecode = settings.vertexShader->GetBytecode();
+   const auto fragmentBytecode = settings.fragmentShader->GetBytecode();
    const nri::ShaderDesc shaders[] = {
-      {.stage = nri::StageBits::VERTEX_SHADER, .bytecode = bytecode.data(), .size = bytecode.size(), .entryPointName = settings.vertexEntryPoint.c_str()},
-      {.stage = nri::StageBits::FRAGMENT_SHADER, .bytecode = bytecode.data(), .size = bytecode.size(), .entryPointName = settings.fragmentEntryPoint.c_str()},
+      {.stage = nri::StageBits::VERTEX_SHADER, .bytecode = vertexBytecode.data(), .size = vertexBytecode.size(), .entryPointName = settings.vertexShader->GetEntryPoint().c_str()},
+      {.stage = nri::StageBits::FRAGMENT_SHADER, .bytecode = fragmentBytecode.data(), .size = fragmentBytecode.size(), .entryPointName = settings.fragmentShader->GetEntryPoint().c_str()},
    };
 
    // One vertex buffer ("stream") in binding slot 0.
@@ -70,12 +80,13 @@ Pipeline::Pipeline(GraphicsDevice& device, const GraphicsPipelineSettings& setti
       .stride = static_cast<uint16_t>(settings.vertexStride),
    };
 
-   // Only the Vulkan location is filled in for each attribute. A D3D backend would also
-   // need HLSL semantic names here, matching those in the shader.
+   // NRI takes both ways of naming the shader input and uses the one for its backend. The
+   // semantic name pointers stay valid because settings outlives pipeline creation.
    std::vector<nri::VertexAttributeDesc> attributes;
    attributes.reserve(settings.vertexAttributes.size());
    for (const auto& attribute : settings.vertexAttributes) {
       attributes.push_back({
+         .d3d = {attribute.semanticName.c_str(), attribute.semanticIndex},
          .vk = {attribute.location},
          .offset = attribute.offset,
          .format = Pikzel::ToNri(attribute.format),

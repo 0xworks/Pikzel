@@ -6,7 +6,7 @@ target_sources(
       Main.cpp
 )
 
-pikzel_add_shaders(SrgbTest SrgbTest.slang)
+pikzel_add_shader(SrgbTest SrgbTest.slang ENTRY_POINTS VertexMain FragmentMain)
 
 target_link_libraries(SrgbTest PRIVATE Pikzel::Pikzel)
 

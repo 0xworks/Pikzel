@@ -6,7 +6,7 @@ target_sources(
       Main.cpp
 )
 
-pikzel_add_shaders(HelloTriangle Triangle.slang)
+pikzel_add_shader(HelloTriangle Triangle.slang ENTRY_POINTS VertexMain FragmentMain)
 
 target_link_libraries(HelloTriangle PRIVATE Pikzel::Pikzel)
 
