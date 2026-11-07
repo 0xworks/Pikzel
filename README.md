@@ -10,7 +10,7 @@ The project aims to provide a clean, modular and extensible foundation for game 
 
 Rather than attempting to replicate the feature set of large commercial engines, the focus is on a well-designed architecture, performance, flexibility and high-quality core systems.
 
-**This project is currently in early development.** Architecture, technology choices and implementation details are subject to change.  A much earlier and simpler incarnation of this project can be found in the [1.x branch](/0xworks/Pikzel/tree/1.x)
+**This project is currently in early development.** Architecture, technology choices and implementation details are subject to change.  A much earlier and simpler incarnation of this project can be found in the [1.x branch](//0xworks/Pikzel/tree/1.x)
 
 ## Design Goals
 
